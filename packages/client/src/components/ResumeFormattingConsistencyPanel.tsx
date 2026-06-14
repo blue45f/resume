@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { checkResumeFormattingConsistency } from '@/lib/resumeFormattingConsistencyChecker';
+import { useMemo } from 'react'
+
+import { checkResumeFormattingConsistency } from '@/lib/resumeFormattingConsistencyChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const ISSUE_LABEL: Record<string, string> = {
@@ -10,21 +11,21 @@ const ISSUE_LABEL: Record<string, string> = {
   mixed_bullet_styles: '불릿 기호 혼용',
   mixed_sentence_endings: '마침표 비일관',
   mixed_number_formats: '숫자 표기 혼용',
-};
+}
 
 const CONSISTENCY_LABEL: Record<string, string> = {
   consistent: '일관됨',
   minor_issues: '소폭 불일치',
   inconsistent: '불일치 다수',
-};
+}
 
 export default function ResumeFormattingConsistencyPanel({ text }: Props) {
-  const report = useMemo(() => checkResumeFormattingConsistency(text), [text]);
+  const report = useMemo(() => checkResumeFormattingConsistency(text), [text])
 
-  if (report.consistency === 'consistent') return null;
-  if (text.trim().length < 80) return null;
+  if (report.consistency === 'consistent') return null
+  if (text.trim().length < 80) return null
 
-  const isWarn = report.consistency === 'inconsistent';
+  const isWarn = report.consistency === 'inconsistent'
 
   return (
     <aside
@@ -64,5 +65,5 @@ export default function ResumeFormattingConsistencyPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

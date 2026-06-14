@@ -1,17 +1,18 @@
-import { useMemo } from 'react';
-import { analyzeSkillFreshness } from '@/lib/skillFreshnessAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeSkillFreshness } from '@/lib/skillFreshnessAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function SkillFreshnessPanel({ text }: Props) {
-  const report = useMemo(() => analyzeSkillFreshness(text), [text]);
+  const report = useMemo(() => analyzeSkillFreshness(text), [text])
 
-  if (report.legacyCount === 0 && report.agingCount === 0) return null;
-  if (text.trim().length < 40) return null;
+  if (report.legacyCount === 0 && report.agingCount === 0) return null
+  if (text.trim().length < 40) return null
 
-  const isWarning = report.legacyCount >= 1;
+  const isWarning = report.legacyCount >= 1
 
   return (
     <aside
@@ -63,5 +64,5 @@ export default function SkillFreshnessPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

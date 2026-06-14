@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { estimateJobLevel, analyzeActivityChronology } from '@/lib/resumeScoring';
+import { useMemo } from 'react'
+
+import { estimateJobLevel, analyzeActivityChronology } from '@/lib/resumeScoring'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -10,23 +11,23 @@ const LEVEL_LABEL: Record<string, string> = {
   mid: 'Mid',
   senior: 'Senior',
   lead: 'Lead',
-};
+}
 
 const LEVEL_COLOR: Record<string, string> = {
   junior: 'var(--color-accent)',
   mid: 'color-mix(in oklab, var(--color-accent) 70%, var(--color-success))',
   senior: 'var(--color-success)',
   lead: 'color-mix(in oklab, var(--color-success) 80%, var(--color-text))',
-};
+}
 
 export default function ResumeJobLevelPanel({ text }: Props) {
-  const level = useMemo(() => estimateJobLevel(text), [text]);
-  const chrono = useMemo(() => analyzeActivityChronology(text), [text]);
+  const level = useMemo(() => estimateJobLevel(text), [text])
+  const chrono = useMemo(() => analyzeActivityChronology(text), [text])
 
-  if (level.years === 0 && chrono.order === 'single-or-none') return null;
-  if (text.trim().length < 60) return null;
+  if (level.years === 0 && chrono.order === 'single-or-none') return null
+  if (text.trim().length < 60) return null
 
-  const chronoIssue = chrono.order === 'mixed' || chrono.order === 'oldest-first';
+  const chronoIssue = chrono.order === 'mixed' || chrono.order === 'oldest-first'
 
   return (
     <aside className="job-level-card" aria-label="경력 레벨 및 시간순 분석">
@@ -67,5 +68,5 @@ export default function ResumeJobLevelPanel({ text }: Props) {
         </div>
       )}
     </aside>
-  );
+  )
 }

@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { PLANS, RECRUITER_PLANS, formatPrice, isMonetizationEnabled } from '@/lib/plans';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { API_URL } from '@/lib/config';
-import { tx } from '@/lib/i18n';
+import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { PLANS, RECRUITER_PLANS, formatPrice, isMonetizationEnabled } from '@/lib/plans'
+import { ROUTES } from '@/lib/routes'
 
 const DEFAULT_FAQ = [
   {
@@ -26,7 +27,7 @@ const DEFAULT_FAQ = [
     q: '연간 결제와 월간 결제의 차이점은 무엇인가요?',
     a: '연간 결제 시 월간 대비 약 17% 할인된 가격으로 이용하실 수 있습니다. 장기 사용 계획이 있으시다면 연간 결제를 추천드립니다.',
   },
-];
+]
 
 function FeatureRow({
   label,
@@ -34,10 +35,10 @@ function FeatureRow({
   pro,
   ent,
 }: {
-  label: string;
-  free: string | boolean;
-  pro: string | boolean;
-  ent: string | boolean;
+  label: string
+  free: string | boolean
+  pro: string | boolean
+  ent: string | boolean
 }) {
   return (
     <tr className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
@@ -70,35 +71,35 @@ function FeatureRow({
         </td>
       ))}
     </tr>
-  );
+  )
 }
 
 export default function PricingPage() {
-  const [yearly, setYearly] = useState(false);
-  const _user = getUser();
-  const currentPlan = _user?.plan || 'free';
+  const [yearly, setYearly] = useState(false)
+  const _user = getUser()
+  const currentPlan = _user?.plan || 'free'
   const [planType, setPlanType] = useState<'personal' | 'recruiter'>(
-    _user?.userType === 'recruiter' || _user?.userType === 'company' ? 'recruiter' : 'personal',
-  );
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const displayPlans = planType === 'recruiter' ? RECRUITER_PLANS : PLANS;
+    _user?.userType === 'recruiter' || _user?.userType === 'company' ? 'recruiter' : 'personal'
+  )
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const displayPlans = planType === 'recruiter' ? RECRUITER_PLANS : PLANS
 
   useEffect(() => {
-    document.title = '요금제 — 이력서공방';
+    document.title = '요금제 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const { data: dynamicFaq } = useQuery<typeof DEFAULT_FAQ | null>({
     queryKey: ['pricing-faq'],
     queryFn: () =>
       fetch(`${API_URL}/api/system-config/content/pricing_faq`).then((r) =>
-        r.ok ? r.json() : null,
+        r.ok ? r.json() : null
       ),
     staleTime: 5 * 60_000,
-  });
-  const faqItems = dynamicFaq?.length ? dynamicFaq : DEFAULT_FAQ;
+  })
+  const faqItems = dynamicFaq?.length ? dynamicFaq : DEFAULT_FAQ
 
   return (
     <>
@@ -216,7 +217,7 @@ export default function PricingPage() {
         {/* Plan cards */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 -mt-2">
           {displayPlans.map((plan) => {
-            const isCurrentPlan = plan.id === currentPlan;
+            const isCurrentPlan = plan.id === currentPlan
             return (
               <div
                 key={plan.id}
@@ -553,7 +554,7 @@ export default function PricingPage() {
                   </Link>
                 )}
               </div>
-            );
+            )
           })}
         </div>
 
@@ -654,5 +655,5 @@ export default function PricingPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

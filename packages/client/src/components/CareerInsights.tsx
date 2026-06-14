@@ -1,11 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { API_URL } from '@/lib/config';
-import { formatDate } from '@/lib/time';
-import { fetchResumes } from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import type { ResumeSummary } from '@/types/resume';
+import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ResponsiveContainer,
   RadialBarChart,
@@ -17,65 +11,73 @@ import {
   YAxis,
   Tooltip,
   Cell,
-} from 'recharts';
+} from 'recharts'
+
+import type { ResumeSummary } from '@/types/resume'
+
+import { fetchResumes } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
 
 interface JobPost {
-  id: string;
-  company: string;
-  position: string;
-  skills: string;
-  salary: string;
-  type: string;
-  createdAt: string;
+  id: string
+  company: string
+  position: string
+  skills: string
+  salary: string
+  type: string
+  createdAt: string
 }
 
 interface SkillTrend {
-  name: string;
-  count: number;
-  trend: 'up' | 'down' | 'stable';
-  owned: boolean;
+  name: string
+  count: number
+  trend: 'up' | 'down' | 'stable'
+  owned: boolean
 }
 
 interface MarketValueScore {
-  total: number;
-  breakdown: { label: string; score: number; max: number }[];
+  total: number
+  breakdown: { label: string; score: number; max: number }[]
 }
 
 interface LearningRec {
-  title: string;
-  type: 'course' | 'cert' | 'project';
-  skill: string;
-  reason: string;
-  impact: string;
+  title: string
+  type: 'course' | 'cert' | 'project'
+  skill: string
+  reason: string
+  impact: string
 }
 
 interface NewsItem {
-  id: string;
-  title: string;
-  url: string;
-  source: string;
-  pubDate: string;
+  id: string
+  title: string
+  url: string
+  source: string
+  pubDate: string
 }
 
 interface RssNewsItem {
-  title?: unknown;
-  url?: unknown;
-  source?: unknown;
-  pubDate?: unknown;
+  title?: unknown
+  url?: unknown
+  source?: unknown
+  pubDate?: unknown
 }
 
 interface CareerInsightsProps {
-  now?: string | number | Date;
+  now?: string | number | Date
 }
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000
 
 const JOB_TYPE_LABELS: Record<string, string> = {
   fulltime: '정규직',
   contract: '계약직',
   parttime: '파트타임',
   intern: '인턴',
-};
+}
 
 // Industry classification keywords (Korean + English)
 const INDUSTRY_MAP: { id: string; label: string; icon: string; keywords: string[] }[] = [
@@ -341,60 +343,60 @@ const INDUSTRY_MAP: { id: string; label: string; icon: string; keywords: string[
     ],
   },
   { id: 'other', label: '기타', icon: '✨', keywords: [] },
-];
+]
 
 function detectIndustry(position: string, skills: string): string {
-  const text = `${position} ${skills}`.toLowerCase();
+  const text = `${position} ${skills}`.toLowerCase()
   for (const ind of INDUSTRY_MAP.slice(0, -1)) {
     if (ind.keywords.some((kw) => text.includes(kw.toLowerCase()))) {
-      return ind.id;
+      return ind.id
     }
   }
-  return 'other';
+  return 'other'
 }
 
 function parseSalaryNumber(salary: string): number | null {
-  if (!salary) return null;
-  const cleaned = salary.replace(/[^0-9]/g, '');
-  if (!cleaned) return null;
-  const num = parseInt(cleaned, 10);
-  if (num > 0 && num < 100000) return num;
-  return null;
+  if (!salary) return null
+  const cleaned = salary.replace(/[^0-9]/g, '')
+  if (!cleaned) return null
+  const num = parseInt(cleaned, 10)
+  if (num > 0 && num < 100000) return num
+  return null
 }
 
 function resolveReferenceTime(now: CareerInsightsProps['now'], fallback: number): number {
-  if (now === undefined) return fallback;
-  const time = now instanceof Date ? now.getTime() : new Date(now).getTime();
-  return Number.isFinite(time) ? time : fallback;
+  if (now === undefined) return fallback
+  const time = now instanceof Date ? now.getTime() : new Date(now).getTime()
+  return Number.isFinite(time) ? time : fallback
 }
 
 function asText(value: unknown): string {
-  return typeof value === 'string' ? value : '';
+  return typeof value === 'string' ? value : ''
 }
 
 function toNewsItems(items: unknown): NewsItem[] {
-  if (!Array.isArray(items)) return [];
+  if (!Array.isArray(items)) return []
   return items.slice(0, 6).map((item: RssNewsItem, index) => ({
     id: String(index),
     title: asText(item?.title),
     url: asText(item?.url),
     source: asText(item?.source),
     pubDate: asText(item?.pubDate),
-  }));
+  }))
 }
 
 export default function CareerInsights({ now }: CareerInsightsProps = {}) {
-  const user = getUser();
-  const [jobs, setJobs] = useState<JobPost[]>([]);
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [resumes, setResumes] = useState<ResumeSummary[]>([]);
-  const [collapsed, setCollapsed] = useState(false);
-  const [activeTab, setActiveTab] = useState<'market' | 'skills' | 'learning' | 'news'>('market');
-  const [loading, setLoading] = useState(true);
-  const [industryFilter, setIndustryFilter] = useState<string>('all');
-  const [myIndustry, setMyIndustry] = useState<string>('');
-  const [initialNowMs] = useState(() => Date.now());
-  const nowMs = useMemo(() => resolveReferenceTime(now, initialNowMs), [initialNowMs, now]);
+  const user = getUser()
+  const [jobs, setJobs] = useState<JobPost[]>([])
+  const [news, setNews] = useState<NewsItem[]>([])
+  const [resumes, setResumes] = useState<ResumeSummary[]>([])
+  const [collapsed, setCollapsed] = useState(false)
+  const [activeTab, setActiveTab] = useState<'market' | 'skills' | 'learning' | 'news'>('market')
+  const [loading, setLoading] = useState(true)
+  const [industryFilter, setIndustryFilter] = useState<string>('all')
+  const [myIndustry, setMyIndustry] = useState<string>('')
+  const [initialNowMs] = useState(() => Date.now())
+  const nowMs = useMemo(() => resolveReferenceTime(now, initialNowMs), [initialNowMs, now])
 
   useEffect(() => {
     Promise.all([
@@ -408,55 +410,55 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
         .catch(() => []),
     ])
       .then(([jobData, resumeData, newsData]) => {
-        setJobs(jobData);
-        setResumes(resumeData);
-        setNews(newsData.filter((n) => n.title));
+        setJobs(jobData)
+        setResumes(resumeData)
+        setNews(newsData.filter((n) => n.title))
       })
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => setLoading(false))
+  }, [])
 
   const inferredIndustry = useMemo(() => {
-    if (resumes.length === 0) return;
-    const allSkills = resumes.flatMap((r) => r.skills?.map((s) => s.items) || []).join(',');
-    const title = resumes[0]?.personalInfo?.name || '';
-    const detected = detectIndustry(title, allSkills);
-    return detected !== 'other' ? detected : 'it';
-  }, [resumes]);
-  const selectedIndustry = myIndustry || inferredIndustry || '';
+    if (resumes.length === 0) return
+    const allSkills = resumes.flatMap((r) => r.skills?.map((s) => s.items) || []).join(',')
+    const title = resumes[0]?.personalInfo?.name || ''
+    const detected = detectIndustry(title, allSkills)
+    return detected !== 'other' ? detected : 'it'
+  }, [resumes])
+  const selectedIndustry = myIndustry || inferredIndustry || ''
 
   // Classify all jobs by industry
   const jobsWithIndustry = useMemo(
     () => jobs.map((j) => ({ ...j, industry: detectIndustry(j.position, j.skills) })),
-    [jobs],
-  );
+    [jobs]
+  )
 
   // Industry distribution
   const industryDist = useMemo(() => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, number> = {}
     jobsWithIndustry.forEach((j) => {
-      counts[j.industry] = (counts[j.industry] || 0) + 1;
-    });
+      counts[j.industry] = (counts[j.industry] || 0) + 1
+    })
     return INDUSTRY_MAP.map((ind) => ({
       ...ind,
       count: counts[ind.id] || 0,
     }))
       .filter((ind) => ind.count > 0)
-      .sort((a, b) => b.count - a.count);
-  }, [jobsWithIndustry]);
+      .sort((a, b) => b.count - a.count)
+  }, [jobsWithIndustry])
 
   // User's skills
   const userSkills = useMemo((): Set<string> => {
-    const skills = new Set<string>();
+    const skills = new Set<string>()
     resumes.forEach((r) => {
       r.skills?.forEach((sk) => {
         sk.items.split(',').forEach((item) => {
-          const trimmed = item.trim().toLowerCase();
-          if (trimmed) skills.add(trimmed);
-        });
-      });
-    });
-    return skills;
-  }, [resumes]);
+          const trimmed = item.trim().toLowerCase()
+          if (trimmed) skills.add(trimmed)
+        })
+      })
+    })
+    return skills
+  }, [resumes])
 
   // Filtered jobs for skill analysis
   const filteredJobs = useMemo(
@@ -464,74 +466,74 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
       industryFilter === 'all'
         ? jobsWithIndustry
         : jobsWithIndustry.filter((j) => j.industry === industryFilter),
-    [jobsWithIndustry, industryFilter],
-  );
+    [jobsWithIndustry, industryFilter]
+  )
 
   // Skill trends
   const skillTrends = useMemo((): SkillTrend[] => {
-    const counts: Record<string, number> = {};
+    const counts: Record<string, number> = {}
     filteredJobs.forEach((j) => {
-      if (!j.skills) return;
+      if (!j.skills) return
       j.skills.split(',').forEach((s) => {
-        const skill = s.trim().toLowerCase();
-        if (skill) counts[skill] = (counts[skill] || 0) + 1;
-      });
-    });
+        const skill = s.trim().toLowerCase()
+        if (skill) counts[skill] = (counts[skill] || 0) + 1
+      })
+    })
 
     // Recent vs older trend
-    const recentCounts: Record<string, number> = {};
-    const olderCounts: Record<string, number> = {};
+    const recentCounts: Record<string, number> = {}
+    const olderCounts: Record<string, number> = {}
     filteredJobs.forEach((j) => {
-      if (!j.skills) return;
-      const isRecent = nowMs - new Date(j.createdAt).getTime() < WEEK_MS;
+      if (!j.skills) return
+      const isRecent = nowMs - new Date(j.createdAt).getTime() < WEEK_MS
       j.skills.split(',').forEach((s) => {
-        const skill = s.trim().toLowerCase();
-        if (!skill) return;
-        if (isRecent) recentCounts[skill] = (recentCounts[skill] || 0) + 1;
-        else olderCounts[skill] = (olderCounts[skill] || 0) + 1;
-      });
-    });
+        const skill = s.trim().toLowerCase()
+        if (!skill) return
+        if (isRecent) recentCounts[skill] = (recentCounts[skill] || 0) + 1
+        else olderCounts[skill] = (olderCounts[skill] || 0) + 1
+      })
+    })
 
     const sorted = Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 12);
+      .slice(0, 12)
 
     return sorted.map(([name, count]) => {
-      const recent = recentCounts[name] || 0;
-      const older = olderCounts[name] || 0;
-      let trend: 'up' | 'down' | 'stable' = 'stable';
-      if (recent > older * 1.2) trend = 'up';
-      else if (recent < older * 0.8 && older > 0) trend = 'down';
-      return { name, count, trend, owned: userSkills.has(name) };
-    });
-  }, [filteredJobs, nowMs, userSkills]);
+      const recent = recentCounts[name] || 0
+      const older = olderCounts[name] || 0
+      let trend: 'up' | 'down' | 'stable' = 'stable'
+      if (recent > older * 1.2) trend = 'up'
+      else if (recent < older * 0.8 && older > 0) trend = 'down'
+      return { name, count, trend, owned: userSkills.has(name) }
+    })
+  }, [filteredJobs, nowMs, userSkills])
 
   // Market value score (industry-aware)
   const marketValue = useMemo((): MarketValueScore => {
-    const skillScore = Math.min(30, userSkills.size * 3);
-    const expScore = Math.min(25, resumes.length * 5);
-    const eduScore = resumes.length > 0 ? 10 : 0;
+    const skillScore = Math.min(30, userSkills.size * 3)
+    const expScore = Math.min(25, resumes.length * 5)
+    const eduScore = resumes.length > 0 ? 10 : 0
 
     // Industry demand match
     const inIndustry =
       selectedIndustry !== '' && selectedIndustry !== 'all'
         ? jobsWithIndustry.filter((j) => j.industry === selectedIndustry)
-        : jobsWithIndustry;
-    const indSkillCounts: Record<string, number> = {};
+        : jobsWithIndustry
+    const indSkillCounts: Record<string, number> = {}
     inIndustry.forEach((j) => {
       j.skills.split(',').forEach((s) => {
-        const k = s.trim().toLowerCase();
-        if (k) indSkillCounts[k] = (indSkillCounts[k] || 0) + 1;
-      });
-    });
+        const k = s.trim().toLowerCase()
+        if (k) indSkillCounts[k] = (indSkillCounts[k] || 0) + 1
+      })
+    })
     const topIndustrySkills = Object.entries(indSkillCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 20)
-      .map(([k]) => k);
-    const matchCount = topIndustrySkills.filter((sk) => userSkills.has(sk)).length;
-    const demandScore = Math.min(25, matchCount * 5);
+      .map(([k]) => k)
+    const matchCount = topIndustrySkills.filter((sk) => userSkills.has(sk)).length
+    const demandScore = Math.min(25, matchCount * 5)
 
-    const total = Math.min(100, skillScore + expScore + eduScore + demandScore);
+    const total = Math.min(100, skillScore + expScore + eduScore + demandScore)
 
     return {
       total,
@@ -541,54 +543,54 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
         { label: '학력/자격', score: eduScore, max: 20 },
         { label: '직종 수요 매칭', score: demandScore, max: 25 },
       ],
-    };
-  }, [userSkills, resumes, jobsWithIndustry, selectedIndustry]);
+    }
+  }, [userSkills, resumes, jobsWithIndustry, selectedIndustry])
 
   // Learning recommendations (universal — no hardcoding)
   const learningRecs = useMemo((): LearningRec[] => {
-    const recs: LearningRec[] = [];
-    const trendingNotOwned = skillTrends.filter((st) => st.trend === 'up' && !st.owned);
+    const recs: LearningRec[] = []
+    const trendingNotOwned = skillTrends.filter((st) => st.trend === 'up' && !st.owned)
     trendingNotOwned.forEach((st) => {
       const type =
         st.count >= 5
           ? ('cert' as const)
           : st.count >= 3
             ? ('course' as const)
-            : ('project' as const);
+            : ('project' as const)
       recs.push({
         title: `${st.name} ${type === 'cert' ? '관련 자격 취득' : type === 'course' ? '학습 과정' : '실습 프로젝트'}`,
         type,
         skill: st.name,
         reason: `${st.count}개 공고에서 요구`,
         impact: st.trend === 'up' ? '수요 상승 중' : '안정적 수요',
-      });
-    });
-    return recs.slice(0, 5);
-  }, [skillTrends]);
+      })
+    })
+    return recs.slice(0, 5)
+  }, [skillTrends])
 
   // Salary by job type
   const salaryTrends = useMemo(() => {
-    const byType: Record<string, number[]> = {};
+    const byType: Record<string, number[]> = {}
     jobs.forEach((j) => {
-      if (!j.salary) return;
-      const num = parseSalaryNumber(j.salary);
-      if (num === null) return;
-      const type = j.type || 'other';
-      if (!byType[type]) byType[type] = [];
-      byType[type].push(num);
-    });
+      if (!j.salary) return
+      const num = parseSalaryNumber(j.salary)
+      if (num === null) return
+      const type = j.type || 'other'
+      if (!byType[type]) byType[type] = []
+      byType[type].push(num)
+    })
     return Object.entries(byType)
       .map(([type, salaries]) => {
-        const avg = Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length);
+        const avg = Math.round(salaries.reduce((a, b) => a + b, 0) / salaries.length)
         return {
           type,
           label: JOB_TYPE_LABELS[type] || type,
           avgSalary: `${avg.toLocaleString()}만원`,
           count: salaries.length,
-        };
+        }
       })
-      .sort((a, b) => b.count - a.count);
-  }, [jobs]);
+      .sort((a, b) => b.count - a.count)
+  }, [jobs])
 
   if (loading) {
     return (
@@ -604,24 +606,24 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
           ))}
         </div>
       </div>
-    );
+    )
   }
 
-  if (!user || jobs.length === 0) return null;
+  if (!user || jobs.length === 0) return null
 
   const trendIcon = (trend: 'up' | 'down' | 'stable') => {
-    if (trend === 'up') return <span className="text-green-500 text-[10px] font-bold">▲</span>;
-    if (trend === 'down') return <span className="text-red-500 text-[10px] font-bold">▼</span>;
-    return <span className="text-slate-400 text-[10px] font-bold">━</span>;
-  };
+    if (trend === 'up') return <span className="text-green-500 text-[10px] font-bold">▲</span>
+    if (trend === 'down') return <span className="text-red-500 text-[10px] font-bold">▼</span>
+    return <span className="text-slate-400 text-[10px] font-bold">━</span>
+  }
 
   const typeIcon = (type: 'course' | 'cert' | 'project') => {
-    if (type === 'cert') return '🏅';
-    if (type === 'project') return '🔨';
-    return '📚';
-  };
+    if (type === 'cert') return '🏅'
+    if (type === 'project') return '🔨'
+    return '📚'
+  }
 
-  const myIndustryInfo = INDUSTRY_MAP.find((i) => i.id === selectedIndustry);
+  const myIndustryInfo = INDUSTRY_MAP.find((i) => i.id === selectedIndustry)
 
   return (
     <div className="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-fade-in">
@@ -846,7 +848,7 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
                   </p>
                   <div className="space-y-1.5">
                     {industryDist.slice(0, 6).map((ind) => {
-                      const pct = Math.round((ind.count / jobs.length) * 100);
+                      const pct = Math.round((ind.count / jobs.length) * 100)
                       return (
                         <div key={ind.id} className="flex items-center gap-2">
                           <span className="text-sm w-5 shrink-0 text-center">{ind.icon}</span>
@@ -863,7 +865,7 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
                             {ind.count}건
                           </span>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 </div>
@@ -924,7 +926,7 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
               {skillTrends.length > 0 ? (
                 <div className="space-y-2">
                   {skillTrends.map((sk, i) => {
-                    const maxCount = skillTrends[0]?.count || 1;
+                    const maxCount = skillTrends[0]?.count || 1
                     return (
                       <div key={sk.name} className="flex items-center gap-2.5">
                         <span className="w-4 text-[10px] text-slate-500 dark:text-slate-400 text-right font-medium">
@@ -955,7 +957,7 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
                           </div>
                         </div>
                       </div>
-                    );
+                    )
                   })}
                   {/* Summary */}
                   <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-center">
@@ -1121,5 +1123,5 @@ export default function CareerInsights({ now }: CareerInsightsProps = {}) {
         </div>
       )}
     </div>
-  );
+  )
 }

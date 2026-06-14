@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const templateFormSchema = z.object({
   name: z
@@ -19,6 +19,6 @@ export const templateFormSchema = z.object({
     .or(z.literal('')),
   sections: z.array(z.string()).min(0),
   dateFormat: z.string().trim().min(1, '날짜 형식을 선택해주세요').max(30),
-});
+})
 
-export type TemplateFormValues = z.infer<typeof templateFormSchema>;
+export type TemplateFormValues = z.infer<typeof templateFormSchema>

@@ -7,13 +7,14 @@
  *     <Routes>...</Routes>
  *   </TooltipProvider>
  */
-import * as RadixTooltip from '@radix-ui/react-tooltip';
-import type { ReactNode } from 'react';
+import * as RadixTooltip from '@radix-ui/react-tooltip'
+
+import type { ReactNode } from 'react'
 
 interface Props {
-  children: ReactNode;
-  delayDuration?: number;
-  skipDelayDuration?: number;
+  children: ReactNode
+  delayDuration?: number
+  skipDelayDuration?: number
 }
 
 export default function TooltipProvider({
@@ -25,5 +26,5 @@ export default function TooltipProvider({
     <RadixTooltip.Provider delayDuration={delayDuration} skipDelayDuration={skipDelayDuration}>
       {children}
     </RadixTooltip.Provider>
-  );
+  )
 }

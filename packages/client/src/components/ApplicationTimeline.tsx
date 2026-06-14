@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react'
 
 interface Props {
-  applicationId: string;
-  status: string;
-  appliedDate?: string;
-  createdAt: string;
-  updatedAt: string;
-  now?: string | number | Date;
+  applicationId: string
+  status: string
+  appliedDate?: string
+  createdAt: string
+  updatedAt: string
+  now?: string | number | Date
 }
 
 const STAGES = [
@@ -42,7 +42,7 @@ const STAGES = [
     textColor: 'text-green-600 dark:text-green-400',
     avgDays: 7,
   },
-];
+]
 
 const TERMINAL_STAGES: Record<
   string,
@@ -60,43 +60,43 @@ const TERMINAL_STAGES: Record<
     lightColor: 'bg-slate-100 dark:bg-slate-700',
     textColor: 'text-slate-500 dark:text-slate-400',
   },
-};
+}
 
 interface TimelineEntry {
-  key: string;
-  label: string;
-  date: string | null;
-  daysInStage: number | null;
-  isActive: boolean;
-  isCurrent: boolean;
-  isTerminal: boolean;
-  color: string;
-  lightColor: string;
-  textColor: string;
+  key: string
+  label: string
+  date: string | null
+  daysInStage: number | null
+  isActive: boolean
+  isCurrent: boolean
+  isTerminal: boolean
+  color: string
+  lightColor: string
+  textColor: string
 }
 
 function getStorageKey(appId: string) {
-  return `app_timeline_${appId}`;
+  return `app_timeline_${appId}`
 }
 
 function loadTimelineHistory(appId: string): Record<string, string> {
   try {
-    const raw = localStorage.getItem(getStorageKey(appId));
-    return raw ? JSON.parse(raw) : {};
+    const raw = localStorage.getItem(getStorageKey(appId))
+    return raw ? JSON.parse(raw) : {}
   } catch {
-    return {};
+    return {}
   }
 }
 
 function saveTimelineHistory(appId: string, history: Record<string, string>) {
-  localStorage.setItem(getStorageKey(appId), JSON.stringify(history));
+  localStorage.setItem(getStorageKey(appId), JSON.stringify(history))
 }
 
 function resolveReferenceTime(now: Props['now'], fallback: number): number {
-  if (now === undefined) return fallback;
+  if (now === undefined) return fallback
 
-  const time = now instanceof Date ? now.getTime() : new Date(now).getTime();
-  return Number.isFinite(time) ? time : fallback;
+  const time = now instanceof Date ? now.getTime() : new Date(now).getTime()
+  return Number.isFinite(time) ? time : fallback
 }
 
 export default function ApplicationTimeline({
@@ -107,46 +107,46 @@ export default function ApplicationTimeline({
   updatedAt,
   now,
 }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [initialNowMs] = useState(() => Date.now());
-  const nowMs = useMemo(() => resolveReferenceTime(now, initialNowMs), [initialNowMs, now]);
+  const [expanded, setExpanded] = useState(false)
+  const [initialNowMs] = useState(() => Date.now())
+  const nowMs = useMemo(() => resolveReferenceTime(now, initialNowMs), [initialNowMs, now])
 
   const timeline = useMemo(() => {
     // Load persisted stage dates
-    const history = loadTimelineHistory(applicationId);
-    const startDate = appliedDate || createdAt;
-    const stageOrder = STAGES.map((s) => s.key);
-    const currentIdx = stageOrder.indexOf(status);
-    const isTerminal = status === 'rejected' || status === 'withdrawn';
+    const history = loadTimelineHistory(applicationId)
+    const startDate = appliedDate || createdAt
+    const stageOrder = STAGES.map((s) => s.key)
+    const currentIdx = stageOrder.indexOf(status)
+    const isTerminal = status === 'rejected' || status === 'withdrawn'
 
     // Ensure current status date is recorded
     if (!history[status]) {
-      history[status] = updatedAt;
-      if (!history['applied']) history['applied'] = startDate;
-      saveTimelineHistory(applicationId, history);
+      history[status] = updatedAt
+      if (!history['applied']) history['applied'] = startDate
+      saveTimelineHistory(applicationId, history)
     }
 
     const entries: TimelineEntry[] = STAGES.map((stage, i) => {
-      const isActive = isTerminal ? i <= Math.max(0, currentIdx) : i <= currentIdx;
-      const isCurrent = !isTerminal && stage.key === status;
-      const date = history[stage.key] || null;
+      const isActive = isTerminal ? i <= Math.max(0, currentIdx) : i <= currentIdx
+      const isCurrent = !isTerminal && stage.key === status
+      const date = history[stage.key] || null
 
-      let daysInStage: number | null = null;
+      let daysInStage: number | null = null
       if (date && i > 0) {
-        const prevStage = STAGES[i - 1];
-        const prevDate = history[prevStage.key];
+        const prevStage = STAGES[i - 1]
+        const prevDate = history[prevStage.key]
         if (prevDate) {
           daysInStage = Math.max(
             0,
-            Math.round((new Date(date).getTime() - new Date(prevDate).getTime()) / 86400000),
-          );
+            Math.round((new Date(date).getTime() - new Date(prevDate).getTime()) / 86400000)
+          )
         }
       }
 
       // If current stage, calculate days since entering
       if (isCurrent) {
-        const entryDate = date || updatedAt;
-        daysInStage = Math.max(0, Math.round((nowMs - new Date(entryDate).getTime()) / 86400000));
+        const entryDate = date || updatedAt
+        daysInStage = Math.max(0, Math.round((nowMs - new Date(entryDate).getTime()) / 86400000))
       }
 
       return {
@@ -160,12 +160,12 @@ export default function ApplicationTimeline({
         color: stage.color,
         lightColor: stage.lightColor,
         textColor: stage.textColor,
-      };
-    });
+      }
+    })
 
     // Add terminal stage if applicable
     if (isTerminal) {
-      const terminal = TERMINAL_STAGES[status];
+      const terminal = TERMINAL_STAGES[status]
       entries.push({
         key: status,
         label: terminal.label,
@@ -177,40 +177,40 @@ export default function ApplicationTimeline({
         color: terminal.color,
         lightColor: terminal.lightColor,
         textColor: terminal.textColor,
-      });
+      })
     }
 
-    return entries;
-  }, [applicationId, status, appliedDate, createdAt, updatedAt, nowMs]);
+    return entries
+  }, [applicationId, status, appliedDate, createdAt, updatedAt, nowMs])
 
   // Calculate total days
   const totalDays = useMemo(() => {
-    const start = new Date(appliedDate || createdAt).getTime();
-    return Math.max(0, Math.round((nowMs - start) / 86400000));
-  }, [appliedDate, createdAt, nowMs]);
+    const start = new Date(appliedDate || createdAt).getTime()
+    return Math.max(0, Math.round((nowMs - start) / 86400000))
+  }, [appliedDate, createdAt, nowMs])
 
   // Determine expected next step
   const nextStep = useMemo(() => {
-    const stageOrder = STAGES.map((s) => s.key);
-    const idx = stageOrder.indexOf(status);
-    if (status === 'rejected' || status === 'withdrawn' || status === 'offer') return null;
+    const stageOrder = STAGES.map((s) => s.key)
+    const idx = stageOrder.indexOf(status)
+    if (status === 'rejected' || status === 'withdrawn' || status === 'offer') return null
     if (idx < stageOrder.length - 1) {
-      const next = STAGES[idx + 1];
-      return { label: next.label, avgDays: next.avgDays };
+      const next = STAGES[idx + 1]
+      return { label: next.label, avgDays: next.avgDays }
     }
-    return null;
-  }, [status]);
+    return null
+  }, [status])
 
   // Progress percentage for the bar
   const progressPct = useMemo(() => {
-    const stageOrder = STAGES.map((s) => s.key);
-    const idx = stageOrder.indexOf(status);
-    if (status === 'offer') return 100;
+    const stageOrder = STAGES.map((s) => s.key)
+    const idx = stageOrder.indexOf(status)
+    if (status === 'offer') return 100
     if (status === 'rejected' || status === 'withdrawn') {
-      return Math.max(10, ((idx + 1) / stageOrder.length) * 100);
+      return Math.max(10, ((idx + 1) / stageOrder.length) * 100)
     }
-    return Math.max(5, ((idx + 0.5) / stageOrder.length) * 100);
-  }, [status]);
+    return Math.max(5, ((idx + 0.5) / stageOrder.length) * 100)
+  }, [status])
 
   // Bar color based on terminal status
   const barColor =
@@ -220,7 +220,7 @@ export default function ApplicationTimeline({
         ? 'bg-gradient-to-r from-blue-500 to-slate-400'
         : status === 'offer'
           ? 'bg-gradient-to-r from-blue-500 via-sky-500 via-amber-500 to-green-500'
-          : 'bg-gradient-to-r from-blue-500 via-sky-500 to-amber-500';
+          : 'bg-gradient-to-r from-blue-500 via-sky-500 to-amber-500'
 
   return (
     <div className="mt-3">
@@ -351,5 +351,5 @@ export default function ApplicationTimeline({
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,40 +1,42 @@
-import { useState, useEffect, useRef } from 'react';
-import type { Resume } from '@/types/resume';
-import { calculateCompleteness } from '@/lib/completeness';
-import { analyzeAtsCompatibility } from '@/lib/ats';
+import { useState, useEffect, useRef } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { analyzeAtsCompatibility } from '@/lib/ats'
+import { calculateCompleteness } from '@/lib/completeness'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 /** Animated number counter hook */
 function useAnimatedCounter(target: number, duration = 800): number {
-  const [value, setValue] = useState(0);
-  const startTimeRef = useRef<number | null>(null);
-  const rafRef = useRef<number | undefined>(undefined);
+  const [value, setValue] = useState(0)
+  const startTimeRef = useRef<number | null>(null)
+  const rafRef = useRef<number | undefined>(undefined)
 
   useEffect(() => {
-    startTimeRef.current = null;
+    startTimeRef.current = null
 
     const animate = (timestamp: number) => {
-      if (startTimeRef.current === null) startTimeRef.current = timestamp;
-      const elapsed = timestamp - startTimeRef.current;
-      const progress = Math.min(elapsed / duration, 1);
+      if (startTimeRef.current === null) startTimeRef.current = timestamp
+      const elapsed = timestamp - startTimeRef.current
+      const progress = Math.min(elapsed / duration, 1)
       // Ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setValue(Math.round(eased * target));
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setValue(Math.round(eased * target))
       if (progress < 1) {
-        rafRef.current = requestAnimationFrame(animate);
+        rafRef.current = requestAnimationFrame(animate)
       }
-    };
+    }
 
-    rafRef.current = requestAnimationFrame(animate);
+    rafRef.current = requestAnimationFrame(animate)
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
-  }, [target, duration]);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [target, duration])
 
-  return value;
+  return value
 }
 
 /** Large SVG score circle for the overall score */
@@ -43,30 +45,30 @@ function ScoreCircle({
   size = 140,
   strokeWidth = 12,
 }: {
-  score: number;
-  size?: number;
-  strokeWidth?: number;
+  score: number
+  size?: number
+  strokeWidth?: number
 }) {
-  const animatedScore = useAnimatedCounter(score, 1000);
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const [offset, setOffset] = useState(circumference);
+  const animatedScore = useAnimatedCounter(score, 1000)
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const [offset, setOffset] = useState(circumference)
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setOffset(circumference - (score / 100) * circumference);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [score, circumference]);
+      setOffset(circumference - (score / 100) * circumference)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [score, circumference])
 
   const getScoreColor = (s: number) => {
-    if (s >= 80) return '#3b82f6';
-    if (s >= 60) return '#22c55e';
-    if (s >= 40) return '#f97316';
-    return '#ef4444';
-  };
+    if (s >= 80) return '#3b82f6'
+    if (s >= 60) return '#22c55e'
+    if (s >= 40) return '#f97316'
+    return '#ef4444'
+  }
 
-  const color = getScoreColor(score);
+  const color = getScoreColor(score)
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -100,18 +102,18 @@ function ScoreCircle({
         <span className="text-xs text-slate-500 dark:text-slate-400 -mt-1">/ 100</span>
       </div>
     </div>
-  );
+  )
 }
 
 /** Category mini bar */
 function CategoryBar({ label, score, color }: { label: string; score: number; color: string }) {
-  const animatedScore = useAnimatedCounter(score, 900);
-  const [barWidth, setBarWidth] = useState(0);
+  const animatedScore = useAnimatedCounter(score, 900)
+  const [barWidth, setBarWidth] = useState(0)
 
   useEffect(() => {
-    const timer = setTimeout(() => setBarWidth(score), 100);
-    return () => clearTimeout(timer);
-  }, [score]);
+    const timer = setTimeout(() => setBarWidth(score), 100)
+    return () => clearTimeout(timer)
+  }, [score])
 
   return (
     <div className="flex items-center gap-3">
@@ -130,24 +132,24 @@ function CategoryBar({ label, score, color }: { label: string; score: number; co
         {animatedScore}
       </span>
     </div>
-  );
+  )
 }
 
 export default function ResumeScoreboard({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false)
 
-  const completeness = calculateCompleteness(resume);
-  const ats = analyzeAtsCompatibility(resume);
+  const completeness = calculateCompleteness(resume)
+  const ats = analyzeAtsCompatibility(resume)
 
   // Calculate various scores
-  const expYears = resume.experiences.length;
-  const skillCount = resume.skills.reduce((sum, s) => sum + s.items.split(',').length, 0);
-  const projectCount = resume.projects.length;
-  const certCount = resume.certifications.length;
-  const hasPhoto = !!resume.personalInfo.photo;
+  const expYears = resume.experiences.length
+  const skillCount = resume.skills.reduce((sum, s) => sum + s.items.split(',').length, 0)
+  const projectCount = resume.projects.length
+  const certCount = resume.certifications.length
+  const hasPhoto = !!resume.personalInfo.photo
   const hasSummary = !!(
     resume.personalInfo.summary && resume.personalInfo.summary.replace(/<[^>]*>/g, '').length > 30
-  );
+  )
 
   // Category scores (0-100 each)
   const scores = {
@@ -156,50 +158,50 @@ export default function ResumeScoreboard({ resume }: Props) {
       100,
       skillCount * 8 +
         (resume.experiences.some((e) => e.techStack) ? 20 : 0) +
-        (resume.experiences.some((e) => e.achievements) ? 15 : 0),
+        (resume.experiences.some((e) => e.achievements) ? 15 : 0)
     ),
     readability: Math.min(
       100,
       (hasSummary ? 25 : 0) +
         (resume.experiences.some(
-          (e) => e.description && e.description.replace(/<[^>]*>/g, '').length > 50,
+          (e) => e.description && e.description.replace(/<[^>]*>/g, '').length > 50
         )
           ? 25
           : 0) +
         (resume.educations.length > 0 ? 15 : 0) +
         (projectCount > 0 ? 15 : 0) +
         (hasPhoto ? 10 : 0) +
-        Math.min(10, expYears * 3),
+        Math.min(10, expYears * 3)
     ),
     atsCompat: ats.score,
-  };
+  }
 
   const overallScore = Math.round(
     scores.completeness * 0.3 +
       scores.keyword * 0.25 +
       scores.readability * 0.2 +
-      scores.atsCompat * 0.25,
-  );
+      scores.atsCompat * 0.25
+  )
 
   // Percentile estimation
   const getPercentile = (score: number): number => {
-    if (score >= 90) return 5;
-    if (score >= 80) return 12;
-    if (score >= 70) return 25;
-    if (score >= 60) return 40;
-    if (score >= 50) return 55;
-    if (score >= 40) return 70;
-    return 85;
-  };
+    if (score >= 90) return 5
+    if (score >= 80) return 12
+    if (score >= 70) return 25
+    if (score >= 60) return 40
+    if (score >= 50) return 55
+    if (score >= 40) return 70
+    return 85
+  }
 
-  const percentile = getPercentile(overallScore);
+  const percentile = getPercentile(overallScore)
 
   const categories = [
     { label: '완성도', score: scores.completeness, color: '#22c55e' },
     { label: '키워드', score: scores.keyword, color: '#06b6d4' },
     { label: '가독성', score: scores.readability, color: '#f59e0b' },
     { label: 'ATS호환성', score: scores.atsCompat, color: '#3b82f6' },
-  ];
+  ]
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -263,5 +265,5 @@ export default function ResumeScoreboard({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

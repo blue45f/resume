@@ -1,20 +1,21 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Header from '@/components/Header';
-import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
-import { createStudyGroup } from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { t, tx } from '@/lib/i18n';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
+
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { createStudyGroup } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { t, tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 import {
   studyGroupSchema,
   type StudyGroupFormInput,
   type StudyGroupFormOutput,
-} from '@/shared/lib/schemas';
+} from '@/shared/lib/schemas'
 
 const TIER_KEYS = [
   'public',
@@ -25,30 +26,30 @@ const TIER_KEYS = [
   'sme',
   'freelance',
   'etc',
-] as const;
+] as const
 const CAFE_KEYS = [
   { value: 'interview', k: 'interview' },
   { value: 'resume', k: 'resume' },
   { value: 'coding-test', k: 'codingTest' },
   { value: 'study', k: 'study' },
   { value: 'networking', k: 'networking' },
-] as const;
-const LEVEL_KEYS = ['any', 'new', 'junior', 'mid', 'senior'] as const;
-const getTIERS = () => TIER_KEYS.map((v) => ({ value: v, label: tx(`companyTier.${v}`) }));
-const getCAFES = () => CAFE_KEYS.map((c) => ({ value: c.value, label: tx(`cafeCategory.${c.k}`) }));
-const getLEVELS = () => LEVEL_KEYS.map((v) => ({ value: v, label: tx(`experienceLevel.${v}`) }));
+] as const
+const LEVEL_KEYS = ['any', 'new', 'junior', 'mid', 'senior'] as const
+const getTIERS = () => TIER_KEYS.map((v) => ({ value: v, label: tx(`companyTier.${v}`) }))
+const getCAFES = () => CAFE_KEYS.map((c) => ({ value: c.value, label: tx(`cafeCategory.${c.k}`) }))
+const getLEVELS = () => LEVEL_KEYS.map((v) => ({ value: v, label: tx(`experienceLevel.${v}`) }))
 
 export default function NewStudyGroupPage() {
-  const navigate = useNavigate();
-  const user = getUser();
+  const navigate = useNavigate()
+  const user = getUser()
 
   useEffect(() => {
-    document.title = '새 스터디 그룹 — 이력서공방';
+    document.title = '새 스터디 그룹 — 이력서공방'
     if (!user) {
-      toast('로그인이 필요합니다', 'error');
-      navigate(ROUTES.login);
+      toast('로그인이 필요합니다', 'error')
+      navigate(ROUTES.login)
     }
-  }, [user, navigate]);
+  }, [user, navigate])
 
   const {
     register,
@@ -67,7 +68,7 @@ export default function NewStudyGroupPage() {
       isPrivate: false,
       maxMembers: 10,
     },
-  });
+  })
 
   const onSubmit = async (data: StudyGroupFormOutput) => {
     try {
@@ -81,13 +82,13 @@ export default function NewStudyGroupPage() {
         companyTier: data.companyTier,
         cafeCategory: data.cafeCategory,
         experienceLevel: data.experienceLevel,
-      });
-      toast('스터디 그룹이 생성됐습니다', 'success');
-      navigate(ROUTES.interview.studyGroup(created.id));
+      })
+      toast('스터디 그룹이 생성됐습니다', 'success')
+      navigate(ROUTES.interview.studyGroup(created.id))
     } catch (err) {
-      toast(err instanceof Error ? err.message : '생성 실패', 'error');
+      toast(err instanceof Error ? err.message : '생성 실패', 'error')
     }
-  };
+  }
 
   return (
     <>
@@ -243,7 +244,7 @@ export default function NewStudyGroupPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 function Field({
@@ -252,10 +253,10 @@ function Field({
   required,
   children,
 }: {
-  label: string;
-  error?: string;
-  required?: boolean;
-  children: React.ReactNode;
+  label: string
+  error?: string
+  required?: boolean
+  children: React.ReactNode
 }) {
   return (
     <div>
@@ -266,5 +267,5 @@ function Field({
       {children}
       {error && <p className="text-[11px] text-red-500 mt-1">{error}</p>}
     </div>
-  );
+  )
 }

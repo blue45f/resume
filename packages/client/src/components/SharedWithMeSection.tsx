@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { fetchMySharedResumes, type MySharedResume } from '@/lib/api';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import { fetchMySharedResumes, type MySharedResume } from '@/lib/api'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 
 /**
  * "공유받은 이력서" 섹션 — selective 공개 이력서를 받은 사용자에게만 보임.
@@ -10,23 +11,23 @@ import { tx } from '@/lib/i18n';
  * 데이터가 없으면 null 반환 (빈 영역 차지하지 않음). 한 번 fetch 후 5분 cache.
  */
 export default function SharedWithMeSection() {
-  const [items, setItems] = useState<MySharedResume[] | null>(null);
+  const [items, setItems] = useState<MySharedResume[] | null>(null)
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
     fetchMySharedResumes()
       .then((data) => {
-        if (!cancelled) setItems(data);
+        if (!cancelled) setItems(data)
       })
       .catch(() => {
-        if (!cancelled) setItems([]);
-      });
+        if (!cancelled) setItems([])
+      })
     return () => {
-      cancelled = true;
-    };
-  }, []);
+      cancelled = true
+    }
+  }, [])
 
-  if (!items || items.length === 0) return null;
+  if (!items || items.length === 0) return null
 
   return (
     <div className="mb-6">
@@ -49,8 +50,7 @@ export default function SharedWithMeSection() {
       </h3>
       <div className="flex gap-2 overflow-x-auto pb-2">
         {items.map((s) => {
-          const ownerName =
-            s.resume.personalInfo?.name || s.addedBy?.name || tx('common.anonymous');
+          const ownerName = s.resume.personalInfo?.name || s.addedBy?.name || tx('common.anonymous')
           return (
             <Link
               key={s.id}
@@ -70,9 +70,9 @@ export default function SharedWithMeSection() {
                 )}
               </p>
             </Link>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }

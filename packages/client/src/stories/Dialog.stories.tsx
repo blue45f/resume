@@ -1,21 +1,23 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
-import Dialog from '@/shared/ui/Dialog';
+import { useState } from 'react'
+
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import Dialog from '@/shared/ui/Dialog'
 
 const meta: Meta<typeof Dialog> = {
   title: 'UI Primitives/Dialog',
   component: Dialog,
   parameters: { layout: 'centered' },
-};
-export default meta;
-type Story = StoryObj<typeof Dialog>;
+}
+export default meta
+type Story = StoryObj<typeof Dialog>
 
 function Demo(props: {
-  title?: string;
-  description?: string;
-  bodyKind: 'short' | 'long' | 'form';
+  title?: string
+  description?: string
+  bodyKind: 'short' | 'long' | 'form'
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(true)
   return (
     <div>
       <button
@@ -68,25 +70,25 @@ function Demo(props: {
         )}
       </Dialog>
     </div>
-  );
+  )
 }
 
 export const Default: Story = {
   render: () => (
     <Demo title="다이얼로그 제목" description="기본 다이얼로그 — 짧은 본문." bodyKind="short" />
   ),
-};
+}
 
 export const LongScrollable: Story = {
   render: () => <Demo title="긴 콘텐츠" description="내부 스크롤 검증." bodyKind="long" />,
-};
+}
 
 export const FormDialog: Story = {
   render: () => (
     <Demo title="회원 가입" description="이름과 이메일을 입력해주세요." bodyKind="form" />
   ),
-};
+}
 
 export const NoDescription: Story = {
   render: () => <Demo title="설명 없는 헤더" bodyKind="short" />,
-};
+}

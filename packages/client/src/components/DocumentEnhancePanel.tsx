@@ -1,12 +1,14 @@
-import { useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { enhanceResumeWithDocument, updateResume } from '@/lib/api';
-import { toast } from '@/components/Toast';
+import { useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { toast } from '@/components/Toast'
+import { enhanceResumeWithDocument, updateResume } from '@/lib/api'
 
 interface Props {
-  resumeId: string;
-  resume: Resume;
-  onApplied?: (resume: Resume) => void;
+  resumeId: string
+  resume: Resume
+  onApplied?: (resume: Resume) => void
 }
 
 /**
@@ -15,15 +17,15 @@ interface Props {
  * 결과는 diff 요약만 보여주고 '적용' 누르면 updateResume.
  */
 export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [docText, setDocText] = useState('');
-  const [instruction, setInstruction] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [applying, setApplying] = useState(false);
+  const [expanded, setExpanded] = useState(false)
+  const [docText, setDocText] = useState('')
+  const [instruction, setInstruction] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [applying, setApplying] = useState(false)
   const [preview, setPreview] = useState<{
-    enhanced: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
-    changes: string[];
-  } | null>(null);
+    enhanced: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>
+    changes: string[]
+  } | null>(null)
 
   const handleFile = async (file: File) => {
     // 텍스트 파일만 직접 읽기 — PDF/DOCX 는 사용자가 텍스트로 붙여넣도록 안내
@@ -31,61 +33,61 @@ export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Pr
       file.type.startsWith('text/') ||
       file.name.endsWith('.txt') ||
       file.name.endsWith('.md') ||
-      file.name.endsWith('.json');
+      file.name.endsWith('.json')
     if (!typeOk) {
-      toast('PDF/DOCX 는 내용을 복사해서 붙여넣어 주세요 (.txt/.md/.json 만 직접 업로드)', 'info');
-      return;
+      toast('PDF/DOCX 는 내용을 복사해서 붙여넣어 주세요 (.txt/.md/.json 만 직접 업로드)', 'info')
+      return
     }
     if (file.size > 500 * 1024) {
-      toast('500KB 이하의 파일만 업로드할 수 있습니다', 'error');
-      return;
+      toast('500KB 이하의 파일만 업로드할 수 있습니다', 'error')
+      return
     }
-    const text = await file.text();
-    setDocText(text.slice(0, 15000));
-  };
+    const text = await file.text()
+    setDocText(text.slice(0, 15000))
+  }
 
   const analyze = async () => {
     if (docText.trim().length < 30) {
-      toast('최소 30자 이상의 문서 텍스트를 입력하세요', 'info');
-      return;
+      toast('최소 30자 이상의 문서 텍스트를 입력하세요', 'info')
+      return
     }
-    setLoading(true);
-    setPreview(null);
+    setLoading(true)
+    setPreview(null)
     try {
-      const r = await enhanceResumeWithDocument(resumeId, docText, instruction || undefined);
-      setPreview({ enhanced: r.enhanced, changes: r.changes });
+      const r = await enhanceResumeWithDocument(resumeId, docText, instruction || undefined)
+      setPreview({ enhanced: r.enhanced, changes: r.changes })
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'AI 고도화 실패', 'error');
+      toast(e instanceof Error ? e.message : 'AI 고도화 실패', 'error')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const apply = async () => {
-    if (!preview) return;
-    setApplying(true);
+    if (!preview) return
+    setApplying(true)
     try {
       const merged: Resume = {
         ...resume,
         ...preview.enhanced,
-      };
+      }
       // updateResume 은 id/createdAt/updatedAt 을 제외함 — 기존 payload 구조 유지
-      const { id: _a, createdAt: _b, updatedAt: _c, ...payload } = merged;
-      void _a;
-      void _b;
-      void _c;
-      await updateResume(resumeId, payload);
-      toast(`이력서 고도화 완료 (${preview.changes.length}건 변경)`, 'success');
-      onApplied?.(merged);
-      setPreview(null);
-      setDocText('');
-      setInstruction('');
+      const { id: _a, createdAt: _b, updatedAt: _c, ...payload } = merged
+      void _a
+      void _b
+      void _c
+      await updateResume(resumeId, payload)
+      toast(`이력서 고도화 완료 (${preview.changes.length}건 변경)`, 'success')
+      onApplied?.(merged)
+      setPreview(null)
+      setDocText('')
+      setInstruction('')
     } catch (e) {
-      toast(e instanceof Error ? e.message : '이력서 저장 실패', 'error');
+      toast(e instanceof Error ? e.message : '이력서 저장 실패', 'error')
     } finally {
-      setApplying(false);
+      setApplying(false)
     }
-  };
+  }
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -138,8 +140,8 @@ export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Pr
                     type="file"
                     accept=".txt,.md,.json"
                     onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) handleFile(f);
+                      const f = e.target.files?.[0]
+                      if (f) handleFile(f)
                     }}
                     className="hidden"
                   />
@@ -214,5 +216,5 @@ export default function DocumentEnhancePanel({ resumeId, resume, onApplied }: Pr
         </div>
       )}
     </div>
-  );
+  )
 }

@@ -1,20 +1,21 @@
-import { useMemo } from 'react';
-import { buildCoverLetterJdAlignmentReport } from '@/lib/coverLetterJdAlignment';
+import { useMemo } from 'react'
+
+import { buildCoverLetterJdAlignmentReport } from '@/lib/coverLetterJdAlignment'
 
 interface Props {
-  coverLetterText: string;
-  jdText: string;
+  coverLetterText: string
+  jdText: string
 }
 
 export default function CoverLetterJdAlignmentPanel({ coverLetterText, jdText }: Props) {
   const report = useMemo(
     () => buildCoverLetterJdAlignmentReport(coverLetterText, jdText),
-    [coverLetterText, jdText],
-  );
+    [coverLetterText, jdText]
+  )
 
-  if (report.checks.length === 0 || jdText.trim().length < 20) return null;
+  if (report.checks.length === 0 || jdText.trim().length < 20) return null
 
-  const fill = Math.max(0.04, report.alignmentScore / 100);
+  const fill = Math.max(0.04, report.alignmentScore / 100)
 
   return (
     <aside
@@ -71,5 +72,5 @@ export default function CoverLetterJdAlignmentPanel({ coverLetterText, jdText }:
         </div>
       )}
     </aside>
-  );
+  )
 }

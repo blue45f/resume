@@ -5,44 +5,44 @@ export type CultureCategory =
   | 'growth' // 빠르게 성장하는 / 성장하는 회사
   | 'family' // 가족같은 분위기
   | 'startup-pace' // 빠른 속도 / dynamic
-  | 'passionate-team'; // 열정적인 동료
+  | 'passionate-team' // 열정적인 동료
 
-export type CultureTone = 'good' | 'neutral' | 'warning';
+export type CultureTone = 'good' | 'neutral' | 'warning'
 
 export interface CultureHit {
-  category: CultureCategory;
-  categoryLabel: string;
-  match: string;
-  excerpt: string;
+  category: CultureCategory
+  categoryLabel: string
+  match: string
+  excerpt: string
   /** Korean explanation of what's vague. */
-  concern: string;
+  concern: string
   /** A concrete interview question to verify the claim. */
-  interviewQuestion: string;
+  interviewQuestion: string
   /** Red flag intensity (high=실제로 부정 신호 위험, medium=확인 필요, low=일반적 표현). */
-  severity: 'high' | 'medium' | 'low';
+  severity: 'high' | 'medium' | 'low'
 }
 
 export interface CultureReport {
   /** All detected hits. */
-  hits: CultureHit[];
+  hits: CultureHit[]
   /** 0-100 specificity score. Higher = JD is more concrete. */
-  specificityScore: number;
+  specificityScore: number
   /** How many concrete signals (numbers, named programs) were also present. */
-  concreteSignals: number;
-  tone: CultureTone;
+  concreteSignals: number
+  tone: CultureTone
   /** Korean short label. */
-  label: string;
+  label: string
   /** Korean one-sentence summary. */
-  summary: string;
+  summary: string
 }
 
 interface CultureRule {
-  category: CultureCategory;
-  categoryLabel: string;
-  patterns: RegExp[];
-  concern: string;
-  interviewQuestion: string;
-  severity: 'high' | 'medium' | 'low';
+  category: CultureCategory
+  categoryLabel: string
+  patterns: RegExp[]
+  concern: string
+  interviewQuestion: string
+  severity: 'high' | 'medium' | 'low'
 }
 
 const RULES: CultureRule[] = [
@@ -142,7 +142,7 @@ const RULES: CultureRule[] = [
     interviewQuestion: '"동료들의 평균 근속 연수와 1년 차 이내 퇴사율을 알 수 있을까요?"',
     severity: 'low',
   },
-];
+]
 
 const CONCRETE_PATTERNS: RegExp[] = [
   // Concrete numbers attached to culture/comp/benefits.
@@ -154,37 +154,37 @@ const CONCRETE_PATTERNS: RegExp[] = [
   /평균\s*근속\s*\d/g,
   // English numeric culture signals.
   /\b\d+\s*(?:weeks?|days?)\s*of\s*(?:pto|vacation|parental\s*leave)\b/gi,
-];
+]
 
-const CONTEXT_RADIUS = 28;
+const CONTEXT_RADIUS = 28
 
 function makeExcerpt(text: string, start: number, length: number): string {
-  const left = Math.max(0, start - CONTEXT_RADIUS);
-  const right = Math.min(text.length, start + length + CONTEXT_RADIUS);
-  const prefix = left > 0 ? '…' : '';
-  const suffix = right < text.length ? '…' : '';
-  return `${prefix}${text.slice(left, right).trim()}${suffix}`;
+  const left = Math.max(0, start - CONTEXT_RADIUS)
+  const right = Math.min(text.length, start + length + CONTEXT_RADIUS)
+  const prefix = left > 0 ? '…' : ''
+  const suffix = right < text.length ? '…' : ''
+  return `${prefix}${text.slice(left, right).trim()}${suffix}`
 }
 
 function countConcrete(text: string): number {
-  let n = 0;
+  let n = 0
   for (const p of CONCRETE_PATTERNS) {
-    const flags = p.flags.includes('g') ? p.flags : p.flags + 'g';
-    const re = new RegExp(p.source, flags);
-    let m: RegExpExecArray | null;
+    const flags = p.flags.includes('g') ? p.flags : p.flags + 'g'
+    const re = new RegExp(p.source, flags)
+    let m: RegExpExecArray | null
     while ((m = re.exec(text)) !== null) {
       if (m[0].length === 0) {
-        re.lastIndex += 1;
-        continue;
+        re.lastIndex += 1
+        continue
       }
-      n += 1;
+      n += 1
     }
   }
-  return n;
+  return n
 }
 
 export function buildJdCultureReport(text: string): CultureReport {
-  const safe = (text ?? '').trim();
+  const safe = (text ?? '').trim()
   if (!safe) {
     return {
       hits: [],
@@ -193,23 +193,23 @@ export function buildJdCultureReport(text: string): CultureReport {
       tone: 'neutral',
       label: '문화 신호 없음',
       summary: '분석할 채용 공고 본문이 비어 있습니다.',
-    };
+    }
   }
 
-  const hits: CultureHit[] = [];
+  const hits: CultureHit[] = []
   for (const rule of RULES) {
-    const seen = new Set<number>();
+    const seen = new Set<number>()
     for (const pattern of rule.patterns) {
-      const flags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g';
-      const re = new RegExp(pattern.source, flags);
-      let m: RegExpExecArray | null;
+      const flags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g'
+      const re = new RegExp(pattern.source, flags)
+      let m: RegExpExecArray | null
       while ((m = re.exec(safe)) !== null) {
         if (m[0].length === 0) {
-          re.lastIndex += 1;
-          continue;
+          re.lastIndex += 1
+          continue
         }
-        if (seen.has(m.index)) continue;
-        seen.add(m.index);
+        if (seen.has(m.index)) continue
+        seen.add(m.index)
         hits.push({
           category: rule.category,
           categoryLabel: rule.categoryLabel,
@@ -218,41 +218,41 @@ export function buildJdCultureReport(text: string): CultureReport {
           concern: rule.concern,
           interviewQuestion: rule.interviewQuestion,
           severity: rule.severity,
-        });
+        })
       }
     }
   }
 
-  const concreteSignals = countConcrete(safe);
+  const concreteSignals = countConcrete(safe)
 
   // Specificity: start at 50, add for concrete, subtract for vague.
-  let specificity = 50;
-  specificity += Math.min(50, concreteSignals * 12);
+  let specificity = 50
+  specificity += Math.min(50, concreteSignals * 12)
   for (const hit of hits) {
-    specificity -= hit.severity === 'high' ? 12 : hit.severity === 'medium' ? 7 : 3;
+    specificity -= hit.severity === 'high' ? 12 : hit.severity === 'medium' ? 7 : 3
   }
-  if (specificity < 0) specificity = 0;
-  if (specificity > 100) specificity = 100;
+  if (specificity < 0) specificity = 0
+  if (specificity > 100) specificity = 100
 
-  let tone: CultureTone;
-  let summary: string;
+  let tone: CultureTone
+  let summary: string
   if (hits.length === 0 && concreteSignals === 0) {
-    tone = 'neutral';
-    summary = '문화·복지 관련 명시적 신호가 거의 없습니다. 면접에서 직접 묻는 게 좋습니다.';
+    tone = 'neutral'
+    summary = '문화·복지 관련 명시적 신호가 거의 없습니다. 면접에서 직접 묻는 게 좋습니다.'
   } else if (specificity >= 70) {
-    tone = 'good';
-    summary = `구체 신호 ${concreteSignals}개로 JD가 솔직한 편입니다. 모호 표현(${hits.length}개)은 면접에서 1~2개만 검증하세요.`;
+    tone = 'good'
+    summary = `구체 신호 ${concreteSignals}개로 JD가 솔직한 편입니다. 모호 표현(${hits.length}개)은 면접에서 1~2개만 검증하세요.`
   } else if (specificity >= 45) {
-    tone = 'neutral';
-    summary = `모호한 문화 표현 ${hits.length}개가 보입니다. 가장 신경 쓰이는 표현을 면접에서 확인하세요.`;
+    tone = 'neutral'
+    summary = `모호한 문화 표현 ${hits.length}개가 보입니다. 가장 신경 쓰이는 표현을 면접에서 확인하세요.`
   } else {
-    tone = 'warning';
-    summary = `JD가 모호한 문화 표현 위주(${hits.length}개)이고 구체 신호는 ${concreteSignals}개에 그칩니다. 입사 전 검증이 필요합니다.`;
+    tone = 'warning'
+    summary = `JD가 모호한 문화 표현 위주(${hits.length}개)이고 구체 신호는 ${concreteSignals}개에 그칩니다. 입사 전 검증이 필요합니다.`
   }
 
   // Sort hits: high severity first, then by occurrence count.
-  const sev = { high: 0, medium: 1, low: 2 } as const;
-  hits.sort((a, b) => sev[a.severity] - sev[b.severity]);
+  const sev = { high: 0, medium: 1, low: 2 } as const
+  hits.sort((a, b) => sev[a.severity] - sev[b.severity])
 
   return {
     hits,
@@ -261,5 +261,5 @@ export function buildJdCultureReport(text: string): CultureReport {
     tone,
     label: `구체성 ${specificity}점`,
     summary,
-  };
+  }
 }

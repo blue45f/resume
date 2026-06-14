@@ -10,23 +10,23 @@ export type WlbSignalType =
   | 'vacation_policy' // 넉넉한 휴가 제도
   | 'culture_respect' // 야근 없음·강요 없음 언급
   | 'parental_support' // 육아 지원·출산 휴가 강조
-  | 'wellness_benefit'; // 건강검진·헬스비·심리지원
+  | 'wellness_benefit' // 건강검진·헬스비·심리지원
 
 export interface WlbSignal {
-  type: WlbSignalType;
-  excerpt: string;
+  type: WlbSignalType
+  excerpt: string
 }
 
-export type WlbRating = 'excellent' | 'good' | 'neutral' | 'concern';
+export type WlbRating = 'excellent' | 'good' | 'neutral' | 'concern'
 
 export interface JdWorkLifeBalanceReport {
-  signals: WlbSignal[];
-  detectedTypes: Set<WlbSignalType>;
-  score: number; // 0–100
-  rating: WlbRating;
-  summary: string;
-  interviewQuestions: string[];
-  redFlags: string[];
+  signals: WlbSignal[]
+  detectedTypes: Set<WlbSignalType>
+  score: number // 0–100
+  rating: WlbRating
+  summary: string
+  interviewQuestions: string[]
+  redFlags: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -34,9 +34,9 @@ export interface JdWorkLifeBalanceReport {
 // ---------------------------------------------------------------------------
 
 interface WlbPattern {
-  re: RegExp;
-  type: WlbSignalType;
-  weight: number;
+  re: RegExp
+  type: WlbSignalType
+  weight: number
 }
 
 const WLB_PATTERNS: WlbPattern[] = [
@@ -142,15 +142,15 @@ const WLB_PATTERNS: WlbPattern[] = [
     weight: 10,
   },
   { re: /EAP|직원\s*지원\s*프로그램|명상\s*(?:앱|지원)/, type: 'wellness_benefit', weight: 10 },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Red flag patterns — negative WLB signals
 // ---------------------------------------------------------------------------
 
 interface RedFlagPattern {
-  re: RegExp;
-  label: string;
+  re: RegExp
+  label: string
 }
 
 const RED_FLAG_PATTERNS: RedFlagPattern[] = [
@@ -170,7 +170,7 @@ const RED_FLAG_PATTERNS: RedFlagPattern[] = [
     re: /프로\s*(?:정신|의식)\s*있는|군인\s*정신|헌신적인\s*(?:분|인재)/,
     label: '과도한 헌신 요구 언어',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Interview questions per missing type
@@ -184,53 +184,53 @@ const MISSING_TYPE_QUESTIONS: Record<WlbSignalType, string> = {
   culture_respect: '퇴근 후 업무 연락이 오는 편인가요?',
   parental_support: '육아휴직 사용률이나 실질적 지원 수준이 어떻게 되나요?',
   wellness_benefit: '직원 건강·복지 관련 지원 제도가 있나요?',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeJdWorkLifeBalance(text: string): JdWorkLifeBalanceReport {
-  const t = text ?? '';
-  const signals: WlbSignal[] = [];
-  const detectedTypes = new Set<WlbSignalType>();
-  let totalWeight = 0;
+  const t = text ?? ''
+  const signals: WlbSignal[] = []
+  const detectedTypes = new Set<WlbSignalType>()
+  let totalWeight = 0
 
   for (const { re, type, weight } of WLB_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      signals.push({ type, excerpt: m[0].slice(0, 60) });
+      signals.push({ type, excerpt: m[0].slice(0, 60) })
       if (!detectedTypes.has(type)) {
-        detectedTypes.add(type);
-        totalWeight += weight;
+        detectedTypes.add(type)
+        totalWeight += weight
       }
     }
   }
 
-  const redFlags: string[] = [];
+  const redFlags: string[] = []
   for (const { re, label } of RED_FLAG_PATTERNS) {
-    if (re.test(t)) redFlags.push(label);
+    if (re.test(t)) redFlags.push(label)
   }
 
   // Penalize for red flags
-  const adjustedScore = Math.max(0, Math.min(100, totalWeight - redFlags.length * 10));
+  const adjustedScore = Math.max(0, Math.min(100, totalWeight - redFlags.length * 10))
 
-  let rating: WlbRating;
-  if (redFlags.length >= 2) rating = 'concern';
-  else if (adjustedScore >= 55) rating = 'excellent';
-  else if (adjustedScore >= 25) rating = 'good';
-  else rating = 'neutral';
+  let rating: WlbRating
+  if (redFlags.length >= 2) rating = 'concern'
+  else if (adjustedScore >= 55) rating = 'excellent'
+  else if (adjustedScore >= 25) rating = 'good'
+  else rating = 'neutral'
 
-  let summary: string;
+  let summary: string
   if (rating === 'excellent') {
     summary =
-      '워라밸 지원 신호가 풍부합니다. 재택·유연근무·휴가 등 긍정적 제도가 명시되어 있습니다.';
+      '워라밸 지원 신호가 풍부합니다. 재택·유연근무·휴가 등 긍정적 제도가 명시되어 있습니다.'
   } else if (rating === 'good') {
-    summary = '일부 워라밸 지원이 명시되어 있습니다. 면접에서 누락된 항목을 직접 확인하세요.';
+    summary = '일부 워라밸 지원이 명시되어 있습니다. 면접에서 누락된 항목을 직접 확인하세요.'
   } else if (rating === 'neutral') {
-    summary = '워라밸 관련 정보가 거의 없습니다. 입사 전 근무 환경을 반드시 파악하세요.';
+    summary = '워라밸 관련 정보가 거의 없습니다. 입사 전 근무 환경을 반드시 파악하세요.'
   } else {
-    summary = '부정적인 근무 환경 신호가 감지됩니다. 지원 전 신중하게 검토하세요.';
+    summary = '부정적인 근무 환경 신호가 감지됩니다. 지원 전 신중하게 검토하세요.'
   }
 
   const priorityTypes: WlbSignalType[] = [
@@ -239,11 +239,11 @@ export function analyzeJdWorkLifeBalance(text: string): JdWorkLifeBalanceReport 
     'flex_time',
     'vacation_policy',
     'culture_respect',
-  ];
+  ]
   const interviewQuestions = priorityTypes
     .filter((tp) => !detectedTypes.has(tp))
     .slice(0, 3)
-    .map((tp) => MISSING_TYPE_QUESTIONS[tp]);
+    .map((tp) => MISSING_TYPE_QUESTIONS[tp])
 
   return {
     signals,
@@ -253,5 +253,5 @@ export function analyzeJdWorkLifeBalance(text: string): JdWorkLifeBalanceReport 
     summary,
     interviewQuestions,
     redFlags,
-  };
+  }
 }

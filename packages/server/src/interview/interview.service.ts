@@ -5,25 +5,26 @@ import {
   Injectable,
   NotFoundException,
   forwardRef,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { LlmService } from '../llm/llm.service';
-import { BillingService } from '../billing/billing.service';
+} from '@nestjs/common'
+
+import { BillingService } from '../billing/billing.service'
+import { LlmService } from '../llm/llm.service'
+import { PrismaService } from '../prisma/prisma.service'
 
 export interface CreateInterviewAnswerDto {
-  question: string;
-  answer: string;
-  resumeId?: string;
-  jobRole?: string;
+  question: string
+  answer: string
+  resumeId?: string
+  jobRole?: string
 }
 
 export interface AiAnswerFeedback {
-  overallScore: number; // 1-100
-  strengths: string[];
-  weaknesses: string[];
-  improvements: string[];
-  rewrittenAnswer: string;
-  starBreakdown: { situation: string; task: string; action: string; result: string };
+  overallScore: number // 1-100
+  strengths: string[]
+  weaknesses: string[]
+  improvements: string[]
+  rewrittenAnswer: string
+  starBreakdown: { situation: string; task: string; action: string; result: string }
 }
 
 @Injectable()
@@ -31,7 +32,7 @@ export class InterviewService {
   constructor(
     private prisma: PrismaService,
     @Inject(forwardRef(() => LlmService)) private llm: LlmService,
-    private billing: BillingService,
+    private billing: BillingService
   ) {}
 
   /**
@@ -41,18 +42,18 @@ export class InterviewService {
    */
   async analyzeAnswer(
     userId: string,
-    body: { question: string; answer: string; jobRole?: string; save?: boolean },
+    body: { question: string; answer: string; jobRole?: string; save?: boolean }
   ): Promise<AiAnswerFeedback> {
-    if (!userId) throw new ForbiddenException('로그인이 필요합니다');
+    if (!userId) throw new ForbiddenException('로그인이 필요합니다')
     if (!body?.question?.trim() || !body?.answer?.trim()) {
-      throw new BadRequestException('질문과 답변이 필요합니다');
+      throw new BadRequestException('질문과 답변이 필요합니다')
     }
     if (body.answer.length > 3000) {
-      throw new BadRequestException('답변은 3000자 이내여야 합니다');
+      throw new BadRequestException('답변은 3000자 이내여야 합니다')
     }
 
     // Quota enforce (P2-6) — atomic count under advisory lock 으로 동시 요청 race 차단
-    const monthStart = BillingService.currentMonthStart();
+    const monthStart = BillingService.currentMonthStart()
     await this.billing.checkQuotaAtomic(userId, 'interviewAnalyze', (tx) =>
       tx.interviewAnswer.count({
         where: {
@@ -60,8 +61,8 @@ export class InterviewService {
           analysisScore: { not: null },
           analyzedAt: { gte: monthStart },
         },
-      }),
-    );
+      })
+    )
 
     const systemPrompt = `당신은 한국 채용 시장 전문 면접 코치입니다. 면접 답변을 분석하여 JSON 으로 응답하세요. 마크다운/추가 설명 금지.
 
@@ -82,16 +83,16 @@ export class InterviewService {
 
 평가 기준:
 - STAR 구조 명확성, 정량적 결과, 1인칭 책임감, 구체성, 한국 면접 문화 적합성.
-- rewrittenAnswer 는 사용자의 사실 관계는 유지하되 표현/구조만 개선.`;
+- rewrittenAnswer 는 사용자의 사실 관계는 유지하되 표현/구조만 개선.`
 
     const userMessage = `[질문]
 ${body.question}
 
 ${body.jobRole ? `[지원 직무] ${body.jobRole}\n\n` : ''}[답변]
-${body.answer}`;
+${body.answer}`
 
-    const res = await this.llm.generateWithFallback(systemPrompt, userMessage);
-    const parsed = this.parseLlmJson(res.text);
+    const res = await this.llm.generateWithFallback(systemPrompt, userMessage)
+    const parsed = this.parseLlmJson(res.text)
     // 모든 분석을 InterviewAnswer row 로 기록한다 — 시간별 점수 추세 + 월간 quota 카운팅의
     // 단일 신뢰원. quota(checkQuotaAtomic)가 이 row 수를 세므로, save=false 로 호출해도 LLM
     // 비용이 발생한 분석은 반드시 카운트되어야 quota 우회가 불가능하다. (실 클라이언트는 항상
@@ -108,13 +109,13 @@ ${body.answer}`;
           analyzedAt: new Date(),
         },
       })
-      .catch(() => {});
-    return parsed;
+      .catch(() => {})
+    return parsed
   }
 
   /** 최근 90일 점수 추세 — 차트용 daily aggregation. */
   async scoreHistory(userId: string) {
-    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
     const rows = await this.prisma.interviewAnswer.findMany({
       where: { userId, analysisScore: { not: null }, createdAt: { gte: since } },
       orderBy: { createdAt: 'asc' },
@@ -125,35 +126,35 @@ ${body.answer}`;
         jobRole: true,
         createdAt: true,
       },
-    });
-    return rows;
+    })
+    return rows
   }
 
   private parseLlmJson(text: string): AiAnswerFeedback {
     const cleaned = (text || '')
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/```\s*$/i, '')
-      .trim();
-    let obj: Record<string, unknown>;
+      .trim()
+    let obj: Record<string, unknown>
     try {
-      obj = JSON.parse(cleaned);
+      obj = JSON.parse(cleaned)
     } catch {
-      const start = cleaned.indexOf('{');
-      const end = cleaned.lastIndexOf('}');
+      const start = cleaned.indexOf('{')
+      const end = cleaned.lastIndexOf('}')
       if (start === -1 || end === -1) {
-        throw new BadRequestException('AI 응답을 파싱하지 못했습니다. 다시 시도해주세요.');
+        throw new BadRequestException('AI 응답을 파싱하지 못했습니다. 다시 시도해주세요.')
       }
-      obj = JSON.parse(cleaned.slice(start, end + 1));
+      obj = JSON.parse(cleaned.slice(start, end + 1))
     }
     const arr = (v: unknown): string[] => {
-      if (!Array.isArray(v)) return [];
+      if (!Array.isArray(v)) return []
       return v
         .filter((x): x is string => typeof x === 'string')
         .map((s) => s.trim())
-        .filter(Boolean);
-    };
-    const star = (obj.starBreakdown as Record<string, unknown>) || {};
-    const score = Math.max(1, Math.min(100, Number(obj.overallScore) || 50));
+        .filter(Boolean)
+    }
+    const star = (obj.starBreakdown as Record<string, unknown>) || {}
+    const score = Math.max(1, Math.min(100, Number(obj.overallScore) || 50))
     return {
       overallScore: score,
       strengths: arr(obj.strengths).slice(0, 5),
@@ -166,15 +167,15 @@ ${body.answer}`;
         action: String(star.action || ''),
         result: String(star.result || ''),
       },
-    };
+    }
   }
 
   async create(userId: string, data: CreateInterviewAnswerDto) {
     if (!data?.question || typeof data.question !== 'string' || !data.question.trim()) {
-      throw new BadRequestException('질문은 필수입니다');
+      throw new BadRequestException('질문은 필수입니다')
     }
     if (!data?.answer || typeof data.answer !== 'string' || !data.answer.trim()) {
-      throw new BadRequestException('답변은 필수입니다');
+      throw new BadRequestException('답변은 필수입니다')
     }
     return this.prisma.interviewAnswer.create({
       data: {
@@ -184,7 +185,7 @@ ${body.answer}`;
         resumeId: data.resumeId ?? null,
         jobRole: data.jobRole ?? null,
       },
-    });
+    })
   }
 
   async findAll(userId: string) {
@@ -199,28 +200,28 @@ ${body.answer}`;
         jobRole: true,
         createdAt: true,
       },
-    });
+    })
   }
 
   async remove(id: string, userId: string) {
-    const item = await this.prisma.interviewAnswer.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('답변을 찾을 수 없습니다');
-    if (item.userId !== userId) throw new ForbiddenException('권한이 없습니다');
-    await this.prisma.interviewAnswer.delete({ where: { id } });
-    return { success: true };
+    const item = await this.prisma.interviewAnswer.findUnique({ where: { id } })
+    if (!item) throw new NotFoundException('답변을 찾을 수 없습니다')
+    if (item.userId !== userId) throw new ForbiddenException('권한이 없습니다')
+    await this.prisma.interviewAnswer.delete({ where: { id } })
+    return { success: true }
   }
 
   /** 단건 조회 — 시간별 추세 chart 클릭 시 detail modal 용. analysisJson 파싱해서 반환. */
   async findOne(id: string, userId: string) {
-    const item = await this.prisma.interviewAnswer.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException('답변을 찾을 수 없습니다');
-    if (item.userId !== userId) throw new ForbiddenException('권한이 없습니다');
-    let analysis: unknown = null;
+    const item = await this.prisma.interviewAnswer.findUnique({ where: { id } })
+    if (!item) throw new NotFoundException('답변을 찾을 수 없습니다')
+    if (item.userId !== userId) throw new ForbiddenException('권한이 없습니다')
+    let analysis: unknown = null
     if (item.analysisJson) {
       try {
-        analysis = JSON.parse(item.analysisJson);
+        analysis = JSON.parse(item.analysisJson)
       } catch {
-        analysis = null;
+        analysis = null
       }
     }
     return {
@@ -232,6 +233,6 @@ ${body.answer}`;
       analyzedAt: item.analyzedAt,
       createdAt: item.createdAt,
       analysis,
-    };
+    }
   }
 }

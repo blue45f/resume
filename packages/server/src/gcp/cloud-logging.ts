@@ -19,33 +19,33 @@
  */
 
 /** Cloud Logging severity levels we use (subset of the LogSeverity enum). */
-export type CloudSeverity = 'DEFAULT' | 'DEBUG' | 'INFO' | 'NOTICE' | 'WARNING' | 'ERROR';
+export type CloudSeverity = 'DEFAULT' | 'DEBUG' | 'INFO' | 'NOTICE' | 'WARNING' | 'ERROR'
 
 export interface CloudLogEntry {
-  severity: CloudSeverity;
-  message: string;
-  context?: string;
+  severity: CloudSeverity
+  message: string
+  context?: string
   /** `logging.googleapis.com/trace` — set when an X-Cloud-Trace-Context is present. */
-  'logging.googleapis.com/trace'?: string;
-  [key: string]: unknown;
+  'logging.googleapis.com/trace'?: string
+  [key: string]: unknown
 }
 
 /** Map Nest log levels to Cloud Logging severities. */
 export function nestLevelToSeverity(level: string): CloudSeverity {
   switch (level) {
     case 'debug':
-      return 'DEBUG';
+      return 'DEBUG'
     case 'verbose':
-      return 'DEFAULT';
+      return 'DEFAULT'
     case 'log':
-      return 'INFO';
+      return 'INFO'
     case 'warn':
-      return 'WARNING';
+      return 'WARNING'
     case 'error':
     case 'fatal':
-      return 'ERROR';
+      return 'ERROR'
     default:
-      return 'DEFAULT';
+      return 'DEFAULT'
   }
 }
 
@@ -58,12 +58,12 @@ export function nestLevelToSeverity(level: string): CloudSeverity {
  */
 export function buildTraceField(
   header: string | undefined,
-  projectId: string | undefined,
+  projectId: string | undefined
 ): string | undefined {
-  if (!header || !projectId) return undefined;
-  const traceId = header.split('/')[0]?.trim();
-  if (!traceId) return undefined;
-  return `projects/${projectId}/traces/${traceId}`;
+  if (!header || !projectId) return undefined
+  const traceId = header.split('/')[0]?.trim()
+  if (!traceId) return undefined
+  return `projects/${projectId}/traces/${traceId}`
 }
 
 /**
@@ -74,21 +74,21 @@ export function buildLogEntry(
   severity: CloudSeverity,
   message: unknown,
   context?: string,
-  extra?: Record<string, unknown>,
+  extra?: Record<string, unknown>
 ): CloudLogEntry {
-  let text: string;
-  let stack: string | undefined;
+  let text: string
+  let stack: string | undefined
 
   if (message instanceof Error) {
-    text = message.message;
-    stack = message.stack;
+    text = message.message
+    stack = message.stack
   } else if (typeof message === 'string') {
-    text = message;
+    text = message
   } else {
     try {
-      text = JSON.stringify(message);
+      text = JSON.stringify(message)
     } catch {
-      text = String(message);
+      text = String(message)
     }
   }
 
@@ -98,16 +98,16 @@ export function buildLogEntry(
     ...(context ? { context } : {}),
     ...(stack ? { stack } : {}),
     ...(extra ?? {}),
-  };
-  return entry;
+  }
+  return entry
 }
 
 /** Serialize an entry as a single JSON line for stdout/stderr. */
 export function serializeLogEntry(entry: CloudLogEntry): string {
   try {
-    return JSON.stringify(entry);
+    return JSON.stringify(entry)
   } catch {
     // Circular or otherwise unserializable payload — fall back to a minimal line.
-    return JSON.stringify({ severity: entry.severity, message: entry.message });
+    return JSON.stringify({ severity: entry.severity, message: entry.message })
   }
 }

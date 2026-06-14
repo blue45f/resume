@@ -1,31 +1,31 @@
-import type { CSSProperties } from 'react';
-import type { Tag } from '@/types/resume';
+import type { Tag } from '@/types/resume'
+import type { CSSProperties } from 'react'
 
 export interface HomeContent {
-  highlights?: { title: string; desc: string; bg: string }[];
-  features?: { icon: string; title: string; desc: string; color: string }[];
-  testimonials?: { text: string; author: string; stars: number }[];
-  socialProofTitle?: string;
+  highlights?: { title: string; desc: string; bg: string }[]
+  features?: { icon: string; title: string; desc: string; color: string }[]
+  testimonials?: { text: string; author: string; stars: number }[]
+  socialProofTitle?: string
 }
 
-export type ResumeSortBy = 'updatedAt' | 'title' | 'viewCount';
-export type HomeCssVarStyle = CSSProperties & Record<`--${string}`, string>;
+export type ResumeSortBy = 'updatedAt' | 'title' | 'viewCount'
+export type HomeCssVarStyle = CSSProperties & Record<`--${string}`, string>
 
 export const RESUME_SORT_OPTIONS: { value: ResumeSortBy; label: string }[] = [
   { value: 'updatedAt', label: '최근 수정' },
   { value: 'title', label: '이름순' },
   { value: 'viewCount', label: '조회수' },
-];
+]
 
 export const getTagFilterStyle = (tag: Tag, active: boolean): HomeCssVarStyle => ({
   '--home-tag-filter-bg': active ? tag.color : `${tag.color}20`,
   '--home-tag-filter-border': tag.color,
-});
+})
 
 export const getResumeTagStyle = (tag: Tag): HomeCssVarStyle => ({
   '--home-resume-tag-bg': `${tag.color}20`,
   '--home-resume-tag-fg': tag.color,
-});
+})
 
 export const DEFAULT_HIGHLIGHTS = [
   {
@@ -43,7 +43,7 @@ export const DEFAULT_HIGHLIGHTS = [
     desc: '오픈소스 LLM 활용으로 비용 부담 없이 시작하세요. 핵심 기능 모두 무료, 숨겨진 비용 없음',
     bg: 'bg-emerald-50 dark:bg-emerald-900/20',
   },
-];
+]
 
 export const DEFAULT_FEATURES = [
   {
@@ -82,10 +82,10 @@ export const DEFAULT_FEATURES = [
     desc: '업계 트렌드와 연봉 데이터 인사이트',
     color: 'from-cyan-500 to-blue-600',
   },
-];
+]
 
 export const DEFAULT_TESTIMONIALS = [
   { text: 'AI가 자동으로 써준 이력서로 취업에 성공했어요!', author: '소프트웨어 개발자', stars: 5 },
   { text: '템플릿이 너무 예뻐서 면접관에게 칭찬받았습니다.', author: 'UX 디자이너', stars: 5 },
   { text: 'ATS 분석 기능 덕분에 서류 통과율이 높아졌어요.', author: '마케터', stars: 5 },
-];
+]

@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { buildApplicationActivityQueue } from './applicationActivityQueue';
-import type { JobApplication } from './api';
+import { describe, expect, it } from 'vitest'
+
+import { buildApplicationActivityQueue } from './applicationActivityQueue'
+
+import type { JobApplication } from './api'
 
 const baseApplication = (overrides: Partial<JobApplication>): JobApplication => ({
   id: overrides.id ?? 'app-1',
@@ -10,7 +12,7 @@ const baseApplication = (overrides: Partial<JobApplication>): JobApplication => 
   createdAt: overrides.createdAt ?? '2026-05-20T09:00:00Z',
   updatedAt: overrides.updatedAt ?? '2026-05-20T09:00:00Z',
   ...overrides,
-});
+})
 
 describe('buildApplicationActivityQueue', () => {
   it('prioritizes overdue deadlines before stale follow-up tasks', () => {
@@ -28,16 +30,16 @@ describe('buildApplicationActivityQueue', () => {
           updatedAt: '2026-05-24T09:00:00Z',
         }),
       ],
-      { now: new Date('2026-05-27T12:00:00Z') },
-    );
+      { now: new Date('2026-05-27T12:00:00Z') }
+    )
 
     expect(queue[0]).toMatchObject({
       applicationId: 'overdue',
       type: 'deadline',
       tone: 'danger',
-    });
-    expect(queue[0].dueLabel).toBe('마감 2일 초과');
-  });
+    })
+    expect(queue[0].dueLabel).toBe('마감 2일 초과')
+  })
 
   it('creates interview preparation tasks for upcoming interview dates', () => {
     const queue = buildApplicationActivityQueue(
@@ -49,16 +51,16 @@ describe('buildApplicationActivityQueue', () => {
           interviewDate: '2026-05-28',
         }),
       ],
-      { now: new Date('2026-05-27T12:00:00Z') },
-    );
+      { now: new Date('2026-05-27T12:00:00Z') }
+    )
 
     expect(queue[0]).toMatchObject({
       applicationId: 'interview',
       type: 'interview',
       title: '면접 준비',
       dueLabel: '면접 1일 전',
-    });
-  });
+    })
+  })
 
   it('adds networking discovery for active applications without contact hints', () => {
     const queue = buildApplicationActivityQueue(
@@ -71,12 +73,12 @@ describe('buildApplicationActivityQueue', () => {
           updatedAt: '2026-05-27T09:00:00Z',
         }),
       ],
-      { now: new Date('2026-05-27T12:00:00Z') },
-    );
+      { now: new Date('2026-05-27T12:00:00Z') }
+    )
 
-    expect(queue.some((item) => item.type === 'networking')).toBe(true);
-    expect(queue.find((item) => item.type === 'networking')?.detail).toContain('담당자');
-  });
+    expect(queue.some((item) => item.type === 'networking')).toBe(true)
+    expect(queue.find((item) => item.type === 'networking')?.detail).toContain('담당자')
+  })
 
   it('does not create follow-up tasks for terminal applications', () => {
     const queue = buildApplicationActivityQueue(
@@ -87,11 +89,11 @@ describe('buildApplicationActivityQueue', () => {
           updatedAt: '2026-05-01T09:00:00Z',
         }),
       ],
-      { now: new Date('2026-05-27T12:00:00Z') },
-    );
+      { now: new Date('2026-05-27T12:00:00Z') }
+    )
 
-    expect(queue.some((item) => item.type === 'follow-up')).toBe(false);
-  });
+    expect(queue.some((item) => item.type === 'follow-up')).toBe(false)
+  })
 
   it('turns very stale active applications into close-out guidance instead of another follow-up', () => {
     const queue = buildApplicationActivityQueue(
@@ -103,15 +105,15 @@ describe('buildApplicationActivityQueue', () => {
           updatedAt: '2026-04-30T09:00:00Z',
         }),
       ],
-      { now: new Date('2026-05-27T12:00:00Z') },
-    );
+      { now: new Date('2026-05-27T12:00:00Z') }
+    )
 
     expect(queue[0]).toMatchObject({
       applicationId: 'ghosted',
       type: 'close-out',
       title: '무응답 정리',
       tone: 'warning',
-    });
-    expect(queue.some((item) => item.type === 'follow-up')).toBe(false);
-  });
-});
+    })
+    expect(queue.some((item) => item.type === 'follow-up')).toBe(false)
+  })
+})

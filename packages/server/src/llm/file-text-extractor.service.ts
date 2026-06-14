@@ -1,12 +1,13 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { GeminiProvider } from './providers/gemini.provider';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10MB
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // Gemini Vision 권장 5MB
-const MAX_TEXT_LEN = 30_000;
+import { GeminiProvider } from './providers/gemini.provider'
 
-const IMAGE_MIMES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic']);
-const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
+const MAX_FILE_BYTES = 10 * 1024 * 1024 // 10MB
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024 // Gemini Vision 권장 5MB
+const MAX_TEXT_LEN = 30_000
+
+const IMAGE_MIMES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'])
+const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.heic']
 
 /**
  * 업로드된 파일(PDF / DOCX / TXT / RTF / 이미지) → 평문 텍스트 추출.
@@ -22,33 +23,33 @@ const IMAGE_EXTS = ['.jpg', '.jpeg', '.png', '.webp', '.heic'];
  */
 @Injectable()
 export class FileTextExtractorService {
-  private readonly logger = new Logger(FileTextExtractorService.name);
+  private readonly logger = new Logger(FileTextExtractorService.name)
 
   constructor(private gemini: GeminiProvider) {}
 
   async extract(file: Express.Multer.File): Promise<string> {
-    if (!file) throw new BadRequestException('파일이 필요합니다');
+    if (!file) throw new BadRequestException('파일이 필요합니다')
     if (file.size > MAX_FILE_BYTES) {
       throw new BadRequestException(
-        `파일이 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)}MB / 최대 10MB)`,
-      );
+        `파일이 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)}MB / 최대 10MB)`
+      )
     }
-    const name = (file.originalname || '').toLowerCase();
-    const mime = (file.mimetype || '').toLowerCase();
-    const isImage = IMAGE_MIMES.has(mime) || IMAGE_EXTS.some((e) => name.endsWith(e));
+    const name = (file.originalname || '').toLowerCase()
+    const mime = (file.mimetype || '').toLowerCase()
+    const isImage = IMAGE_MIMES.has(mime) || IMAGE_EXTS.some((e) => name.endsWith(e))
 
-    let text: string;
+    let text: string
     try {
       if (name.endsWith('.pdf') || mime === 'application/pdf') {
-        text = await this.extractPdf(file.buffer);
+        text = await this.extractPdf(file.buffer)
         // 스캔 이미지 PDF 폴백: pdf-parse 가 50자 미만만 추출 → 텍스트 임베드 안 됨.
         // Gemini Vision 으로 PDF 직접 OCR (Gemini 가 application/pdf input 지원).
         if (text.trim().length < 50 && this.gemini.isAvailable && file.size <= MAX_IMAGE_BYTES) {
-          this.logger.log(`스캔 PDF 감지 (${text.length}자) → Gemini Vision 폴백`);
+          this.logger.log(`스캔 PDF 감지 (${text.length}자) → Gemini Vision 폴백`)
           try {
-            text = await this.gemini.extractImageText(file.buffer, 'application/pdf');
+            text = await this.gemini.extractImageText(file.buffer, 'application/pdf')
           } catch (err) {
-            this.logger.warn(`Gemini PDF OCR 실패: ${(err as Error).message}`);
+            this.logger.warn(`Gemini PDF OCR 실패: ${(err as Error).message}`)
             // 텍스트가 일부라도 있으면 그것 유지, 아니면 아래 빈 결과 에러로 떨어짐
           }
         }
@@ -56,29 +57,29 @@ export class FileTextExtractorService {
         name.endsWith('.docx') ||
         mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       ) {
-        text = await this.extractDocx(file.buffer);
+        text = await this.extractDocx(file.buffer)
       } else if (name.endsWith('.txt') || mime === 'text/plain') {
-        text = file.buffer.toString('utf-8');
+        text = file.buffer.toString('utf-8')
       } else if (name.endsWith('.rtf') || mime === 'application/rtf' || mime === 'text/rtf') {
-        text = this.stripRtf(file.buffer.toString('utf-8'));
+        text = this.stripRtf(file.buffer.toString('utf-8'))
       } else if (isImage) {
-        text = await this.extractImage(file);
+        text = await this.extractImage(file)
       } else if (name.endsWith('.doc') || mime === 'application/msword') {
         // 옛날 .doc 형식 — mammoth 불가. 사용자에게 docx 변환 안내.
         throw new BadRequestException(
-          'Word 97-2003 (.doc) 형식은 지원하지 않습니다. .docx 로 변환 후 업로드해주세요.',
-        );
+          'Word 97-2003 (.doc) 형식은 지원하지 않습니다. .docx 로 변환 후 업로드해주세요.'
+        )
       } else {
         throw new BadRequestException(
-          '지원하지 않는 파일 형식입니다. PDF / DOCX / TXT / RTF / 이미지(JPG/PNG) 만 가능합니다.',
-        );
+          '지원하지 않는 파일 형식입니다. PDF / DOCX / TXT / RTF / 이미지(JPG/PNG) 만 가능합니다.'
+        )
       }
     } catch (err) {
-      if (err instanceof BadRequestException) throw err;
-      this.logger.warn(`텍스트 추출 실패 (${name}): ${(err as Error).message}`);
+      if (err instanceof BadRequestException) throw err
+      this.logger.warn(`텍스트 추출 실패 (${name}): ${(err as Error).message}`)
       throw new BadRequestException(
-        '파일에서 텍스트를 추출하지 못했습니다. 파일이 손상되었거나 보호되어 있을 수 있습니다.',
-      );
+        '파일에서 텍스트를 추출하지 못했습니다. 파일이 손상되었거나 보호되어 있을 수 있습니다.'
+      )
     }
 
     const cleaned = text
@@ -88,48 +89,48 @@ export class FileTextExtractorService {
       .replace(/\x00/g, '')
       .replace(/[ \t]+/g, ' ')
       .replace(/\n{3,}/g, '\n\n')
-      .trim();
+      .trim()
 
     if (!cleaned) {
       throw new BadRequestException(
-        '파일에서 텍스트를 찾을 수 없습니다. 스캔 이미지 PDF 라면 텍스트 임베드된 버전이 필요합니다.',
-      );
+        '파일에서 텍스트를 찾을 수 없습니다. 스캔 이미지 PDF 라면 텍스트 임베드된 버전이 필요합니다.'
+      )
     }
 
-    return cleaned.slice(0, MAX_TEXT_LEN);
+    return cleaned.slice(0, MAX_TEXT_LEN)
   }
 
   private async extractPdf(buffer: Buffer): Promise<string> {
     // pdf-parse 는 default export 를 가짐 — dynamic import 로 ESM/CJS 양쪽 호환
     const mod = (await import('pdf-parse')) as unknown as {
-      default?: (b: Buffer) => Promise<{ text?: string }>;
-    } & ((b: Buffer) => Promise<{ text?: string }>);
-    const fn = mod.default || mod;
-    const data = await fn(buffer);
-    return String(data?.text || '');
+      default?: (b: Buffer) => Promise<{ text?: string }>
+    } & ((b: Buffer) => Promise<{ text?: string }>)
+    const fn = mod.default || mod
+    const data = await fn(buffer)
+    return String(data?.text || '')
   }
 
   private async extractDocx(buffer: Buffer): Promise<string> {
     const mod = (await import('mammoth')) as unknown as {
-      extractRawText: (input: { buffer: Buffer }) => Promise<{ value?: string }>;
-    };
-    const result = await mod.extractRawText({ buffer });
-    return String(result?.value || '');
+      extractRawText: (input: { buffer: Buffer }) => Promise<{ value?: string }>
+    }
+    const result = await mod.extractRawText({ buffer })
+    return String(result?.value || '')
   }
 
   /** Gemini Vision 으로 이미지 OCR. 사진/스캔본/명함 모두 지원. */
   private async extractImage(file: Express.Multer.File): Promise<string> {
     if (!this.gemini.isAvailable) {
-      throw new BadRequestException('이미지 OCR 기능이 비활성화되어 있습니다 (관리자 설정 필요)');
+      throw new BadRequestException('이미지 OCR 기능이 비활성화되어 있습니다 (관리자 설정 필요)')
     }
     if (file.size > MAX_IMAGE_BYTES) {
       throw new BadRequestException(
-        `이미지가 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)}MB / 최대 5MB). 압축 후 다시 시도해주세요.`,
-      );
+        `이미지가 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)}MB / 최대 5MB). 압축 후 다시 시도해주세요.`
+      )
     }
-    const mime = file.mimetype && file.mimetype.startsWith('image/') ? file.mimetype : 'image/jpeg';
-    const raw = await this.gemini.extractImageText(file.buffer, mime);
-    return this.postProcessKoreanOcr(raw);
+    const mime = file.mimetype && file.mimetype.startsWith('image/') ? file.mimetype : 'image/jpeg'
+    const raw = await this.gemini.extractImageText(file.buffer, mime)
+    return this.postProcessKoreanOcr(raw)
   }
 
   /**
@@ -144,29 +145,29 @@ export class FileTextExtractorService {
    * 보수적으로 — 잘못 결합하면 의미 망가지므로 confident 패턴만.
    */
   postProcessKoreanOcr(text: string): string {
-    if (!text) return text;
-    let out = text;
+    if (!text) return text
+    let out = text
     // 1. NFD → NFC (자모 분리된 한글을 음절로 결합)
-    out = out.normalize('NFC');
+    out = out.normalize('NFC')
     // 2. 단일 한글 음절이 공백으로 3+ 연속 분리된 경우만 결합:
     //    '경 력 사 항' → '경력사항' (OCR 가 단어를 글자별로 쪼개는 흔한 패턴)
     //    단, '결과 텍스트' 처럼 다음 음절이 multi-char 단어면 영향 없음.
     out = out.replace(/(?:^|(?<![가-힣]))([가-힣])(?: ([가-힣])){2,}(?![가-힣])/g, (match) =>
-      match.replace(/ /g, ''),
-    );
+      match.replace(/ /g, '')
+    )
     // 3. 숫자와 한글 단위(년/월/일/주/회/명/개/원/세/등) 사이 공백 제거
-    out = out.replace(/(\d) (년|월|일|주|회|명|개|원|세|등|차|분|시간|이상|이하|미만|초)/g, '$1$2');
+    out = out.replace(/(\d) (년|월|일|주|회|명|개|원|세|등|차|분|시간|이상|이하|미만|초)/g, '$1$2')
     // 4. 4자리 연도 사이 공백 (예: '20 23' → '2023')
-    out = out.replace(/\b(\d{2}) (\d{2})\b(?=[년.\-/])/g, '$1$2');
+    out = out.replace(/\b(\d{2}) (\d{2})\b(?=[년.\-/])/g, '$1$2')
     // 5. 회사·기관명 흔한 suffix 결합 — 보수적으로 명확한 패턴만
     out = out
       .replace(/주식 회사/g, '주식회사')
       .replace(/유한 회사/g, '유한회사')
       // '대 학 교' / '대 학' (3+ run 으로 위에서 이미 처리되지만 2-char 인 '대 학교' 별도 보강)
-      .replace(/대학 교/g, '대학교');
+      .replace(/대학 교/g, '대학교')
     // 6. 다중 공백 정리
-    out = out.replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n');
-    return out;
+    out = out.replace(/[ \t]+/g, ' ').replace(/ ?\n ?/g, '\n')
+    return out
   }
 
   /** RTF control words / groups 제거 — 매우 단순한 구현 (완전한 RTF parser 아님). */
@@ -177,6 +178,6 @@ export class FileTextExtractorService {
       .replace(/\\'[\dA-Fa-f]{2}/g, ' ') // hex escape (\'XX)
       .replace(/[{}]/g, ' ')
       .replace(/\s+/g, ' ')
-      .trim();
+      .trim()
   }
 }

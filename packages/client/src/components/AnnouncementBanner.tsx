@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { API_URL } from '@/lib/config';
+import { useState, useEffect, useRef } from 'react'
+
+import { API_URL } from '@/lib/config'
 
 interface Announcement {
-  id: string;
-  message: string;
-  type: 'info' | 'warning' | 'success' | 'promo';
-  link?: string;
-  linkText?: string;
-  autoDismissMs?: number; // 자동 닫기 ms (기본 8000)
+  id: string
+  message: string
+  type: 'info' | 'warning' | 'success' | 'promo'
+  link?: string
+  linkText?: string
+  autoDismissMs?: number // 자동 닫기 ms (기본 8000)
 }
 
 const TYPE_STYLES: Record<string, string> = {
@@ -15,52 +16,52 @@ const TYPE_STYLES: Record<string, string> = {
   warning: 'bg-amber-500 text-white',
   success: 'bg-emerald-600 text-white',
   promo: 'bg-sky-700 text-white',
-};
+}
 
 const TYPE_ICONS: Record<string, string> = {
   info: 'ℹ️',
   warning: '⚠️',
   success: '✅',
   promo: '🎉',
-};
+}
 
-const STORED_ANNOUNCEMENT_KEY = 'admin-announcement';
-const DISMISSED_ANNOUNCEMENT_KEY = 'announcement-dismissed';
+const STORED_ANNOUNCEMENT_KEY = 'admin-announcement'
+const DISMISSED_ANNOUNCEMENT_KEY = 'announcement-dismissed'
 
 function isAnnouncement(value: unknown): value is Announcement {
-  if (!value || typeof value !== 'object') return false;
-  const data = value as Partial<Record<keyof Announcement, unknown>>;
+  if (!value || typeof value !== 'object') return false
+  const data = value as Partial<Record<keyof Announcement, unknown>>
   return (
     typeof data.id === 'string' &&
     typeof data.message === 'string' &&
     data.message.trim().length > 0 &&
     typeof data.type === 'string'
-  );
+  )
 }
 
 function readDismissedAnnouncementId(): string | null {
   try {
-    return localStorage.getItem(DISMISSED_ANNOUNCEMENT_KEY);
+    return localStorage.getItem(DISMISSED_ANNOUNCEMENT_KEY)
   } catch {
-    return null;
+    return null
   }
 }
 
 function readStoredAnnouncement(): Announcement | null {
   try {
-    const stored = localStorage.getItem(STORED_ANNOUNCEMENT_KEY);
-    if (!stored) return null;
-    const parsed: unknown = JSON.parse(stored);
-    if (!isAnnouncement(parsed)) return null;
-    return readDismissedAnnouncementId() === parsed.id ? null : parsed;
+    const stored = localStorage.getItem(STORED_ANNOUNCEMENT_KEY)
+    if (!stored) return null
+    const parsed: unknown = JSON.parse(stored)
+    if (!isAnnouncement(parsed)) return null
+    return readDismissedAnnouncementId() === parsed.id ? null : parsed
   } catch {
-    return null;
+    return null
   }
 }
 
 function markAnnouncementDismissed(id: string): void {
   try {
-    localStorage.setItem(DISMISSED_ANNOUNCEMENT_KEY, id);
+    localStorage.setItem(DISMISSED_ANNOUNCEMENT_KEY, id)
   } catch {
     // Storage can fail in private browsing or quota-restricted environments.
   }
@@ -68,81 +69,81 @@ function markAnnouncementDismissed(id: string): void {
 
 export default function AnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(() =>
-    readStoredAnnouncement(),
-  );
-  const [dismissed, setDismissed] = useState(false);
-  const [progress, setProgress] = useState(100);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const hasStoredAnnouncementRef = useRef(announcement !== null);
+    readStoredAnnouncement()
+  )
+  const [dismissed, setDismissed] = useState(false)
+  const [progress, setProgress] = useState(100)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const startTimeRef = useRef<number>(0)
+  const hasStoredAnnouncementRef = useRef(announcement !== null)
 
   useEffect(() => {
-    if (hasStoredAnnouncementRef.current) return;
+    if (hasStoredAnnouncementRef.current) return
 
     fetch(`${API_URL}/api/health/announcement`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data: unknown) => {
         if (isAnnouncement(data) && readDismissedAnnouncementId() !== data.id) {
-          setAnnouncement(data);
+          setAnnouncement(data)
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
   // Auto-dismiss timer with progress bar
   useEffect(() => {
-    if (!announcement || dismissed) return;
-    const duration = announcement.autoDismissMs ?? 8000;
-    startTimeRef.current = Date.now();
-    const interval = 50;
+    if (!announcement || dismissed) return
+    const duration = announcement.autoDismissMs ?? 8000
+    startTimeRef.current = Date.now()
+    const interval = 50
 
     timerRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTimeRef.current;
-      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
-      setProgress(remaining);
+      const elapsed = Date.now() - startTimeRef.current
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100)
+      setProgress(remaining)
       if (elapsed >= duration) {
-        clearInterval(timerRef.current!);
-        setDismissed(true);
+        clearInterval(timerRef.current!)
+        setDismissed(true)
       }
-    }, interval);
+    }, interval)
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [announcement, dismissed]);
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [announcement, dismissed])
 
   // Pause on hover
   const pauseTimer = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-  };
+    if (timerRef.current) clearInterval(timerRef.current)
+  }
 
   const resumeTimer = () => {
-    if (!announcement || dismissed) return;
-    const duration = announcement.autoDismissMs ?? 8000;
-    const remaining = (progress / 100) * duration;
-    startTimeRef.current = Date.now() - (duration - remaining);
+    if (!announcement || dismissed) return
+    const duration = announcement.autoDismissMs ?? 8000
+    const remaining = (progress / 100) * duration
+    startTimeRef.current = Date.now() - (duration - remaining)
 
     timerRef.current = setInterval(() => {
-      const elapsed = Date.now() - startTimeRef.current;
-      const rem = Math.max(0, 100 - (elapsed / duration) * 100);
-      setProgress(rem);
+      const elapsed = Date.now() - startTimeRef.current
+      const rem = Math.max(0, 100 - (elapsed / duration) * 100)
+      setProgress(rem)
       if (elapsed >= duration) {
-        clearInterval(timerRef.current!);
-        setDismissed(true);
+        clearInterval(timerRef.current!)
+        setDismissed(true)
       }
-    }, 50);
-  };
+    }, 50)
+  }
 
-  if (!announcement || dismissed) return null;
+  if (!announcement || dismissed) return null
 
   const handleDismiss = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setDismissed(true);
-    markAnnouncementDismissed(announcement.id || 'dismissed');
-  };
+    if (timerRef.current) clearInterval(timerRef.current)
+    setDismissed(true)
+    markAnnouncementDismissed(announcement.id || 'dismissed')
+  }
 
-  const typeStyle = TYPE_STYLES[announcement.type] || TYPE_STYLES.info;
-  const typeIcon = TYPE_ICONS[announcement.type] || '';
+  const typeStyle = TYPE_STYLES[announcement.type] || TYPE_STYLES.info
+  const typeIcon = TYPE_ICONS[announcement.type] || ''
 
   return (
     <div
@@ -187,5 +188,5 @@ export default function AnnouncementBanner() {
         </svg>
       </button>
     </div>
-  );
+  )
 }

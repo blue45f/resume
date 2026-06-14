@@ -18,13 +18,13 @@ export type VoicePersona = {
     | 'tone-trust'
     | 'tone-formal'
     | 'tone-friendly'
-    | 'tone-confident';
-  label: string;
-  icon: string;
-  rate: number;
-  pitch: number;
-  lang: 'ko-KR';
-};
+    | 'tone-confident'
+  label: string
+  icon: string
+  rate: number
+  pitch: number
+  lang: 'ko-KR'
+}
 
 /**
  * 8 톤 — 자연스러운 한국어 면접/낭독 분위기를 위한 rate/pitch 미세조정.
@@ -53,9 +53,9 @@ export const VOICE_PERSONAS: VoicePersona[] = [
     pitch: 0.98,
     lang: 'ko-KR',
   },
-];
+]
 
-export const DEFAULT_PERSONA_ID: VoicePersona['id'] = 'tone-warm';
+export const DEFAULT_PERSONA_ID: VoicePersona['id'] = 'tone-warm'
 
 /**
  * 시스템별 자연스러운 한국어 voice 화이트리스트 (이름 기반).
@@ -84,10 +84,10 @@ const PREFERRED_VOICE_NAMES_RE = [
   /microsoft.*neural/i,
   // Samsung TTS (모바일)
   /samsung.*korean/i,
-];
+]
 
 /** 신경망 합성 ('neural', 'wavenet', 'premium', 'enhanced')은 더 자연스러움. */
-const NEURAL_HINT_RE = /neural|wavenet|premium|enhanced|natural|studio/i;
+const NEURAL_HINT_RE = /neural|wavenet|premium|enhanced|natural|studio/i
 
 /**
  * 한국어 native 로 자연스럽게 들리는 voice 만 통과시키는 휴리스틱.
@@ -99,8 +99,8 @@ const NEURAL_HINT_RE = /neural|wavenet|premium|enhanced|natural|studio/i;
  * - ko-KR 명시 voice (시스템 native 신호)
  */
 export function isNaturalKoreanVoice(voice: SpeechSynthesisVoice): boolean {
-  if (!voice.lang.toLowerCase().startsWith('ko')) return false;
-  const n = voice.name.toLowerCase();
+  if (!voice.lang.toLowerCase().startsWith('ko')) return false
+  const n = voice.name.toLowerCase()
   const fallbackHints = [
     'default',
     'eloquence',
@@ -120,9 +120,9 @@ export function isNaturalKoreanVoice(voice: SpeechSynthesisVoice): boolean {
     'kathy',
     'albert',
     'junior',
-  ];
-  if (fallbackHints.some((h) => n.includes(h))) return false;
-  return true;
+  ]
+  if (fallbackHints.some((h) => n.includes(h))) return false
+  return true
 }
 
 /**
@@ -134,12 +134,12 @@ export function isNaturalKoreanVoice(voice: SpeechSynthesisVoice): boolean {
  * - default=true: +2 (시스템이 기본으로 선택한 voice)
  */
 export function naturalnessScore(voice: SpeechSynthesisVoice): number {
-  let score = 0;
-  if (NEURAL_HINT_RE.test(voice.name)) score += 30;
-  if (PREFERRED_VOICE_NAMES_RE.some((re) => re.test(voice.name))) score += 10;
-  if (voice.localService) score += 5;
-  if (voice.default) score += 2;
-  return score;
+  let score = 0
+  if (NEURAL_HINT_RE.test(voice.name)) score += 30
+  if (PREFERRED_VOICE_NAMES_RE.some((re) => re.test(voice.name))) score += 10
+  if (voice.localService) score += 5
+  if (voice.default) score += 2
+  return score
 }
 
 /**
@@ -155,16 +155,16 @@ export function naturalnessScore(voice: SpeechSynthesisVoice): number {
  */
 export function matchPersonaVoice(
   persona: VoicePersona,
-  voices: SpeechSynthesisVoice[],
+  voices: SpeechSynthesisVoice[]
 ): SpeechSynthesisVoice | undefined {
-  const natural = voices.filter(isNaturalKoreanVoice);
-  if (natural.length === 0) return undefined;
+  const natural = voices.filter(isNaturalKoreanVoice)
+  if (natural.length === 0) return undefined
   // 자연도 내림차순 정렬
-  const sorted = [...natural].sort((a, b) => naturalnessScore(b) - naturalnessScore(a));
-  const idx = VOICE_PERSONAS.findIndex((p) => p.id === persona.id);
+  const sorted = [...natural].sort((a, b) => naturalnessScore(b) - naturalnessScore(a))
+  const idx = VOICE_PERSONAS.findIndex((p) => p.id === persona.id)
   // 상위 N voice 만 선택 풀로 사용 — 자연도 낮은 voice 는 회피
-  const topPool = sorted.slice(0, Math.max(2, Math.ceil(sorted.length / 2)));
-  return topPool[idx % topPool.length];
+  const topPool = sorted.slice(0, Math.max(2, Math.ceil(sorted.length / 2)))
+  return topPool[idx % topPool.length]
 }
 
 /**
@@ -174,5 +174,5 @@ export function matchPersonaVoice(
 export function filterNaturalKoreanVoices(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
   return voices
     .filter(isNaturalKoreanVoice)
-    .sort((a, b) => naturalnessScore(b) - naturalnessScore(a));
+    .sort((a, b) => naturalnessScore(b) - naturalnessScore(a))
 }

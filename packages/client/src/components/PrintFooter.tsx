@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 /**
@@ -16,47 +17,47 @@ interface Props {
  * 화면에선 `.print-only` 로 숨김, `@media print` 에서만 표시.
  */
 export default function PrintFooter({ resume }: Props) {
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const [printedTimestamp] = useState(() => Date.now());
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const [printedTimestamp] = useState(() => Date.now())
 
   const qrImageUrl = shareUrl
     ? `https://api.qrserver.com/v1/create-qr-code/?size=96x96&data=${encodeURIComponent(
-        shareUrl,
+        shareUrl
       )}&bgcolor=ffffff&color=000000&margin=0&ecc=M`
-    : '';
+    : ''
 
   // Career DNA — 이력서 데이터를 해시해 고유한 24-bar 패턴 생성.
   // 같은 이력서는 항상 같은 패턴, 데이터가 바뀌면 패턴도 변함.
-  const dna = useMemo(() => generateCareerDna(resume), [resume]);
+  const dna = useMemo(() => generateCareerDna(resume), [resume])
 
   const totalYears = resume.experiences.reduce((sum, e) => {
-    if (!e.startDate) return sum;
-    const start = new Date(e.startDate + '-01').getTime();
-    if (!Number.isFinite(start)) return sum;
+    if (!e.startDate) return sum
+    const start = new Date(e.startDate + '-01').getTime()
+    if (!Number.isFinite(start)) return sum
     const end = e.current
       ? printedTimestamp
-      : new Date((e.endDate || e.startDate) + '-01').getTime();
-    if (!Number.isFinite(end)) return sum;
-    const years = (end - start) / (1000 * 60 * 60 * 24 * 365);
-    return Number.isFinite(years) && years > 0 ? sum + years : sum;
-  }, 0);
+      : new Date((e.endDate || e.startDate) + '-01').getTime()
+    if (!Number.isFinite(end)) return sum
+    const years = (end - start) / (1000 * 60 * 60 * 24 * 365)
+    return Number.isFinite(years) && years > 0 ? sum + years : sum
+  }, 0)
 
   const skillCount = resume.skills.reduce(
     (n, s) => n + (s.items?.split(',').filter(Boolean).length ?? 0),
-    0,
-  );
+    0
+  )
 
   const printedAt = new Date(printedTimestamp).toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  })
 
   // 정수+소수 1자리 자연스럽게: 18.0 → "18", 2.5 → "2.5"
   const yearsLabel = (() => {
-    const r = Math.round(totalYears * 10) / 10;
-    return Number.isInteger(r) ? r.toString() : r.toFixed(1);
-  })();
+    const r = Math.round(totalYears * 10) / 10
+    return Number.isInteger(r) ? r.toString() : r.toFixed(1)
+  })()
 
   // 외부 wrapper 는 .print-only 로 화면 hidden, 인쇄에서만 노출. 내부 child 가 flex
   // layout 을 가져 wrapper 의 display 가 inline-style 로 override 되지 않음.
@@ -154,7 +155,7 @@ export default function PrintFooter({ resume }: Props) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 /** 이력서 데이터를 24-bar 시각적 핑거프린트로 변환. */
@@ -168,54 +169,54 @@ function generateCareerDna(resume: Resume): { bars: number[]; colors: string[]; 
     ...resume.projects.map((p) => p.name),
   ]
     .join('|')
-    .slice(0, 2000);
+    .slice(0, 2000)
 
-  const hash = simpleHash(seed);
-  const bars: number[] = [];
+  const hash = simpleHash(seed)
+  const bars: number[] = []
   for (let i = 0; i < 24; i++) {
     // 해시에서 i-번째 4비트씩 추출 → 6~26 픽셀 높이
-    const v = (hash.charCodeAt(i % hash.length) + i * 7) % 22;
-    bars.push(6 + v);
+    const v = (hash.charCodeAt(i % hash.length) + i * 7) % 22
+    bars.push(6 + v)
   }
 
   // 3-tone 컬러 팔레트 — 기술/경력/학력 비중 기반
-  const expRatio = Math.min(1, resume.experiences.length / 5);
-  const skillRatio = Math.min(1, resume.skills.length / 8);
+  const expRatio = Math.min(1, resume.experiences.length / 5)
+  const skillRatio = Math.min(1, resume.skills.length / 8)
 
   const colors = [
     interpolate('#0f172a', '#1e40af', expRatio),
     interpolate('#1e40af', '#06b6d4', skillRatio),
     interpolate('#06b6d4', '#0284c7', (expRatio + skillRatio) / 2),
-  ];
+  ]
 
-  return { bars, colors, hash };
+  return { bars, colors, hash }
 }
 
 function simpleHash(input: string): string {
-  let h = 0;
+  let h = 0
   for (let i = 0; i < input.length; i++) {
-    h = (h * 31 + input.charCodeAt(i)) >>> 0;
+    h = (h * 31 + input.charCodeAt(i)) >>> 0
   }
   // 16-digit hex expansion
-  let out = h.toString(16).padStart(8, '0');
-  let salt = h;
+  let out = h.toString(16).padStart(8, '0')
+  let salt = h
   while (out.length < 24) {
-    salt = (salt * 2654435761) >>> 0;
-    out += salt.toString(16).padStart(8, '0');
+    salt = (salt * 2654435761) >>> 0
+    out += salt.toString(16).padStart(8, '0')
   }
-  return out.slice(0, 24);
+  return out.slice(0, 24)
 }
 
 function interpolate(a: string, b: string, t: number): string {
-  const ah = hexToRgb(a);
-  const bh = hexToRgb(b);
-  const r = Math.round(ah[0] + (bh[0] - ah[0]) * t);
-  const g = Math.round(ah[1] + (bh[1] - ah[1]) * t);
-  const bl = Math.round(ah[2] + (bh[2] - ah[2]) * t);
-  return `rgb(${r}, ${g}, ${bl})`;
+  const ah = hexToRgb(a)
+  const bh = hexToRgb(b)
+  const r = Math.round(ah[0] + (bh[0] - ah[0]) * t)
+  const g = Math.round(ah[1] + (bh[1] - ah[1]) * t)
+  const bl = Math.round(ah[2] + (bh[2] - ah[2]) * t)
+  return `rgb(${r}, ${g}, ${bl})`
 }
 
 function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace('#', '');
-  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  const h = hex.replace('#', '')
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]
 }

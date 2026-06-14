@@ -1,139 +1,140 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from '@/components/Toast';
-import { timeAgo } from '@/lib/time';
-import { getUser } from '@/lib/auth';
-import { API_URL } from '@/lib/config';
-import SendMessageButton from '@/components/SendMessageButton';
-import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, useEffect, useCallback } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+
+import SendMessageButton from '@/components/SendMessageButton'
+import { toast } from '@/components/Toast'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { timeAgo } from '@/lib/time'
+import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas'
 
 interface FlatComment {
-  id: string;
-  authorName: string;
-  content: string;
-  userId?: string;
-  parentId?: string | null;
-  createdAt: string;
+  id: string
+  authorName: string
+  content: string
+  userId?: string
+  parentId?: string | null
+  createdAt: string
 }
 
 interface CommentNode extends FlatComment {
-  children: CommentNode[];
+  children: CommentNode[]
 }
 
 function buildTree(flat: FlatComment[]): CommentNode[] {
-  const map = new Map<string, CommentNode>();
-  const roots: CommentNode[] = [];
-  for (const c of flat) map.set(c.id, { ...c, children: [] });
+  const map = new Map<string, CommentNode>()
+  const roots: CommentNode[] = []
+  for (const c of flat) map.set(c.id, { ...c, children: [] })
   for (const c of flat) {
-    const node = map.get(c.id)!;
+    const node = map.get(c.id)!
     if (c.parentId && map.has(c.parentId)) {
-      map.get(c.parentId)!.children.push(node);
+      map.get(c.parentId)!.children.push(node)
     } else {
-      roots.push(node);
+      roots.push(node)
     }
   }
-  return roots;
+  return roots
 }
 
 function countAll(nodes: CommentNode[]): number {
-  let n = 0;
+  let n = 0
   for (const node of nodes) {
-    n += 1 + countAll(node.children);
+    n += 1 + countAll(node.children)
   }
-  return n;
+  return n
 }
 
-const MAX_DEPTH = 8;
+const MAX_DEPTH = 8
 
 interface Props {
-  resumeId: string;
-  isPublic: boolean;
+  resumeId: string
+  isPublic: boolean
 }
 
 export default function CommentSection({ resumeId, isPublic }: Props) {
-  const [flat, setFlat] = useState<FlatComment[]>([]);
-  const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
-  const currentUser = getUser();
+  const [flat, setFlat] = useState<FlatComment[]>([])
+  const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null)
+  const currentUser = getUser()
 
   const commentForm = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
     defaultValues: { content: '' },
-  });
+  })
   const replyForm = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
     defaultValues: { content: '' },
-  });
-  const content = useWatch({ control: commentForm.control, name: 'content' }) ?? '';
-  const replyText = useWatch({ control: replyForm.control, name: 'content' }) ?? '';
+  })
+  const content = useWatch({ control: commentForm.control, name: 'content' }) ?? ''
+  const replyText = useWatch({ control: replyForm.control, name: 'content' }) ?? ''
 
   const load = useCallback(() => {
     fetch(`${API_URL}/api/resumes/${resumeId}/comments`)
       .then((r) => (r.ok ? r.json() : []))
       .then(setFlat)
-      .catch(() => {});
-  }, [resumeId]);
+      .catch(() => {})
+  }, [resumeId])
 
   useEffect(() => {
-    if (isPublic) load();
-  }, [resumeId, isPublic, load]);
+    if (isPublic) load()
+  }, [resumeId, isPublic, load])
 
-  const tree = buildTree(flat);
+  const tree = buildTree(flat)
 
   const onComment = async (data: CommentFormValues) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
       const res = await fetch(`${API_URL}/api/resumes/${resumeId}/comments`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ content: data.content }),
-      });
-      if (!res.ok) throw new Error('작성에 실패했습니다');
-      commentForm.reset();
-      toast('의견이 등록되었습니다', 'success');
-      load();
+      })
+      if (!res.ok) throw new Error('작성에 실패했습니다')
+      commentForm.reset()
+      toast('의견이 등록되었습니다', 'success')
+      load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '작성에 실패했습니다', 'error');
+      toast(e instanceof Error ? e.message : '작성에 실패했습니다', 'error')
     }
-  };
+  }
 
   const onReply = (parentId: string) => async (data: CommentFormValues) => {
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
       const res = await fetch(`${API_URL}/api/resumes/${resumeId}/comments`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ content: data.content, parentId }),
-      });
-      if (!res.ok) throw new Error('답글 작성에 실패했습니다');
-      replyForm.reset();
-      setReplyingTo(null);
-      toast('답글이 등록되었습니다', 'success');
-      load();
+      })
+      if (!res.ok) throw new Error('답글 작성에 실패했습니다')
+      replyForm.reset()
+      setReplyingTo(null)
+      toast('답글이 등록되었습니다', 'success')
+      load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '답글 작성에 실패했습니다', 'error');
+      toast(e instanceof Error ? e.message : '답글 작성에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const token = localStorage.getItem('token')
+    if (!token) return
     await fetch(`${API_URL}/api/resumes/${resumeId}/comments/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
-    });
-    load();
-  };
+    })
+    load()
+  }
 
-  if (!isPublic) return null;
+  if (!isPublic) return null
 
   const renderNode = (node: CommentNode, depth: number) => {
-    const isRoot = depth === 0;
-    const childCount = countAll(node.children);
+    const isRoot = depth === 0
+    const childCount = countAll(node.children)
 
     return (
       <div key={node.id}>
@@ -198,11 +199,11 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
                 <button
                   onClick={() => {
                     if (replyingTo?.id === node.id) {
-                      setReplyingTo(null);
-                      replyForm.reset();
+                      setReplyingTo(null)
+                      replyForm.reset()
                     } else {
-                      setReplyingTo({ id: node.id, authorName: node.authorName });
-                      replyForm.reset();
+                      setReplyingTo({ id: node.id, authorName: node.authorName })
+                      replyForm.reset()
                     }
                   }}
                   className="text-xs text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 transition-colors flex items-center gap-1"
@@ -277,8 +278,8 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
                   <button
                     type="button"
                     onClick={() => {
-                      setReplyingTo(null);
-                      replyForm.reset();
+                      setReplyingTo(null)
+                      replyForm.reset()
                     }}
                     className="px-3 py-1 text-xs text-slate-500 hover:text-slate-700 transition-colors"
                   >
@@ -304,8 +305,8 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
           </div>
         )}
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 no-print">
@@ -346,5 +347,5 @@ export default function CommentSection({ resumeId, isPublic }: Props) {
         <div className="space-y-3">{tree.map((node) => renderNode(node, 0))}</div>
       )}
     </div>
-  );
+  )
 }

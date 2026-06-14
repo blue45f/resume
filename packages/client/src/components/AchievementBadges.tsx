@@ -1,24 +1,26 @@
-import { memo, useEffect, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { calculateCompleteness } from '@/lib/completeness';
+import { memo, useEffect, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { calculateCompleteness } from '@/lib/completeness'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 interface Badge {
-  id: string;
-  label: string;
-  description: string;
-  icon: string;
-  color: string;
-  gradient: string;
-  earned: boolean;
+  id: string
+  label: string
+  description: string
+  icon: string
+  color: string
+  gradient: string
+  earned: boolean
 }
 
 function computeBadges(resume: Resume): Badge[] {
-  const completeness = calculateCompleteness(resume);
-  const pct = completeness.percentage;
+  const completeness = calculateCompleteness(resume)
+  const pct = completeness.percentage
 
   return [
     {
@@ -68,18 +70,18 @@ function computeBadges(resume: Resume): Badge[] {
       gradient: 'from-cyan-500 to-blue-500',
       earned: resume.languages.length >= 2,
     },
-  ];
+  ]
 }
 
 function BadgeIcon({ badge, animateIn }: { badge: Badge; animateIn: boolean }) {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(false)
 
   useEffect(() => {
     if (animateIn && badge.earned) {
-      const timer = setTimeout(() => setShow(true), 100);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => setShow(true), 100)
+      return () => clearTimeout(timer)
     }
-  }, [animateIn, badge.earned]);
+  }, [animateIn, badge.earned])
 
   return (
     <div
@@ -153,18 +155,18 @@ function BadgeIcon({ badge, animateIn }: { badge: Badge; animateIn: boolean }) {
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 function AchievementBadges({ resume }: Props) {
-  const [animateIn, setAnimateIn] = useState(false);
-  const badges = computeBadges(resume);
-  const earnedCount = badges.filter((b) => b.earned).length;
+  const [animateIn, setAnimateIn] = useState(false)
+  const badges = computeBadges(resume)
+  const earnedCount = badges.filter((b) => b.earned).length
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimateIn(true), 200);
-    return () => clearTimeout(timer);
-  }, []);
+    const timer = setTimeout(() => setAnimateIn(true), 200)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 no-print">
@@ -211,7 +213,7 @@ function AchievementBadges({ resume }: Props) {
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-export default memo(AchievementBadges);
+export default memo(AchievementBadges)

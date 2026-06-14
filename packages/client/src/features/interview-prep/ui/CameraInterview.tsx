@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 // 페르소나·voice 매칭 헬퍼는 lib/voicePersona 로 단일 정의 — 사이트 전반 TTS 일관.
 import {
@@ -6,13 +6,13 @@ import {
   DEFAULT_PERSONA_ID,
   matchPersonaVoice,
   type VoicePersona,
-} from '@/lib/voicePersona';
+} from '@/lib/voicePersona'
 
-export type InterviewerPersona = VoicePersona & { voiceURI?: string };
+export type InterviewerPersona = VoicePersona & { voiceURI?: string }
 
-const PERSONA_PRESETS = VOICE_PERSONAS;
+const PERSONA_PRESETS = VOICE_PERSONAS
 
-const matchVoice = matchPersonaVoice;
+const matchVoice = matchPersonaVoice
 
 /**
  * CameraInterview
@@ -23,41 +23,41 @@ const matchVoice = matchPersonaVoice;
  */
 
 export interface CameraInterviewProps {
-  question: string;
+  question: string
   /** 선택: 녹화 최대 시간(초). 도달 시 자동 정지. */
-  maxDurationSec?: number;
-  onRecordingComplete?: (blob: Blob, duration: number) => void;
+  maxDurationSec?: number
+  onRecordingComplete?: (blob: Blob, duration: number) => void
 }
 
-type PermissionState = 'idle' | 'requesting' | 'granted' | 'denied';
-type RecordingPhase = 'preview' | 'recording' | 'stopped';
+type PermissionState = 'idle' | 'requesting' | 'granted' | 'denied'
+type RecordingPhase = 'preview' | 'recording' | 'stopped'
 
 function formatTime(totalSec: number): string {
   const m = Math.floor(totalSec / 60)
     .toString()
-    .padStart(2, '0');
+    .padStart(2, '0')
   const s = Math.floor(totalSec % 60)
     .toString()
-    .padStart(2, '0');
-  return `${m}:${s}`;
+    .padStart(2, '0')
+  return `${m}:${s}`
 }
 
 /** 브라우저가 지원하는 최선의 video MIME 선택 */
 function pickMimeType(): string | undefined {
-  if (typeof MediaRecorder === 'undefined') return undefined;
+  if (typeof MediaRecorder === 'undefined') return undefined
   const candidates = [
     'video/webm;codecs=vp9,opus',
     'video/webm;codecs=vp8,opus',
     'video/webm',
     'video/mp4',
-  ];
+  ]
   return candidates.find((c) => {
     try {
-      return MediaRecorder.isTypeSupported(c);
+      return MediaRecorder.isTypeSupported(c)
     } catch {
-      return false;
+      return false
     }
-  });
+  })
 }
 
 export default function CameraInterview({
@@ -65,258 +65,258 @@ export default function CameraInterview({
   maxDurationSec,
   onRecordingComplete,
 }: CameraInterviewProps) {
-  const videoLiveRef = useRef<HTMLVideoElement | null>(null);
-  const videoPlaybackRef = useRef<HTMLVideoElement | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef = useRef<number | null>(null);
-  const startedAtRef = useRef<number>(0);
-  const blobUrlRef = useRef<string | null>(null);
+  const videoLiveRef = useRef<HTMLVideoElement | null>(null)
+  const videoPlaybackRef = useRef<HTMLVideoElement | null>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const timerRef = useRef<number | null>(null)
+  const startedAtRef = useRef<number>(0)
+  const blobUrlRef = useRef<string | null>(null)
 
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [permission, setPermission] = useState<PermissionState>('idle');
-  const [error, setError] = useState<string | null>(null);
-  const [phase, setPhase] = useState<RecordingPhase>('preview');
-  const [elapsed, setElapsed] = useState<number>(0);
-  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
-  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
-  const [announce, setAnnounce] = useState<string>('');
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [personaId, setPersonaId] = useState<string>(DEFAULT_PERSONA_ID);
-  const [ttsRate, setTtsRate] = useState<number>(1.0);
-  const [speaking, setSpeaking] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null)
+  const [permission, setPermission] = useState<PermissionState>('idle')
+  const [error, setError] = useState<string | null>(null)
+  const [phase, setPhase] = useState<RecordingPhase>('preview')
+  const [elapsed, setElapsed] = useState<number>(0)
+  const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null)
+  const [playbackUrl, setPlaybackUrl] = useState<string | null>(null)
+  const [announce, setAnnounce] = useState<string>('')
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [personaId, setPersonaId] = useState<string>(DEFAULT_PERSONA_ID)
+  const [ttsRate, setTtsRate] = useState<number>(1.0)
+  const [speaking, setSpeaking] = useState(false)
   const ttsSupported =
-    typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined';
+    typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined'
 
-  const mimeType = useMemo(() => pickMimeType(), []);
+  const mimeType = useMemo(() => pickMimeType(), [])
 
   // 브라우저 보이스 로드
   useEffect(() => {
-    if (!ttsSupported) return;
-    const load = () => setVoices(window.speechSynthesis.getVoices());
-    load();
-    window.speechSynthesis.addEventListener('voiceschanged', load);
+    if (!ttsSupported) return
+    const load = () => setVoices(window.speechSynthesis.getVoices())
+    load()
+    window.speechSynthesis.addEventListener('voiceschanged', load)
     return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', load);
-      window.speechSynthesis.cancel();
-    };
-  }, [ttsSupported]);
+      window.speechSynthesis.removeEventListener('voiceschanged', load)
+      window.speechSynthesis.cancel()
+    }
+  }, [ttsSupported])
 
   const activePersona = useMemo<InterviewerPersona>(() => {
-    const preset = PERSONA_PRESETS.find((p) => p.id === personaId) ?? PERSONA_PRESETS[1];
-    const matched = matchVoice(preset, voices);
+    const preset = PERSONA_PRESETS.find((p) => p.id === personaId) ?? PERSONA_PRESETS[1]
+    const matched = matchVoice(preset, voices)
     return {
       ...preset,
       voiceURI: matched?.voiceURI,
-    } satisfies InterviewerPersona;
-  }, [personaId, voices]);
+    } satisfies InterviewerPersona
+  }, [personaId, voices])
 
   const speakQuestion = useCallback(() => {
-    if (!ttsSupported || !question.trim()) return;
-    const u = new SpeechSynthesisUtterance(question);
-    const v = voices.find((x) => x.voiceURI === activePersona.voiceURI);
-    if (v) u.voice = v;
-    u.lang = activePersona.lang;
-    u.rate = activePersona.rate * ttsRate;
-    u.pitch = activePersona.pitch;
-    u.onend = () => setSpeaking(false);
-    u.onerror = () => setSpeaking(false);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(u);
-    setSpeaking(true);
-    setAnnounce(`${activePersona.label} 음성으로 질문을 읽습니다.`);
-  }, [activePersona, question, ttsRate, ttsSupported, voices]);
+    if (!ttsSupported || !question.trim()) return
+    const u = new SpeechSynthesisUtterance(question)
+    const v = voices.find((x) => x.voiceURI === activePersona.voiceURI)
+    if (v) u.voice = v
+    u.lang = activePersona.lang
+    u.rate = activePersona.rate * ttsRate
+    u.pitch = activePersona.pitch
+    u.onend = () => setSpeaking(false)
+    u.onerror = () => setSpeaking(false)
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(u)
+    setSpeaking(true)
+    setAnnounce(`${activePersona.label} 음성으로 질문을 읽습니다.`)
+  }, [activePersona, question, ttsRate, ttsSupported, voices])
 
   const stopSpeaking = useCallback(() => {
-    if (!ttsSupported) return;
-    window.speechSynthesis.cancel();
-    setSpeaking(false);
-  }, [ttsSupported]);
+    if (!ttsSupported) return
+    window.speechSynthesis.cancel()
+    setSpeaking(false)
+  }, [ttsSupported])
 
   /* ── Stream 관리 ───────────────────────────────────────────── */
 
   const stopStream = useCallback(() => {
     if (stream) {
-      stream.getTracks().forEach((t) => t.stop());
+      stream.getTracks().forEach((t) => t.stop())
     }
-  }, [stream]);
+  }, [stream])
 
   const requestPermission = useCallback(async () => {
-    setPermission('requesting');
-    setError(null);
+    setPermission('requesting')
+    setError(null)
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error('이 브라우저는 카메라 녹화를 지원하지 않습니다.');
+        throw new Error('이 브라우저는 카메라 녹화를 지원하지 않습니다.')
       }
-      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setStream(s);
-      setPermission('granted');
-      setAnnounce('카메라와 마이크 권한이 허용되었습니다. 녹화를 시작할 수 있습니다.');
+      const s = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      setStream(s)
+      setPermission('granted')
+      setAnnounce('카메라와 마이크 권한이 허용되었습니다. 녹화를 시작할 수 있습니다.')
     } catch (e: unknown) {
-      const err = e as DOMException & { message?: string };
-      let msg = '카메라/마이크 권한이 거부되었습니다.';
+      const err = e as DOMException & { message?: string }
+      let msg = '카메라/마이크 권한이 거부되었습니다.'
       if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
-        msg = '카메라/마이크 권한이 거부되었습니다. 브라우저 주소창의 권한 설정을 확인해주세요.';
+        msg = '카메라/마이크 권한이 거부되었습니다. 브라우저 주소창의 권한 설정을 확인해주세요.'
       } else if (err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError') {
-        msg = '사용 가능한 카메라 또는 마이크를 찾을 수 없습니다.';
+        msg = '사용 가능한 카메라 또는 마이크를 찾을 수 없습니다.'
       } else if (err?.name === 'NotReadableError') {
-        msg = '다른 앱이 카메라를 사용 중입니다. 종료 후 다시 시도해주세요.';
+        msg = '다른 앱이 카메라를 사용 중입니다. 종료 후 다시 시도해주세요.'
       } else if (err?.message) {
-        msg = err.message;
+        msg = err.message
       }
-      setPermission('denied');
-      setError(msg);
-      setAnnounce(msg);
+      setPermission('denied')
+      setError(msg)
+      setAnnounce(msg)
     }
-  }, []);
+  }, [])
 
   /* ── Stream을 <video>에 연결 ───────────────────────────────── */
   useEffect(() => {
-    const v = videoLiveRef.current;
+    const v = videoLiveRef.current
     if (v && stream) {
-      v.srcObject = stream;
-      void v.play().catch(() => {});
+      v.srcObject = stream
+      void v.play().catch(() => {})
     }
     return () => {
-      if (v) v.srcObject = null;
-    };
-  }, [stream]);
+      if (v) v.srcObject = null
+    }
+  }, [stream])
 
   /* ── 녹화 시작/정지 ────────────────────────────────────────── */
 
   const stopRecording = useCallback(() => {
-    const mr = mediaRecorderRef.current;
+    const mr = mediaRecorderRef.current
     if (mr && mr.state !== 'inactive') {
-      mr.stop();
+      mr.stop()
     }
     if (timerRef.current !== null) {
-      window.clearInterval(timerRef.current);
-      timerRef.current = null;
+      window.clearInterval(timerRef.current)
+      timerRef.current = null
     }
-  }, []);
+  }, [])
 
   const startRecording = useCallback(() => {
-    if (!stream) return;
-    setError(null);
+    if (!stream) return
+    setError(null)
     if (typeof MediaRecorder === 'undefined') {
-      setError('이 브라우저는 녹화를 지원하지 않습니다.');
-      return;
+      setError('이 브라우저는 녹화를 지원하지 않습니다.')
+      return
     }
     try {
-      chunksRef.current = [];
-      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      chunksRef.current = []
+      const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined)
       mr.ondataavailable = (ev: BlobEvent) => {
-        if (ev.data && ev.data.size > 0) chunksRef.current.push(ev.data);
-      };
+        if (ev.data && ev.data.size > 0) chunksRef.current.push(ev.data)
+      }
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mimeType || 'video/webm' });
-        const duration = Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000));
-        setRecordedBlob(blob);
-        if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
-        const url = URL.createObjectURL(blob);
-        blobUrlRef.current = url;
-        setPlaybackUrl(url);
-        setPhase('stopped');
-        setAnnounce(`녹화가 종료되었습니다. 총 ${formatTime(duration)} 녹화되었습니다.`);
-        onRecordingComplete?.(blob, duration);
-      };
+        const blob = new Blob(chunksRef.current, { type: mimeType || 'video/webm' })
+        const duration = Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000))
+        setRecordedBlob(blob)
+        if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+        const url = URL.createObjectURL(blob)
+        blobUrlRef.current = url
+        setPlaybackUrl(url)
+        setPhase('stopped')
+        setAnnounce(`녹화가 종료되었습니다. 총 ${formatTime(duration)} 녹화되었습니다.`)
+        onRecordingComplete?.(blob, duration)
+      }
       mr.onerror = () => {
-        setError('녹화 중 오류가 발생했습니다.');
-      };
-      mediaRecorderRef.current = mr;
-      mr.start(1000);
-      startedAtRef.current = Date.now();
-      setElapsed(0);
-      setPhase('recording');
-      setAnnounce('녹화가 시작되었습니다.');
+        setError('녹화 중 오류가 발생했습니다.')
+      }
+      mediaRecorderRef.current = mr
+      mr.start(1000)
+      startedAtRef.current = Date.now()
+      setElapsed(0)
+      setPhase('recording')
+      setAnnounce('녹화가 시작되었습니다.')
 
       timerRef.current = window.setInterval(() => {
-        const sec = Math.floor((Date.now() - startedAtRef.current) / 1000);
-        setElapsed(sec);
+        const sec = Math.floor((Date.now() - startedAtRef.current) / 1000)
+        setElapsed(sec)
         if (maxDurationSec && sec >= maxDurationSec) {
-          stopRecording();
+          stopRecording()
         }
-      }, 250);
+      }, 250)
     } catch {
-      setError('녹화를 시작하지 못했습니다.');
+      setError('녹화를 시작하지 못했습니다.')
     }
-  }, [stream, mimeType, onRecordingComplete, maxDurationSec, stopRecording]);
+  }, [stream, mimeType, onRecordingComplete, maxDurationSec, stopRecording])
 
   /* ── 재녹화 ───────────────────────────────────────────────── */
 
   const resetRecording = useCallback(() => {
-    setRecordedBlob(null);
+    setRecordedBlob(null)
     if (blobUrlRef.current) {
-      URL.revokeObjectURL(blobUrlRef.current);
-      blobUrlRef.current = null;
+      URL.revokeObjectURL(blobUrlRef.current)
+      blobUrlRef.current = null
     }
-    setPlaybackUrl(null);
-    setElapsed(0);
-    setPhase('preview');
-    setAnnounce('다시 녹화할 수 있습니다.');
-  }, []);
+    setPlaybackUrl(null)
+    setElapsed(0)
+    setPhase('preview')
+    setAnnounce('다시 녹화할 수 있습니다.')
+  }, [])
 
   /* ── 다운로드 ─────────────────────────────────────────────── */
 
   const downloadRecording = useCallback(() => {
-    if (!recordedBlob) return;
-    const ext = (mimeType || 'video/webm').includes('mp4') ? 'mp4' : 'webm';
-    const url = URL.createObjectURL(recordedBlob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `mock-interview-${Date.now()}.${ext}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }, [recordedBlob, mimeType]);
+    if (!recordedBlob) return
+    const ext = (mimeType || 'video/webm').includes('mp4') ? 'mp4' : 'webm'
+    const url = URL.createObjectURL(recordedBlob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `mock-interview-${Date.now()}.${ext}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }, [recordedBlob, mimeType])
 
   /* ── 키보드 단축키 (Space: 시작/정지) ──────────────────────── */
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.code !== 'Space') return;
-      const target = e.target as HTMLElement | null;
-      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return;
-      if (target?.isContentEditable) return;
-      if (permission !== 'granted') return;
-      e.preventDefault();
-      if (phase === 'preview') startRecording();
-      else if (phase === 'recording') stopRecording();
+      if (e.code !== 'Space') return
+      const target = e.target as HTMLElement | null
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
+      if (target?.isContentEditable) return
+      if (permission !== 'granted') return
+      e.preventDefault()
+      if (phase === 'preview') startRecording()
+      else if (phase === 'recording') stopRecording()
     }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [phase, permission, startRecording, stopRecording]);
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [phase, permission, startRecording, stopRecording])
 
   /* ── 언마운트 정리 ────────────────────────────────────────── */
   useEffect(() => {
     return () => {
-      if (timerRef.current !== null) window.clearInterval(timerRef.current);
-      const mr = mediaRecorderRef.current;
+      if (timerRef.current !== null) window.clearInterval(timerRef.current)
+      const mr = mediaRecorderRef.current
       if (mr && mr.state !== 'inactive') {
         try {
-          mr.stop();
+          mr.stop()
         } catch {
           /* noop */
         }
       }
       if (blobUrlRef.current) {
-        URL.revokeObjectURL(blobUrlRef.current);
-        blobUrlRef.current = null;
+        URL.revokeObjectURL(blobUrlRef.current)
+        blobUrlRef.current = null
       }
-    };
-  }, []);
+    }
+  }, [])
 
   // stream 변경 시(컴포넌트 언마운트 포함) 이전 stream의 track 종료
   useEffect(() => {
     return () => {
-      if (stream) stream.getTracks().forEach((t) => t.stop());
-    };
-  }, [stream]);
+      if (stream) stream.getTracks().forEach((t) => t.stop())
+    }
+  }, [stream])
 
   /* ── UI ───────────────────────────────────────────────────── */
 
-  const recording = phase === 'recording';
-  const stopped = phase === 'stopped';
+  const recording = phase === 'recording'
+  const stopped = phase === 'stopped'
 
   return (
     <section className="imp-card p-5 sm:p-6" aria-label="카메라 모의 면접">
@@ -353,8 +353,8 @@ export default function CameraInterview({
                 key={p.id}
                 type="button"
                 onClick={() => {
-                  setPersonaId(p.id);
-                  if (speaking) window.speechSynthesis.cancel();
+                  setPersonaId(p.id)
+                  if (speaking) window.speechSynthesis.cancel()
                 }}
                 className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-full border transition-colors ${
                   personaId === p.id
@@ -442,6 +442,8 @@ export default function CameraInterview({
               />
             )}
             {stopped && playbackUrl && (
+              // 사용자가 방금 녹화한 영상이라 자막 트랙이 존재할 수 없다(media-has-caption 비적용).
+              // eslint-disable-next-line jsx-a11y/media-has-caption
               <video
                 ref={videoPlaybackRef}
                 src={playbackUrl}
@@ -543,5 +545,5 @@ export default function CameraInterview({
         </div>
       )}
     </section>
-  );
+  )
 }

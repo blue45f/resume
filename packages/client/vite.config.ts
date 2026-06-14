@@ -1,8 +1,9 @@
-import { defineConfig } from 'vite';
-import react, { reactCompilerPreset } from '@vitejs/plugin-react';
-import babel from '@rolldown/plugin-babel';
-import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
+import path from 'path'
+
+import babel from '@rolldown/plugin-babel'
+import tailwindcss from '@tailwindcss/vite'
+import react, { reactCompilerPreset } from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   plugins: [react(), babel({ presets: [reactCompilerPreset()] }), tailwindcss()],
@@ -45,63 +46,63 @@ export default defineConfig({
             id.includes('node_modules/react-dom') ||
             id.includes('node_modules/react-router')
           ) {
-            return 'react-vendor';
+            return 'react-vendor'
           }
           if (id.includes('node_modules/@tiptap') || id.includes('node_modules/prosemirror')) {
-            return 'tiptap';
+            return 'tiptap'
           }
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3')) {
-            return 'charts';
+            return 'charts'
           }
           if (id.includes('node_modules/@tanstack/react-query')) {
-            return 'react-query';
+            return 'react-query'
           }
           if (id.includes('node_modules/@radix-ui')) {
-            return 'radix';
+            return 'radix'
           }
           if (id.includes('node_modules/zustand')) {
-            return 'state';
+            return 'state'
           }
           if (
             id.includes('node_modules/react-hook-form') ||
             id.includes('node_modules/@hookform/resolvers') ||
             id.includes('node_modules/zod')
           ) {
-            return 'forms';
+            return 'forms'
           }
           if (id.includes('node_modules/dompurify') || id.includes('node_modules/sanitize')) {
-            return 'sanitize';
+            return 'sanitize'
           }
           if (id.includes('node_modules/lucide') || id.includes('node_modules/@heroicons')) {
-            return 'icons';
+            return 'icons'
           }
           if (id.includes('node_modules/swiper')) {
-            return 'swiper';
+            return 'swiper'
           }
           if (
             id.includes('node_modules/date-fns') ||
             id.includes('node_modules/dayjs') ||
             id.includes('node_modules/lodash')
           ) {
-            return 'utils';
+            return 'utils'
           }
           // 무거운 single-purpose 모듈 — 사용 페이지에서만 lazy load 되도록 분리
-          if (id.includes('node_modules/docx')) return 'docx';
-          if (id.includes('node_modules/heic2any')) return 'heic';
-          if (id.includes('node_modules/browser-image-compression')) return 'image-compress';
+          if (id.includes('node_modules/docx')) return 'docx'
+          if (id.includes('node_modules/heic2any')) return 'heic'
+          if (id.includes('node_modules/browser-image-compression')) return 'image-compress'
           if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) {
-            return 'i18n';
+            return 'i18n'
           }
-          if (id.includes('node_modules/sonner')) return 'toast';
-          if (id.includes('node_modules/react-error-boundary')) return 'error-boundary';
-          if (id.includes('node_modules/react-to-print')) return 'print';
-          if (id.includes('node_modules/@use-gesture')) return 'gesture';
+          if (id.includes('node_modules/sonner')) return 'toast'
+          if (id.includes('node_modules/react-error-boundary')) return 'error-boundary'
+          if (id.includes('node_modules/react-to-print')) return 'print'
+          if (id.includes('node_modules/@use-gesture')) return 'gesture'
           // Catch-all: 남은 작은 모듈들만 vendor 로
           if (id.includes('node_modules/') && !id.includes('node_modules/.vite')) {
-            return 'vendor';
+            return 'vendor'
           }
         },
       },
     },
   },
-});
+})

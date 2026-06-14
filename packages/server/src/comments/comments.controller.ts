@@ -1,10 +1,13 @@
-import { Controller, Get, Post, Delete, Param, Body, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
-import { Public } from '../auth/auth.guard';
-import { CommentsService } from './comments.service';
-import { CreateCommentDto } from './dto/comment.dto';
-import type { AuthenticatedRequest } from '../common/request.types';
+import { Controller, Get, Post, Delete, Param, Body, Req } from '@nestjs/common'
+import { ApiTags, ApiOperation } from '@nestjs/swagger'
+import { Throttle } from '@nestjs/throttler'
+
+import { Public } from '../auth/auth.guard'
+
+import { CommentsService } from './comments.service'
+import { CreateCommentDto } from './dto/comment.dto'
+
+import type { AuthenticatedRequest } from '../common/request.types'
 
 @ApiTags('comments')
 @Controller('resumes/:resumeId/comments')
@@ -15,7 +18,7 @@ export class CommentsController {
   @Public()
   @ApiOperation({ summary: '이력서 의견 목록' })
   findAll(@Param('resumeId') resumeId: string) {
-    return this.service.findByResume(resumeId);
+    return this.service.findByResume(resumeId)
   }
 
   @Post()
@@ -24,14 +27,14 @@ export class CommentsController {
   create(
     @Param('resumeId') resumeId: string,
     @Body() dto: CreateCommentDto,
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ) {
-    return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName, dto.parentId);
+    return this.service.create(resumeId, dto.content, req.user?.id, dto.authorName, dto.parentId)
   }
 
   @Delete(':commentId')
   @ApiOperation({ summary: '의견 삭제' })
   remove(@Param('commentId') commentId: string, @Req() req: AuthenticatedRequest) {
-    return this.service.remove(commentId, req.user?.id, req.user?.role);
+    return this.service.remove(commentId, req.user?.id, req.user?.role)
   }
 }

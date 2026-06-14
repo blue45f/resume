@@ -1,5 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException } from '@nestjs/common'
 import {
   Document,
   Packer,
@@ -8,150 +7,148 @@ import {
   AlignmentType,
   BorderStyle,
   convertInchesToTwip,
-} from 'docx';
+} from 'docx'
+
+import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class ExportService {
   constructor(private prisma: PrismaService) {}
 
   async exportAsText(resumeId: string): Promise<string> {
-    const resume = await this.getResumeData(resumeId);
-    const lines: string[] = [];
-    const pi = resume.personalInfo;
+    const resume = await this.getResumeData(resumeId)
+    const lines: string[] = []
+    const pi = resume.personalInfo
 
     if (pi) {
-      lines.push(pi.name || '');
-      const contacts = [pi.email, pi.phone, pi.address].filter(Boolean);
-      if (contacts.length) lines.push(contacts.join(' | '));
-      if (pi.website) lines.push(pi.website);
-      if (pi.github) lines.push(pi.github);
-      lines.push('');
-      if (pi.summary) lines.push(pi.summary.replace(/<[^>]*>/g, ''), '');
+      lines.push(pi.name || '')
+      const contacts = [pi.email, pi.phone, pi.address].filter(Boolean)
+      if (contacts.length) lines.push(contacts.join(' | '))
+      if (pi.website) lines.push(pi.website)
+      if (pi.github) lines.push(pi.github)
+      lines.push('')
+      if (pi.summary) lines.push(pi.summary.replace(/<[^>]*>/g, ''), '')
     }
 
     if (resume.experiences?.length) {
-      lines.push('=== 경력 ===');
+      lines.push('=== 경력 ===')
       for (const exp of resume.experiences) {
         lines.push(
-          `${exp.company} | ${exp.position} (${exp.startDate} ~ ${exp.current ? '현재' : exp.endDate})`,
-        );
-        if (exp.description) lines.push(exp.description.replace(/<[^>]*>/g, ''));
-        lines.push('');
+          `${exp.company} | ${exp.position} (${exp.startDate} ~ ${exp.current ? '현재' : exp.endDate})`
+        )
+        if (exp.description) lines.push(exp.description.replace(/<[^>]*>/g, ''))
+        lines.push('')
       }
     }
 
     if (resume.educations?.length) {
-      lines.push('=== 학력 ===');
+      lines.push('=== 학력 ===')
       for (const edu of resume.educations) {
-        lines.push(
-          `${edu.school} | ${edu.degree} ${edu.field} (${edu.startDate} ~ ${edu.endDate})`,
-        );
-        lines.push('');
+        lines.push(`${edu.school} | ${edu.degree} ${edu.field} (${edu.startDate} ~ ${edu.endDate})`)
+        lines.push('')
       }
     }
 
     if (resume.skills?.length) {
-      lines.push('=== 기술 ===');
-      for (const s of resume.skills) lines.push(`${s.category}: ${s.items}`);
-      lines.push('');
+      lines.push('=== 기술 ===')
+      for (const s of resume.skills) lines.push(`${s.category}: ${s.items}`)
+      lines.push('')
     }
 
     if (resume.projects?.length) {
-      lines.push('=== 프로젝트 ===');
+      lines.push('=== 프로젝트 ===')
       for (const p of resume.projects) {
-        lines.push(
-          `${p.name}${p.company ? ` @ ${p.company}` : ''} (${p.startDate} ~ ${p.endDate})`,
-        );
-        if (p.description) lines.push(p.description.replace(/<[^>]*>/g, ''));
-        lines.push('');
+        lines.push(`${p.name}${p.company ? ` @ ${p.company}` : ''} (${p.startDate} ~ ${p.endDate})`)
+        if (p.description) lines.push(p.description.replace(/<[^>]*>/g, ''))
+        lines.push('')
       }
     }
 
     if (resume.certifications?.length) {
-      lines.push('=== 자격증 ===');
-      for (const c of resume.certifications) lines.push(`${c.name} - ${c.issuer} (${c.issueDate})`);
-      lines.push('');
+      lines.push('=== 자격증 ===')
+      for (const c of resume.certifications) lines.push(`${c.name} - ${c.issuer} (${c.issueDate})`)
+      lines.push('')
     }
 
     if (resume.languages?.length) {
-      lines.push('=== 어학 ===');
+      lines.push('=== 어학 ===')
       for (const l of resume.languages)
-        lines.push(`${l.name}${l.testName ? ` (${l.testName})` : ''}: ${l.score}`);
-      lines.push('');
+        lines.push(`${l.name}${l.testName ? ` (${l.testName})` : ''}: ${l.score}`)
+      lines.push('')
     }
 
-    return lines.join('\n');
+    return lines.join('\n')
   }
 
   async exportAsMarkdown(resumeId: string): Promise<string> {
-    const resume = await this.getResumeData(resumeId);
-    const lines: string[] = [];
-    const pi = resume.personalInfo;
+    const resume = await this.getResumeData(resumeId)
+    const lines: string[] = []
+    const pi = resume.personalInfo
 
     if (pi) {
-      lines.push(`# ${pi.name || '이력서'}`);
-      const contacts = [pi.email, pi.phone, pi.address].filter(Boolean);
-      if (contacts.length) lines.push(contacts.join(' | '));
-      if (pi.website) lines.push(`[Website](${pi.website})`);
-      lines.push('');
-      if (pi.summary) lines.push(pi.summary.replace(/<[^>]*>/g, ''), '');
+      lines.push(`# ${pi.name || '이력서'}`)
+      const contacts = [pi.email, pi.phone, pi.address].filter(Boolean)
+      if (contacts.length) lines.push(contacts.join(' | '))
+      if (pi.website) lines.push(`[Website](${pi.website})`)
+      lines.push('')
+      if (pi.summary) lines.push(pi.summary.replace(/<[^>]*>/g, ''), '')
     }
 
     if (resume.experiences?.length) {
-      lines.push('## 경력\n');
+      lines.push('## 경력\n')
       for (const exp of resume.experiences) {
-        lines.push(`### ${exp.company} — ${exp.position}`);
-        lines.push(`*${exp.startDate} ~ ${exp.current ? '현재' : exp.endDate}*\n`);
-        if (exp.description) lines.push(exp.description.replace(/<[^>]*>/g, ''), '');
+        lines.push(`### ${exp.company} — ${exp.position}`)
+        lines.push(`*${exp.startDate} ~ ${exp.current ? '현재' : exp.endDate}*\n`)
+        if (exp.description) lines.push(exp.description.replace(/<[^>]*>/g, ''), '')
       }
     }
 
     if (resume.educations?.length) {
-      lines.push('## 학력\n');
+      lines.push('## 학력\n')
       for (const edu of resume.educations) {
-        lines.push(`### ${edu.school}`);
-        lines.push(`*${edu.degree} ${edu.field} (${edu.startDate} ~ ${edu.endDate})*\n`);
+        lines.push(`### ${edu.school}`)
+        lines.push(`*${edu.degree} ${edu.field} (${edu.startDate} ~ ${edu.endDate})*\n`)
       }
     }
 
     if (resume.skills?.length) {
-      lines.push('## 기술\n');
-      for (const s of resume.skills) lines.push(`- **${s.category}**: ${s.items}`);
-      lines.push('');
+      lines.push('## 기술\n')
+      for (const s of resume.skills) lines.push(`- **${s.category}**: ${s.items}`)
+      lines.push('')
     }
 
     if (resume.projects?.length) {
-      lines.push('## 프로젝트\n');
+      lines.push('## 프로젝트\n')
       for (const p of resume.projects) {
-        lines.push(`### ${p.name}`);
-        lines.push(`*${p.startDate} ~ ${p.endDate}*\n`);
-        if (p.description) lines.push(p.description.replace(/<[^>]*>/g, ''), '');
+        lines.push(`### ${p.name}`)
+        lines.push(`*${p.startDate} ~ ${p.endDate}*\n`)
+        if (p.description) lines.push(p.description.replace(/<[^>]*>/g, ''), '')
       }
     }
 
     if (resume.certifications?.length) {
-      lines.push('## 자격증\n');
+      lines.push('## 자격증\n')
       for (const c of resume.certifications)
-        lines.push(`- **${c.name}** — ${c.issuer} (${c.issueDate})`);
-      lines.push('');
+        lines.push(`- **${c.name}** — ${c.issuer} (${c.issueDate})`)
+      lines.push('')
     }
 
-    return lines.join('\n');
+    return lines.join('\n')
   }
 
   async exportAsJson(resumeId: string): Promise<string> {
-    const resume = await this.getResumeData(resumeId);
-    return JSON.stringify(resume, null, 2);
+    const resume = await this.getResumeData(resumeId)
+    return JSON.stringify(resume, null, 2)
   }
 
   async exportAsDocx(resumeId: string): Promise<Buffer> {
-    const resume = await this.getResumeData(resumeId);
-    const pi = resume.personalInfo;
-    const strip = (html: string) => (html || '').replace(/<[^>]*>/g, '').trim();
+    const resume = await this.getResumeData(resumeId)
+    const pi = resume.personalInfo
+    const strip = (html: string) => (html || '').replace(/<[^>]*>/g, '').trim()
 
-    const accentColor = '1F4E79';
-    const grayColor = '666666';
-    const dividerColor = 'BFBFBF';
+    const accentColor = '1F4E79'
+    const grayColor = '666666'
+    const dividerColor = 'BFBFBF'
 
     const sectionHeading = (title: string) =>
       new Paragraph({
@@ -160,27 +157,27 @@ export class ExportService {
           bottom: { style: BorderStyle.SINGLE, size: 4, color: dividerColor, space: 4 },
         },
         spacing: { before: 280, after: 120 },
-      });
+      })
 
     const subHeading = (text: string) =>
       new Paragraph({
         children: [new TextRun({ text, bold: true, size: 20 })],
         spacing: { before: 160, after: 40 },
-      });
+      })
 
     const metaLine = (text: string) =>
       new Paragraph({
         children: [new TextRun({ text, color: grayColor, size: 18, italics: true })],
         spacing: { after: 60 },
-      });
+      })
 
     const bodyParagraph = (text: string) =>
       new Paragraph({
         children: [new TextRun({ text, size: 18 })],
         spacing: { after: 60 },
-      });
+      })
 
-    const sections: Paragraph[] = [];
+    const sections: Paragraph[] = []
 
     // ── Header ──
     if (pi) {
@@ -191,15 +188,15 @@ export class ExportService {
           ],
           alignment: AlignmentType.CENTER,
           spacing: { after: 80 },
-        }),
-      );
+        })
+      )
 
-      const contactParts: string[] = [];
-      if (pi.email) contactParts.push(pi.email);
-      if (pi.phone) contactParts.push(pi.phone);
-      if (pi.address) contactParts.push(pi.address);
-      if (pi.website) contactParts.push(pi.website);
-      if (pi.github) contactParts.push(pi.github);
+      const contactParts: string[] = []
+      if (pi.email) contactParts.push(pi.email)
+      if (pi.phone) contactParts.push(pi.phone)
+      if (pi.address) contactParts.push(pi.address)
+      if (pi.website) contactParts.push(pi.website)
+      if (pi.github) contactParts.push(pi.github)
 
       if (contactParts.length) {
         sections.push(
@@ -209,47 +206,47 @@ export class ExportService {
             ],
             alignment: AlignmentType.CENTER,
             spacing: { after: 200 },
-          }),
-        );
+          })
+        )
       }
 
       if (pi.summary) {
-        sections.push(sectionHeading('요약'), bodyParagraph(strip(pi.summary)));
+        sections.push(sectionHeading('요약'), bodyParagraph(strip(pi.summary)))
       }
     }
 
     // ── Experience ──
     if (resume.experiences?.length) {
-      sections.push(sectionHeading('경력'));
+      sections.push(sectionHeading('경력'))
       for (const exp of resume.experiences) {
         sections.push(
           subHeading(
-            `${exp.company}  —  ${exp.position}${exp.department ? ` · ${exp.department}` : ''}`,
+            `${exp.company}  —  ${exp.position}${exp.department ? ` · ${exp.department}` : ''}`
           ),
-          metaLine(`${exp.startDate} ~ ${exp.current ? '현재' : exp.endDate}`),
-        );
-        if (strip(exp.description)) sections.push(bodyParagraph(strip(exp.description)));
+          metaLine(`${exp.startDate} ~ ${exp.current ? '현재' : exp.endDate}`)
+        )
+        if (strip(exp.description)) sections.push(bodyParagraph(strip(exp.description)))
         if (exp.achievements && strip(exp.achievements))
-          sections.push(bodyParagraph(`[성과] ${strip(exp.achievements)}`));
-        if (exp.techStack) sections.push(bodyParagraph(`[기술] ${exp.techStack}`));
+          sections.push(bodyParagraph(`[성과] ${strip(exp.achievements)}`))
+        if (exp.techStack) sections.push(bodyParagraph(`[기술] ${exp.techStack}`))
       }
     }
 
     // ── Education ──
     if (resume.educations?.length) {
-      sections.push(sectionHeading('학력'));
+      sections.push(sectionHeading('학력'))
       for (const edu of resume.educations) {
         sections.push(
           subHeading(`${edu.school}  —  ${edu.degree} ${edu.field}`),
-          metaLine(`${edu.startDate} ~ ${edu.endDate}${edu.gpa ? `  |  GPA: ${edu.gpa}` : ''}`),
-        );
-        if (strip(edu.description)) sections.push(bodyParagraph(strip(edu.description)));
+          metaLine(`${edu.startDate} ~ ${edu.endDate}${edu.gpa ? `  |  GPA: ${edu.gpa}` : ''}`)
+        )
+        if (strip(edu.description)) sections.push(bodyParagraph(strip(edu.description)))
       }
     }
 
     // ── Skills ──
     if (resume.skills?.length) {
-      sections.push(sectionHeading('기술'));
+      sections.push(sectionHeading('기술'))
       for (const s of resume.skills) {
         sections.push(
           new Paragraph({
@@ -258,28 +255,28 @@ export class ExportService {
               new TextRun({ text: s.items, size: 18 }),
             ],
             spacing: { after: 60 },
-          }),
-        );
+          })
+        )
       }
     }
 
     // ── Projects ──
     if (resume.projects?.length) {
-      sections.push(sectionHeading('프로젝트'));
+      sections.push(sectionHeading('프로젝트'))
       for (const p of resume.projects) {
         sections.push(
           subHeading(`${p.name}${p.company ? `  @  ${p.company}` : ''}`),
-          metaLine(`${p.startDate} ~ ${p.endDate}${p.role ? `  |  역할: ${p.role}` : ''}`),
-        );
-        if (strip(p.description)) sections.push(bodyParagraph(strip(p.description)));
-        if (p.techStack) sections.push(bodyParagraph(`[기술스택] ${p.techStack}`));
-        if (p.link) sections.push(bodyParagraph(`[링크] ${p.link}`));
+          metaLine(`${p.startDate} ~ ${p.endDate}${p.role ? `  |  역할: ${p.role}` : ''}`)
+        )
+        if (strip(p.description)) sections.push(bodyParagraph(strip(p.description)))
+        if (p.techStack) sections.push(bodyParagraph(`[기술스택] ${p.techStack}`))
+        if (p.link) sections.push(bodyParagraph(`[링크] ${p.link}`))
       }
     }
 
     // ── Certifications ──
     if (resume.certifications?.length) {
-      sections.push(sectionHeading('자격증'));
+      sections.push(sectionHeading('자격증'))
       for (const c of resume.certifications) {
         sections.push(
           new Paragraph({
@@ -292,15 +289,15 @@ export class ExportService {
               }),
             ],
             spacing: { after: 60 },
-          }),
-        );
-        if (c.credentialId) sections.push(bodyParagraph(`ID: ${c.credentialId}`));
+          })
+        )
+        if (c.credentialId) sections.push(bodyParagraph(`ID: ${c.credentialId}`))
       }
     }
 
     // ── Languages ──
     if (resume.languages?.length) {
-      sections.push(sectionHeading('어학'));
+      sections.push(sectionHeading('어학'))
       for (const l of resume.languages) {
         sections.push(
           new Paragraph({
@@ -312,31 +309,31 @@ export class ExportService {
               }),
             ],
             spacing: { after: 60 },
-          }),
-        );
+          })
+        )
       }
     }
 
     // ── Awards ──
     if (resume.awards?.length) {
-      sections.push(sectionHeading('수상'));
+      sections.push(sectionHeading('수상'))
       for (const a of resume.awards) {
-        sections.push(subHeading(`${a.name}  —  ${a.issuer}`), metaLine(a.awardDate || ''));
+        sections.push(subHeading(`${a.name}  —  ${a.issuer}`), metaLine(a.awardDate || ''))
         if (a.description && strip(a.description))
-          sections.push(bodyParagraph(strip(a.description)));
+          sections.push(bodyParagraph(strip(a.description)))
       }
     }
 
     // ── Activities ──
     if (resume.activities?.length) {
-      sections.push(sectionHeading('활동'));
+      sections.push(sectionHeading('활동'))
       for (const a of resume.activities) {
         sections.push(
           subHeading(`${a.name}  —  ${a.organization}${a.role ? ` · ${a.role}` : ''}`),
-          metaLine(`${a.startDate} ~ ${a.endDate}`),
-        );
+          metaLine(`${a.startDate} ~ ${a.endDate}`)
+        )
         if (a.description && strip(a.description))
-          sections.push(bodyParagraph(strip(a.description)));
+          sections.push(bodyParagraph(strip(a.description)))
       }
     }
 
@@ -359,32 +356,32 @@ export class ExportService {
           children: sections,
         },
       ],
-    });
+    })
 
-    return await Packer.toBuffer(doc);
+    return await Packer.toBuffer(doc)
   }
 
   async exportAsHtml(resumeId: string): Promise<string> {
-    const resume = await this.getResumeData(resumeId);
-    const pi = resume.personalInfo;
-    const strip = (html: string) => (html || '').replace(/<[^>]*>/g, '').trim();
+    const resume = await this.getResumeData(resumeId)
+    const pi = resume.personalInfo
+    const strip = (html: string) => (html || '').replace(/<[^>]*>/g, '').trim()
     const esc = (s: string) =>
-      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
     const section = (title: string, content: string) =>
-      `<section class="section"><h2 class="section-title">${esc(title)}</h2>${content}</section>`;
+      `<section class="section"><h2 class="section-title">${esc(title)}</h2>${content}</section>`
 
     const entry = (header: string, meta: string, desc: string) =>
-      `<div class="entry"><div class="entry-header">${header}</div>${meta ? `<div class="entry-meta">${esc(meta)}</div>` : ''}${desc ? `<div class="entry-desc">${esc(desc)}</div>` : ''}</div>`;
+      `<div class="entry"><div class="entry-header">${header}</div>${meta ? `<div class="entry-meta">${esc(meta)}</div>` : ''}${desc ? `<div class="entry-desc">${esc(desc)}</div>` : ''}</div>`
 
-    let body = '';
+    let body = ''
 
     if (pi) {
       const contacts = [pi.email, pi.phone, pi.address, pi.website, pi.github]
         .filter(Boolean)
         .map(esc)
-        .join(' · ');
-      body += `<header class="resume-header"><h1>${esc(pi.name || '이력서')}</h1>${contacts ? `<p class="contacts">${contacts}</p>` : ''}${pi.summary ? `<p class="summary">${esc(strip(pi.summary))}</p>` : ''}</header>`;
+        .join(' · ')
+      body += `<header class="resume-header"><h1>${esc(pi.name || '이력서')}</h1>${contacts ? `<p class="contacts">${contacts}</p>` : ''}${pi.summary ? `<p class="summary">${esc(strip(pi.summary))}</p>` : ''}</header>`
     }
 
     if (resume.experiences?.length) {
@@ -399,11 +396,11 @@ export class ExportService {
               e.techStack ? `기술: ${e.techStack}` : '',
             ]
               .filter(Boolean)
-              .join('\n'),
-          ),
+              .join('\n')
+          )
         )
-        .join('');
-      body += section('경력', items);
+        .join('')
+      body += section('경력', items)
     }
 
     if (resume.educations?.length) {
@@ -412,21 +409,21 @@ export class ExportService {
           entry(
             `<strong>${esc(e.school)}</strong> · ${esc(e.degree)} ${esc(e.field)}`,
             `${e.startDate} ~ ${e.endDate}${e.gpa ? ` | GPA: ${e.gpa}` : ''}`,
-            strip(e.description),
-          ),
+            strip(e.description)
+          )
         )
-        .join('');
-      body += section('학력', items);
+        .join('')
+      body += section('학력', items)
     }
 
     if (resume.skills?.length) {
       const items = resume.skills
         .map(
           (s) =>
-            `<div class="skill-row"><span class="skill-cat">${esc(s.category)}</span><span class="skill-items">${esc(s.items)}</span></div>`,
+            `<div class="skill-row"><span class="skill-cat">${esc(s.category)}</span><span class="skill-items">${esc(s.items)}</span></div>`
         )
-        .join('');
-      body += section('기술', items);
+        .join('')
+      body += section('기술', items)
     }
 
     if (resume.projects?.length) {
@@ -441,11 +438,11 @@ export class ExportService {
               p.link ? `링크: ${p.link}` : '',
             ]
               .filter(Boolean)
-              .join('\n'),
-          ),
+              .join('\n')
+          )
         )
-        .join('');
-      body += section('프로젝트', items);
+        .join('')
+      body += section('프로젝트', items)
     }
 
     if (resume.certifications?.length) {
@@ -454,21 +451,21 @@ export class ExportService {
           entry(
             `<strong>${esc(c.name)}</strong> · ${esc(c.issuer)}`,
             c.issueDate,
-            c.credentialId ? `ID: ${c.credentialId}` : '',
-          ),
+            c.credentialId ? `ID: ${c.credentialId}` : ''
+          )
         )
-        .join('');
-      body += section('자격증', items);
+        .join('')
+      body += section('자격증', items)
     }
 
     if (resume.languages?.length) {
       const items = resume.languages
         .map(
           (l) =>
-            `<div class="skill-row"><span class="skill-cat">${esc(l.name)}</span><span class="skill-items">${l.testName ? esc(l.testName) + ' · ' : ''}${esc(l.score)}</span></div>`,
+            `<div class="skill-row"><span class="skill-cat">${esc(l.name)}</span><span class="skill-items">${l.testName ? esc(l.testName) + ' · ' : ''}${esc(l.score)}</span></div>`
         )
-        .join('');
-      body += section('어학', items);
+        .join('')
+      body += section('어학', items)
     }
 
     if (resume.awards?.length) {
@@ -477,11 +474,11 @@ export class ExportService {
           entry(
             `<strong>${esc(a.name)}</strong> · ${esc(a.issuer)}`,
             a.awardDate || '',
-            strip(a.description),
-          ),
+            strip(a.description)
+          )
         )
-        .join('');
-      body += section('수상', items);
+        .join('')
+      body += section('수상', items)
     }
 
     if (resume.activities?.length) {
@@ -490,11 +487,11 @@ export class ExportService {
           entry(
             `<strong>${esc(a.name)}</strong> · ${esc(a.organization)}${a.role ? ` (${esc(a.role)})` : ''}`,
             `${a.startDate} ~ ${a.endDate}`,
-            strip(a.description),
-          ),
+            strip(a.description)
+          )
         )
-        .join('');
-      body += section('활동', items);
+        .join('')
+      body += section('활동', items)
     }
 
     return `<!DOCTYPE html>
@@ -526,7 +523,7 @@ export class ExportService {
 </style>
 </head>
 <body><div class="resume">${body}</div></body>
-</html>`;
+</html>`
   }
 
   private async getResumeData(resumeId: string) {
@@ -543,8 +540,8 @@ export class ExportService {
         awards: { orderBy: { sortOrder: 'asc' } },
         activities: { orderBy: { sortOrder: 'asc' } },
       },
-    });
-    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다');
-    return resume;
+    })
+    if (!resume) throw new NotFoundException('이력서를 찾을 수 없습니다')
+    return resume
   }
 }

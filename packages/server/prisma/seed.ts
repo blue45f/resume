@@ -1,18 +1,18 @@
-import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from '@prisma/client'
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {
-  throw new Error('DATABASE_URL environment variable is required');
+  throw new Error('DATABASE_URL environment variable is required')
 }
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: databaseUrl }),
-});
+})
 
 async function main() {
   // Seed default templates
-  const templateCount = await prisma.template.count();
+  const templateCount = await prisma.template.count()
   if (templateCount === 0) {
     await prisma.template.createMany({
       data: [
@@ -97,12 +97,12 @@ async function main() {
           isDefault: false,
         },
       ],
-    });
-    console.log('✓ 기본 템플릿 10개 생성 완료');
+    })
+    console.log('✓ 기본 템플릿 10개 생성 완료')
   }
 
   // Seed sample tags
-  const tagCount = await prisma.tag.count();
+  const tagCount = await prisma.tag.count()
   if (tagCount === 0) {
     await prisma.tag.createMany({
       data: [
@@ -112,12 +112,12 @@ async function main() {
         { name: '2026 상반기', color: '#f59e0b' },
         { name: '인턴', color: '#ec4899' },
       ],
-    });
-    console.log('✓ 기본 태그 5개 생성 완료');
+    })
+    console.log('✓ 기본 태그 5개 생성 완료')
   }
 
   // Seed sample job applications
-  const appCount = await prisma.jobApplication.count();
+  const appCount = await prisma.jobApplication.count()
   if (appCount === 0) {
     const sampleApplications = [
       {
@@ -196,12 +196,12 @@ async function main() {
         notes: '다른 오퍼 수락으로 취소',
         appliedDate: '2025-03-05',
       },
-    ];
+    ]
 
     for (const app of sampleApplications) {
-      await prisma.jobApplication.create({ data: app });
+      await prisma.jobApplication.create({ data: app })
     }
-    console.log(`  ✓ 샘플 지원 내역 ${sampleApplications.length}개 생성`);
+    console.log(`  ✓ 샘플 지원 내역 ${sampleApplications.length}개 생성`)
   }
 
   // Seed sample users for resume ownership
@@ -236,25 +236,25 @@ async function main() {
       provider: 'local',
       providerId: 'sumin.jung@example.com',
     },
-  ];
-  const sampleUsers: { id: string }[] = [];
+  ]
+  const sampleUsers: { id: string }[] = []
   for (const u of sampleUserEmails) {
-    let user = await prisma.user.findFirst({ where: { email: u.email } });
-    if (!user) user = await prisma.user.create({ data: u });
-    sampleUsers.push({ id: user.id });
+    let user = await prisma.user.findFirst({ where: { email: u.email } })
+    if (!user) user = await prisma.user.create({ data: u })
+    sampleUsers.push({ id: user.id })
   }
-  console.log(`  ✓ 샘플 사용자 ${sampleUsers.length}명 확인/생성`);
+  console.log(`  ✓ 샘플 사용자 ${sampleUsers.length}명 확인/생성`)
 
   // Seed demo account — LoginPage "데모 계정으로 둘러보기" 버튼이 사용하는 공개 체험용 계정.
   // 해시 방식은 auth.service.register 와 동일 (bcryptjs, cost 12).
-  const demoEmail = 'demo@example.com';
+  const demoEmail = 'demo@example.com'
   const existingDemo = await prisma.user.findUnique({
     where: { email: demoEmail },
     select: { id: true, passwordHash: true },
-  });
+  })
   if (!existingDemo || !existingDemo.passwordHash) {
-    const bcrypt = await import('bcryptjs');
-    const passwordHash = await bcrypt.hash('Demo1234!', 12);
+    const bcrypt = await import('bcryptjs')
+    const passwordHash = await bcrypt.hash('Demo1234!', 12)
     if (!existingDemo) {
       await prisma.user.create({
         data: {
@@ -265,16 +265,16 @@ async function main() {
           passwordHash,
           userType: 'personal',
         },
-      });
-      console.log('  ✓ 데모 계정 생성 (demo@example.com)');
+      })
+      console.log('  ✓ 데모 계정 생성 (demo@example.com)')
     } else {
-      await prisma.user.update({ where: { id: existingDemo.id }, data: { passwordHash } });
-      console.log('  ✓ 데모 계정 비밀번호 설정 (demo@example.com)');
+      await prisma.user.update({ where: { id: existingDemo.id }, data: { passwordHash } })
+      console.log('  ✓ 데모 계정 비밀번호 설정 (demo@example.com)')
     }
   }
 
   // Seed sample resumes
-  const resumeCount = await prisma.resume.count();
+  const resumeCount = await prisma.resume.count()
   if (resumeCount === 0) {
     const sampleResumes = [
       {
@@ -783,25 +783,23 @@ async function main() {
         awards: { create: [] },
         activities: { create: [] },
       },
-    ];
+    ]
 
     for (let i = 0; i < sampleResumes.length; i++) {
-      const owner = sampleUsers[i % sampleUsers.length];
-      await prisma.resume.create({ data: { ...sampleResumes[i], userId: owner.id } });
+      const owner = sampleUsers[i % sampleUsers.length]
+      await prisma.resume.create({ data: { ...sampleResumes[i], userId: owner.id } })
     }
-    console.log(
-      `  ✓ 샘플 이력서 ${sampleResumes.length}개 생성 (${sampleUsers.length}명에게 분산)`,
-    );
+    console.log(`  ✓ 샘플 이력서 ${sampleResumes.length}개 생성 (${sampleUsers.length}명에게 분산)`)
   }
 
   // Seed sample comments on public resumes
-  const commentCount = await prisma.comment.count();
+  const commentCount = await prisma.comment.count()
   if (commentCount === 0) {
     const publicResumes = await prisma.resume.findMany({
       where: { visibility: 'public' },
       take: 3,
       select: { id: true },
-    });
+    })
 
     const sampleComments = [
       {
@@ -833,30 +831,30 @@ async function main() {
         content:
           '저도 비슷한 경력인데 참고가 많이 됩니다. 기술 스택 정리 방식을 벤치마킹하겠습니다!',
       },
-    ];
+    ]
 
     for (const resume of publicResumes) {
       const commentsToAdd = sampleComments.slice(
         0,
-        Math.min(3 + publicResumes.indexOf(resume), sampleComments.length),
-      );
+        Math.min(3 + publicResumes.indexOf(resume), sampleComments.length)
+      )
       for (const comment of commentsToAdd) {
         await prisma.comment.create({
           data: { resumeId: resume.id, ...comment },
-        });
+        })
       }
     }
-    console.log(`  ✓ 샘플 댓글 ${publicResumes.length * 3}개+ 생성`);
+    console.log(`  ✓ 샘플 댓글 ${publicResumes.length * 3}개+ 생성`)
   }
 
   // Seed sample application comments on public applications
-  const appCommentCount = await prisma.applicationComment.count();
+  const appCommentCount = await prisma.applicationComment.count()
   if (appCommentCount === 0) {
     const publicApps = await prisma.jobApplication.findMany({
       where: { visibility: 'public' },
       take: 3,
       select: { id: true, company: true },
-    });
+    })
 
     const appComments = [
       {
@@ -872,24 +870,24 @@ async function main() {
         authorName: '커리어 코치',
         content: '이 포지션이라면 포트폴리오에 관련 프로젝트를 강조하세요.',
       },
-    ];
+    ]
 
     for (const app of publicApps) {
       for (const comment of appComments.slice(0, 2)) {
         await prisma.applicationComment.create({
           data: { applicationId: app.id, ...comment },
-        });
+        })
       }
     }
     if (publicApps.length > 0) {
-      console.log(`  ✓ 샘플 지원 댓글 ${publicApps.length * 2}개 생성`);
+      console.log(`  ✓ 샘플 지원 댓글 ${publicApps.length * 2}개 생성`)
     }
   }
 
   // Seed sample notifications
-  const notifCount = await prisma.notification.count();
+  const notifCount = await prisma.notification.count()
   if (notifCount === 0) {
-    const users = await prisma.user.findMany({ take: 2, select: { id: true } });
+    const users = await prisma.user.findMany({ take: 2, select: { id: true } })
     if (users.length > 0) {
       const sampleNotifs = [
         {
@@ -908,42 +906,42 @@ async function main() {
           message: '선배 개발자님이 지원 내역에 조언을 남겼습니다',
           link: '/applications',
         },
-      ];
+      ]
       for (const notif of sampleNotifs) {
         await prisma.notification.create({
           data: { userId: users[0].id, ...notif },
-        });
+        })
       }
-      console.log(`  ✓ 샘플 알림 ${sampleNotifs.length}개 생성`);
+      console.log(`  ✓ 샘플 알림 ${sampleNotifs.length}개 생성`)
     }
   }
 
   // Seed sample bookmarks
-  const bookmarkCount = await prisma.bookmark.count();
+  const bookmarkCount = await prisma.bookmark.count()
   if (bookmarkCount === 0) {
-    const users = await prisma.user.findMany({ take: 1, select: { id: true } });
+    const users = await prisma.user.findMany({ take: 1, select: { id: true } })
     const publicResumes = await prisma.resume.findMany({
       where: { visibility: 'public' },
       take: 3,
       select: { id: true },
-    });
+    })
     if (users.length > 0 && publicResumes.length > 0) {
       for (const resume of publicResumes) {
         try {
           await prisma.bookmark.create({
             data: { userId: users[0].id, resumeId: resume.id },
-          });
+          })
         } catch {} // unique constraint
       }
-      console.log(`  ✓ 샘플 북마크 ${publicResumes.length}개 생성`);
+      console.log(`  ✓ 샘플 북마크 ${publicResumes.length}개 생성`)
     }
   }
 
   // Seed sample job posts
-  const jobCount = await prisma.jobPost.count();
+  const jobCount = await prisma.jobPost.count()
   if (jobCount === 0) {
     // Find or create a recruiter user
-    let recruiter = await prisma.user.findFirst({ where: { userType: 'recruiter' } });
+    let recruiter = await prisma.user.findFirst({ where: { userType: 'recruiter' } })
     if (!recruiter) {
       recruiter = await prisma.user.create({
         data: {
@@ -954,7 +952,7 @@ async function main() {
           userType: 'recruiter',
           companyName: '이력서공방 HR',
         },
-      });
+      })
     }
 
     const sampleJobs = [
@@ -1027,16 +1025,16 @@ async function main() {
         requirements: 'UI 컴포넌트 개발 경험',
         benefits: '배민 쿠폰, 유연근무',
       },
-    ];
+    ]
 
     for (const job of sampleJobs) {
-      await prisma.jobPost.create({ data: { ...job, userId: recruiter.id } });
+      await prisma.jobPost.create({ data: { ...job, userId: recruiter.id } })
     }
-    console.log(`  ✓ 샘플 채용 공고 ${sampleJobs.length}개 생성`);
+    console.log(`  ✓ 샘플 채용 공고 ${sampleJobs.length}개 생성`)
   }
 
   // ── External Job Links ─────────────────────────────────────────────
-  const extLinkCount = await prisma.externalJobLink.count();
+  const extLinkCount = await prisma.externalJobLink.count()
   if (extLinkCount === 0) {
     const externalLinks = [
       // ═══════════════════════════════════════════════════════
@@ -2098,22 +2096,22 @@ async function main() {
         jobCategory: 'it',
         order: 97,
       },
-    ];
+    ]
 
     for (const link of externalLinks) {
-      await prisma.externalJobLink.create({ data: link });
+      await prisma.externalJobLink.create({ data: link })
     }
-    console.log(`  ✓ 외부 채용 링크 ${externalLinks.length}개 생성`);
+    console.log(`  ✓ 외부 채용 링크 ${externalLinks.length}개 생성`)
   }
 
-  console.log('시드 완료!');
+  console.log('시드 완료!')
 }
 
 main()
   .catch((e) => {
-    console.error(e);
-    process.exit(1);
+    console.error(e)
+    process.exit(1)
   })
   .finally(async () => {
-    await prisma.$disconnect();
-  });
+    await prisma.$disconnect()
+  })

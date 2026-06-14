@@ -1,10 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { BillingService, PLANS, type PlanId } from './billing.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
+import { BadRequestException, NotFoundException } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
 
-const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
+import { NotificationsService } from '../notifications/notifications.service'
+import { PrismaService } from '../prisma/prisma.service'
+
+import { BillingService, PLANS, type PlanId } from './billing.service'
+
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) }
 
 const mockPrisma = {
   $transaction: jest.fn(),
@@ -25,10 +27,10 @@ const mockPrisma = {
     findMany: jest.fn(),
     findFirst: jest.fn(),
   },
-};
+}
 
 describe('BillingService', () => {
-  let service: BillingService;
+  let service: BillingService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,167 +39,167 @@ describe('BillingService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
       ],
-    }).compile();
-    service = module.get(BillingService);
-    jest.clearAllMocks();
-  });
+    }).compile()
+    service = module.get(BillingService)
+    jest.clearAllMocks()
+  })
 
   describe('listPlans', () => {
     it('3 plan 모두 반환 (free/pro/enterprise)', () => {
-      const plans = service.listPlans();
-      expect(plans.map((p) => p.id).sort()).toEqual(['enterprise', 'free', 'pro']);
-    });
-  });
+      const plans = service.listPlans()
+      expect(plans.map((p) => p.id).sort()).toEqual(['enterprise', 'free', 'pro'])
+    })
+  })
 
   describe('getMyBilling', () => {
     it('plan + active subscription 반환', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'pro', planExpiresAt: new Date() });
+      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'pro', planExpiresAt: new Date() })
       mockPrisma.subscription.findFirst.mockResolvedValue({
         id: 's1',
         plan: 'pro',
         status: 'active',
-      });
-      const r = await service.getMyBilling('u1');
-      expect(r.currentPlan.id).toBe('pro');
-      expect(r.subscription?.id).toBe('s1');
-    });
+      })
+      const r = await service.getMyBilling('u1')
+      expect(r.currentPlan.id).toBe('pro')
+      expect(r.subscription?.id).toBe('s1')
+    })
 
     it('user 없으면 NotFound', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
-      await expect(service.getMyBilling('missing')).rejects.toThrow(NotFoundException);
-    });
-  });
+      mockPrisma.user.findUnique.mockResolvedValue(null)
+      await expect(service.getMyBilling('missing')).rejects.toThrow(NotFoundException)
+    })
+  })
 
   describe('grantPlan', () => {
     beforeEach(() => {
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' });
-      mockPrisma.subscription.create.mockResolvedValue({ id: 's-new' });
-    });
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' })
+      mockPrisma.subscription.create.mockResolvedValue({ id: 's-new' })
+    })
 
     it('유효하지 않은 plan → BadRequest', async () => {
       await expect(
-        service.grantPlan('u1', { plan: 'unknown' as unknown as PlanId, days: 30 }),
-      ).rejects.toThrow(BadRequestException);
-    });
+        service.grantPlan('u1', { plan: 'unknown' as unknown as PlanId, days: 30 })
+      ).rejects.toThrow(BadRequestException)
+    })
 
     it('days 범위 밖 → BadRequest', async () => {
       await expect(service.grantPlan('u1', { plan: 'pro', days: 0 })).rejects.toThrow(
-        BadRequestException,
-      );
+        BadRequestException
+      )
       await expect(service.grantPlan('u1', { plan: 'pro', days: 99999 })).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        BadRequestException
+      )
+    })
 
     it('정상 grant — 기존 active cancel + 새 sub create + user.plan 업데이트 + 알림', async () => {
-      mockNotifications.create.mockClear();
-      await service.grantPlan('u1', { plan: 'pro', days: 30 });
+      mockNotifications.create.mockClear()
+      await service.grantPlan('u1', { plan: 'pro', days: 30 })
       expect(mockPrisma.subscription.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { userId: 'u1', status: 'active' },
           data: expect.objectContaining({ status: 'cancelled' }),
-        }),
-      );
-      expect(mockPrisma.subscription.create).toHaveBeenCalled();
+        })
+      )
+      expect(mockPrisma.subscription.create).toHaveBeenCalled()
       expect(mockPrisma.user.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'u1' },
           data: expect.objectContaining({ plan: 'pro' }),
-        }),
-      );
+        })
+      )
       expect(mockNotifications.create).toHaveBeenCalledWith(
         'u1',
         'subscription_activated',
         expect.stringContaining('Pro'),
-        expect.any(String),
-      );
-    });
-  });
+        expect.any(String)
+      )
+    })
+  })
 
   describe('cancelMyPlan', () => {
     it('active sub 없음 → NotFound', async () => {
-      mockPrisma.subscription.findFirst.mockResolvedValue(null);
-      await expect(service.cancelMyPlan('u1')).rejects.toThrow(NotFoundException);
-    });
+      mockPrisma.subscription.findFirst.mockResolvedValue(null)
+      await expect(service.cancelMyPlan('u1')).rejects.toThrow(NotFoundException)
+    })
 
     it('이미 cancel 예약 → BadRequest', async () => {
       mockPrisma.subscription.findFirst.mockResolvedValue({
         id: 's1',
         cancelAtPeriodEnd: true,
-      });
-      await expect(service.cancelMyPlan('u1')).rejects.toThrow(BadRequestException);
-    });
+      })
+      await expect(service.cancelMyPlan('u1')).rejects.toThrow(BadRequestException)
+    })
 
     it('정상 cancel — cancelAtPeriodEnd=true 로 update', async () => {
       mockPrisma.subscription.findFirst.mockResolvedValue({
         id: 's1',
         cancelAtPeriodEnd: false,
-      });
-      mockPrisma.subscription.update.mockResolvedValue({});
-      await service.cancelMyPlan('u1');
+      })
+      mockPrisma.subscription.update.mockResolvedValue({})
+      await service.cancelMyPlan('u1')
       expect(mockPrisma.subscription.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 's1' },
           data: expect.objectContaining({ cancelAtPeriodEnd: true }),
-        }),
-      );
-    });
-  });
+        })
+      )
+    })
+  })
 
   describe('expireOverdueSubscriptions', () => {
     it('overdue 없음 → expired: 0', async () => {
-      mockPrisma.subscription.findMany.mockResolvedValue([]);
-      const r = await service.expireOverdueSubscriptions();
-      expect(r.expired).toBe(0);
-    });
+      mockPrisma.subscription.findMany.mockResolvedValue([])
+      const r = await service.expireOverdueSubscriptions()
+      expect(r.expired).toBe(0)
+    })
 
     it('overdue 있으면 status=expired + user plan=free + 알림', async () => {
       mockPrisma.subscription.findMany.mockResolvedValue([
         { id: 's1', userId: 'u1', plan: 'pro' },
         { id: 's2', userId: 'u2', plan: 'enterprise' },
-      ]);
-      mockNotifications.create.mockClear();
-      const r = await service.expireOverdueSubscriptions();
-      expect(r.expired).toBe(2);
+      ])
+      mockNotifications.create.mockClear()
+      const r = await service.expireOverdueSubscriptions()
+      expect(r.expired).toBe(2)
       expect(mockPrisma.subscription.updateMany).toHaveBeenCalledWith({
         where: { id: { in: ['s1', 's2'] } },
         data: { status: 'expired' },
-      });
-      expect(mockNotifications.create).toHaveBeenCalledTimes(2);
-    });
-  });
+      })
+      expect(mockNotifications.create).toHaveBeenCalledTimes(2)
+    })
+  })
 
   describe('Plan features', () => {
     it('free / pro / enterprise 기능 카탈로그 일관성', () => {
-      expect(PLANS.free.features.aiAnalyzePerMonth).toBe(30);
-      expect(PLANS.pro.features.aiAnalyzePerMonth).toBe(300);
-      expect(PLANS.enterprise.features.aiAnalyzePerMonth).toBe(-1); // unlimited
-      expect(PLANS.free.features.coachingNudgeLLM).toBe(false);
-      expect(PLANS.pro.features.coachingNudgeLLM).toBe(true);
-    });
-  });
+      expect(PLANS.free.features.aiAnalyzePerMonth).toBe(30)
+      expect(PLANS.pro.features.aiAnalyzePerMonth).toBe(300)
+      expect(PLANS.enterprise.features.aiAnalyzePerMonth).toBe(-1) // unlimited
+      expect(PLANS.free.features.coachingNudgeLLM).toBe(false)
+      expect(PLANS.pro.features.coachingNudgeLLM).toBe(true)
+    })
+  })
 
   describe('checkQuota (사용량 enforce)', () => {
     it('Pro 플랜 (한도 100) — 50 사용 → 통과', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'pro' });
-      await expect(service.checkQuota('u1', 'interviewAnalyze', 50)).resolves.toBeUndefined();
-    });
+      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'pro' })
+      await expect(service.checkQuota('u1', 'interviewAnalyze', 50)).resolves.toBeUndefined()
+    })
 
     it('Free 플랜 (한도 5) — 5 사용 → 한도 도달 BadRequest', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'free' });
-      await expect(service.checkQuota('u1', 'interviewAnalyze', 5)).rejects.toThrow(/한도/);
-    });
+      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'free' })
+      await expect(service.checkQuota('u1', 'interviewAnalyze', 5)).rejects.toThrow(/한도/)
+    })
 
     it('Enterprise 무제한 — 9999 사용해도 통과', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'enterprise' });
-      await expect(service.checkQuota('u1', 'aiAnalyze', 9999)).resolves.toBeUndefined();
-    });
+      mockPrisma.user.findUnique.mockResolvedValue({ plan: 'enterprise' })
+      await expect(service.checkQuota('u1', 'aiAnalyze', 9999)).resolves.toBeUndefined()
+    })
 
     it('user 없음 → free 로 fallback', async () => {
-      mockPrisma.user.findUnique.mockResolvedValue(null);
-      await expect(service.checkQuota('u1', 'aiAnalyze', 30)).rejects.toThrow();
-    });
-  });
+      mockPrisma.user.findUnique.mockResolvedValue(null)
+      await expect(service.checkQuota('u1', 'aiAnalyze', 30)).rejects.toThrow()
+    })
+  })
 
   // ─────────────────────────────────────────────
   // checkQuotaAtomic — advisory lock 기반 race 차단 (P2-6)
@@ -206,117 +208,117 @@ describe('BillingService', () => {
     const mockTx = {
       $executeRawUnsafe: jest.fn().mockResolvedValue(1),
       user: { findUnique: jest.fn() },
-    };
+    }
     beforeEach(() => {
-      mockTx.$executeRawUnsafe.mockClear();
-      mockTx.user.findUnique.mockReset();
+      mockTx.$executeRawUnsafe.mockClear()
+      mockTx.user.findUnique.mockReset()
       mockPrisma.$transaction = jest.fn(async (fn: (tx: typeof mockTx) => Promise<void>) =>
-        fn(mockTx),
-      );
-    });
+        fn(mockTx)
+      )
+    })
 
     it('한도 미만 → 통과 + advisory lock 호출', async () => {
-      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' });
-      const counter = jest.fn().mockResolvedValue(2);
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' })
+      const counter = jest.fn().mockResolvedValue(2)
       await expect(
-        service.checkQuotaAtomic('u1', 'interviewAnalyze', counter),
-      ).resolves.toBeUndefined();
+        service.checkQuotaAtomic('u1', 'interviewAnalyze', counter)
+      ).resolves.toBeUndefined()
       expect(mockTx.$executeRawUnsafe).toHaveBeenCalledWith(
         expect.stringContaining('pg_advisory_xact_lock'),
-        expect.any(BigInt),
-      );
-      expect(counter).toHaveBeenCalledWith(mockTx);
-    });
+        expect.any(BigInt)
+      )
+      expect(counter).toHaveBeenCalledWith(mockTx)
+    })
 
     it('한도 도달 → BadRequest', async () => {
-      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' });
-      const counter = jest.fn().mockResolvedValue(5);
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' })
+      const counter = jest.fn().mockResolvedValue(5)
       await expect(service.checkQuotaAtomic('u1', 'interviewAnalyze', counter)).rejects.toThrow(
-        /한도/,
-      );
-    });
+        /한도/
+      )
+    })
 
     it('Enterprise unlimited (-1) → 카운트 호출 skip', async () => {
-      mockTx.user.findUnique.mockResolvedValue({ plan: 'enterprise' });
-      const counter = jest.fn();
-      await service.checkQuotaAtomic('u1', 'interviewAnalyze', counter);
-      expect(counter).not.toHaveBeenCalled();
-    });
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'enterprise' })
+      const counter = jest.fn()
+      await service.checkQuotaAtomic('u1', 'interviewAnalyze', counter)
+      expect(counter).not.toHaveBeenCalled()
+    })
 
     it('빈 userId → BadRequest', async () => {
-      await expect(service.checkQuotaAtomic('', 'aiAnalyze', jest.fn())).rejects.toThrow(/userId/);
-    });
+      await expect(service.checkQuotaAtomic('', 'aiAnalyze', jest.fn())).rejects.toThrow(/userId/)
+    })
 
     it('같은 userId+feature 는 동일 lockKey 생성 (deterministic)', async () => {
-      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' });
-      const counter1 = jest.fn().mockResolvedValue(0);
-      await service.checkQuotaAtomic('user-a', 'aiAnalyze', counter1);
-      const firstCall = mockTx.$executeRawUnsafe.mock.calls[0];
-      mockTx.$executeRawUnsafe.mockClear();
-      const counter2 = jest.fn().mockResolvedValue(0);
-      await service.checkQuotaAtomic('user-a', 'aiAnalyze', counter2);
-      const secondCall = mockTx.$executeRawUnsafe.mock.calls[0];
-      expect(firstCall[1]).toBe(secondCall[1]);
-    });
-  });
+      mockTx.user.findUnique.mockResolvedValue({ plan: 'free' })
+      const counter1 = jest.fn().mockResolvedValue(0)
+      await service.checkQuotaAtomic('user-a', 'aiAnalyze', counter1)
+      const firstCall = mockTx.$executeRawUnsafe.mock.calls[0]
+      mockTx.$executeRawUnsafe.mockClear()
+      const counter2 = jest.fn().mockResolvedValue(0)
+      await service.checkQuotaAtomic('user-a', 'aiAnalyze', counter2)
+      const secondCall = mockTx.$executeRawUnsafe.mock.calls[0]
+      expect(firstCall[1]).toBe(secondCall[1])
+    })
+  })
 
   describe('currentMonthStart', () => {
     it('현재 월의 1일 UTC 00:00 반환', () => {
-      const r = BillingService.currentMonthStart();
-      expect(r.getUTCDate()).toBe(1);
-      expect(r.getUTCHours()).toBe(0);
-    });
-  });
+      const r = BillingService.currentMonthStart()
+      expect(r.getUTCDate()).toBe(1)
+      expect(r.getUTCHours()).toBe(0)
+    })
+  })
 
   // ─────────────────────────────────────────────
   // startTrial (mockCheckout 멱등성 — P1-4)
   // ─────────────────────────────────────────────
   describe('startTrial', () => {
     it('plan=free 거부', async () => {
-      await expect(service.startTrial('u1', 'free', 7)).rejects.toThrow(BadRequestException);
-    });
+      await expect(service.startTrial('u1', 'free', 7)).rejects.toThrow(BadRequestException)
+    })
 
     it('이미 활성 구독 있으면 BadRequest', async () => {
       mockPrisma.subscription.findFirst.mockResolvedValueOnce({
         id: 's1',
         plan: 'pro',
         provider: 'manual',
-      });
-      await expect(service.startTrial('u1', 'pro', 7)).rejects.toThrow(BadRequestException);
-    });
+      })
+      await expect(service.startTrial('u1', 'pro', 7)).rejects.toThrow(BadRequestException)
+    })
 
     it('과거 manual trial 이력 있으면 BadRequest', async () => {
       mockPrisma.subscription.findFirst
         .mockResolvedValueOnce(null) // active 없음
-        .mockResolvedValueOnce({ id: 's-old' }); // past trial 있음
-      await expect(service.startTrial('u1', 'pro', 7)).rejects.toThrow(BadRequestException);
-    });
+        .mockResolvedValueOnce({ id: 's-old' }) // past trial 있음
+      await expect(service.startTrial('u1', 'pro', 7)).rejects.toThrow(BadRequestException)
+    })
 
     it('첫 trial — grantPlan 호출 + manual provider', async () => {
       mockPrisma.subscription.findFirst
         .mockResolvedValueOnce(null) // active 없음
-        .mockResolvedValueOnce(null); // past trial 없음
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' });
-      mockPrisma.subscription.create.mockResolvedValue({ id: 's-new' });
-      await service.startTrial('u1', 'pro', 7);
+        .mockResolvedValueOnce(null) // past trial 없음
+      mockPrisma.user.findUnique.mockResolvedValue({ id: 'u1' })
+      mockPrisma.subscription.create.mockResolvedValue({ id: 's-new' })
+      await service.startTrial('u1', 'pro', 7)
       expect(mockPrisma.subscription.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ plan: 'pro', provider: 'manual' }),
-        }),
-      );
-    });
-  });
+        })
+      )
+    })
+  })
 
   // ─────────────────────────────────────────────
   // verifyRecentPayment — PaymentResultPage 서버 신뢰원 (P1-5)
   // ─────────────────────────────────────────────
   describe('verifyRecentPayment', () => {
     it('최근 10분 내 payment 없음 → verified=false (no_recent_payment)', async () => {
-      mockPrisma.payment.findFirst.mockResolvedValueOnce(null);
-      const result = await service.verifyRecentPayment('u1');
-      if (result.verified) throw new Error('expected verified=false');
-      expect(result.reason).toBe('no_recent_payment');
-    });
+      mockPrisma.payment.findFirst.mockResolvedValueOnce(null)
+      const result = await service.verifyRecentPayment('u1')
+      if (result.verified) throw new Error('expected verified=false')
+      expect(result.reason).toBe('no_recent_payment')
+    })
 
     it('subscription inactive → verified=false (no_active_subscription)', async () => {
       mockPrisma.payment.findFirst.mockResolvedValueOnce({
@@ -324,14 +326,14 @@ describe('BillingService', () => {
         amount: 9900,
         paidAt: new Date(),
         subscription: { id: 's1', status: 'cancelled', plan: 'pro' },
-      });
-      const result = await service.verifyRecentPayment('u1');
-      if (result.verified) throw new Error('expected verified=false');
-      expect(result.reason).toBe('no_active_subscription');
-    });
+      })
+      const result = await service.verifyRecentPayment('u1')
+      if (result.verified) throw new Error('expected verified=false')
+      expect(result.reason).toBe('no_active_subscription')
+    })
 
     it('active subscription + 최근 결제 → verified=true + plan/planName/currentPeriodEnd', async () => {
-      const now = new Date();
+      const now = new Date()
       mockPrisma.payment.findFirst.mockResolvedValueOnce({
         id: 'pay1',
         amount: 9900,
@@ -343,25 +345,25 @@ describe('BillingService', () => {
           provider: 'manual',
           currentPeriodEnd: new Date(now.getTime() + 7 * 86400000),
         },
-      });
-      const result = await service.verifyRecentPayment('u1');
-      if (!result.verified) throw new Error('expected verified=true');
-      expect(result.plan).toBe('pro');
-      expect(result.planName).toBe(PLANS.pro.name);
-      expect(result.amount).toBe(9900);
-    });
+      })
+      const result = await service.verifyRecentPayment('u1')
+      if (!result.verified) throw new Error('expected verified=true')
+      expect(result.plan).toBe('pro')
+      expect(result.planName).toBe(PLANS.pro.name)
+      expect(result.amount).toBe(9900)
+    })
 
     it('cutoff (10분) 이전 결제는 무시 — findFirst 의 where 절 검증', async () => {
-      mockPrisma.payment.findFirst.mockResolvedValueOnce(null);
-      await service.verifyRecentPayment('u1');
-      const call = mockPrisma.payment.findFirst.mock.calls[0][0];
-      expect(call.where.userId).toBe('u1');
-      expect(call.where.status).toBe('succeeded');
-      expect(call.where.paidAt.gte).toBeInstanceOf(Date);
+      mockPrisma.payment.findFirst.mockResolvedValueOnce(null)
+      await service.verifyRecentPayment('u1')
+      const call = mockPrisma.payment.findFirst.mock.calls[0][0]
+      expect(call.where.userId).toBe('u1')
+      expect(call.where.status).toBe('succeeded')
+      expect(call.where.paidAt.gte).toBeInstanceOf(Date)
       // cutoff 가 현재로부터 약 10분 전인지
-      const cutoffMs = call.where.paidAt.gte.getTime();
-      expect(Date.now() - cutoffMs).toBeGreaterThan(9.5 * 60 * 1000);
-      expect(Date.now() - cutoffMs).toBeLessThan(10.5 * 60 * 1000);
-    });
-  });
-});
+      const cutoffMs = call.where.paidAt.gte.getTime()
+      expect(Date.now() - cutoffMs).toBeGreaterThan(9.5 * 60 * 1000)
+      expect(Date.now() - cutoffMs).toBeLessThan(10.5 * 60 * 1000)
+    })
+  })
+})

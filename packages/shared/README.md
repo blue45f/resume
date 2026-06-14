@@ -11,21 +11,25 @@
 ## 담기게 될 내용
 
 ### 타입 (types/)
+
 - API Request/Response DTO
 - 도메인 모델 (User, Resume, CoverLetter, Job, Company 등)
 - enum / union 타입 (ResumeStatus, PlanTier, LLMProvider 등)
 
 ### 상수 (constants/)
+
 - 라우트 경로 (`/api/v1/...`)
 - 에러 코드
 - 요금제/한도 값 (Pricing tiers)
 - LLM 프로바이더 메타데이터
 
 ### 유틸 (utils/)
+
 - 순수 함수만 (날짜 포맷, 문자열 검증, 숫자 포맷)
 - 브라우저/Node 어느 쪽에도 의존하지 않음
 
 ### 스키마 (schemas/)
+
 - Zod 스키마 — 클라이언트 폼 검증 + 서버 DTO 검증 공용
 
 ## 제약사항

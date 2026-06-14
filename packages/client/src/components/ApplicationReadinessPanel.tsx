@@ -1,58 +1,60 @@
-import { useMemo, useState, type CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
-import { buildFollowUpCalendarEvent, getFollowUpReminderFileName } from '@/lib/applicationPacket';
-import {
-  buildApplicationSearchInsights,
-  type ApplicationSearchInsightSummary,
-} from '@/lib/applicationSearchInsights';
+import { useMemo, useState, type CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
+
+import type { JobApplication } from '@/lib/api'
+import type { ResumeSummary } from '@/types/resume'
+
+import { toast } from '@/components/Toast'
 import {
   buildNetworkingSearchUrl,
   buildRecruiterOutreachMessage,
   getApplicationNetworkingInsight,
-} from '@/lib/applicationNetworking';
-import { ROUTES, withQuery } from '@/lib/routes';
-import { formatDate } from '@/lib/time';
-import type { JobApplication } from '@/lib/api';
-import { toast } from '@/components/Toast';
-import type { ResumeSummary } from '@/types/resume';
+} from '@/lib/applicationNetworking'
+import { buildFollowUpCalendarEvent, getFollowUpReminderFileName } from '@/lib/applicationPacket'
+import {
+  buildApplicationSearchInsights,
+  type ApplicationSearchInsightSummary,
+} from '@/lib/applicationSearchInsights'
+import { ROUTES, withQuery } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
 
-type ReadinessStyle = CSSProperties & Record<`--${string}`, string>;
-type PacketTaskId = 'resume' | 'coverLetter' | 'interview' | 'followUp';
-type PacketProgress = Record<PacketTaskId, boolean>;
+type ReadinessStyle = CSSProperties & Record<`--${string}`, string>
+type PacketTaskId = 'resume' | 'coverLetter' | 'interview' | 'followUp'
+type PacketProgress = Record<PacketTaskId, boolean>
 interface PacketProgressState {
-  applicationId: string;
-  progress: PacketProgress;
+  applicationId: string
+  progress: PacketProgress
 }
 type KeywordMatchSnapshot = {
-  score: number;
-  matched: string[];
-  missing: string[];
-  sourceCount: number;
-};
+  score: number
+  matched: string[]
+  missing: string[]
+  sourceCount: number
+}
 
 interface Props {
-  resumes: ResumeSummary[];
-  applications?: JobApplication[];
+  resumes: ResumeSummary[]
+  applications?: JobApplication[]
 }
 
 interface ReadinessSignal {
-  id: string;
-  label: string;
-  value: string;
-  detail: string;
-  complete: boolean;
-  weight: number;
-  to: string;
-  actionLabel: string;
+  id: string
+  label: string
+  value: string
+  detail: string
+  complete: boolean
+  weight: number
+  to: string
+  actionLabel: string
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000
 const PACKET_TASKS: { id: PacketTaskId; label: string }[] = [
   { id: 'resume', label: '맞춤 이력서' },
   { id: 'coverLetter', label: '자소서 초안' },
   { id: 'interview', label: '면접 질문' },
   { id: 'followUp', label: '후속 메모' },
-];
+]
 const KEYWORD_STOP_WORDS = new Set([
   '및',
   '또는',
@@ -83,89 +85,89 @@ const KEYWORD_STOP_WORDS = new Set([
   'experience',
   'required',
   'preferred',
-]);
+])
 
 function daysSince(date: string) {
-  const time = new Date(date).getTime();
-  if (!Number.isFinite(time)) return Number.POSITIVE_INFINITY;
-  return Math.floor((Date.now() - time) / DAY_MS);
+  const time = new Date(date).getTime()
+  if (!Number.isFinite(time)) return Number.POSITIVE_INFINITY
+  return Math.floor((Date.now() - time) / DAY_MS)
 }
 
 function daysUntil(date?: string) {
-  if (!date) return null;
-  const time = new Date(date).getTime();
-  if (!Number.isFinite(time)) return null;
-  return Math.ceil((time - Date.now()) / DAY_MS);
+  if (!date) return null
+  const time = new Date(date).getTime()
+  if (!Number.isFinite(time)) return null
+  return Math.ceil((time - Date.now()) / DAY_MS)
 }
 
 function splitSkillItems(items: string) {
   return items
     .split(/[,/·\n]/)
     .map((item) => item.trim().toLowerCase())
-    .filter(Boolean);
+    .filter(Boolean)
 }
 
 function normalizeKeyword(keyword: string) {
   return keyword
     .trim()
     .toLowerCase()
-    .replace(/^[^\p{L}\p{N}+#.]+|[^\p{L}\p{N}+#.]+$/gu, '');
+    .replace(/^[^\p{L}\p{N}+#.]+|[^\p{L}\p{N}+#.]+$/gu, '')
 }
 
 function tokenizeKeywords(text: string) {
-  const matches = text.toLowerCase().match(/[a-z0-9+#.]{2,}|[가-힣]{2,}/g) ?? [];
+  const matches = text.toLowerCase().match(/[a-z0-9+#.]{2,}|[가-힣]{2,}/g) ?? []
   return matches
     .map(normalizeKeyword)
-    .filter((keyword) => keyword.length >= 2 && !KEYWORD_STOP_WORDS.has(keyword));
+    .filter((keyword) => keyword.length >= 2 && !KEYWORD_STOP_WORDS.has(keyword))
 }
 
 function getSkillKeywordCount(resumes: ResumeSummary[]) {
-  const keywords = new Set<string>();
+  const keywords = new Set<string>()
   for (const resume of resumes) {
     for (const skill of resume.skills ?? []) {
-      for (const item of splitSkillItems(skill.items)) keywords.add(item);
+      for (const item of splitSkillItems(skill.items)) keywords.add(item)
     }
   }
-  return keywords.size;
+  return keywords.size
 }
 
 function getResumeKeywordSet(resume: ResumeSummary) {
-  const keywords = new Set<string>();
+  const keywords = new Set<string>()
   for (const skill of resume.skills ?? []) {
-    for (const item of splitSkillItems(skill.items)) keywords.add(normalizeKeyword(item));
-    for (const item of tokenizeKeywords(skill.category)) keywords.add(item);
+    for (const item of splitSkillItems(skill.items)) keywords.add(normalizeKeyword(item))
+    for (const item of tokenizeKeywords(skill.category)) keywords.add(item)
   }
-  for (const item of tokenizeKeywords(resume.title || '')) keywords.add(item);
-  for (const item of tokenizeKeywords(resume.personalInfo?.summary || '')) keywords.add(item);
-  for (const item of tokenizeKeywords(resume.openToWorkRoles || '')) keywords.add(item);
+  for (const item of tokenizeKeywords(resume.title || '')) keywords.add(item)
+  for (const item of tokenizeKeywords(resume.personalInfo?.summary || '')) keywords.add(item)
+  for (const item of tokenizeKeywords(resume.openToWorkRoles || '')) keywords.add(item)
   for (const tag of resume.tags ?? []) {
-    for (const item of tokenizeKeywords(tag.name)) keywords.add(item);
+    for (const item of tokenizeKeywords(tag.name)) keywords.add(item)
   }
-  return new Set([...keywords].filter(Boolean));
+  return new Set([...keywords].filter(Boolean))
 }
 
 function getApplicationKeywordSet(application: JobApplication) {
   const text = [application.position, application.notes, application.location]
     .filter(Boolean)
-    .join('\n');
-  return new Set(tokenizeKeywords(text));
+    .join('\n')
+  return new Set(tokenizeKeywords(text))
 }
 
 function getKeywordMatchSnapshot(
   resume: ResumeSummary,
-  application: JobApplication,
+  application: JobApplication
 ): KeywordMatchSnapshot | null {
-  const resumeKeywords = getResumeKeywordSet(resume);
-  const applicationKeywords = getApplicationKeywordSet(application);
-  if (applicationKeywords.size < 3 || resumeKeywords.size === 0) return null;
+  const resumeKeywords = getResumeKeywordSet(resume)
+  const applicationKeywords = getApplicationKeywordSet(application)
+  if (applicationKeywords.size < 3 || resumeKeywords.size === 0) return null
 
-  const resumeCorpus = [...resumeKeywords].join(' ');
-  const matched: string[] = [];
-  const missing: string[] = [];
+  const resumeCorpus = [...resumeKeywords].join(' ')
+  const matched: string[] = []
+  const missing: string[] = []
 
   for (const keyword of applicationKeywords) {
-    if (resumeKeywords.has(keyword) || resumeCorpus.includes(keyword)) matched.push(keyword);
-    else missing.push(keyword);
+    if (resumeKeywords.has(keyword) || resumeCorpus.includes(keyword)) matched.push(keyword)
+    else missing.push(keyword)
   }
 
   return {
@@ -173,44 +175,44 @@ function getKeywordMatchSnapshot(
     matched: matched.slice(0, 5),
     missing: missing.slice(0, 5),
     sourceCount: applicationKeywords.size,
-  };
+  }
 }
 
 function getLatestResume(resumes: ResumeSummary[]) {
   return [...resumes].sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-  )[0];
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  )[0]
 }
 
 function getMeterStyle(score: number): ReadinessStyle {
-  return { '--home-readiness-fill': String(Math.max(0, Math.min(100, score)) / 100) };
+  return { '--home-readiness-fill': String(Math.max(0, Math.min(100, score)) / 100) }
 }
 
 function getApplicationDate(application: JobApplication) {
-  return application.appliedDate || application.createdAt;
+  return application.appliedDate || application.createdAt
 }
 
 function isActiveApplication(application: JobApplication) {
-  return !['offer', 'rejected', 'withdrawn'].includes(application.status);
+  return !['offer', 'rejected', 'withdrawn'].includes(application.status)
 }
 
 function getApplicationMomentum(applications: JobApplication[]) {
-  const active = applications.filter(isActiveApplication);
+  const active = applications.filter(isActiveApplication)
   const recent = applications.filter(
-    (application) => daysSince(getApplicationDate(application)) <= 7,
-  );
-  const followUpDue = active.filter((application) => daysSince(application.updatedAt) >= 7);
+    (application) => daysSince(getApplicationDate(application)) <= 7
+  )
+  const followUpDue = active.filter((application) => daysSince(application.updatedAt) >= 7)
   const deadlineSoon = active.filter((application) => {
-    const days = daysUntil(application.deadline);
-    return days !== null && days >= 0 && days <= 7;
-  });
+    const days = daysUntil(application.deadline)
+    return days !== null && days >= 0 && days <= 7
+  })
   const overdue = active.filter((application) => {
-    const days = daysUntil(application.deadline);
-    return days !== null && days < 0;
-  });
+    const days = daysUntil(application.deadline)
+    return days !== null && days < 0
+  })
   const interviewCount = applications.filter((application) =>
-    ['interview', 'interviewing'].includes(application.status),
-  ).length;
+    ['interview', 'interviewing'].includes(application.status)
+  ).length
 
   return {
     activeCount: active.length,
@@ -219,42 +221,42 @@ function getApplicationMomentum(applications: JobApplication[]) {
     deadlineSoonCount: deadlineSoon.length,
     overdueCount: overdue.length,
     interviewCount,
-  };
+  }
 }
 
 function getApplicationUrgency(application: JobApplication) {
-  const deadlineDays = daysUntil(application.deadline);
-  const untouchedDays = daysSince(application.updatedAt);
+  const deadlineDays = daysUntil(application.deadline)
+  const untouchedDays = daysSince(application.updatedAt)
   const priorityScore =
-    application.priority === 'high' ? 300 : application.priority === 'medium' ? 150 : 0;
+    application.priority === 'high' ? 300 : application.priority === 'medium' ? 150 : 0
 
-  if (deadlineDays !== null && deadlineDays < 0) return 10000 + Math.abs(deadlineDays);
-  if (deadlineDays !== null && deadlineDays <= 7) return 9000 - deadlineDays;
-  if (['interview', 'interviewing'].includes(application.status)) return 7600;
-  if (untouchedDays >= 7) return 6500 + untouchedDays;
-  return 1000 + priorityScore - daysSince(getApplicationDate(application));
+  if (deadlineDays !== null && deadlineDays < 0) return 10000 + Math.abs(deadlineDays)
+  if (deadlineDays !== null && deadlineDays <= 7) return 9000 - deadlineDays
+  if (['interview', 'interviewing'].includes(application.status)) return 7600
+  if (untouchedDays >= 7) return 6500 + untouchedDays
+  return 1000 + priorityScore - daysSince(getApplicationDate(application))
 }
 
 function getNextApplication(applications: JobApplication[]) {
   return applications
     .filter(isActiveApplication)
-    .sort((a, b) => getApplicationUrgency(b) - getApplicationUrgency(a))[0];
+    .sort((a, b) => getApplicationUrgency(b) - getApplicationUrgency(a))[0]
 }
 
 function getApplicationReason(application: JobApplication) {
-  const deadlineDays = daysUntil(application.deadline);
-  if (deadlineDays !== null && deadlineDays < 0) return `마감 ${Math.abs(deadlineDays)}일 초과`;
-  if (deadlineDays === 0) return '마감 오늘';
-  if (deadlineDays !== null && deadlineDays <= 7) return `마감 ${deadlineDays}일 전`;
-  if (['interview', 'interviewing'].includes(application.status)) return '면접 단계';
-  const untouchedDays = daysSince(application.updatedAt);
-  if (untouchedDays >= 7) return `후속 ${untouchedDays}일 지연`;
-  if (application.priority === 'high') return '높은 우선순위';
-  return '진행 중';
+  const deadlineDays = daysUntil(application.deadline)
+  if (deadlineDays !== null && deadlineDays < 0) return `마감 ${Math.abs(deadlineDays)}일 초과`
+  if (deadlineDays === 0) return '마감 오늘'
+  if (deadlineDays !== null && deadlineDays <= 7) return `마감 ${deadlineDays}일 전`
+  if (['interview', 'interviewing'].includes(application.status)) return '면접 단계'
+  const untouchedDays = daysSince(application.updatedAt)
+  if (untouchedDays >= 7) return `후속 ${untouchedDays}일 지연`
+  if (application.priority === 'high') return '높은 우선순위'
+  return '진행 중'
 }
 
 function getPacketStorageKey(applicationId: string) {
-  return `home_application_packet_${applicationId}`;
+  return `home_application_packet_${applicationId}`
 }
 
 function getDefaultPacketProgress(application: JobApplication): PacketProgress {
@@ -263,30 +265,30 @@ function getDefaultPacketProgress(application: JobApplication): PacketProgress {
     coverLetter: Boolean(application.notes?.trim()),
     interview: ['interview', 'interviewing'].includes(application.status),
     followUp: daysSince(application.updatedAt) < 7,
-  };
+  }
 }
 
 function loadPacketProgress(application: JobApplication): PacketProgress {
-  const defaults = getDefaultPacketProgress(application);
+  const defaults = getDefaultPacketProgress(application)
   try {
-    const raw = window.localStorage.getItem(getPacketStorageKey(application.id));
-    if (!raw) return defaults;
-    return { ...defaults, ...(JSON.parse(raw) as Partial<PacketProgress>) };
+    const raw = window.localStorage.getItem(getPacketStorageKey(application.id))
+    if (!raw) return defaults
+    return { ...defaults, ...(JSON.parse(raw) as Partial<PacketProgress>) }
   } catch {
-    return defaults;
+    return defaults
   }
 }
 
 function savePacketProgress(applicationId: string, progress: PacketProgress) {
   try {
-    window.localStorage.setItem(getPacketStorageKey(applicationId), JSON.stringify(progress));
+    window.localStorage.setItem(getPacketStorageKey(applicationId), JSON.stringify(progress))
   } catch {
     // Ignore storage failures; the packet remains usable for the current session.
   }
 }
 
 function buildFollowUpEmail(application: JobApplication) {
-  const appliedDate = application.appliedDate ? formatDate(application.appliedDate) : '최근';
+  const appliedDate = application.appliedDate ? formatDate(application.appliedDate) : '최근'
   return [
     `제목: ${application.position} 지원 건 확인 요청드립니다`,
     '',
@@ -296,11 +298,11 @@ function buildFollowUpEmail(application: JobApplication) {
     '채용 검토가 진행 중인지 확인 부탁드리며, 추가로 전달드릴 자료나 보완할 내용이 있다면 안내 부탁드립니다.',
     '',
     '바쁘신 중 확인해 주셔서 감사합니다.',
-  ].join('\n');
+  ].join('\n')
 }
 
 function buildKeywordInsertionDraft(application: JobApplication, keywords: string[]) {
-  const keywordList = keywords.slice(0, 5).join(', ');
+  const keywordList = keywords.slice(0, 5).join(', ')
   return [
     `[${application.company} · ${application.position}] 이력서 키워드 보강 초안`,
     '',
@@ -309,14 +311,14 @@ function buildKeywordInsertionDraft(application: JobApplication, keywords: strin
     `스킬 섹션 추가 후보: ${keywordList}`,
     '',
     `경험 bullet 후보: ${keywordList}를 활용해 지원 직무와 관련된 문제를 분석하고, 실행 결과를 지표 기반으로 개선했습니다.`,
-  ].join('\n');
+  ].join('\n')
 }
 
 interface ApplicationPacketProps {
-  application: JobApplication;
-  resume: ResumeSummary;
-  coverLetterPath: string;
-  interviewPath: string;
+  application: JobApplication
+  resume: ResumeSummary
+  coverLetterPath: string
+  interviewPath: string
 }
 
 function ApplicationSearchInsights({ insights }: { insights: ApplicationSearchInsightSummary }) {
@@ -342,7 +344,7 @@ function ApplicationSearchInsights({ insights }: { insights: ApplicationSearchIn
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 function ApplicationPacket({
@@ -351,94 +353,94 @@ function ApplicationPacket({
   coverLetterPath,
   interviewPath,
 }: ApplicationPacketProps) {
-  const initialProgress = useMemo(() => loadPacketProgress(application), [application]);
+  const initialProgress = useMemo(() => loadPacketProgress(application), [application])
   const [progressState, setProgressState] = useState<PacketProgressState>(() => ({
     applicationId: application.id,
     progress: initialProgress,
-  }));
+  }))
   const progress =
-    progressState.applicationId === application.id ? progressState.progress : initialProgress;
+    progressState.applicationId === application.id ? progressState.progress : initialProgress
   const keywordSnapshot = useMemo(
     () => getKeywordMatchSnapshot(resume, application),
-    [resume, application],
-  );
+    [resume, application]
+  )
   const networkingInsight = useMemo(
     () => getApplicationNetworkingInsight(application),
-    [application],
-  );
-  const networkingSearchUrl = useMemo(() => buildNetworkingSearchUrl(application), [application]);
+    [application]
+  )
+  const networkingSearchUrl = useMemo(() => buildNetworkingSearchUrl(application), [application])
 
   const completedCount = useMemo(
     () => PACKET_TASKS.filter((task) => progress[task.id]).length,
-    [progress],
-  );
+    [progress]
+  )
 
   const updateProgress = (updater: (current: PacketProgress) => PacketProgress) => {
     setProgressState((prev) => {
-      const current = prev.applicationId === application.id ? prev.progress : initialProgress;
-      const next = updater(current);
-      savePacketProgress(application.id, next);
-      return { applicationId: application.id, progress: next };
-    });
-  };
+      const current = prev.applicationId === application.id ? prev.progress : initialProgress
+      const next = updater(current)
+      savePacketProgress(application.id, next)
+      return { applicationId: application.id, progress: next }
+    })
+  }
 
   const toggleTask = (taskId: PacketTaskId) => {
-    updateProgress((current) => ({ ...current, [taskId]: !current[taskId] }));
-  };
+    updateProgress((current) => ({ ...current, [taskId]: !current[taskId] }))
+  }
 
   const markTask = (taskId: PacketTaskId) => {
-    updateProgress((current) => ({ ...current, [taskId]: true }));
-  };
+    updateProgress((current) => ({ ...current, [taskId]: true }))
+  }
 
   const copyFollowUpEmail = async () => {
-    const template = buildFollowUpEmail(application);
+    const template = buildFollowUpEmail(application)
     try {
-      await navigator.clipboard.writeText(template);
-      markTask('followUp');
-      toast('후속 메일 템플릿을 복사했습니다', 'success');
+      await navigator.clipboard.writeText(template)
+      markTask('followUp')
+      toast('후속 메일 템플릿을 복사했습니다', 'success')
     } catch {
-      toast('클립보드 복사에 실패했습니다', 'error');
+      toast('클립보드 복사에 실패했습니다', 'error')
     }
-  };
+  }
 
   const downloadFollowUpReminder = () => {
-    const event = buildFollowUpCalendarEvent(application);
-    const blob = new Blob([event.ics], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
+    const event = buildFollowUpCalendarEvent(application)
+    const blob = new Blob([event.ics], { type: 'text/calendar;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
 
-    anchor.href = url;
-    anchor.download = getFollowUpReminderFileName(application);
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
+    anchor.href = url
+    anchor.download = getFollowUpReminderFileName(application)
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
 
-    markTask('followUp');
-    toast(`${event.displayDate} 후속 리마인더를 내려받았습니다`, 'success');
-  };
+    markTask('followUp')
+    toast(`${event.displayDate} 후속 리마인더를 내려받았습니다`, 'success')
+  }
 
   const copyKeywordDraft = async () => {
-    if (!keywordSnapshot?.missing.length) return;
-    const draft = buildKeywordInsertionDraft(application, keywordSnapshot.missing);
+    if (!keywordSnapshot?.missing.length) return
+    const draft = buildKeywordInsertionDraft(application, keywordSnapshot.missing)
     try {
-      await navigator.clipboard.writeText(draft);
-      markTask('resume');
-      toast('누락 키워드 보강 초안을 복사했습니다', 'success');
+      await navigator.clipboard.writeText(draft)
+      markTask('resume')
+      toast('누락 키워드 보강 초안을 복사했습니다', 'success')
     } catch {
-      toast('클립보드 복사에 실패했습니다', 'error');
+      toast('클립보드 복사에 실패했습니다', 'error')
     }
-  };
+  }
 
   const copyNetworkingMessage = async () => {
     try {
-      await navigator.clipboard.writeText(buildRecruiterOutreachMessage(application));
-      markTask('followUp');
-      toast('네트워킹 메시지를 복사했습니다', 'success');
+      await navigator.clipboard.writeText(buildRecruiterOutreachMessage(application))
+      markTask('followUp')
+      toast('네트워킹 메시지를 복사했습니다', 'success')
     } catch {
-      toast('클립보드 복사에 실패했습니다', 'error');
+      toast('클립보드 복사에 실패했습니다', 'error')
     }
-  };
+  }
 
   return (
     <div className="home-readiness-packet">
@@ -545,24 +547,24 @@ function ApplicationPacket({
         <Link to={ROUTES.jobs.applications}>트래커</Link>
       </div>
     </div>
-  );
+  )
 }
 
 export default function ApplicationReadinessPanel({ resumes, applications = [] }: Props) {
-  const latestResume = getLatestResume(resumes);
-  if (!latestResume) return null;
+  const latestResume = getLatestResume(resumes)
+  if (!latestResume) return null
 
-  const latestDays = daysSince(latestResume.updatedAt);
-  const applicationMomentum = getApplicationMomentum(applications);
-  const searchInsights = buildApplicationSearchInsights(applications);
+  const latestDays = daysSince(latestResume.updatedAt)
+  const applicationMomentum = getApplicationMomentum(applications)
+  const searchInsights = buildApplicationSearchInsights(applications)
   const visibleResumeCount = resumes.filter(
-    (resume) => resume.visibility === 'public' || resume.visibility === 'link-only',
-  ).length;
-  const taggedResumeCount = resumes.filter((resume) => resume.tags?.length > 0).length;
-  const skillKeywordCount = getSkillKeywordCount(resumes);
-  const hasSummary = resumes.some((resume) => resume.personalInfo?.summary?.trim());
-  const hasOpenToWork = resumes.some((resume) => resume.isOpenToWork);
-  const latestEditPath = ROUTES.resume.edit(latestResume.id);
+    (resume) => resume.visibility === 'public' || resume.visibility === 'link-only'
+  ).length
+  const taggedResumeCount = resumes.filter((resume) => resume.tags?.length > 0).length
+  const skillKeywordCount = getSkillKeywordCount(resumes)
+  const hasSummary = resumes.some((resume) => resume.personalInfo?.summary?.trim())
+  const hasOpenToWork = resumes.some((resume) => resume.isOpenToWork)
+  const latestEditPath = ROUTES.resume.edit(latestResume.id)
 
   const signals: ReadinessSignal[] = [
     {
@@ -665,30 +667,30 @@ export default function ApplicationReadinessPanel({ resumes, applications = [] }
       to: latestEditPath,
       actionLabel: '공유 설정',
     },
-  ];
+  ]
 
   const score = Math.round(
-    signals.reduce((sum, signal) => sum + (signal.complete ? signal.weight : 0), 0),
-  );
-  const nextSignal = signals.find((signal) => !signal.complete) ?? signals[0];
-  const completedCount = signals.filter((signal) => signal.complete).length;
-  const nextApplication = getNextApplication(applications);
-  const nextApplicationResumeId = nextApplication?.resumeId || latestResume.id;
+    signals.reduce((sum, signal) => sum + (signal.complete ? signal.weight : 0), 0)
+  )
+  const nextSignal = signals.find((signal) => !signal.complete) ?? signals[0]
+  const completedCount = signals.filter((signal) => signal.complete).length
+  const nextApplication = getNextApplication(applications)
+  const nextApplicationResumeId = nextApplication?.resumeId || latestResume.id
   const nextApplicationResume =
-    resumes.find((resume) => resume.id === nextApplicationResumeId) || latestResume;
+    resumes.find((resume) => resume.id === nextApplicationResumeId) || latestResume
   const nextApplicationCoverLetterPath = nextApplication
     ? withQuery(ROUTES.coverLetter.new(nextApplicationResumeId), {
         company: nextApplication.company,
         position: nextApplication.position,
       })
-    : '';
+    : ''
   const nextApplicationInterviewPath = nextApplication
     ? withQuery(ROUTES.interview.prep, {
         resumeId: nextApplicationResumeId,
         position: nextApplication.position,
         company: nextApplication.company,
       })
-    : '';
+    : ''
 
   return (
     <section
@@ -797,5 +799,5 @@ export default function ApplicationReadinessPanel({ resumes, applications = [] }
         </div>
       </div>
     </section>
-  );
+  )
 }

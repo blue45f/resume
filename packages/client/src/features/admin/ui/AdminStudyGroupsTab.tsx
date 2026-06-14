@@ -1,30 +1,32 @@
 /**
  * 스터디 그룹 관리 탭
  */
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { API_URL } from '@/lib/config';
-import { toast } from '@/components/Toast';
-import AlertDialog from '@/shared/ui/AlertDialog';
-import { AdminTable, type AdminTableColumn } from './AdminTable';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo } from 'react'
+
+import { AdminTable, type AdminTableColumn } from './AdminTable'
+
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import AlertDialog from '@/shared/ui/AlertDialog'
 
 type Group = {
-  id: string;
-  name: string;
-  description: string;
-  companyTier: string;
-  cafeCategory: string;
-  experienceLevel: string;
-  companyName: string | null;
-  position: string | null;
-  isPrivate: boolean;
-  maxMembers: number;
-  memberCount: number;
-  createdAt: string;
-  owner?: { id?: string; name?: string; email?: string; username?: string };
-  _count?: { members?: number; questions?: number };
-};
+  id: string
+  name: string
+  description: string
+  companyTier: string
+  cafeCategory: string
+  experienceLevel: string
+  companyName: string | null
+  position: string | null
+  isPrivate: boolean
+  maxMembers: number
+  memberCount: number
+  createdAt: string
+  owner?: { id?: string; name?: string; email?: string; username?: string }
+  _count?: { members?: number; questions?: number }
+}
 
 type GroupPatch = Pick<
   Group,
@@ -35,62 +37,62 @@ type GroupPatch = Pick<
   | 'experienceLevel'
   | 'isPrivate'
   | 'maxMembers'
->;
+>
 
-type ModAttachment = { url: string; name: string; size: number; type: string };
+type ModAttachment = { url: string; name: string; size: number; type: string }
 
 type ModPost = {
-  id: string;
-  groupId: string;
-  title: string;
-  content: string;
-  category: string;
-  attachments: ModAttachment[];
-  isPinned: boolean;
-  viewCount: number;
-  likeCount: number;
-  commentCount: number;
-  createdAt: string;
-  group?: { id?: string; name?: string };
-  user?: { id?: string; name?: string; email?: string };
-};
+  id: string
+  groupId: string
+  title: string
+  content: string
+  category: string
+  attachments: ModAttachment[]
+  isPinned: boolean
+  viewCount: number
+  likeCount: number
+  commentCount: number
+  createdAt: string
+  group?: { id?: string; name?: string }
+  user?: { id?: string; name?: string; email?: string }
+}
 
 type ModComment = {
-  id: string;
-  parentId: string | null;
-  content: string;
-  createdAt: string;
-  user?: { id?: string; name?: string; email?: string };
-};
+  id: string
+  parentId: string | null
+  content: string
+  createdAt: string
+  user?: { id?: string; name?: string; email?: string }
+}
 
 type ModAnswer = {
-  id: string;
-  parentId: string | null;
-  body: string;
-  upvotes: number;
-  createdAt: string;
-  user?: { id?: string; name?: string; email?: string };
-  question?: { id?: string; question?: string; group?: { id?: string; name?: string } };
-};
+  id: string
+  parentId: string | null
+  body: string
+  upvotes: number
+  createdAt: string
+  user?: { id?: string; name?: string; email?: string }
+  question?: { id?: string; question?: string; group?: { id?: string; name?: string } }
+}
 
-const TIERS = ['all', 'public', 'large', 'mid', 'startup', 'foreign', 'sme', 'freelance', 'etc'];
-const CAFES = ['all', 'interview', 'resume', 'coding-test', 'study', 'networking'];
-const LEVELS = ['all', 'new', 'junior', 'mid', 'senior', 'any'];
+const TIERS = ['all', 'public', 'large', 'mid', 'startup', 'foreign', 'sme', 'freelance', 'etc']
+const CAFES = ['all', 'interview', 'resume', 'coding-test', 'study', 'networking']
+const LEVELS = ['all', 'new', 'junior', 'mid', 'senior', 'any']
 
 function authHeader(): Record<string, string> {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 const MOD_VIEWS = [
   { key: 'groups', label: '그룹' },
   { key: 'posts', label: '게시글' },
   { key: 'answers', label: '문제 답변' },
-] as const;
-type ModView = (typeof MOD_VIEWS)[number]['key'];
+] as const
+type ModView = (typeof MOD_VIEWS)[number]['key']
 
 export default function AdminStudyGroupsTab() {
-  const [view, setView] = useState<ModView>('groups');
+  const [view, setView] = useState<ModView>('groups')
 
   return (
     <div className="animate-fade-in-up space-y-4">
@@ -121,61 +123,61 @@ export default function AdminStudyGroupsTab() {
       {view === 'posts' && <PostsModerationSection />}
       {view === 'answers' && <AnswersModerationSection />}
     </div>
-  );
+  )
 }
 
 function GroupsSection() {
-  const qc = useQueryClient();
-  const [q, setQ] = useState('');
-  const [tier, setTier] = useState('all');
-  const [cafe, setCafe] = useState('all');
-  const [level, setLevel] = useState('all');
-  const [page, setPage] = useState(1);
-  const [editing, setEditing] = useState<Group | null>(null);
+  const qc = useQueryClient()
+  const [q, setQ] = useState('')
+  const [tier, setTier] = useState('all')
+  const [cafe, setCafe] = useState('all')
+  const [level, setLevel] = useState('all')
+  const [page, setPage] = useState(1)
+  const [editing, setEditing] = useState<Group | null>(null)
   const [confirm, setConfirm] = useState<
     | { kind: 'delete'; id: string; name: string }
     | { kind: 'force-close'; id: string; name: string }
     | null
-  >(null);
+  >(null)
 
   const query = useQuery<{
-    items: Group[];
-    total: number;
-    totalPages: number;
+    items: Group[]
+    total: number
+    totalPages: number
   } | null>({
     queryKey: ['admin-study-groups', { q, tier, cafe, level, page }],
     queryFn: async () => {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
-      if (q) params.set('q', q);
-      if (tier !== 'all') params.set('tier', tier);
-      if (cafe !== 'all') params.set('cafe', cafe);
-      if (level !== 'all') params.set('experienceLevel', level);
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (q) params.set('q', q)
+      if (tier !== 'all') params.set('tier', tier)
+      if (cafe !== 'all') params.set('cafe', cafe)
+      if (level !== 'all') params.set('experienceLevel', level)
       const res = await fetch(`${API_URL}/api/study-groups/admin/all?${params}`, {
         headers: authHeader(),
-      });
-      if (!res.ok) return null;
-      return res.json();
+      })
+      if (!res.ok) return null
+      return res.json()
     },
     staleTime: 10_000,
-  });
+  })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-study-groups'] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-study-groups'] })
 
   const mForce = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/study-groups/admin/${id}/force-close`, {
         method: 'PATCH',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('그룹이 강제 종료되었습니다', 'success');
-      invalidate();
+      toast('그룹이 강제 종료되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('처리에 실패했습니다', 'error'),
-  });
+  })
 
   const mUpdate = useMutation({
     mutationFn: async (vars: { id: string; patch: GroupPatch }) => {
@@ -183,35 +185,35 @@ function GroupsSection() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify(vars.patch),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('그룹이 수정되었습니다', 'success');
-      setEditing(null);
-      invalidate();
+      toast('그룹이 수정되었습니다', 'success')
+      setEditing(null)
+      invalidate()
     },
     onError: () => toast('수정에 실패했습니다', 'error'),
-  });
+  })
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/study-groups/admin/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('그룹이 삭제되었습니다', 'success');
-      invalidate();
+      toast('그룹이 삭제되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('삭제에 실패했습니다', 'error'),
-  });
+  })
 
-  const items = query.data?.items ?? [];
+  const items = query.data?.items ?? []
 
   const columns = useMemo<AdminTableColumn<Group>[]>(
     () => [
@@ -307,8 +309,8 @@ function GroupsSection() {
         ),
       },
     ],
-    [],
-  );
+    []
+  )
 
   return (
     <div>
@@ -328,8 +330,8 @@ function GroupsSection() {
               type="search"
               value={q}
               onChange={(e) => {
-                setQ(e.target.value);
-                setPage(1);
+                setQ(e.target.value)
+                setPage(1)
               }}
               placeholder="이름/설명/회사/직무 검색"
               className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
@@ -337,8 +339,8 @@ function GroupsSection() {
             <select
               value={tier}
               onChange={(e) => {
-                setTier(e.target.value);
-                setPage(1);
+                setTier(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
             >
@@ -351,8 +353,8 @@ function GroupsSection() {
             <select
               value={cafe}
               onChange={(e) => {
-                setCafe(e.target.value);
-                setPage(1);
+                setCafe(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
             >
@@ -365,8 +367,8 @@ function GroupsSection() {
             <select
               value={level}
               onChange={(e) => {
-                setLevel(e.target.value);
-                setPage(1);
+                setLevel(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
             >
@@ -398,10 +400,10 @@ function GroupsSection() {
         confirmText={confirm?.kind === 'delete' ? '삭제' : '강제 종료'}
         danger={confirm?.kind === 'delete'}
         onConfirm={() => {
-          if (!confirm) return;
-          if (confirm.kind === 'delete') mDelete.mutate(confirm.id);
-          if (confirm.kind === 'force-close') mForce.mutate(confirm.id);
-          setConfirm(null);
+          if (!confirm) return
+          if (confirm.kind === 'delete') mDelete.mutate(confirm.id)
+          if (confirm.kind === 'force-close') mForce.mutate(confirm.id)
+          setConfirm(null)
         }}
       />
 
@@ -413,7 +415,7 @@ function GroupsSection() {
         />
       )}
     </div>
-  );
+  )
 }
 
 function EditGroupDialog({
@@ -421,17 +423,17 @@ function EditGroupDialog({
   onClose,
   onSave,
 }: {
-  group: Group;
-  onClose: () => void;
-  onSave: (patch: GroupPatch) => void;
+  group: Group
+  onClose: () => void
+  onSave: (patch: GroupPatch) => void
 }) {
-  const [name, setName] = useState(group.name);
-  const [description, setDescription] = useState(group.description);
-  const [tier, setTier] = useState(group.companyTier);
-  const [cafe, setCafe] = useState(group.cafeCategory);
-  const [level, setLevel] = useState(group.experienceLevel);
-  const [isPrivate, setPrivate] = useState(group.isPrivate);
-  const [maxMembers, setMax] = useState(group.maxMembers);
+  const [name, setName] = useState(group.name)
+  const [description, setDescription] = useState(group.description)
+  const [tier, setTier] = useState(group.companyTier)
+  const [cafe, setCafe] = useState(group.cafeCategory)
+  const [level, setLevel] = useState(group.experienceLevel)
+  const [isPrivate, setPrivate] = useState(group.isPrivate)
+  const [maxMembers, setMax] = useState(group.maxMembers)
 
   return (
     <RadixDialog.Root open onOpenChange={(v) => !v && onClose()}>
@@ -541,7 +543,7 @@ function EditGroupDialog({
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -550,50 +552,50 @@ function EditGroupDialog({
 // ─────────────────────────────────────────────────────────────
 
 const formatBytes = (n: number) =>
-  n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`;
+  n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`
 
 function PostsModerationSection() {
-  const qc = useQueryClient();
-  const [q, setQ] = useState('');
-  const [page, setPage] = useState(1);
-  const [commentsFor, setCommentsFor] = useState<ModPost | null>(null);
+  const qc = useQueryClient()
+  const [q, setQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [commentsFor, setCommentsFor] = useState<ModPost | null>(null)
   const [confirm, setConfirm] = useState<
     | { kind: 'delete-post'; post: ModPost }
     | { kind: 'remove-attachment'; post: ModPost; att: ModAttachment }
     | null
-  >(null);
+  >(null)
 
   const query = useQuery<{ items: ModPost[]; total: number; totalPages: number } | null>({
     queryKey: ['admin-study-posts', { q, page }],
     queryFn: async () => {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
-      if (q) params.set('q', q);
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (q) params.set('q', q)
       const res = await fetch(`${API_URL}/api/study-groups/admin/posts?${params}`, {
         headers: authHeader(),
-      });
-      if (!res.ok) return null;
-      return res.json();
+      })
+      if (!res.ok) return null
+      return res.json()
     },
     staleTime: 10_000,
-  });
+  })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-study-posts'] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-study-posts'] })
 
   const mDeletePost = useMutation({
     mutationFn: async (postId: string) => {
       const res = await fetch(`${API_URL}/api/study-groups/admin/posts/${postId}`, {
         method: 'DELETE',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('게시글이 삭제되었습니다', 'success');
-      invalidate();
+      toast('게시글이 삭제되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('삭제에 실패했습니다', 'error'),
-  });
+  })
 
   const mRemoveAttachment = useMutation({
     mutationFn: async (vars: { postId: string; url: string }) => {
@@ -603,19 +605,19 @@ function PostsModerationSection() {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', ...authHeader() },
           body: JSON.stringify({ url: vars.url }),
-        },
-      );
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+        }
+      )
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('첨부가 제거되었습니다', 'success');
-      invalidate();
+      toast('첨부가 제거되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('첨부 제거에 실패했습니다', 'error'),
-  });
+  })
 
-  const items = query.data?.items ?? [];
+  const items = query.data?.items ?? []
 
   const columns: AdminTableColumn<ModPost>[] = [
     {
@@ -701,7 +703,7 @@ function PostsModerationSection() {
         </div>
       ),
     },
-  ];
+  ]
 
   return (
     <div>
@@ -720,8 +722,8 @@ function PostsModerationSection() {
             type="search"
             value={q}
             onChange={(e) => {
-              setQ(e.target.value);
-              setPage(1);
+              setQ(e.target.value)
+              setPage(1)
             }}
             placeholder="제목/내용 검색"
             className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
@@ -747,11 +749,11 @@ function PostsModerationSection() {
         confirmText={confirm?.kind === 'delete-post' ? '삭제' : '제거'}
         danger
         onConfirm={() => {
-          if (!confirm) return;
-          if (confirm.kind === 'delete-post') mDeletePost.mutate(confirm.post.id);
+          if (!confirm) return
+          if (confirm.kind === 'delete-post') mDeletePost.mutate(confirm.post.id)
           if (confirm.kind === 'remove-attachment')
-            mRemoveAttachment.mutate({ postId: confirm.post.id, url: confirm.att.url });
-          setConfirm(null);
+            mRemoveAttachment.mutate({ postId: confirm.post.id, url: confirm.att.url })
+          setConfirm(null)
         }}
       />
 
@@ -763,7 +765,7 @@ function PostsModerationSection() {
         />
       )}
     </div>
-  );
+  )
 }
 
 /** 게시글 댓글 모더레이션 다이얼로그 — tombstone(content='') 표시 + 삭제 */
@@ -772,42 +774,42 @@ function PostCommentsDialog({
   onClose,
   onChanged,
 }: {
-  post: ModPost;
-  onClose: () => void;
-  onChanged: () => void;
+  post: ModPost
+  onClose: () => void
+  onChanged: () => void
 }) {
-  const qc = useQueryClient();
-  const commentsKey = ['admin-study-post-comments', post.id];
+  const qc = useQueryClient()
+  const commentsKey = ['admin-study-post-comments', post.id]
 
   const query = useQuery<ModComment[] | null>({
     queryKey: commentsKey,
     queryFn: async () => {
       const res = await fetch(`${API_URL}/api/study-groups/admin/posts/${post.id}/comments`, {
         headers: authHeader(),
-      });
-      if (!res.ok) return null;
-      return res.json();
+      })
+      if (!res.ok) return null
+      return res.json()
     },
-  });
+  })
 
   const mDelete = useMutation({
     mutationFn: async (commentId: string) => {
       const res = await fetch(`${API_URL}/api/study-groups/admin/comments/${commentId}`, {
         method: 'DELETE',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('댓글이 삭제되었습니다', 'success');
-      qc.invalidateQueries({ queryKey: commentsKey });
-      onChanged();
+      toast('댓글이 삭제되었습니다', 'success')
+      qc.invalidateQueries({ queryKey: commentsKey })
+      onChanged()
     },
     onError: () => toast('삭제에 실패했습니다', 'error'),
-  });
+  })
 
-  const comments = query.data ?? [];
+  const comments = query.data ?? []
 
   return (
     <RadixDialog.Root open onOpenChange={(v) => !v && onClose()}>
@@ -871,7 +873,7 @@ function PostCommentsDialog({
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -880,42 +882,42 @@ function PostCommentsDialog({
 // ─────────────────────────────────────────────────────────────
 
 function AnswersModerationSection() {
-  const qc = useQueryClient();
-  const [q, setQ] = useState('');
-  const [page, setPage] = useState(1);
-  const [confirm, setConfirm] = useState<ModAnswer | null>(null);
+  const qc = useQueryClient()
+  const [q, setQ] = useState('')
+  const [page, setPage] = useState(1)
+  const [confirm, setConfirm] = useState<ModAnswer | null>(null)
 
   const query = useQuery<{ items: ModAnswer[]; total: number; totalPages: number } | null>({
     queryKey: ['admin-study-answers', { q, page }],
     queryFn: async () => {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
-      if (q) params.set('q', q);
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (q) params.set('q', q)
       const res = await fetch(`${API_URL}/api/study-groups/admin/answers?${params}`, {
         headers: authHeader(),
-      });
-      if (!res.ok) return null;
-      return res.json();
+      })
+      if (!res.ok) return null
+      return res.json()
     },
     staleTime: 10_000,
-  });
+  })
 
   const mDelete = useMutation({
     mutationFn: async (answerId: string) => {
       const res = await fetch(`${API_URL}/api/study-groups/admin/answers/${answerId}`, {
         method: 'DELETE',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('답변이 삭제되었습니다', 'success');
-      qc.invalidateQueries({ queryKey: ['admin-study-answers'] });
+      toast('답변이 삭제되었습니다', 'success')
+      qc.invalidateQueries({ queryKey: ['admin-study-answers'] })
     },
     onError: () => toast('삭제에 실패했습니다', 'error'),
-  });
+  })
 
-  const items = query.data?.items ?? [];
+  const items = query.data?.items ?? []
 
   const columns: AdminTableColumn<ModAnswer>[] = [
     {
@@ -973,7 +975,7 @@ function AnswersModerationSection() {
           </button>
         ),
     },
-  ];
+  ]
 
   return (
     <div>
@@ -992,8 +994,8 @@ function AnswersModerationSection() {
             type="search"
             value={q}
             onChange={(e) => {
-              setQ(e.target.value);
-              setPage(1);
+              setQ(e.target.value)
+              setPage(1)
             }}
             placeholder="답변 내용 검색"
             className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
@@ -1009,10 +1011,10 @@ function AnswersModerationSection() {
         confirmText="삭제"
         danger
         onConfirm={() => {
-          if (confirm) mDelete.mutate(confirm.id);
-          setConfirm(null);
+          if (confirm) mDelete.mutate(confirm.id)
+          setConfirm(null)
         }}
       />
     </div>
-  );
+  )
 }

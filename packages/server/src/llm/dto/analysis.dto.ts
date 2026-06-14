@@ -1,25 +1,25 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, MaxLength, IsIn } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { IsString, IsOptional, MaxLength, IsIn } from 'class-validator'
 
 export class FeedbackDto {
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  provider?: string;
+  provider?: string
 }
 
 export class JobMatchDto {
   @ApiProperty({ description: 'Job Description (3000자 이내)' })
   @IsString()
   @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
-  jobDescription!: string;
+  jobDescription!: string
 
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  provider?: string;
+  provider?: string
 }
 
 export class InterviewDto {
@@ -27,13 +27,13 @@ export class InterviewDto {
   @IsOptional()
   @IsString()
   @MaxLength(200, { message: '직무명은 200자 이내여야 합니다' })
-  jobRole?: string;
+  jobRole?: string
 
   @ApiPropertyOptional({ description: '채용공고/JD (3000자 이내)' })
   @IsOptional()
   @IsString()
   @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
-  jobDescription?: string;
+  jobDescription?: string
 
   @ApiPropertyOptional({ description: '난이도 (beginner/intermediate/advanced)' })
   @IsOptional()
@@ -41,29 +41,29 @@ export class InterviewDto {
   @IsIn(['beginner', 'intermediate', 'advanced'], {
     message: '난이도는 beginner/intermediate/advanced 중 하나여야 합니다',
   })
-  difficulty?: string;
+  difficulty?: string
 
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  provider?: string;
+  provider?: string
 }
 
 export class InlineAssistDto {
   @ApiProperty({ description: '개선할 텍스트 (2000자 이내)' })
   @IsString()
   @MaxLength(2000, { message: '텍스트는 2000자 이내여야 합니다' })
-  text!: string;
+  text!: string
 
   @ApiProperty({ description: '개선 유형' })
   @IsString()
   @MaxLength(50)
-  type!: string;
+  type!: string
 
   @ApiPropertyOptional({ description: 'LLM 프로바이더' })
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  provider?: string;
+  provider?: string
 }

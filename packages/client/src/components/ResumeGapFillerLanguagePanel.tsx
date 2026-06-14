@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { detectResumeGapFillerLanguage } from '@/lib/resumeGapFillerLanguageDetector';
-import type { GapFillerCategory } from '@/lib/resumeGapFillerLanguageDetector';
+import { useMemo } from 'react'
+
+import type { GapFillerCategory } from '@/lib/resumeGapFillerLanguageDetector'
+
+import { detectResumeGapFillerLanguage } from '@/lib/resumeGapFillerLanguageDetector'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CATEGORY_LABEL: Record<GapFillerCategory, string> = {
@@ -14,22 +16,22 @@ const CATEGORY_LABEL: Record<GapFillerCategory, string> = {
   generic_teamwork: '팀워크 클리셰',
   growth_cliche: '성장 공허 표현',
   vague_experience: '"경험 쌓기" 류',
-};
+}
 
 const SEVERITY_LABEL: Record<string, string> = {
   heavy: '클리셰 다수',
   moderate: '일부 클리셰',
   light: '경미',
   clean: '깔끔',
-};
+}
 
 export default function ResumeGapFillerLanguagePanel({ text }: Props) {
-  const report = useMemo(() => detectResumeGapFillerLanguage(text), [text]);
+  const report = useMemo(() => detectResumeGapFillerLanguage(text), [text])
 
-  if (report.severity === 'clean') return null;
-  if (text.trim().length < 80) return null;
+  if (report.severity === 'clean') return null
+  if (text.trim().length < 80) return null
 
-  const isHeavy = report.severity === 'heavy';
+  const isHeavy = report.severity === 'heavy'
 
   return (
     <aside
@@ -65,5 +67,5 @@ export default function ResumeGapFillerLanguagePanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

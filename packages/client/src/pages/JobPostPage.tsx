@@ -1,17 +1,18 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import JobUrlInput from '@/components/JobUrlInput';
-import { toast } from '@/components/Toast';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import { createJob, type JobPostApi } from '@/lib/api';
-import { useJob } from '@/hooks/useResources';
-import { FieldError, fieldAria } from '@/shared/ui/FieldError';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import JobUrlInput from '@/components/JobUrlInput'
+import { toast } from '@/components/Toast'
+import { useJob } from '@/hooks/useResources'
+import { createJob, type JobPostApi } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 import {
   jobPostSchema,
   type JobPostFormValues,
@@ -19,22 +20,22 @@ import {
   SALARY_MIN,
   SALARY_MAX,
   SALARY_STEP,
-} from '@/shared/lib/schemas';
-import { getErrorMessage } from '@/lib/errorMessage';
+} from '@/shared/lib/schemas'
+import { FieldError, fieldAria } from '@/shared/ui/FieldError'
 
 const JOB_TYPES: { value: (typeof JOB_TYPE_VALUES)[number]; label: string }[] = [
   { value: 'fulltime', label: '정규직' },
   { value: 'contract', label: '계약직' },
   { value: 'parttime', label: '파트타임' },
   { value: 'intern', label: '인턴' },
-];
+]
 
 const FORMAT_HINTS = [
   { label: '## 제목', desc: '섹션 제목' },
   { label: '- 항목', desc: '목록' },
   { label: '**굵게**', desc: '강조' },
   { label: '> 인용', desc: '인용문' },
-];
+]
 
 type CopyableJobPost = Partial<
   Pick<
@@ -49,35 +50,35 @@ type CopyableJobPost = Partial<
     | 'skills'
   >
 > & {
-  salary?: string;
-};
+  salary?: string
+}
 
 interface CreatedJobResponse {
-  id?: string;
+  id?: string
 }
 
 type JobPostCreatePayload = Partial<JobPostApi> & {
-  type: JobPostFormValues['type'];
-  salaryMin: number;
-  salaryMax: number;
-  salaryText?: string;
-  benefits?: string;
-};
+  type: JobPostFormValues['type']
+  salaryMin: number
+  salaryMax: number
+  salaryText?: string
+  benefits?: string
+}
 
 const parseSkillTags = (skills?: string): string[] =>
   (skills || '')
     .split(',')
     .map((skill) => skill.trim())
-    .filter(Boolean);
+    .filter(Boolean)
 
 export default function JobPostPage() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const copyFromId = searchParams.get('copyFrom');
-  const user = useMemo(() => getUser(), []);
-  const [preview, setPreview] = useState(false);
-  const [skillInput, setSkillInput] = useState('');
-  const skillInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const copyFromId = searchParams.get('copyFrom')
+  const user = useMemo(() => getUser(), [])
+  const [preview, setPreview] = useState(false)
+  const [skillInput, setSkillInput] = useState('')
+  const skillInputRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -101,9 +102,9 @@ export default function JobPostPage() {
       type: 'fulltime',
       skills: '',
     },
-  });
+  })
 
-  const form = useWatch({ control }) as JobPostFormValues;
+  const form = useWatch({ control }) as JobPostFormValues
 
   const skillTags = useMemo(
     () =>
@@ -111,32 +112,32 @@ export default function JobPostPage() {
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean),
-    [form.skills],
-  );
+    [form.skills]
+  )
 
-  const { data: copyJob, error: copyError } = useJob(copyFromId || undefined);
+  const { data: copyJob, error: copyError } = useJob(copyFromId || undefined)
 
   useEffect(() => {
-    document.title = copyFromId ? '공고 복사하여 등록 — 이력서공방' : '채용 공고 등록 — 이력서공방';
+    document.title = copyFromId ? '공고 복사하여 등록 — 이력서공방' : '채용 공고 등록 — 이력서공방'
     if (!user || user.userType === 'personal') {
-      toast('리크루터 또는 기업 회원만 공고를 등록할 수 있습니다', 'error');
-      navigate(ROUTES.jobs.list);
-      return;
+      toast('리크루터 또는 기업 회원만 공고를 등록할 수 있습니다', 'error')
+      navigate(ROUTES.jobs.list)
+      return
     }
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [copyFromId, navigate, user]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [copyFromId, navigate, user])
 
   useEffect(() => {
     if (copyJob) {
-      const job = copyJob as CopyableJobPost;
+      const job = copyJob as CopyableJobPost
       let salaryMin = 4000,
-        salaryMax = 7000;
-      const salaryMatch = (job.salary || '').match(/(\d[\d,]*).*?[~-].*?(\d[\d,]*)/);
+        salaryMax = 7000
+      const salaryMatch = (job.salary || '').match(/(\d[\d,]*).*?[~-].*?(\d[\d,]*)/)
       if (salaryMatch) {
-        salaryMin = parseInt(salaryMatch[1].replace(/,/g, ''));
-        salaryMax = parseInt(salaryMatch[2].replace(/,/g, ''));
+        salaryMin = parseInt(salaryMatch[1].replace(/,/g, ''))
+        salaryMax = parseInt(salaryMatch[2].replace(/,/g, ''))
       }
       reset({
         company: job.company || user?.companyName || '',
@@ -150,62 +151,62 @@ export default function JobPostPage() {
         benefits: job.benefits || '',
         type: job.type || 'fulltime',
         skills: job.skills || '',
-      });
+      })
     }
-    if (copyError) toast('원본 공고를 불러올 수 없습니다', 'error');
-  }, [copyJob, copyError, reset, user?.companyName]);
+    if (copyError) toast('원본 공고를 불러올 수 없습니다', 'error')
+  }, [copyJob, copyError, reset, user?.companyName])
 
   const onSubmit = async (values: JobPostFormValues) => {
     try {
       const salary =
         values.salaryText ||
-        `${values.salaryMin.toLocaleString()}~${values.salaryMax.toLocaleString()}만원`;
+        `${values.salaryMin.toLocaleString()}~${values.salaryMax.toLocaleString()}만원`
       const payload: JobPostCreatePayload = {
         ...values,
         salary,
         skills: parseSkillTags(values.skills),
-      };
-      const created = await createJob(payload);
-      toast('채용 공고가 등록되었습니다', 'success');
-      const newId = (created as CreatedJobResponse).id;
+      }
+      const created = await createJob(payload)
+      toast('채용 공고가 등록되었습니다', 'success')
+      const newId = (created as CreatedJobResponse).id
       if (newId) {
-        navigate(ROUTES.jobs.detail(newId));
+        navigate(ROUTES.jobs.detail(newId))
       } else {
-        navigate(ROUTES.recruiter.dashboard);
+        navigate(ROUTES.recruiter.dashboard)
       }
     } catch (e: unknown) {
-      toast(getErrorMessage(e, '등록에 실패했습니다'), 'error');
+      toast(getErrorMessage(e, '등록에 실패했습니다'), 'error')
     }
-  };
+  }
 
   const addSkill = (value: string) => {
-    const tag = value.trim();
-    if (!tag) return;
-    if (skillTags.includes(tag)) return;
-    const updated = skillTags.length > 0 ? `${form.skills}, ${tag}` : tag;
-    setValue('skills', updated, { shouldValidate: true, shouldDirty: true });
-    setSkillInput('');
-  };
+    const tag = value.trim()
+    if (!tag) return
+    if (skillTags.includes(tag)) return
+    const updated = skillTags.length > 0 ? `${form.skills}, ${tag}` : tag
+    setValue('skills', updated, { shouldValidate: true, shouldDirty: true })
+    setSkillInput('')
+  }
 
   const removeSkill = (tag: string) => {
-    const updated = skillTags.filter((s) => s !== tag).join(', ');
-    setValue('skills', updated, { shouldValidate: true, shouldDirty: true });
-  };
+    const updated = skillTags.filter((s) => s !== tag).join(', ')
+    setValue('skills', updated, { shouldValidate: true, shouldDirty: true })
+  }
 
   const handleSkillKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addSkill(skillInput);
+      e.preventDefault()
+      addSkill(skillInput)
     }
     if (e.key === 'Backspace' && !skillInput && skillTags.length > 0) {
-      removeSkill(skillTags[skillTags.length - 1]);
+      removeSkill(skillTags[skillTags.length - 1])
     }
-  };
+  }
 
   const inputClass =
-    'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
+    'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
 
-  const formatSalary = (v: number) => `${v.toLocaleString()}만원`;
+  const formatSalary = (v: number) => `${v.toLocaleString()}만원`
 
   // Simple markdown-like preview renderer
   const renderDescription = (text: string) => {
@@ -215,19 +216,19 @@ export default function JobPostPage() {
           <h3 key={i} className="text-base font-bold text-slate-900 dark:text-slate-100 mt-4 mb-1">
             {line.slice(3)}
           </h3>
-        );
+        )
       if (line.startsWith('# '))
         return (
           <h2 key={i} className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-4 mb-1">
             {line.slice(2)}
           </h2>
-        );
+        )
       if (line.startsWith('- '))
         return (
           <li key={i} className="ml-4 text-sm text-slate-700 dark:text-slate-300">
             {line.slice(2)}
           </li>
-        );
+        )
       if (line.startsWith('> '))
         return (
           <blockquote
@@ -236,17 +237,17 @@ export default function JobPostPage() {
           >
             {line.slice(2)}
           </blockquote>
-        );
-      if (!line.trim()) return <br key={i} />;
+        )
+      if (!line.trim()) return <br key={i} />
       // Bold
-      const parts = line.split(/\*\*(.*?)\*\*/g);
+      const parts = line.split(/\*\*(.*?)\*\*/g)
       return (
         <p key={i} className="text-sm text-slate-700 dark:text-slate-300">
           {parts.map((part, j) => (j % 2 === 1 ? <strong key={j}>{part}</strong> : part))}
         </p>
-      );
-    });
-  };
+      )
+    })
+  }
 
   return (
     <>
@@ -364,12 +365,12 @@ export default function JobPostPage() {
             <JobUrlInput
               hint={tx('jobUrl.hintJobPost')}
               onParsed={(p) => {
-                if (p.company) setValue('company', p.company, { shouldValidate: true });
-                if (p.position) setValue('position', p.position, { shouldValidate: true });
-                if (p.location) setValue('location', p.location);
-                if (p.skills.length > 0) setValue('skills', p.skills.join(', '));
+                if (p.company) setValue('company', p.company, { shouldValidate: true })
+                if (p.position) setValue('position', p.position, { shouldValidate: true })
+                if (p.location) setValue('location', p.location)
+                if (p.skills.length > 0) setValue('skills', p.skills.join(', '))
                 if (p.description)
-                  setValue('description', p.description.slice(0, 5000), { shouldValidate: true });
+                  setValue('description', p.description.slice(0, 5000), { shouldValidate: true })
                 if (p.experienceLevel || p.employmentType) {
                   const reqLines = [
                     p.experienceLevel && `경력: ${p.experienceLevel}`,
@@ -377,19 +378,23 @@ export default function JobPostPage() {
                     p.skills.length > 0 && `기술 스택: ${p.skills.join(', ')}`,
                   ]
                     .filter(Boolean)
-                    .join('\n');
-                  if (reqLines) setValue('requirements', reqLines.slice(0, 3000));
+                    .join('\n')
+                  if (reqLines) setValue('requirements', reqLines.slice(0, 3000))
                 }
-                if (p.salary) setValue('salaryText', p.salary.slice(0, 50));
+                if (p.salary) setValue('salaryText', p.salary.slice(0, 50))
               }}
             />
 
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                <label
+                  htmlFor="jobpostpage-field-1"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+                >
                   회사명 *
                 </label>
                 <input
+                  id="jobpostpage-field-1"
                   {...register('company')}
                   {...fieldAria('jobpost-company', errors.company)}
                   className={inputClass}
@@ -398,10 +403,14 @@ export default function JobPostPage() {
                 <FieldError id="jobpost-company" message={errors.company?.message} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                <label
+                  htmlFor="jobpostpage-field-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+                >
                   포지션 *
                 </label>
                 <input
+                  id="jobpostpage-field-2"
                   {...register('position')}
                   {...fieldAria('jobpost-position', errors.position)}
                   className={inputClass}
@@ -413,10 +422,14 @@ export default function JobPostPage() {
 
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                <label
+                  htmlFor="jobpostpage-field-3"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+                >
                   근무지
                 </label>
                 <input
+                  id="jobpostpage-field-3"
                   {...register('location')}
                   {...fieldAria('jobpost-location', errors.location)}
                   className={inputClass}
@@ -425,10 +438,14 @@ export default function JobPostPage() {
                 <FieldError id="jobpost-location" message={errors.location?.message} />
               </div>
               <div className="sm:col-span-1">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                <label
+                  htmlFor="jobpostpage-field-4"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+                >
                   고용 형태
                 </label>
                 <select
+                  id="jobpostpage-field-4"
                   {...register('type')}
                   {...fieldAria('jobpost-type', errors.type)}
                   className={inputClass}
@@ -442,10 +459,14 @@ export default function JobPostPage() {
                 <FieldError id="jobpost-type" message={errors.type?.message} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+                <label
+                  htmlFor="jobpostpage-field-5"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+                >
                   연봉 (직접입력)
                 </label>
                 <input
+                  id="jobpostpage-field-5"
                   {...register('salaryText')}
                   {...fieldAria('jobpost-salaryText', errors.salaryText)}
                   className={inputClass}
@@ -475,11 +496,11 @@ export default function JobPostPage() {
                     step={SALARY_STEP}
                     value={form.salaryMin}
                     onChange={(e) => {
-                      const v = Number(e.target.value);
+                      const v = Number(e.target.value)
                       setValue('salaryMin', Math.min(v, form.salaryMax - SALARY_STEP), {
                         shouldValidate: true,
                         shouldDirty: true,
-                      });
+                      })
                     }}
                     className="w-full accent-blue-600"
                   />
@@ -490,11 +511,11 @@ export default function JobPostPage() {
                     step={SALARY_STEP}
                     value={form.salaryMax}
                     onChange={(e) => {
-                      const v = Number(e.target.value);
+                      const v = Number(e.target.value)
                       setValue('salaryMax', Math.max(v, form.salaryMin + SALARY_STEP), {
                         shouldValidate: true,
                         shouldDirty: true,
-                      });
+                      })
                     }}
                     className="w-full accent-blue-600"
                   />
@@ -509,9 +530,15 @@ export default function JobPostPage() {
 
             {/* Skill Tags Input */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              <label
+                htmlFor="jobpost-skill-input"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+              >
                 기술 스택
               </label>
+              {/* 칩 컨테이너 빈 영역 클릭 시 내부 입력에 포커스 — 포인터 전용 편의이며
+                  입력 자체는 라벨(htmlFor)·키보드로 완전 접근 가능하다. */}
+              {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
               <div
                 className="flex flex-wrap gap-2 p-2 border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-800 min-h-[44px] cursor-text"
                 onClick={() => skillInputRef.current?.focus()}
@@ -525,8 +552,8 @@ export default function JobPostPage() {
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.stopPropagation();
-                        removeSkill(tag);
+                        e.stopPropagation()
+                        removeSkill(tag)
                       }}
                       className="hover:text-red-500 transition-colors ml-0.5"
                       aria-label={`${tag} 삭제`}
@@ -536,6 +563,7 @@ export default function JobPostPage() {
                   </span>
                 ))}
                 <input
+                  id="jobpost-skill-input"
                   ref={skillInputRef}
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
@@ -553,7 +581,10 @@ export default function JobPostPage() {
             {/* Description with formatting hints */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label
+                  htmlFor="jobpost-description"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+                >
                   상세 설명
                 </label>
                 <div className="flex gap-2">
@@ -569,6 +600,7 @@ export default function JobPostPage() {
                 </div>
               </div>
               <textarea
+                id="jobpost-description"
                 {...register('description')}
                 {...fieldAria('jobpost-description', errors.description)}
                 rows={6}
@@ -580,11 +612,15 @@ export default function JobPostPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label
+                  htmlFor="jobpost-requirements"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-200"
+                >
                   자격 요건
                 </label>
               </div>
               <textarea
+                id="jobpost-requirements"
                 {...register('requirements')}
                 {...fieldAria('jobpost-requirements', errors.requirements)}
                 rows={4}
@@ -595,10 +631,14 @@ export default function JobPostPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              <label
+                htmlFor="jobpostpage-field-6"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+              >
                 복리후생
               </label>
               <textarea
+                id="jobpostpage-field-6"
                 {...register('benefits')}
                 {...fieldAria('jobpost-benefits', errors.benefits)}
                 rows={3}
@@ -636,5 +676,5 @@ export default function JobPostPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

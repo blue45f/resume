@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const salaryContributionSchema = z.object({
   company: z
@@ -22,7 +22,7 @@ export const salaryContributionSchema = z.object({
     .min(0, '경력은 0년 이상이어야 합니다')
     .max(30, '경력은 최대 30년까지 입력 가능합니다'),
   anonymous: z.boolean(),
-});
+})
 
-export type SalaryContributionInput = z.input<typeof salaryContributionSchema>;
-export type SalaryContributionOutput = z.output<typeof salaryContributionSchema>;
+export type SalaryContributionInput = z.input<typeof salaryContributionSchema>
+export type SalaryContributionOutput = z.output<typeof salaryContributionSchema>

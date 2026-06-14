@@ -1,18 +1,19 @@
-import { useState, useMemo } from 'react';
-import { buildQuantReport } from '@/lib/resumeQuantificationRate';
+import { useState, useMemo } from 'react'
+
+import { buildQuantReport } from '@/lib/resumeQuantificationRate'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeQuantificationPanel({ text }: Props) {
-  const report = useMemo(() => buildQuantReport(text), [text]);
-  const [expanded, setExpanded] = useState(false);
+  const report = useMemo(() => buildQuantReport(text), [text])
+  const [expanded, setExpanded] = useState(false)
 
-  if (report.bullets.length === 0) return null;
+  if (report.bullets.length === 0) return null
 
-  const fill = Math.max(0.04, Math.min(1, report.score / 100));
-  const visibleSuggestions = expanded ? report.suggestions : report.suggestions.slice(0, 2);
+  const fill = Math.max(0.04, Math.min(1, report.score / 100))
+  const visibleSuggestions = expanded ? report.suggestions : report.suggestions.slice(0, 2)
 
   return (
     <aside className={`quant-card quant-card--${report.tone}`} aria-label="이력서 수치화 비율">
@@ -78,5 +79,5 @@ export default function ResumeQuantificationPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

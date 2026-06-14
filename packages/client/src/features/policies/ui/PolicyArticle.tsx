@@ -1,12 +1,14 @@
-import { createElement } from 'react';
-import { ErrorState } from '@/shared/ui/ErrorState';
-import { formatDate } from '@/lib/time';
-import { policyPublicUrl, type PolicySlug } from '../api/policyApi';
-import { usePolicy } from '../api/usePolicy';
-import { parsePolicyBody, type PolicyBlock } from '../model/policyBody';
+import { createElement } from 'react'
+
+import { policyPublicUrl, type PolicySlug } from '../api/policyApi'
+import { usePolicy } from '../api/usePolicy'
+import { parsePolicyBody, type PolicyBlock } from '../model/policyBody'
+
+import { formatDate } from '@/lib/time'
+import { ErrorState } from '@/shared/ui/ErrorState'
 
 /** 신뢰 표면에 노출하는 content hash 축약 길이(앞 12자). */
-const SHORT_HASH_LENGTH = 12;
+const SHORT_HASH_LENGTH = 12
 
 function PolicyBody({ blocks }: { blocks: PolicyBlock[] }) {
   return (
@@ -20,11 +22,11 @@ function PolicyBody({ blocks }: { blocks: PolicyBlock[] }) {
               className:
                 'text-lg font-semibold text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2 mt-8 first:mt-0',
             },
-            block.text,
-          );
+            block.text
+          )
         }
         if (block.kind === 'list') {
-          const ListTag = block.ordered ? 'ol' : 'ul';
+          const ListTag = block.ordered ? 'ol' : 'ul'
           return (
             <ListTag
               key={index}
@@ -36,10 +38,10 @@ function PolicyBody({ blocks }: { blocks: PolicyBlock[] }) {
                 <li key={itemIndex}>{item}</li>
               ))}
             </ListTag>
-          );
+          )
         }
         if (block.kind === 'divider') {
-          return <hr key={index} className="my-6 border-slate-200 dark:border-slate-700" />;
+          return <hr key={index} className="my-6 border-slate-200 dark:border-slate-700" />
         }
         return (
           <p
@@ -48,10 +50,10 @@ function PolicyBody({ blocks }: { blocks: PolicyBlock[] }) {
           >
             {block.text}
           </p>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 function PolicySkeleton() {
@@ -66,7 +68,7 @@ function PolicySkeleton() {
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 /**
@@ -74,8 +76,8 @@ function PolicySkeleton() {
  * 로딩은 스켈레톤, 실패는 ErrorState + 원문 폴백 링크.
  */
 export function PolicyArticle({ slug, title }: { slug: PolicySlug; title: string }) {
-  const { data, isPending, isError, refetch } = usePolicy(slug);
-  const externalUrl = policyPublicUrl(slug);
+  const { data, isPending, isError, refetch } = usePolicy(slug)
+  const externalUrl = policyPublicUrl(slug)
 
   return (
     <article>
@@ -148,5 +150,5 @@ export function PolicyArticle({ slug, title }: { slug: PolicySlug; title: string
         {data && <PolicyBody blocks={parsePolicyBody(data.body)} />}
       </div>
     </article>
-  );
+  )
 }

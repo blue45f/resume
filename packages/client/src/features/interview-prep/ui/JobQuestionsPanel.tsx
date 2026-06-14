@@ -1,24 +1,25 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { toast } from '@/components/Toast';
-import { getUser } from '@/lib/auth';
+import { useEffect, useState, useCallback, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+
+import { toast } from '@/components/Toast'
 import {
   fetchJobInterviewQuestions,
   createJobInterviewQuestion,
   upvoteJobInterviewQuestion,
   aiGenerateJobInterviewQuestions,
   type JobInterviewQuestion,
-} from '@/lib/api';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
 
 interface JobQuestionsPanelProps {
-  jobPostId?: string;
-  curatedJobId?: string;
-  companyName: string;
-  position: string;
+  jobPostId?: string
+  curatedJobId?: string
+  companyName: string
+  position: string
   /** Optional context used to improve AI generation quality */
-  description?: string;
-  requirements?: string;
-  skills?: string;
+  description?: string
+  requirements?: string
+  skills?: string
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -28,13 +29,13 @@ const CATEGORY_LABELS: Record<string, string> = {
   personality: '인성',
   culture: '컬처',
   general: '일반',
-};
+}
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   beginner: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400',
   intermediate: 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400',
   advanced: 'bg-rose-50 dark:bg-blue-900/20 text-rose-700 dark:text-blue-400',
-};
+}
 
 /**
  * JobQuestionsPanel
@@ -50,79 +51,78 @@ export default function JobQuestionsPanel({
   requirements,
   skills,
 }: JobQuestionsPanelProps) {
-  const [items, setItems] = useState<JobInterviewQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showAdd, setShowAdd] = useState(false);
+  const [items, setItems] = useState<JobInterviewQuestion[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
+  const [aiLoading, setAiLoading] = useState(false)
+  const [showAdd, setShowAdd] = useState(false)
   const [addForm, setAddForm] = useState({
     question: '',
     sampleAnswer: '',
     category: 'technical',
     difficulty: 'intermediate',
-  });
-  const [savingAdd, setSavingAdd] = useState(false);
-  const user = getUser();
+  })
+  const [savingAdd, setSavingAdd] = useState(false)
+  const user = getUser()
 
   const load = useCallback(async () => {
-    if (!jobPostId && !curatedJobId) return;
-    setLoading(true);
-    setError(null);
+    if (!jobPostId && !curatedJobId) return
+    setLoading(true)
+    setError(null)
     try {
-      const data = await fetchJobInterviewQuestions({ jobPostId, curatedJobId, limit: 50 });
-      setItems(data);
+      const data = await fetchJobInterviewQuestions({ jobPostId, curatedJobId, limit: 50 })
+      setItems(data)
     } catch (e) {
-      setError(e instanceof Error ? e.message : '질문을 불러오지 못했습니다');
+      setError(e instanceof Error ? e.message : '질문을 불러오지 못했습니다')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [jobPostId, curatedJobId]);
+  }, [jobPostId, curatedJobId])
 
   useEffect(() => {
-    if (!jobPostId && !curatedJobId) return;
-    let cancelled = false;
+    if (!jobPostId && !curatedJobId) return
+    let cancelled = false
     fetchJobInterviewQuestions({ jobPostId, curatedJobId, limit: 50 })
       .then((data) => {
-        if (!cancelled) setItems(data);
+        if (!cancelled) setItems(data)
       })
       .catch((e) => {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : '질문을 불러오지 못했습니다');
+          setError(e instanceof Error ? e.message : '질문을 불러오지 못했습니다')
         }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+        if (!cancelled) setLoading(false)
+      })
     return () => {
-      cancelled = true;
-    };
-  }, [jobPostId, curatedJobId]);
+      cancelled = true
+    }
+  }, [jobPostId, curatedJobId])
 
   const randomQuestion = useMemo(() => {
-    if (items.length === 0) return null;
-    const seed = `${companyName}:${position}:${items.length}`;
-    const index =
-      Array.from(seed).reduce((sum, char) => sum + char.charCodeAt(0), 0) % items.length;
-    return items[index];
-  }, [items, companyName, position]);
+    if (items.length === 0) return null
+    const seed = `${companyName}:${position}:${items.length}`
+    const index = Array.from(seed).reduce((sum, char) => sum + char.charCodeAt(0), 0) % items.length
+    return items[index]
+  }, [items, companyName, position])
 
   const handleUpvote = async (q: JobInterviewQuestion) => {
     if (!user) {
-      toast('로그인 후 이용 가능합니다.', 'error');
-      return;
+      toast('로그인 후 이용 가능합니다.', 'error')
+      return
     }
     // Optimistic update
-    const wasVoted = !!q.myVote;
+    const wasVoted = !!q.myVote
     setItems((prev) =>
       prev.map((it) =>
         it.id === q.id
           ? { ...it, upvotes: it.upvotes + (wasVoted ? -1 : 1), myVote: !wasVoted }
-          : it,
-      ),
-    );
+          : it
+      )
+    )
     try {
-      const { upvoted } = await upvoteJobInterviewQuestion(q.id);
+      const { upvoted } = await upvoteJobInterviewQuestion(q.id)
       // Correct in case optimistic guess was off
       setItems((prev) =>
         prev.map((it) =>
@@ -132,23 +132,23 @@ export default function JobQuestionsPanel({
                 myVote: upvoted,
                 upvotes: wasVoted === upvoted ? q.upvotes : q.upvotes + (upvoted ? 1 : -1),
               }
-            : it,
-        ),
-      );
+            : it
+        )
+      )
     } catch {
       // Revert on failure
       setItems((prev) =>
-        prev.map((it) => (it.id === q.id ? { ...it, upvotes: q.upvotes, myVote: q.myVote } : it)),
-      );
+        prev.map((it) => (it.id === q.id ? { ...it, upvotes: q.upvotes, myVote: q.myVote } : it))
+      )
     }
-  };
+  }
 
   const handleAiGenerate = async () => {
     if (!user) {
-      toast('로그인 후 이용 가능합니다.', 'error');
-      return;
+      toast('로그인 후 이용 가능합니다.', 'error')
+      return
     }
-    setAiLoading(true);
+    setAiLoading(true)
     try {
       const res = await aiGenerateJobInterviewQuestions({
         jobPostId,
@@ -160,26 +160,26 @@ export default function JobQuestionsPanel({
         skills,
         count: 5,
         persist: true,
-      });
-      toast(`AI가 ${res.questions.length}개 질문을 생성했습니다.`, 'success');
-      await load();
+      })
+      toast(`AI가 ${res.questions.length}개 질문을 생성했습니다.`, 'success')
+      await load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'AI 생성에 실패했습니다.', 'error');
+      toast(e instanceof Error ? e.message : 'AI 생성에 실패했습니다.', 'error')
     } finally {
-      setAiLoading(false);
+      setAiLoading(false)
     }
-  };
+  }
 
   const handleCreateQuestion = async () => {
     if (!user) {
-      toast('로그인 후 이용 가능합니다.', 'error');
-      return;
+      toast('로그인 후 이용 가능합니다.', 'error')
+      return
     }
     if (!addForm.question.trim()) {
-      toast('질문을 입력해주세요.', 'error');
-      return;
+      toast('질문을 입력해주세요.', 'error')
+      return
     }
-    setSavingAdd(true);
+    setSavingAdd(true)
     try {
       await createJobInterviewQuestion({
         jobPostId,
@@ -191,41 +191,41 @@ export default function JobQuestionsPanel({
         category: addForm.category,
         difficulty: addForm.difficulty,
         source: 'manual',
-      });
-      toast('질문이 추가되었습니다.', 'success');
-      setShowAdd(false);
+      })
+      toast('질문이 추가되었습니다.', 'success')
+      setShowAdd(false)
       setAddForm({
         question: '',
         sampleAnswer: '',
         category: 'technical',
         difficulty: 'intermediate',
-      });
-      await load();
+      })
+      await load()
     } catch (e) {
-      toast(e instanceof Error ? e.message : '추가에 실패했습니다.', 'error');
+      toast(e instanceof Error ? e.message : '추가에 실패했습니다.', 'error')
     } finally {
-      setSavingAdd(false);
+      setSavingAdd(false)
     }
-  };
+  }
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const mockHref = useMemo(() => {
-    const params = new URLSearchParams();
-    if (jobPostId) params.set('jobPostId', jobPostId);
-    if (curatedJobId) params.set('curatedJobId', curatedJobId);
-    params.set('company', companyName);
-    params.set('position', position);
-    if (randomQuestion?.question) params.set('question', randomQuestion.question);
-    return `/mock-interview?${params.toString()}`;
-  }, [jobPostId, curatedJobId, companyName, position, randomQuestion]);
+    const params = new URLSearchParams()
+    if (jobPostId) params.set('jobPostId', jobPostId)
+    if (curatedJobId) params.set('curatedJobId', curatedJobId)
+    params.set('company', companyName)
+    params.set('position', position)
+    if (randomQuestion?.question) params.set('question', randomQuestion.question)
+    return `/mock-interview?${params.toString()}`
+  }, [jobPostId, curatedJobId, companyName, position, randomQuestion])
 
   return (
     <div className="space-y-4">
@@ -352,11 +352,11 @@ export default function JobQuestionsPanel({
       ) : (
         <ul className="space-y-2">
           {items.map((q) => {
-            const expanded = expandedIds.has(q.id);
-            const categoryLabel = CATEGORY_LABELS[q.category] || q.category;
+            const expanded = expandedIds.has(q.id)
+            const categoryLabel = CATEGORY_LABELS[q.category] || q.category
             const difficultyClass =
               DIFFICULTY_COLORS[q.difficulty] ||
-              'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300';
+              'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
             return (
               <li key={q.id} className="imp-card p-4">
                 <div className="flex items-start gap-3">
@@ -434,10 +434,10 @@ export default function JobQuestionsPanel({
                   </div>
                 </div>
               </li>
-            );
+            )
           })}
         </ul>
       )}
     </div>
-  );
+  )
 }

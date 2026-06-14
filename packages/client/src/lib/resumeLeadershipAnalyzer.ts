@@ -1,4 +1,4 @@
-export type LeadershipStrength = 'strong' | 'moderate' | 'weak' | 'none';
+export type LeadershipStrength = 'strong' | 'moderate' | 'weak' | 'none'
 
 export type LeadershipSignalType =
   | 'people_management'
@@ -6,20 +6,20 @@ export type LeadershipSignalType =
   | 'mentoring'
   | 'process_ownership'
   | 'cross_functional'
-  | 'budget_resource';
+  | 'budget_resource'
 
 export interface LeadershipSignal {
-  type: LeadershipSignalType;
-  phrase: string;
-  weight: number;
+  type: LeadershipSignalType
+  phrase: string
+  weight: number
 }
 
 export interface LeadershipReport {
-  strength: LeadershipStrength;
-  signals: LeadershipSignal[];
-  totalWeight: number;
-  peopleManagement: boolean;
-  suggestions: string[];
+  strength: LeadershipStrength
+  signals: LeadershipSignal[]
+  totalWeight: number
+  peopleManagement: boolean
+  suggestions: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -27,9 +27,9 @@ export interface LeadershipReport {
 // ---------------------------------------------------------------------------
 
 interface LeadershipPattern {
-  re: RegExp;
-  type: LeadershipSignalType;
-  weight: number;
+  re: RegExp
+  type: LeadershipSignalType
+  weight: number
 }
 
 const LEADERSHIP_PATTERNS: LeadershipPattern[] = [
@@ -85,7 +85,7 @@ const LEADERSHIP_PATTERNS: LeadershipPattern[] = [
   { re: /예산\s*(?:\d+[억만]?원?\s*)?(?:관리|집행|편성)/, type: 'budget_resource', weight: 3 },
   { re: /\d+\s*억\s*(?:규모|예산|원)/, type: 'budget_resource', weight: 3 },
   { re: /비용\s*(?:\d+%|절감|최적화)\s*(?:달성|실현)/, type: 'budget_resource', weight: 2 },
-];
+]
 
 const LEADERSHIP_TYPE_LABEL: Record<LeadershipSignalType, string> = {
   people_management: '인력 관리',
@@ -94,49 +94,49 @@ const LEADERSHIP_TYPE_LABEL: Record<LeadershipSignalType, string> = {
   process_ownership: '아키텍처/프로세스',
   cross_functional: '유관부서 협업',
   budget_resource: '예산/리소스 관리',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeResumeLeadership(text: string): LeadershipReport {
-  const t = text ?? '';
-  const signals: LeadershipSignal[] = [];
-  const seenTypes = new Set<LeadershipSignalType>();
+  const t = text ?? ''
+  const signals: LeadershipSignal[] = []
+  const seenTypes = new Set<LeadershipSignalType>()
 
   for (const { re, type, weight } of LEADERSHIP_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      signals.push({ type, phrase: m[0].slice(0, 50), weight });
-      seenTypes.add(type);
+      signals.push({ type, phrase: m[0].slice(0, 50), weight })
+      seenTypes.add(type)
     }
   }
 
-  const totalWeight = signals.reduce((sum, s) => sum + s.weight, 0);
-  const peopleManagement = seenTypes.has('people_management');
+  const totalWeight = signals.reduce((sum, s) => sum + s.weight, 0)
+  const peopleManagement = seenTypes.has('people_management')
 
-  let strength: LeadershipStrength;
-  if (totalWeight >= 8) strength = 'strong';
-  else if (totalWeight >= 4) strength = 'moderate';
-  else if (totalWeight >= 1) strength = 'weak';
-  else strength = 'none';
+  let strength: LeadershipStrength
+  if (totalWeight >= 8) strength = 'strong'
+  else if (totalWeight >= 4) strength = 'moderate'
+  else if (totalWeight >= 1) strength = 'weak'
+  else strength = 'none'
 
-  const suggestions: string[] = [];
+  const suggestions: string[] = []
   if (!peopleManagement && totalWeight < 8) {
-    suggestions.push('직접 관리한 팀원 수 또는 관련 직책을 명시하면 관리 역량이 드러납니다.');
+    suggestions.push('직접 관리한 팀원 수 또는 관련 직책을 명시하면 관리 역량이 드러납니다.')
   }
   if (!seenTypes.has('project_ownership')) {
-    suggestions.push('리드하거나 오너십을 가진 프로젝트/서비스를 명확히 기술하세요.');
+    suggestions.push('리드하거나 오너십을 가진 프로젝트/서비스를 명확히 기술하세요.')
   }
   if (!seenTypes.has('mentoring')) {
-    suggestions.push('주니어 멘토링, 코드 리뷰 문화 기여 등 육성 활동을 추가하세요.');
+    suggestions.push('주니어 멘토링, 코드 리뷰 문화 기여 등 육성 활동을 추가하세요.')
   }
   if (!seenTypes.has('process_ownership')) {
-    suggestions.push('아키텍처 결정, 기술 스택 선택, 개발 문화 개선 이력을 포함하세요.');
+    suggestions.push('아키텍처 결정, 기술 스택 선택, 개발 문화 개선 이력을 포함하세요.')
   }
 
-  return { strength, signals, totalWeight, peopleManagement, suggestions };
+  return { strength, signals, totalWeight, peopleManagement, suggestions }
 }
 
-export { LEADERSHIP_TYPE_LABEL };
+export { LEADERSHIP_TYPE_LABEL }

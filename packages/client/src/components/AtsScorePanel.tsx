@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { analyzeAtsCompatibility } from '@/lib/ats';
-import type { AtsCheckItem } from '@/lib/ats';
+import { useState } from 'react'
+
+import type { AtsCheckItem } from '@/lib/ats'
+import type { Resume } from '@/types/resume'
+
+import { analyzeAtsCompatibility } from '@/lib/ats'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 const severityColors = {
@@ -13,9 +15,9 @@ const severityColors = {
   warning:
     'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400',
   info: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400',
-};
+}
 
-const severityLabels = { error: '필수', warning: '권장', info: '참고' };
+const severityLabels = { error: '필수', warning: '권장', info: '참고' }
 
 const gradeColors: Record<string, string> = {
   A: 'text-green-600 bg-green-100 dark:bg-green-900/30',
@@ -23,7 +25,7 @@ const gradeColors: Record<string, string> = {
   C: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30',
   D: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30',
   F: 'text-red-600 bg-red-100 dark:bg-red-900/30',
-};
+}
 
 const recommendationColors: Record<string, { bg: string; text: string; label: string }> = {
   good: {
@@ -41,24 +43,24 @@ const recommendationColors: Record<string, { bg: string; text: string; label: st
     text: 'text-amber-700 dark:text-amber-400',
     label: '과다',
   },
-};
+}
 
-type DetailTab = 'issues' | 'checklist' | 'keywords';
+type DetailTab = 'issues' | 'checklist' | 'keywords'
 
 export default function AtsScorePanel({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [detailTab, setDetailTab] = useState<DetailTab>('checklist');
-  const result = analyzeAtsCompatibility(resume);
+  const [expanded, setExpanded] = useState(false)
+  const [detailTab, setDetailTab] = useState<DetailTab>('checklist')
+  const result = analyzeAtsCompatibility(resume)
 
   // Group checklist by category
-  const checklistByCategory: Record<string, AtsCheckItem[]> = {};
+  const checklistByCategory: Record<string, AtsCheckItem[]> = {}
   for (const item of result.checklist) {
-    if (!checklistByCategory[item.category]) checklistByCategory[item.category] = [];
-    checklistByCategory[item.category].push(item);
+    if (!checklistByCategory[item.category]) checklistByCategory[item.category] = []
+    checklistByCategory[item.category].push(item)
   }
 
-  const passedCount = result.checklist.filter((c) => c.passed).length;
-  const totalCount = result.checklist.length;
+  const passedCount = result.checklist.filter((c) => c.passed).length
+  const totalCount = result.checklist.length
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
@@ -281,7 +283,7 @@ export default function AtsScorePanel({ resume }: Props) {
                   </p>
                   <div className="space-y-1.5">
                     {result.keywordDensity.map((kd, i) => {
-                      const rec = recommendationColors[kd.recommendation];
+                      const rec = recommendationColors[kd.recommendation]
                       return (
                         <div
                           key={i}
@@ -311,7 +313,7 @@ export default function AtsScorePanel({ resume }: Props) {
                             {rec.label}
                           </span>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-xs text-blue-700 dark:text-blue-400 space-y-1">
@@ -337,5 +339,5 @@ export default function AtsScorePanel({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

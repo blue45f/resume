@@ -1,20 +1,20 @@
-import { toast as sonnerToast, Toaster } from 'sonner';
+import { toast as sonnerToast, Toaster } from 'sonner'
 
-type ToastType = 'success' | 'error' | 'info' | 'warning';
+type ToastType = 'success' | 'error' | 'info' | 'warning'
 
 export function toast(text: string, type: ToastType = 'info') {
   switch (type) {
     case 'success':
-      sonnerToast.success(text);
-      break;
+      sonnerToast.success(text)
+      break
     case 'error':
-      sonnerToast.error(text);
-      break;
+      sonnerToast.error(text)
+      break
     case 'warning':
-      sonnerToast.warning(text);
-      break;
+      sonnerToast.warning(text)
+      break
     default:
-      sonnerToast.info(text);
+      sonnerToast.info(text)
   }
 }
 
@@ -30,7 +30,7 @@ function renderToastContainer() {
       richColors
       closeButton
     />
-  );
+  )
 }
 
-export const ToastContainer = renderToastContainer;
+export const ToastContainer = renderToastContainer

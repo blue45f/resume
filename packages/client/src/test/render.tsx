@@ -1,13 +1,13 @@
-import { type ReactElement, type ReactNode } from 'react';
-import { render, type RenderOptions, type RenderResult } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, type RenderOptions, type RenderResult } from '@testing-library/react'
+import { type ReactElement, type ReactNode } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 
 interface ProvidersOptions {
   /** initial entry for the router (defaults to '/'). */
-  initialEntries?: string[];
+  initialEntries?: string[]
   /** pre-built QueryClient — useful when you want to seed data with setQueryData() */
-  queryClient?: QueryClient;
+  queryClient?: QueryClient
 }
 
 /**
@@ -19,7 +19,7 @@ export function makeQueryClient(): QueryClient {
       queries: { retry: false, gcTime: 0, staleTime: 0 },
       mutations: { retry: false },
     },
-  });
+  })
 }
 
 function allProviders({
@@ -27,12 +27,12 @@ function allProviders({
   initialEntries = ['/'],
   queryClient,
 }: ProvidersOptions & { children: ReactNode }) {
-  const client = queryClient ?? makeQueryClient();
+  const client = queryClient ?? makeQueryClient()
   return (
     <QueryClientProvider client={client}>
       <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
     </QueryClientProvider>
-  );
+  )
 }
 
 /**
@@ -40,13 +40,13 @@ function allProviders({
  */
 export function renderWithProviders(
   ui: ReactElement,
-  options: ProvidersOptions & Omit<RenderOptions, 'wrapper'> = {},
+  options: ProvidersOptions & Omit<RenderOptions, 'wrapper'> = {}
 ): RenderResult {
-  const { initialEntries, queryClient, ...rest } = options;
+  const { initialEntries, queryClient, ...rest } = options
   return render(ui, {
     wrapper: ({ children }) => allProviders({ children, initialEntries, queryClient }),
     ...rest,
-  });
+  })
 }
 
-export { fireEvent, screen, waitFor } from '@testing-library/react';
+export { fireEvent, screen, waitFor } from '@testing-library/react'

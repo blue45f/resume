@@ -1,28 +1,29 @@
-import { useMemo } from 'react';
-import { analyzeResumeIntro } from '@/lib/resumeIntroAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeResumeIntro } from '@/lib/resumeIntroAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const STRENGTH_LABEL: Record<string, string> = {
   strong: '강함',
   moderate: '보통',
   weak: '취약',
-};
+}
 
 export default function ResumeIntroStrengthPanel({ text }: Props) {
-  const report = useMemo(() => analyzeResumeIntro(text), [text]);
+  const report = useMemo(() => analyzeResumeIntro(text), [text])
 
-  if (report.strength === 'strong') return null;
-  if (!report.intro || report.intro.length < 15) return null;
+  if (report.strength === 'strong') return null
+  if (!report.intro || report.intro.length < 15) return null
 
   const tone =
     report.strength === 'moderate'
       ? 'neutral'
       : report.clicheHits.length >= 3
         ? 'warning'
-        : 'neutral';
+        : 'neutral'
 
   return (
     <aside
@@ -79,5 +80,5 @@ export default function ResumeIntroStrengthPanel({ text }: Props) {
 
       <p className="intro-strength-card__suggestion">{report.suggestion}</p>
     </aside>
-  );
+  )
 }

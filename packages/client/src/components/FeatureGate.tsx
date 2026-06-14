@@ -1,27 +1,28 @@
-import { Link } from 'react-router-dom';
-import { getUser } from '@/lib/auth';
-import { canAccess, isMonetizationEnabled, type PlanConfig } from '@/lib/plans';
-import { ROUTES } from '@/lib/routes';
+import { Link } from 'react-router-dom'
+
+import { getUser } from '@/lib/auth'
+import { canAccess, isMonetizationEnabled, type PlanConfig } from '@/lib/plans'
+import { ROUTES } from '@/lib/routes'
 
 interface Props {
-  feature: keyof PlanConfig['features'];
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  feature: keyof PlanConfig['features']
+  children: React.ReactNode
+  fallback?: React.ReactNode
 }
 
 export default function FeatureGate({ feature, children, fallback }: Props) {
-  const user = getUser();
-  const userPlan = user?.plan || 'free';
+  const user = getUser()
+  const userPlan = user?.plan || 'free'
 
   if (canAccess(userPlan, feature, user?.role)) {
-    return <>{children}</>;
+    return <>{children}</>
   }
 
-  if (fallback) return <>{fallback}</>;
+  if (fallback) return <>{fallback}</>
 
   // 유료화 OFF → 안내 없이 그냥 통과 (canAccess가 true를 반환하므로 여기 도달하지 않음)
   // 유료화 ON → 업그레이드 안내
-  if (!isMonetizationEnabled()) return <>{children}</>;
+  if (!isMonetizationEnabled()) return <>{children}</>
 
   return (
     <div className="p-4 bg-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 border border-blue-200 dark:border-blue-800 rounded-xl text-center">
@@ -37,5 +38,5 @@ export default function FeatureGate({ feature, children, fallback }: Props) {
         플랜 업그레이드
       </Link>
     </div>
-  );
+  )
 }

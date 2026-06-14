@@ -9,80 +9,83 @@ import {
   Post,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AdminGuard } from '../common/guards/admin.guard';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsService } from './notifications.service';
-import { isNotificationType } from '@resume/shared';
-import type { AuthenticatedRequest } from '../common/request.types';
+} from '@nestjs/common'
+import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { isNotificationType } from '@resume/shared'
+
+import { AdminGuard } from '../common/guards/admin.guard'
+import { PrismaService } from '../prisma/prisma.service'
+
+import { NotificationsService } from './notifications.service'
+
+import type { AuthenticatedRequest } from '../common/request.types'
 
 @ApiTags('notifications')
 @Controller('notifications')
 export class NotificationsController {
   constructor(
     private readonly service: NotificationsService,
-    private readonly prisma: PrismaService,
+    private readonly prisma: PrismaService
   ) {}
 
   @Get()
   @ApiOperation({ summary: '알림 목록' })
   getAll(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return [];
-    return this.service.getAll(req.user.id);
+    if (!req.user?.id) return []
+    return this.service.getAll(req.user.id)
   }
 
   @Get('unread')
   @ApiOperation({ summary: '읽지 않은 알림' })
   getUnread(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return [];
-    return this.service.getUnread(req.user.id);
+    if (!req.user?.id) return []
+    return this.service.getUnread(req.user.id)
   }
 
   @Get('count')
   @ApiOperation({ summary: '읽지 않은 알림 수' })
   async getCount(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return { count: 0 };
-    const count = await this.service.getUnreadCount(req.user.id);
-    return { count };
+    if (!req.user?.id) return { count: 0 }
+    const count = await this.service.getUnreadCount(req.user.id)
+    return { count }
   }
 
   @Post('read-all')
   @ApiOperation({ summary: '모든 알림 읽음 처리' })
   markAllRead(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return { success: false };
-    return this.service.markAsRead(req.user.id);
+    if (!req.user?.id) return { success: false }
+    return this.service.markAsRead(req.user.id)
   }
 
   @Post(':id/read')
   @ApiOperation({ summary: '알림 읽음 처리' })
   markRead(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return { success: false };
-    return this.service.markAsRead(req.user.id, id);
+    if (!req.user?.id) return { success: false }
+    return this.service.markAsRead(req.user.id, id)
   }
 
   @Delete(':id')
   @ApiOperation({ summary: '알림 삭제' })
   deleteOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return { success: false };
-    return this.service.deleteOne(req.user.id, id);
+    if (!req.user?.id) return { success: false }
+    return this.service.deleteOne(req.user.id, id)
   }
 
   @Post('delete-bulk')
   @ApiOperation({ summary: '알림 일괄 삭제' })
   deleteBulk(@Body() body: { ids: string[] }, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return { success: false };
-    return this.service.deleteBulk(req.user.id, body.ids);
+    if (!req.user?.id) return { success: false }
+    return this.service.deleteBulk(req.user.id, body.ids)
   }
 
   @Delete('cleanup')
   @ApiOperation({ summary: '오래된 읽은 알림 정리 (관리자 전용)' })
   cleanup(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return { success: false };
+    if (!req.user?.id) return { success: false }
     if (req.user.role !== 'superadmin') {
-      throw new ForbiddenException('관리자만 사용할 수 있습니다');
+      throw new ForbiddenException('관리자만 사용할 수 있습니다')
     }
-    return this.service.cleanupOld();
+    return this.service.cleanupOld()
   }
 
   /**
@@ -101,27 +104,27 @@ export class NotificationsController {
   async announce(
     @Body()
     body: {
-      type: string;
-      message: string;
-      link?: string;
-      activeWithinDays?: number;
+      type: string
+      message: string
+      link?: string
+      activeWithinDays?: number
     },
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest
   ) {
     if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') {
-      throw new ForbiddenException('관리자만 가능');
+      throw new ForbiddenException('관리자만 가능')
     }
     if (!body.type || !body.message) {
-      throw new BadRequestException('type, message 필수');
+      throw new BadRequestException('type, message 필수')
     }
     if (!isNotificationType(body.type)) {
-      throw new BadRequestException(`알 수 없는 type: ${body.type}`);
+      throw new BadRequestException(`알 수 없는 type: ${body.type}`)
     }
     if (body.message.length > 200) {
-      throw new BadRequestException('메시지는 200자 이내');
+      throw new BadRequestException('메시지는 200자 이내')
     }
-    const days = Math.min(365, Math.max(1, body.activeWithinDays ?? 30));
-    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const days = Math.min(365, Math.max(1, body.activeWithinDays ?? 30))
+    const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
     // 활성 기준: 최근 N일 내 가입했거나, 최근 이력서 수정 / 알림 받음
     const users = await this.prisma.user.findMany({
@@ -135,10 +138,10 @@ export class NotificationsController {
       },
       select: { id: true },
       take: 1000,
-    });
+    })
 
-    const userIds = users.map((u) => u.id);
-    const result = await this.service.createBulk(userIds, body.type, body.message, body.link);
-    return { ...result, candidates: userIds.length, activeWithinDays: days };
+    const userIds = users.map((u) => u.id)
+    const result = await this.service.createBulk(userIds, body.type, body.message, body.link)
+    return { ...result, candidates: userIds.length, activeWithinDays: days }
   }
 }

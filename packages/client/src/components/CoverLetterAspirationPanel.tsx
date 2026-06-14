@@ -1,30 +1,31 @@
-import { useMemo } from 'react';
-import { analyzeCoverLetterAspiration } from '@/lib/coverLetterAspirationAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeCoverLetterAspiration } from '@/lib/coverLetterAspirationAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CLARITY_LABEL: Record<string, string> = {
   specific: '구체적',
   vague: '막연함',
   absent: '없음',
-};
+}
 
 const SIGNAL_TYPE_LABEL: Record<string, string> = {
   growth_goal: '성장 목표',
   company_contribution: '기여 계획',
   skill_development: '기술 개발',
   vague_pledge: '막연한 의지',
-};
+}
 
 export default function CoverLetterAspirationPanel({ text }: Props) {
-  const report = useMemo(() => analyzeCoverLetterAspiration(text), [text]);
+  const report = useMemo(() => analyzeCoverLetterAspiration(text), [text])
 
-  if (text.trim().length < 60) return null;
-  if (report.clarity === 'specific') return null;
+  if (text.trim().length < 60) return null
+  if (report.clarity === 'specific') return null
 
-  const isWarning = report.clarity === 'absent';
+  const isWarning = report.clarity === 'absent'
 
   return (
     <aside
@@ -68,5 +69,5 @@ export default function CoverLetterAspirationPanel({ text }: Props) {
 
       <p className="cl-aspiration-card__rewrite">{report.rewriteHint}</p>
     </aside>
-  );
+  )
 }

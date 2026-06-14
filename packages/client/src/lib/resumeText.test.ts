@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { buildResumePlainText } from './resumeText';
-import type { Resume } from '@/types/resume';
+import { describe, expect, it } from 'vitest'
+
+import { buildResumePlainText } from './resumeText'
+
+import type { Resume } from '@/types/resume'
 
 const baseResume = (): Partial<Resume> => ({
   title: '백엔드 개발자 이력서',
@@ -32,39 +34,39 @@ const baseResume = (): Partial<Resume> => ({
   languages: [],
   awards: [],
   activities: [],
-});
+})
 
 describe('buildResumePlainText', () => {
   it('returns empty string when input is null/undefined', () => {
-    expect(buildResumePlainText(null)).toBe('');
-    expect(buildResumePlainText(undefined)).toBe('');
-  });
+    expect(buildResumePlainText(null)).toBe('')
+    expect(buildResumePlainText(undefined)).toBe('')
+  })
 
   it('strips HTML from summary and descriptions', () => {
-    const out = buildResumePlainText(baseResume());
-    expect(out).not.toContain('<p>');
-    expect(out).toContain('5년 경력의 백엔드 개발자입니다.');
-    expect(out).toContain('검색 플랫폼 개발 및 운영');
-  });
+    const out = buildResumePlainText(baseResume())
+    expect(out).not.toContain('<p>')
+    expect(out).toContain('5년 경력의 백엔드 개발자입니다.')
+    expect(out).toContain('검색 플랫폼 개발 및 운영')
+  })
 
   it('serializes experience period in a format the date parser can read', () => {
-    const out = buildResumePlainText(baseResume());
-    expect(out).toContain('2020.01');
-    expect(out).toContain('2022.12');
-  });
+    const out = buildResumePlainText(baseResume())
+    expect(out).toContain('2020.01')
+    expect(out).toContain('2022.12')
+  })
 
   it('marks current position with 현재', () => {
-    const resume = baseResume();
-    resume.experiences![0].current = true;
-    resume.experiences![0].endDate = '';
-    const out = buildResumePlainText(resume);
-    expect(out).toContain('현재');
-  });
+    const resume = baseResume()
+    resume.experiences![0].current = true
+    resume.experiences![0].endDate = ''
+    const out = buildResumePlainText(resume)
+    expect(out).toContain('현재')
+  })
 
   it('includes skills and achievements sections', () => {
-    const out = buildResumePlainText(baseResume());
-    expect(out).toContain('Backend');
-    expect(out).toContain('Java, Kotlin, Spring');
-    expect(out).toContain('응답시간 30% 단축');
-  });
-});
+    const out = buildResumePlainText(baseResume())
+    expect(out).toContain('Backend')
+    expect(out).toContain('Java, Kotlin, Spring')
+    expect(out).toContain('응답시간 30% 단축')
+  })
+})

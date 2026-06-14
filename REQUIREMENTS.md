@@ -2,13 +2,13 @@
 
 ## 최종 기술 스택 (확정)
 
-| 영역 | 기술 | 비고 |
-|------|------|------|
-| DB | SQLite + **Prisma ORM** | 정규화된 스키마, 마이그레이션, PostgreSQL 전환 용이 |
-| 서버 | **NestJS** + SWC | 모듈/DI, SSE, Swagger, DTO 검증 |
-| LLM | **Anthropic Claude API** | 한국어 우수, Streaming, Structured Output |
-| 클라이언트 | React 19 + Vite 8 + Tailwind 4 | **PC/모바일 반응형** UI/UX |
-| 검증 | class-validator + class-transformer | DTO 기반 입력 검증 |
+| 영역       | 기술                                | 비고                                                |
+| ---------- | ----------------------------------- | --------------------------------------------------- |
+| DB         | SQLite + **Prisma ORM**             | 정규화된 스키마, 마이그레이션, PostgreSQL 전환 용이 |
+| 서버       | **NestJS** + SWC                    | 모듈/DI, SSE, Swagger, DTO 검증                     |
+| LLM        | **Anthropic Claude API**            | 한국어 우수, Streaming, Structured Output           |
+| 클라이언트 | React 19 + Vite 8 + Tailwind 4      | **PC/모바일 반응형** UI/UX                          |
+| 검증       | class-validator + class-transformer | DTO 기반 입력 검증                                  |
 
 ---
 
@@ -102,13 +102,13 @@ server/
 
 ## 우선순위
 
-| 순위 | 항목 |
-|------|------|
-| P0 | DB 고도화 (Prisma + 정규화) |
-| P0 | NestJS 서버 구축 |
-| P0 | LLM 양식 변환 (핵심) |
-| P0 | 반응형 UI/UX |
-| P1 | 이력서 테마/형식 선택 |
-| P1 | PDF 내보내기 |
-| P2 | 버전 관리, 태그/분류 |
-| P3 | 공유 링크, 대시보드 |
+| 순위 | 항목                        |
+| ---- | --------------------------- |
+| P0   | DB 고도화 (Prisma + 정규화) |
+| P0   | NestJS 서버 구축            |
+| P0   | LLM 양식 변환 (핵심)        |
+| P0   | 반응형 UI/UX                |
+| P1   | 이력서 테마/형식 선택       |
+| P1   | PDF 내보내기                |
+| P2   | 버전 관리, 태그/분류        |
+| P3   | 공유 링크, 대시보드         |

@@ -14,18 +14,18 @@
       system 은 prefers-color-scheme 로 해석. 토큰 오버라이드는 :root 와 .dark 가 담당.
     -->
     <script>
-      (function () {
+      ;(function () {
         try {
-          var stored = localStorage.getItem('resume-theme');
+          var stored = localStorage.getItem('resume-theme')
           var isDark =
             stored === 'dark' ||
             ((stored === 'system' || stored === null || stored === undefined) &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches);
-          if (isDark) document.documentElement.classList.add('dark');
+              window.matchMedia('(prefers-color-scheme: dark)').matches)
+          if (isDark) document.documentElement.classList.add('dark')
         } catch (e) {
           /* localStorage/matchMedia 미지원 환경은 기본 라이트로 둔다. */
         }
-      })();
+      })()
     </script>
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />

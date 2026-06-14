@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { checkCoverLetterFirstPerson } from '@/lib/coverLetterFirstPersonChecker';
+import { useMemo } from 'react'
+
+import { checkCoverLetterFirstPerson } from '@/lib/coverLetterFirstPersonChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<string, string> = {
@@ -10,15 +11,15 @@ const GRADE_LABEL: Record<string, string> = {
   adequate: '적절',
   repetitive: '반복적',
   monotone: '단조로움',
-};
+}
 
 export default function CoverLetterFirstPersonPanel({ text }: Props) {
-  const report = useMemo(() => checkCoverLetterFirstPerson(text), [text]);
+  const report = useMemo(() => checkCoverLetterFirstPerson(text), [text])
 
-  if (report.grade === 'varied' || report.grade === 'adequate') return null;
-  if (text.trim().length < 80) return null;
+  if (report.grade === 'varied' || report.grade === 'adequate') return null
+  if (text.trim().length < 80) return null
 
-  const isMonotone = report.grade === 'monotone';
+  const isMonotone = report.grade === 'monotone'
 
   return (
     <aside
@@ -48,5 +49,5 @@ export default function CoverLetterFirstPersonPanel({ text }: Props) {
         </div>
       )}
     </aside>
-  );
+  )
 }

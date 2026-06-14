@@ -1,1 +1,1 @@
-export { addRecentView, useRecentViews } from './model/useRecentViews';
+export { addRecentView, useRecentViews } from './model/useRecentViews'

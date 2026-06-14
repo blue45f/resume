@@ -1,6 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { computeResumeCompletion } from './resumeCompletion';
-import type { ResumeSummary } from '@/types/resume';
+import { describe, it, expect } from 'vitest'
+
+import { computeResumeCompletion } from './resumeCompletion'
+
+import type { ResumeSummary } from '@/types/resume'
 
 function makeResume(overrides: Partial<ResumeSummary> = {}): ResumeSummary {
   const resume: ResumeSummary = {
@@ -20,17 +22,17 @@ function makeResume(overrides: Partial<ResumeSummary> = {}): ResumeSummary {
     skills: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-  };
-  return { ...resume, ...overrides };
+  }
+  return { ...resume, ...overrides }
 }
 
 describe('computeResumeCompletion', () => {
   it('returns 0% on a blank resume', () => {
-    const r = computeResumeCompletion(makeResume());
-    expect(r.pct).toBe(0);
-    expect(r.grade).toBe('low');
-    expect(r.missingItems.length).toBeGreaterThan(0);
-  });
+    const r = computeResumeCompletion(makeResume())
+    expect(r.pct).toBe(0)
+    expect(r.grade).toBe('low')
+    expect(r.missingItems.length).toBeGreaterThan(0)
+  })
 
   it('reaches 100% on a fully filled resume', () => {
     const r = computeResumeCompletion(
@@ -55,31 +57,31 @@ describe('computeResumeCompletion', () => {
           category: 'Frontend',
           items: 'React',
         })),
-      }),
-    );
-    expect(r.pct).toBe(100);
-    expect(r.grade).toBe('excellent');
-    expect(r.missingItems).toHaveLength(0);
-  });
+      })
+    )
+    expect(r.pct).toBe(100)
+    expect(r.grade).toBe('excellent')
+    expect(r.missingItems).toHaveLength(0)
+  })
 
   it('summary length is graduated, not binary', () => {
     const a = computeResumeCompletion(
-      makeResume({ personalInfo: { ...makeResume().personalInfo, summary: 'a'.repeat(40) } }),
-    );
+      makeResume({ personalInfo: { ...makeResume().personalInfo, summary: 'a'.repeat(40) } })
+    )
     const b = computeResumeCompletion(
-      makeResume({ personalInfo: { ...makeResume().personalInfo, summary: 'a'.repeat(120) } }),
-    );
+      makeResume({ personalInfo: { ...makeResume().personalInfo, summary: 'a'.repeat(120) } })
+    )
     const c = computeResumeCompletion(
-      makeResume({ personalInfo: { ...makeResume().personalInfo, summary: 'a'.repeat(220) } }),
-    );
-    expect(a.pct).toBeLessThan(b.pct);
-    expect(b.pct).toBeLessThan(c.pct);
-  });
+      makeResume({ personalInfo: { ...makeResume().personalInfo, summary: 'a'.repeat(220) } })
+    )
+    expect(a.pct).toBeLessThan(b.pct)
+    expect(b.pct).toBeLessThan(c.pct)
+  })
 
   it('skills count is graduated', () => {
     const one = computeResumeCompletion(
-      makeResume({ skills: [{ id: '1', category: 'Frontend', items: 'React' }] }),
-    );
+      makeResume({ skills: [{ id: '1', category: 'Frontend', items: 'React' }] })
+    )
     const five = computeResumeCompletion(
       makeResume({
         skills: Array.from({ length: 5 }, (_, i) => ({
@@ -87,8 +89,8 @@ describe('computeResumeCompletion', () => {
           category: 'Frontend',
           items: 'React',
         })),
-      }),
-    );
+      })
+    )
     const eleven = computeResumeCompletion(
       makeResume({
         skills: Array.from({ length: 11 }, (_, i) => ({
@@ -96,14 +98,14 @@ describe('computeResumeCompletion', () => {
           category: 'Frontend',
           items: 'React',
         })),
-      }),
-    );
-    expect(one.pct).toBeLessThan(five.pct);
-    expect(five.pct).toBeLessThan(eleven.pct);
-  });
+      })
+    )
+    expect(one.pct).toBeLessThan(five.pct)
+    expect(five.pct).toBeLessThan(eleven.pct)
+  })
 
   it('grade thresholds match documented bands', () => {
-    expect(computeResumeCompletion(makeResume()).grade).toBe('low');
+    expect(computeResumeCompletion(makeResume()).grade).toBe('low')
     // craft a resume around ~50% (fair) — name/email/phone/address (29) + summary 6 + skills 4 = 39%
     const fair = computeResumeCompletion(
       makeResume({
@@ -117,25 +119,25 @@ describe('computeResumeCompletion', () => {
           summary: 'a'.repeat(35),
         },
         skills: [{ id: '1', category: 'Frontend', items: 'React' }],
-      }),
-    );
+      })
+    )
     // Should be at minimum 'fair' or 'low' — boundary check
-    expect(['fair', 'low', 'good']).toContain(fair.grade);
-  });
+    expect(['fair', 'low', 'good']).toContain(fair.grade)
+  })
 
   it('missingItems are ordered by impact (max desc)', () => {
-    const r = computeResumeCompletion(makeResume());
-    const maxes = r.missingItems.map((i) => i.max);
-    const sorted = [...maxes].sort((a, b) => b - a);
-    expect(maxes).toEqual(sorted);
-  });
+    const r = computeResumeCompletion(makeResume())
+    const maxes = r.missingItems.map((i) => i.max)
+    const sorted = [...maxes].sort((a, b) => b - a)
+    expect(maxes).toEqual(sorted)
+  })
 
   it('items cover identity/depth/web/discoverability categories', () => {
-    const r = computeResumeCompletion(makeResume());
-    const cats = new Set(r.items.map((i) => i.category));
-    expect(cats).toContain('identity');
-    expect(cats).toContain('depth');
-    expect(cats).toContain('web');
-    expect(cats).toContain('discoverability');
-  });
-});
+    const r = computeResumeCompletion(makeResume())
+    const cats = new Set(r.items.map((i) => i.category))
+    expect(cats).toContain('identity')
+    expect(cats).toContain('depth')
+    expect(cats).toContain('web')
+    expect(cats).toContain('discoverability')
+  })
+})

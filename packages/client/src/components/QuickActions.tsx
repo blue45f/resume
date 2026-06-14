@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import DropdownMenu from '@/shared/ui/DropdownMenu';
-import { getUser } from '@/lib/auth';
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { getUser } from '@/lib/auth'
+import DropdownMenu from '@/shared/ui/DropdownMenu'
 
 const ACTIONS = [
   { label: '새 이력서', to: '/resumes/new', icon: '📝' },
@@ -9,20 +10,20 @@ const ACTIONS = [
   { label: '자소서 생성', to: '/cover-letter', icon: '✉️' },
   { label: '면접 준비', to: '/interview-prep', icon: '🎯' },
   { label: '이력서 비교', to: '/compare', icon: '⚖️' },
-];
+]
 
 const RECRUITER_ACTIONS = [
   { label: '채용공고 등록', to: '/jobs/new', icon: '📋' },
   { label: '스카우트', to: '/scouts', icon: '🔍' },
-];
+]
 
 export default function QuickActions() {
-  const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
-  const user = getUser();
-  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
+  const [open, setOpen] = useState(false)
+  const navigate = useNavigate()
+  const user = getUser()
+  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company'
 
-  const actions = isRecruiter ? [...ACTIONS, ...RECRUITER_ACTIONS] : ACTIONS;
+  const actions = isRecruiter ? [...ACTIONS, ...RECRUITER_ACTIONS] : ACTIONS
 
   return (
     <div className="fixed bottom-20 sm:bottom-20 right-4 sm:right-6 z-40 no-print">
@@ -68,5 +69,5 @@ export default function QuickActions() {
         </DropdownMenu.Content>
       </DropdownMenu.Root>
     </div>
-  );
+  )
 }

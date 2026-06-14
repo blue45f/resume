@@ -1,1 +1,1 @@
-export * from './api/useNotifications';
+export * from './api/useNotifications'

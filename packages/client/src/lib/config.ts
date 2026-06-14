@@ -7,11 +7,11 @@
  *   개발:   https://resume-api-mm0o.onrender.com  (.env.development)
  *   운영:   https://resume-api-464016453534.asia-northeast3.run.app  (.env.production)
  */
-export const API_URL = import.meta.env.VITE_API_URL || '';
+export const API_URL = import.meta.env.VITE_API_URL || ''
 export const APP_ENV = (import.meta.env.VITE_ENV || 'local') as
   | 'local'
   | 'development'
-  | 'production';
-export const IS_PROD = APP_ENV === 'production';
-export const IS_DEV = APP_ENV === 'development';
-export const IS_LOCAL = APP_ENV === 'local';
+  | 'production'
+export const IS_PROD = APP_ENV === 'production'
+export const IS_DEV = APP_ENV === 'development'
+export const IS_LOCAL = APP_ENV === 'local'

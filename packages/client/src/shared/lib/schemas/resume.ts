@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 const looseUrl = z
   .string()
   .max(500, 'URL은 최대 500자까지 입력 가능합니다')
   .optional()
-  .or(z.literal(''));
+  .or(z.literal(''))
 
 export const personalInfoSchema = z.object({
   name: z
@@ -51,10 +51,10 @@ export const personalInfoSchema = z.object({
       z.object({
         label: z.string().max(50),
         url: z.string().max(500),
-      }),
+      })
     )
     .optional(),
-});
+})
 
 export const experienceSchema = z.object({
   id: z.string(),
@@ -91,7 +91,7 @@ export const experienceSchema = z.object({
     .max(500, '기술 스택은 최대 500자까지 입력 가능합니다')
     .optional()
     .or(z.literal('')),
-});
+})
 
 export const educationSchema = z.object({
   id: z.string(),
@@ -106,13 +106,13 @@ export const educationSchema = z.object({
     .max(1000, '비고는 최대 1000자까지 입력 가능합니다')
     .optional()
     .or(z.literal('')),
-});
+})
 
 export const skillSchema = z.object({
   id: z.string(),
   category: z.string().max(50).optional().or(z.literal('')),
   items: z.string().max(1000).optional().or(z.literal('')),
-});
+})
 
 export const projectSchema = z.object({
   id: z.string(),
@@ -128,7 +128,7 @@ export const projectSchema = z.object({
     .or(z.literal('')),
   techStack: z.string().max(500).optional().or(z.literal('')),
   link: z.string().max(500).optional().or(z.literal('')),
-});
+})
 
 export const certificationSchema = z.object({
   id: z.string(),
@@ -138,7 +138,7 @@ export const certificationSchema = z.object({
   expiryDate: z.string().optional().or(z.literal('')),
   credentialId: z.string().max(100).optional().or(z.literal('')),
   description: z.string().max(1000).optional().or(z.literal('')),
-});
+})
 
 export const languageSchema = z.object({
   id: z.string(),
@@ -146,7 +146,7 @@ export const languageSchema = z.object({
   testName: z.string().max(50).optional().or(z.literal('')),
   score: z.string().max(50).optional().or(z.literal('')),
   testDate: z.string().optional().or(z.literal('')),
-});
+})
 
 export const awardSchema = z.object({
   id: z.string(),
@@ -154,7 +154,7 @@ export const awardSchema = z.object({
   issuer: z.string().max(100).optional().or(z.literal('')),
   awardDate: z.string().optional().or(z.literal('')),
   description: z.string().max(1000).optional().or(z.literal('')),
-});
+})
 
 export const activitySchema = z.object({
   id: z.string(),
@@ -164,7 +164,7 @@ export const activitySchema = z.object({
   startDate: z.string().optional().or(z.literal('')),
   endDate: z.string().optional().or(z.literal('')),
   description: z.string().max(1000).optional().or(z.literal('')),
-});
+})
 
 export const resumeFormSchema = z.object({
   title: z
@@ -192,7 +192,7 @@ export const resumeFormSchema = z.object({
         'languages',
         'awards',
         'activities',
-      ]),
+      ])
     )
     .optional(),
   hiddenSections: z
@@ -206,24 +206,24 @@ export const resumeFormSchema = z.object({
         'languages',
         'awards',
         'activities',
-      ]),
+      ])
     )
     .optional(),
-});
+})
 
-export type ResumeFormInput = z.input<typeof resumeFormSchema>;
-export type ResumeFormOutput = z.output<typeof resumeFormSchema>;
+export type ResumeFormInput = z.input<typeof resumeFormSchema>
+export type ResumeFormOutput = z.output<typeof resumeFormSchema>
 
 // Legacy exports for backward compatibility
-export const resumeSchema = resumeFormSchema;
-export type PersonalInfoInput = z.infer<typeof personalInfoSchema>;
-export type ExperienceInput = z.infer<typeof experienceSchema>;
-export type SkillInput = z.infer<typeof skillSchema>;
-export type ResumeInput = ResumeFormInput;
+export const resumeSchema = resumeFormSchema
+export type PersonalInfoInput = z.infer<typeof personalInfoSchema>
+export type ExperienceInput = z.infer<typeof experienceSchema>
+export type SkillInput = z.infer<typeof skillSchema>
+export type ResumeInput = ResumeFormInput
 
 // Minimal schema used for new-resume metadata validation
 export const newResumeMetaSchema = z.object({
   title: z.string().trim().min(1, '제목을 입력하세요').max(100, '제목은 100자 이내로 입력하세요'),
-});
+})
 
-export type NewResumeMetaValues = z.infer<typeof newResumeMetaSchema>;
+export type NewResumeMetaValues = z.infer<typeof newResumeMetaSchema>

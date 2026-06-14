@@ -10,7 +10,7 @@ export function CardSkeleton() {
         <div className="h-7 shimmer rounded-lg w-14" />
       </div>
     </div>
-  );
+  )
 }
 
 export function CardGridSkeleton({ count = 6 }: { count?: number }) {
@@ -20,7 +20,7 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
         <CardSkeleton key={i} />
       ))}
     </div>
-  );
+  )
 }
 
 export function StatsSkeleton() {
@@ -37,7 +37,7 @@ export function StatsSkeleton() {
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 export function FormSkeleton() {
@@ -49,5 +49,5 @@ export function FormSkeleton() {
       <div className="h-10 shimmer rounded" />
       <div className="h-32 shimmer rounded" />
     </div>
-  );
+  )
 }

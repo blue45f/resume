@@ -15,9 +15,10 @@
  *     </DropdownMenu.Content>
  *   </DropdownMenu.Root>
  */
-import * as Radix from '@radix-ui/react-dropdown-menu';
-import type { ComponentPropsWithoutRef, ElementRef } from 'react';
-import { forwardRef } from 'react';
+import * as Radix from '@radix-ui/react-dropdown-menu'
+import { forwardRef } from 'react'
+
+import type { ComponentPropsWithoutRef, ElementRef } from 'react'
 
 const contentClass = [
   'z-[100] min-w-[11rem] overflow-hidden',
@@ -31,7 +32,7 @@ const contentClass = [
   'data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1',
   'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.96]',
   'motion-reduce:animate-none',
-].join(' ');
+].join(' ')
 
 const itemClass = [
   'relative flex items-center gap-2.5',
@@ -42,7 +43,7 @@ const itemClass = [
   'data-[highlighted]:text-[var(--color-text)]',
   'data-[disabled]:opacity-50 data-[disabled]:pointer-events-none',
   'transition-colors duration-100',
-].join(' ');
+].join(' ')
 
 const Content = forwardRef<
   ElementRef<typeof Radix.Content>,
@@ -56,31 +57,31 @@ const Content = forwardRef<
       {...props}
     />
   </Radix.Portal>
-));
-Content.displayName = 'DropdownMenuContent';
+))
+Content.displayName = 'DropdownMenuContent'
 
 const Item = forwardRef<ElementRef<typeof Radix.Item>, ComponentPropsWithoutRef<typeof Radix.Item>>(
   ({ className = '', ...props }, ref) => (
     <Radix.Item ref={ref} className={`${itemClass} ${className}`} {...props} />
-  ),
-);
-Item.displayName = 'DropdownMenuItem';
+  )
+)
+Item.displayName = 'DropdownMenuItem'
 
 const CheckboxItem = forwardRef<
   ElementRef<typeof Radix.CheckboxItem>,
   ComponentPropsWithoutRef<typeof Radix.CheckboxItem>
 >(({ className = '', ...props }, ref) => (
   <Radix.CheckboxItem ref={ref} className={`${itemClass} pr-7 ${className}`} {...props} />
-));
-CheckboxItem.displayName = 'DropdownMenuCheckboxItem';
+))
+CheckboxItem.displayName = 'DropdownMenuCheckboxItem'
 
 const RadioItem = forwardRef<
   ElementRef<typeof Radix.RadioItem>,
   ComponentPropsWithoutRef<typeof Radix.RadioItem>
 >(({ className = '', ...props }, ref) => (
   <Radix.RadioItem ref={ref} className={`${itemClass} pr-7 ${className}`} {...props} />
-));
-RadioItem.displayName = 'DropdownMenuRadioItem';
+))
+RadioItem.displayName = 'DropdownMenuRadioItem'
 
 const Separator = forwardRef<
   ElementRef<typeof Radix.Separator>,
@@ -91,8 +92,8 @@ const Separator = forwardRef<
     className={`my-1 h-px bg-[var(--color-border-subtle)] ${className}`}
     {...props}
   />
-));
-Separator.displayName = 'DropdownMenuSeparator';
+))
+Separator.displayName = 'DropdownMenuSeparator'
 
 const Label = forwardRef<
   ElementRef<typeof Radix.Label>,
@@ -103,24 +104,24 @@ const Label = forwardRef<
     className={`px-2.5 pt-2 pb-1 text-[11px] font-semibold text-[var(--color-text-muted)] uppercase tracking-wider ${className}`}
     {...props}
   />
-));
-Label.displayName = 'DropdownMenuLabel';
+))
+Label.displayName = 'DropdownMenuLabel'
 
 const SubContent = forwardRef<
   ElementRef<typeof Radix.SubContent>,
   ComponentPropsWithoutRef<typeof Radix.SubContent>
 >(({ className = '', ...props }, ref) => (
   <Radix.SubContent ref={ref} className={`${contentClass} ${className}`} {...props} />
-));
-SubContent.displayName = 'DropdownMenuSubContent';
+))
+SubContent.displayName = 'DropdownMenuSubContent'
 
 const SubTrigger = forwardRef<
   ElementRef<typeof Radix.SubTrigger>,
   ComponentPropsWithoutRef<typeof Radix.SubTrigger>
 >(({ className = '', ...props }, ref) => (
   <Radix.SubTrigger ref={ref} className={`${itemClass} ${className}`} {...props} />
-));
-SubTrigger.displayName = 'DropdownMenuSubTrigger';
+))
+SubTrigger.displayName = 'DropdownMenuSubTrigger'
 
 const DropdownMenu = {
   Root: Radix.Root,
@@ -138,6 +139,6 @@ const DropdownMenu = {
   Label,
   SubContent,
   SubTrigger,
-};
+}
 
-export default DropdownMenu;
+export default DropdownMenu

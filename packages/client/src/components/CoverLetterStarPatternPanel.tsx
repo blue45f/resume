@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkCoverLetterStarPattern } from '@/lib/coverLetterStarPatternChecker';
-import type { StarElement } from '@/lib/coverLetterStarPatternChecker';
+import { useMemo } from 'react'
+
+import type { StarElement } from '@/lib/coverLetterStarPatternChecker'
+
+import { checkCoverLetterStarPattern } from '@/lib/coverLetterStarPatternChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const ELEMENT_LABEL: Record<StarElement, string> = {
@@ -11,22 +13,22 @@ const ELEMENT_LABEL: Record<StarElement, string> = {
   task: 'T 역할',
   action: 'A 행동',
   result: 'R 결과',
-};
+}
 
 const GRADE_LABEL: Record<string, string> = {
   strong: 'STAR 완성',
   partial: '부분 적용',
   weak: '미흡',
   absent: '없음',
-};
+}
 
 export default function CoverLetterStarPatternPanel({ text }: Props) {
-  const report = useMemo(() => checkCoverLetterStarPattern(text), [text]);
+  const report = useMemo(() => checkCoverLetterStarPattern(text), [text])
 
-  if (report.grade === 'strong') return null;
-  if (text.trim().length < 60) return null;
+  if (report.grade === 'strong') return null
+  if (text.trim().length < 60) return null
 
-  const isAbsent = report.grade === 'absent' || report.grade === 'weak';
+  const isAbsent = report.grade === 'absent' || report.grade === 'weak'
 
   return (
     <aside
@@ -42,7 +44,7 @@ export default function CoverLetterStarPatternPanel({ text }: Props) {
 
       <div className="cl-star-card__elements" aria-label="STAR 요소 현황">
         {(['situation', 'task', 'action', 'result'] as StarElement[]).map((el) => {
-          const found = report.foundElements.includes(el);
+          const found = report.foundElements.includes(el)
           return (
             <span
               key={el}
@@ -50,7 +52,7 @@ export default function CoverLetterStarPatternPanel({ text }: Props) {
             >
               {ELEMENT_LABEL[el]}
             </span>
-          );
+          )
         })}
       </div>
 
@@ -66,5 +68,5 @@ export default function CoverLetterStarPatternPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

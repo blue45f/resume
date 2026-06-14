@@ -3,12 +3,12 @@
  * 실행: npx ts-node -r tsconfig-paths/register scripts/seed-banners.ts
  * 또는: npx tsx scripts/seed-banners.ts
  */
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🎨 배너 샘플 데이터 생성 중...');
+  console.log('🎨 배너 샘플 데이터 생성 중...')
 
   // 1. 커뮤니티 게시글 샘플 생성 (배너에서 링크할 용도)
   const samplePosts = [
@@ -110,19 +110,19 @@ async function main() {
 본인 직종의 연봉 정보가 궁금하시면 댓글에 직종을 남겨주세요!`,
       category: 'free',
     },
-  ];
+  ]
 
-  const createdPosts: string[] = [];
+  const createdPosts: string[] = []
 
   for (const post of samplePosts) {
     // 이미 있으면 건너뜀
     const existing = await prisma.communityPost.findFirst({
       where: { title: post.title },
-    });
+    })
 
     if (existing) {
-      console.log(`  ⏭ 이미 존재: ${post.title.slice(0, 40)}...`);
-      createdPosts.push(existing.id);
+      console.log(`  ⏭ 이미 존재: ${post.title.slice(0, 40)}...`)
+      createdPosts.push(existing.id)
     } else {
       const created = await prisma.communityPost.create({
         data: {
@@ -133,9 +133,9 @@ async function main() {
           viewCount: Math.floor(Math.random() * 800) + 200,
           likeCount: Math.floor(Math.random() * 50) + 10,
         },
-      });
-      console.log(`  ✅ 게시글 생성: ${created.id}`);
-      createdPosts.push(created.id);
+      })
+      console.log(`  ✅ 게시글 생성: ${created.id}`)
+      createdPosts.push(created.id)
     }
   }
 
@@ -173,25 +173,28 @@ async function main() {
       order: 3,
       isActive: true,
     },
-  ];
+  ]
 
   for (const banner of banners) {
     const existing = await prisma.banner.findFirst({
       where: { title: banner.title },
-    });
+    })
 
     if (existing) {
-      await prisma.banner.update({ where: { id: existing.id }, data: banner });
-      console.log(`  ✅ 배너 업데이트: ${banner.title.slice(0, 30)}`);
+      await prisma.banner.update({ where: { id: existing.id }, data: banner })
+      console.log(`  ✅ 배너 업데이트: ${banner.title.slice(0, 30)}`)
     } else {
-      await prisma.banner.create({ data: { ...banner, subtitle: banner.subtitle } });
-      console.log(`  ✅ 배너 생성: ${banner.title.slice(0, 30)}`);
+      await prisma.banner.create({ data: { ...banner, subtitle: banner.subtitle } })
+      console.log(`  ✅ 배너 생성: ${banner.title.slice(0, 30)}`)
     }
   }
 
-  console.log('\n🎉 완료! 배너와 커뮤니티 게시글이 연결되었습니다.');
+  console.log('\n🎉 완료! 배너와 커뮤니티 게시글이 연결되었습니다.')
 }
 
 main()
-  .catch(e => { console.error(e); process.exit(1); })
-  .finally(() => prisma.$disconnect());
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(() => prisma.$disconnect())

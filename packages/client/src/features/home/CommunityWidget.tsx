@@ -1,17 +1,18 @@
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/lib/routes';
-import { usePublicGet } from '@/hooks/useResources';
+import { Link } from 'react-router-dom'
+
+import { usePublicGet } from '@/hooks/useResources'
+import { ROUTES } from '@/lib/routes'
 
 interface CommunityWidgetPost {
-  id: string;
-  title: string;
-  category: string;
-  likeCount: number;
-  createdAt: string;
+  id: string
+  title: string
+  category: string
+  likeCount: number
+  createdAt: string
 }
 
 interface CommunityWidgetResponse {
-  items?: CommunityWidgetPost[];
+  items?: CommunityWidgetPost[]
 }
 
 export default function CommunityWidget() {
@@ -20,11 +21,11 @@ export default function CommunityWidget() {
     '/api/community?limit=5&page=1',
     {
       staleTime: 60_000,
-    },
-  );
-  const posts = data?.items ? data.items.slice(0, 5) : [];
+    }
+  )
+  const posts = data?.items ? data.items.slice(0, 5) : []
 
-  if (!posts.length) return null;
+  if (!posts.length) return null
 
   const CAT_COLORS: Record<string, string> = {
     notice: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
@@ -33,7 +34,7 @@ export default function CommunityWidget() {
     resume: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     'cover-letter': 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
     question: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  };
+  }
   const CAT_LABELS: Record<string, string> = {
     notice: '공지',
     free: '자유',
@@ -41,7 +42,7 @@ export default function CommunityWidget() {
     resume: '이력서피드백',
     'cover-letter': '자소서',
     question: '질문',
-  };
+  }
 
   return (
     <div className="mb-6 imp-card overflow-hidden">
@@ -91,5 +92,5 @@ export default function CommunityWidget() {
         </Link>
       </div>
     </div>
-  );
+  )
 }

@@ -6,23 +6,23 @@
  */
 
 interface ResumeTheme {
-  id: string;
-  name: string;
-  description: string;
-  headerStyle: string;
-  sectionTitleStyle: string;
-  bodyStyle: string;
-  accentColor: string;
-  fontFamily: string;
-  premium?: boolean;
+  id: string
+  name: string
+  description: string
+  headerStyle: string
+  sectionTitleStyle: string
+  bodyStyle: string
+  accentColor: string
+  fontFamily: string
+  premium?: boolean
   preview?: {
-    headerBg: string;
-    headerText: string;
-    accentBar: string;
-    bodyBg: string;
-    category: 'basic' | 'professional' | 'creative' | 'academic' | 'tech';
-    bestFor: string;
-  };
+    headerBg: string
+    headerText: string
+    accentBar: string
+    bodyBg: string
+    category: 'basic' | 'professional' | 'creative' | 'academic' | 'tech'
+    bestFor: string
+  }
 }
 
 const resumeThemes: ResumeTheme[] = [
@@ -331,7 +331,7 @@ const resumeThemes: ResumeTheme[] = [
       bestFor: '크리에이터, 포트폴리오',
     },
   },
-];
+]
 
 const THEME_CATEGORY_LABELS: Record<string, string> = {
   basic: '기본',
@@ -339,7 +339,7 @@ const THEME_CATEGORY_LABELS: Record<string, string> = {
   creative: '크리에이티브',
   academic: '학술/연구',
   tech: '테크/개발',
-};
+}
 
 const REQUIRED_FIELDS: (keyof ResumeTheme)[] = [
   'id',
@@ -349,26 +349,26 @@ const REQUIRED_FIELDS: (keyof ResumeTheme)[] = [
   'bodyStyle',
   'accentColor',
   'fontFamily',
-];
+]
 
 describe('resumeThemes', () => {
   it('contains exactly 15 themes', () => {
-    expect(resumeThemes).toHaveLength(15);
-  });
+    expect(resumeThemes).toHaveLength(15)
+  })
 
   it.each(REQUIRED_FIELDS)('every theme has required field: %s', (field) => {
     for (const theme of resumeThemes) {
-      expect(theme[field]).toBeDefined();
-      expect(typeof theme[field]).toBe('string');
-      expect((theme[field] as string).length).toBeGreaterThan(0);
+      expect(theme[field]).toBeDefined()
+      expect(typeof theme[field]).toBe('string')
+      expect((theme[field] as string).length).toBeGreaterThan(0)
     }
-  });
+  })
 
   it('has no duplicate theme IDs', () => {
-    const ids = resumeThemes.map((t) => t.id);
-    const uniqueIds = new Set(ids);
-    expect(uniqueIds.size).toBe(ids.length);
-  });
+    const ids = resumeThemes.map((t) => t.id)
+    const uniqueIds = new Set(ids)
+    expect(uniqueIds.size).toBe(ids.length)
+  })
 
   it('all expected theme IDs are present', () => {
     const expectedIds = [
@@ -387,42 +387,42 @@ describe('resumeThemes', () => {
       'dark',
       'corporate',
       'portfolio',
-    ];
-    const actualIds = resumeThemes.map((t) => t.id);
+    ]
+    const actualIds = resumeThemes.map((t) => t.id)
     for (const id of expectedIds) {
-      expect(actualIds).toContain(id);
+      expect(actualIds).toContain(id)
     }
-  });
+  })
 
   it('free themes are classic, modern, and minimal', () => {
-    const freeThemes = resumeThemes.filter((t) => !t.premium);
-    const freeIds = freeThemes.map((t) => t.id).sort();
-    expect(freeIds).toEqual(['classic', 'minimal', 'modern']);
-  });
+    const freeThemes = resumeThemes.filter((t) => !t.premium)
+    const freeIds = freeThemes.map((t) => t.id).sort()
+    expect(freeIds).toEqual(['classic', 'minimal', 'modern'])
+  })
 
   it('premium themes are correctly marked (12 premium themes)', () => {
-    const premiumThemes = resumeThemes.filter((t) => t.premium === true);
-    expect(premiumThemes).toHaveLength(12);
-  });
+    const premiumThemes = resumeThemes.filter((t) => t.premium === true)
+    expect(premiumThemes).toHaveLength(12)
+  })
 
   it('every theme has a preview object with required fields', () => {
     for (const theme of resumeThemes) {
-      expect(theme.preview).toBeDefined();
-      expect(theme.preview!.headerBg).toBeTruthy();
-      expect(theme.preview!.headerText).toBeTruthy();
-      expect(theme.preview!.accentBar).toBeTruthy();
-      expect(theme.preview!.bodyBg).toBeTruthy();
-      expect(theme.preview!.category).toBeTruthy();
-      expect(theme.preview!.bestFor).toBeTruthy();
+      expect(theme.preview).toBeDefined()
+      expect(theme.preview!.headerBg).toBeTruthy()
+      expect(theme.preview!.headerText).toBeTruthy()
+      expect(theme.preview!.accentBar).toBeTruthy()
+      expect(theme.preview!.bodyBg).toBeTruthy()
+      expect(theme.preview!.category).toBeTruthy()
+      expect(theme.preview!.bestFor).toBeTruthy()
     }
-  });
+  })
 
   it('theme categories cover all themes', () => {
-    const validCategories = Object.keys(THEME_CATEGORY_LABELS);
+    const validCategories = Object.keys(THEME_CATEGORY_LABELS)
     for (const theme of resumeThemes) {
-      expect(validCategories).toContain(theme.preview!.category);
+      expect(validCategories).toContain(theme.preview!.category)
     }
-  });
+  })
 
   it('category labels has all 5 categories', () => {
     expect(Object.keys(THEME_CATEGORY_LABELS).sort()).toEqual([
@@ -431,14 +431,14 @@ describe('resumeThemes', () => {
       'creative',
       'professional',
       'tech',
-    ]);
-  });
+    ])
+  })
 
   it('each category has at least one theme', () => {
-    const categories = Object.keys(THEME_CATEGORY_LABELS);
+    const categories = Object.keys(THEME_CATEGORY_LABELS)
     for (const cat of categories) {
-      const themesInCat = resumeThemes.filter((t) => t.preview?.category === cat);
-      expect(themesInCat.length).toBeGreaterThanOrEqual(1);
+      const themesInCat = resumeThemes.filter((t) => t.preview?.category === cat)
+      expect(themesInCat.length).toBeGreaterThanOrEqual(1)
     }
-  });
-});
+  })
+})

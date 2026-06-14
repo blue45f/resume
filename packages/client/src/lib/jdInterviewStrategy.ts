@@ -12,28 +12,28 @@ export type InterviewFormat =
   | 'technical-deep' // 기술 심층 (아키텍처·디버깅)
   | 'portfolio-review' // 포트폴리오·프로젝트 리뷰
   | 'case-study' // 케이스 스터디 (PM/데이터)
-  | 'take-home'; // 과제 제출형
+  | 'take-home' // 과제 제출형
 
 export interface PrepArea {
-  area: string; // Korean area name
-  priority: 'high' | 'medium' | 'low';
-  reason: string; // Korean reasoning
-  resources: string[]; // Korean resource suggestions
+  area: string // Korean area name
+  priority: 'high' | 'medium' | 'low'
+  reason: string // Korean reasoning
+  resources: string[] // Korean resource suggestions
 }
 
 export interface InterviewStrategyReport {
   /** Most likely interview formats in priority order. */
-  formats: InterviewFormat[];
+  formats: InterviewFormat[]
   /** Korean labels for formats. */
-  formatLabels: InterviewFormat[];
+  formatLabels: InterviewFormat[]
   /** Recommended prep areas ordered by priority. */
-  prepAreas: PrepArea[];
+  prepAreas: PrepArea[]
   /** Estimated prep timeline in weeks. */
-  prepWeeks: number;
+  prepWeeks: number
   /** Korean summary of the strategy. */
-  summary: string;
+  summary: string
   /** Korean one-liner label. */
-  label: string;
+  label: string
 }
 
 // ---------------------------------------------------------------------------
@@ -44,13 +44,13 @@ const SENIORITY_SIGNALS = {
   junior: /(?:신입|0\s*~?\s*[23]년|주니어|인턴|entry\s*level|junior)/i,
   senior: /(?:[567]\s*~?\s*\d+년|[5-9]년\s*이상|시니어|senior|sr\.)/i,
   lead: /(?:팀장|리드|principal|staff|lead\s*(?:engineer|developer))/i,
-};
+}
 
 const COMPANY_SIGNALS = {
   bigtech: /(?:네이버|kakao|카카오|라인|당근|토스|쿠팡|coupang|배달의민족|우아한형제)/i,
   chaebol: /(?:삼성|현대|SK\s*(?:하이닉스|텔레콤)|LG\s*(?:전자|CNS)|롯데|한화|KT)/i,
   startup: /(?:스타트업|startup|series\s*[a-d]|시리즈\s*[a-d]|시드)/i,
-};
+}
 
 const DOMAIN_SIGNALS = {
   backend: /(?:백엔드|server-side|API\s*개발|마이크로서비스|MSA|spring|django|nestjs)/i,
@@ -59,7 +59,7 @@ const DOMAIN_SIGNALS = {
   mobile: /(?:iOS|안드로이드|android|flutter|react\s*native|모바일\s*앱)/i,
   devops: /(?:devops|SRE|인프라|kubernetes|k8s|cloud\s*infrastructure)/i,
   pm: /(?:프로덕트\s*매니저|PM|기획자|product\s*manager)/i,
-};
+}
 
 // ---------------------------------------------------------------------------
 // Format label map
@@ -75,73 +75,73 @@ const FORMAT_LABELS: Record<InterviewFormat, string> = {
   'portfolio-review': '포트폴리오 리뷰',
   'case-study': '케이스 스터디',
   'take-home': '사전 과제',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
 export function buildInterviewStrategyReport(jdText: string): InterviewStrategyReport {
-  const safe = (jdText ?? '').trim();
+  const safe = (jdText ?? '').trim()
 
   // Detect signals
-  const isJunior = SENIORITY_SIGNALS.junior.test(safe);
-  const isSenior = SENIORITY_SIGNALS.senior.test(safe);
-  const isLead = SENIORITY_SIGNALS.lead.test(safe);
-  const isBigtech = COMPANY_SIGNALS.bigtech.test(safe);
-  const isChaebol = COMPANY_SIGNALS.chaebol.test(safe);
-  const isStartup = COMPANY_SIGNALS.startup.test(safe);
-  const isBackend = DOMAIN_SIGNALS.backend.test(safe);
-  const isFrontend = DOMAIN_SIGNALS.frontend.test(safe);
-  const isData = DOMAIN_SIGNALS.data.test(safe);
-  const isMobile = DOMAIN_SIGNALS.mobile.test(safe);
-  const isDevops = DOMAIN_SIGNALS.devops.test(safe);
-  const isPm = DOMAIN_SIGNALS.pm.test(safe);
+  const isJunior = SENIORITY_SIGNALS.junior.test(safe)
+  const isSenior = SENIORITY_SIGNALS.senior.test(safe)
+  const isLead = SENIORITY_SIGNALS.lead.test(safe)
+  const isBigtech = COMPANY_SIGNALS.bigtech.test(safe)
+  const isChaebol = COMPANY_SIGNALS.chaebol.test(safe)
+  const isStartup = COMPANY_SIGNALS.startup.test(safe)
+  const isBackend = DOMAIN_SIGNALS.backend.test(safe)
+  const isFrontend = DOMAIN_SIGNALS.frontend.test(safe)
+  const isData = DOMAIN_SIGNALS.data.test(safe)
+  const isMobile = DOMAIN_SIGNALS.mobile.test(safe)
+  const isDevops = DOMAIN_SIGNALS.devops.test(safe)
+  const isPm = DOMAIN_SIGNALS.pm.test(safe)
 
-  const formats: InterviewFormat[] = [];
-  const prepAreas: PrepArea[] = [];
-  let prepWeeks: number;
+  const formats: InterviewFormat[] = []
+  const prepAreas: PrepArea[] = []
+  let prepWeeks: number
 
   // ── Determine interview formats ──────────────────────────────────────────
 
   if (isBackend || isFrontend || isMobile || isDevops) {
-    formats.push('coding-challenge');
+    formats.push('coding-challenge')
   }
 
   if (isBigtech || isSenior || isLead) {
-    formats.push('live-coding');
+    formats.push('live-coding')
   }
 
   if ((isSenior || isLead) && (isBackend || isDevops)) {
-    formats.push('system-design');
+    formats.push('system-design')
   }
 
   if (isBigtech || isChaebol || isSenior || isLead) {
-    formats.push('behavioral');
+    formats.push('behavioral')
   }
 
   if (isStartup) {
-    formats.push('culture-fit');
+    formats.push('culture-fit')
   }
 
   if ((isSenior || isLead) && !isJunior) {
-    formats.push('technical-deep');
+    formats.push('technical-deep')
   }
 
   if (isFrontend || isMobile || isData) {
-    formats.push('portfolio-review');
+    formats.push('portfolio-review')
   }
 
   if (isData || isPm) {
-    formats.push('case-study');
+    formats.push('case-study')
   }
 
   if (isStartup && isJunior) {
-    formats.push('take-home');
+    formats.push('take-home')
   }
 
   if (formats.length === 0) {
-    formats.push('behavioral', 'culture-fit');
+    formats.push('behavioral', 'culture-fit')
   }
 
   // ── Build prep areas ──────────────────────────────────────────────────────
@@ -158,7 +158,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
         'Programmers 레벨 2~3 풀이',
         'BFS/DFS, DP, 투 포인터 패턴 암기',
       ],
-    });
+    })
   }
 
   if ((isSenior || isLead) && (isBackend || isDevops)) {
@@ -171,7 +171,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
         'URL 단축기·피드 시스템·채팅 설계 연습',
         'CAP 이론·eventual consistency·sharding 개념 정리',
       ],
-    });
+    })
   }
 
   if (isBigtech || isChaebol || isSenior || isLead) {
@@ -185,7 +185,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
         '"가장 어려웠던 기술 결정"·"팀 갈등 해결 사례" 준비',
         '결과를 수치화 (성능 X배 개선, MAU Y% 증가 등)',
       ],
-    });
+    })
   }
 
   if (isData) {
@@ -198,7 +198,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
         'A/B 테스트 설계, 가설 검정 기초',
         '최근 프로젝트 데이터 파이프라인 구조 설명 준비',
       ],
-    });
+    })
   }
 
   if (isStartup) {
@@ -211,7 +211,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
         '서비스 실제 사용 후 개선점 2~3개 준비',
         '창업자·팀 LinkedIn 리서치',
       ],
-    });
+    })
   }
 
   if (isFrontend || isMobile) {
@@ -224,7 +224,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
         '기술 선택 이유·트레이드오프 설명 연습',
         '코드 품질·테스트 커버리지 점검',
       ],
-    });
+    })
   }
 
   // Default area if nothing was added
@@ -238,19 +238,19 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
         'JD 내 키워드와 경험 연결 연습',
         '지원 동기·커리어 방향성 정리',
       ],
-    });
+    })
   }
 
   // ── Prep timeline ─────────────────────────────────────────────────────────
 
   if (isLead || (isSenior && isBigtech)) {
-    prepWeeks = 6;
+    prepWeeks = 6
   } else if (isSenior || isBigtech) {
-    prepWeeks = 4;
+    prepWeeks = 4
   } else if (isJunior) {
-    prepWeeks = 3;
+    prepWeeks = 3
   } else {
-    prepWeeks = 4;
+    prepWeeks = 4
   }
 
   // ── Summary ───────────────────────────────────────────────────────────────
@@ -261,7 +261,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
       ? '시니어'
       : isJunior
         ? '주니어/신입'
-        : '미드레벨';
+        : '미드레벨'
 
   const companyLabel = isBigtech
     ? '빅테크'
@@ -269,11 +269,11 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
       ? '대기업'
       : isStartup
         ? '스타트업'
-        : '일반 기업';
+        : '일반 기업'
 
-  const topFormat = FORMAT_LABELS[formats[0] as InterviewFormat] ?? '행동 면접';
+  const topFormat = FORMAT_LABELS[formats[0] as InterviewFormat] ?? '행동 면접'
 
-  const summary = `${companyLabel} ${seniorityLabel} 포지션은 주로 "${topFormat}"부터 시작합니다. ${prepWeeks}주 집중 준비를 권장하며 우선순위는 ${prepAreas[0]?.area ?? '기본기'}입니다.`;
+  const summary = `${companyLabel} ${seniorityLabel} 포지션은 주로 "${topFormat}"부터 시작합니다. ${prepWeeks}주 집중 준비를 권장하며 우선순위는 ${prepAreas[0]?.area ?? '기본기'}입니다.`
 
   return {
     formats: formats.slice(0, 5) as InterviewFormat[],
@@ -282,7 +282,7 @@ export function buildInterviewStrategyReport(jdText: string): InterviewStrategyR
     prepWeeks,
     summary,
     label: `${seniorityLabel} · ${companyLabel} · ${prepWeeks}주 플랜`,
-  };
+  }
 }
 
-export const FORMAT_LABEL_MAP = FORMAT_LABELS;
+export const FORMAT_LABEL_MAP = FORMAT_LABELS

@@ -1,15 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { API_URL } from '@/lib/config';
-import { tx } from '@/lib/i18n';
+import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
 
 interface FAQItem {
-  q: string;
-  a: string;
-  category: string;
+  q: string
+  a: string
+  category: string
 }
 
 const FAQ_DATA: FAQItem[] = [
@@ -129,41 +130,41 @@ const FAQ_DATA: FAQItem[] = [
     a: '한국어/영어/일본어 3개 locale 지원. 우측 상단 언어 선택. 로그인 사용자는 선택한 언어가 서버에 동기화되어 다음 디바이스에서도 유지됩니다.',
     category: '계정',
   },
-];
+]
 
-const CATEGORIES = ['전체', '일반', '이력서', 'AI 도구', '계정', '커뮤니티'];
+const CATEGORIES = ['전체', '일반', '이력서', 'AI 도구', '계정', '커뮤니티']
 
 export default function HelpPage() {
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('전체');
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [search, setSearch] = useState('')
+  const [category, setCategory] = useState('전체')
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
 
   const { data: dynamicFaq } = useQuery<FAQItem[]>({
     queryKey: ['help-faq'],
     queryFn: () =>
       fetch(`${API_URL}/api/system-config/content/help_faq`).then((r) => (r.ok ? r.json() : null)),
     staleTime: 5 * 60_000,
-  });
+  })
 
-  const faqData = dynamicFaq?.length ? dynamicFaq : FAQ_DATA;
+  const faqData = dynamicFaq?.length ? dynamicFaq : FAQ_DATA
 
   useEffect(() => {
-    document.title = '도움말 — 이력서공방';
+    document.title = '도움말 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     return faqData.filter((item) => {
-      const matchCat = category === '전체' || item.category === category;
+      const matchCat = category === '전체' || item.category === category
       const matchSearch =
         !search.trim() ||
         item.q.toLowerCase().includes(search.toLowerCase()) ||
-        item.a.toLowerCase().includes(search.toLowerCase());
-      return matchCat && matchSearch;
-    });
-  }, [search, category, faqData]);
+        item.a.toLowerCase().includes(search.toLowerCase())
+      return matchCat && matchSearch
+    })
+  }, [search, category, faqData])
 
   return (
     <>
@@ -233,7 +234,7 @@ export default function HelpPage() {
         ) : (
           <div className="space-y-2">
             {filtered.map((item, i) => {
-              const isOpen = expandedIdx === i;
+              const isOpen = expandedIdx === i
               return (
                 <div key={i} className="imp-card overflow-hidden">
                   <button
@@ -270,7 +271,7 @@ export default function HelpPage() {
                     </div>
                   )}
                 </div>
-              );
+              )
             })}
           </div>
         )}
@@ -298,5 +299,5 @@ export default function HelpPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

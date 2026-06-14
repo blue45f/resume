@@ -1,25 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AiCoachingNudgeService } from './ai-coaching-nudge.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { LlmService } from '../llm/llm.service';
+import { Test, TestingModule } from '@nestjs/testing'
+
+import { LlmService } from '../llm/llm.service'
+import { NotificationsService } from '../notifications/notifications.service'
+import { PrismaService } from '../prisma/prisma.service'
+
+import { AiCoachingNudgeService } from './ai-coaching-nudge.service'
 
 describe('AiCoachingNudgeService', () => {
-  let service: AiCoachingNudgeService;
+  let service: AiCoachingNudgeService
   let mockPrisma: {
-    notification: { findMany: jest.Mock };
-    user: { findMany: jest.Mock };
-  };
-  let mockNotif: { create: jest.Mock };
-  let mockLlm: { generateWithFallback: jest.Mock };
+    notification: { findMany: jest.Mock }
+    user: { findMany: jest.Mock }
+  }
+  let mockNotif: { create: jest.Mock }
+  let mockLlm: { generateWithFallback: jest.Mock }
 
   beforeEach(async () => {
     mockPrisma = {
       notification: { findMany: jest.fn().mockResolvedValue([]) },
       user: { findMany: jest.fn().mockResolvedValue([]) },
-    };
-    mockNotif = { create: jest.fn().mockResolvedValue({}) };
-    mockLlm = { generateWithFallback: jest.fn() };
+    }
+    mockNotif = { create: jest.fn().mockResolvedValue({}) }
+    mockLlm = { generateWithFallback: jest.fn() }
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AiCoachingNudgeService,
@@ -27,9 +29,9 @@ describe('AiCoachingNudgeService', () => {
         { provide: NotificationsService, useValue: mockNotif },
         { provide: LlmService, useValue: mockLlm },
       ],
-    }).compile();
-    service = module.get(AiCoachingNudgeService);
-  });
+    }).compile()
+    service = module.get(AiCoachingNudgeService)
+  })
 
   describe('pickNudge 휴리스틱', () => {
     const baseResume = {
@@ -40,58 +42,58 @@ describe('AiCoachingNudgeService', () => {
       personalInfo: {
         summary: '안녕하세요. 프론트엔드 개발자 홍길동입니다. 5년차 React 전문가입니다.',
       },
-    };
+    }
 
     it('자기소개 비어있음 → personalInfo 우선 (1순위)', () => {
-      const r = { ...baseResume, personalInfo: { summary: '' } };
-      const n = service.pickNudge(r);
-      expect(n?.section).toBe('personalInfo');
-      expect(n?.message).toContain('자기소개');
-    });
+      const r = { ...baseResume, personalInfo: { summary: '' } }
+      const n = service.pickNudge(r)
+      expect(n?.section).toBe('personalInfo')
+      expect(n?.message).toContain('자기소개')
+    })
 
     it('자기소개 < 30자 → personalInfo', () => {
-      const r = { ...baseResume, personalInfo: { summary: '짧은 소개' } };
-      const n = service.pickNudge(r);
-      expect(n?.section).toBe('personalInfo');
-    });
+      const r = { ...baseResume, personalInfo: { summary: '짧은 소개' } }
+      const n = service.pickNudge(r)
+      expect(n?.section).toBe('personalInfo')
+    })
 
     it('경력 0건 → experiences (2순위)', () => {
-      const r = { ...baseResume, experiences: [] };
-      const n = service.pickNudge(r);
-      expect(n?.section).toBe('experiences');
-      expect(n?.message).toContain('경력 항목이 없어요');
-    });
+      const r = { ...baseResume, experiences: [] }
+      const n = service.pickNudge(r)
+      expect(n?.section).toBe('experiences')
+      expect(n?.message).toContain('경력 항목이 없어요')
+    })
 
     it('기술 스택 < 5개 → skills (3순위)', () => {
-      const r = { ...baseResume, skills: [{ id: 's1', items: 'React, TypeScript' }] };
-      const n = service.pickNudge(r);
-      expect(n?.section).toBe('skills');
-      expect(n?.message).toContain('2개');
-    });
+      const r = { ...baseResume, skills: [{ id: 's1', items: 'React, TypeScript' }] }
+      const n = service.pickNudge(r)
+      expect(n?.section).toBe('skills')
+      expect(n?.message).toContain('2개')
+    })
 
     it('60일 이상 미수정 → experiences 갱신 권장 (4순위)', () => {
-      const old = new Date(Date.now() - 70 * 24 * 60 * 60 * 1000);
-      const r = { ...baseResume, updatedAt: old };
-      const n = service.pickNudge(r);
-      expect(n?.message).toContain('업데이트되지 않았어요');
-    });
+      const old = new Date(Date.now() - 70 * 24 * 60 * 60 * 1000)
+      const r = { ...baseResume, updatedAt: old }
+      const n = service.pickNudge(r)
+      expect(n?.message).toContain('업데이트되지 않았어요')
+    })
 
     it('경력 1건만 → 다양화 권장 (5순위)', () => {
-      const r = { ...baseResume, experiences: [{ id: 'e1' }] };
-      const n = service.pickNudge(r);
-      expect(n?.section).toBe('experiences');
-      expect(n?.message).toContain('1건만');
-    });
+      const r = { ...baseResume, experiences: [{ id: 'e1' }] }
+      const n = service.pickNudge(r)
+      expect(n?.section).toBe('experiences')
+      expect(n?.message).toContain('1건만')
+    })
 
     it('완벽한 이력서 → null (알림 안 보냄)', () => {
-      const n = service.pickNudge(baseResume);
-      expect(n).toBeNull();
-    });
-  });
+      const n = service.pickNudge(baseResume)
+      expect(n).toBeNull()
+    })
+  })
 
   describe('sendWeeklyNudges', () => {
     it('최근 7일 nudged 사용자는 skip', async () => {
-      mockPrisma.notification.findMany.mockResolvedValue([{ userId: 'recent-user' }]);
+      mockPrisma.notification.findMany.mockResolvedValue([{ userId: 'recent-user' }])
       mockPrisma.user.findMany.mockResolvedValue([
         {
           id: 'recent-user',
@@ -106,10 +108,10 @@ describe('AiCoachingNudgeService', () => {
             },
           ],
         },
-      ]);
-      await service.sendWeeklyNudges();
-      expect(mockNotif.create).not.toHaveBeenCalled();
-    });
+      ])
+      await service.sendWeeklyNudges()
+      expect(mockNotif.create).not.toHaveBeenCalled()
+    })
 
     it('자기소개 비어있는 사용자 → 알림 발송', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
@@ -126,27 +128,27 @@ describe('AiCoachingNudgeService', () => {
             },
           ],
         },
-      ]);
-      await service.sendWeeklyNudges();
+      ])
+      await service.sendWeeklyNudges()
       expect(mockNotif.create).toHaveBeenCalledWith(
         'u1',
         'coaching_nudge',
         expect.stringContaining('자기소개'),
-        '/edit/r1#personalInfo',
-      );
-    });
+        '/edit/r1#personalInfo'
+      )
+    })
 
     it('이력서 없는 사용자 skip', async () => {
-      mockPrisma.user.findMany.mockResolvedValue([{ id: 'u1', resumes: [] }]);
-      await service.sendWeeklyNudges();
-      expect(mockNotif.create).not.toHaveBeenCalled();
-    });
+      mockPrisma.user.findMany.mockResolvedValue([{ id: 'u1', resumes: [] }])
+      await service.sendWeeklyNudges()
+      expect(mockNotif.create).not.toHaveBeenCalled()
+    })
 
     it('Prisma 에러 → throw 안 함 (cron 안정성)', async () => {
-      mockPrisma.notification.findMany.mockRejectedValueOnce(new Error('DB fail'));
-      await expect(service.sendWeeklyNudges()).resolves.toBeUndefined();
-    });
-  });
+      mockPrisma.notification.findMany.mockRejectedValueOnce(new Error('DB fail'))
+      await expect(service.sendWeeklyNudges()).resolves.toBeUndefined()
+    })
+  })
 
   describe('Pro 플랜 LLM 개인화 nudge', () => {
     const richResume = {
@@ -161,40 +163,40 @@ describe('AiCoachingNudgeService', () => {
       personalInfo: {
         summary: '10년차 백엔드 개발자입니다. 분산 시스템 설계와 운영 경험 풍부합니다.',
       },
-    };
+    }
 
     it('Pro 사용자 → LLM 호출 + 응답을 알림으로 사용', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
         { id: 'u-pro', plan: 'pro', resumes: [richResume] },
-      ]);
+      ])
       mockLlm.generateWithFallback.mockResolvedValue({
         text: '{"message":"분산시스템 운영 사례 1-2개 STAR 형식으로 추가 추천","section":"experiences"}',
-      });
+      })
 
-      await service.sendWeeklyNudges();
+      await service.sendWeeklyNudges()
 
-      expect(mockLlm.generateWithFallback).toHaveBeenCalled();
+      expect(mockLlm.generateWithFallback).toHaveBeenCalled()
       expect(mockNotif.create).toHaveBeenCalledWith(
         'u-pro',
         'coaching_nudge',
         expect.stringContaining('분산시스템'),
-        '/edit/r1#experiences',
-      );
-    });
+        '/edit/r1#experiences'
+      )
+    })
 
     it('Pro 사용자 + LLM 빈 응답 (이력서 충분) → 휴리스틱 폴백', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
         { id: 'u-pro', plan: 'pro', resumes: [richResume] },
-      ]);
+      ])
       mockLlm.generateWithFallback.mockResolvedValue({
         text: '{"message":"","section":"personalInfo"}',
-      });
+      })
 
-      await service.sendWeeklyNudges();
+      await service.sendWeeklyNudges()
 
       // LLM 빈 응답 → 폴백. 풍부한 이력서라 휴리스틱도 null → 알림 안 감.
-      expect(mockNotif.create).not.toHaveBeenCalled();
-    });
+      expect(mockNotif.create).not.toHaveBeenCalled()
+    })
 
     it('Pro 사용자 + LLM 에러 → 휴리스틱 폴백', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
@@ -203,19 +205,19 @@ describe('AiCoachingNudgeService', () => {
           plan: 'pro',
           resumes: [{ ...richResume, personalInfo: { summary: '' } }], // 자기소개 비어있음
         },
-      ]);
-      mockLlm.generateWithFallback.mockRejectedValue(new Error('LLM 장애'));
+      ])
+      mockLlm.generateWithFallback.mockRejectedValue(new Error('LLM 장애'))
 
-      await service.sendWeeklyNudges();
+      await service.sendWeeklyNudges()
 
       // LLM 실패 → pickNudge 휴리스틱 → 자기소개 nudge
       expect(mockNotif.create).toHaveBeenCalledWith(
         'u-pro',
         'coaching_nudge',
         expect.stringContaining('자기소개'),
-        '/edit/r1#personalInfo',
-      );
-    });
+        '/edit/r1#personalInfo'
+      )
+    })
 
     it('Free 사용자 → LLM 호출 안 함 (휴리스틱만)', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
@@ -224,65 +226,65 @@ describe('AiCoachingNudgeService', () => {
           plan: 'free',
           resumes: [{ ...richResume, personalInfo: { summary: '' } }],
         },
-      ]);
+      ])
 
-      await service.sendWeeklyNudges();
+      await service.sendWeeklyNudges()
 
-      expect(mockLlm.generateWithFallback).not.toHaveBeenCalled();
-      expect(mockNotif.create).toHaveBeenCalled();
-    });
+      expect(mockLlm.generateWithFallback).not.toHaveBeenCalled()
+      expect(mockNotif.create).toHaveBeenCalled()
+    })
 
     it('Enterprise 사용자도 Pro 와 동일 LLM 처리', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
         { id: 'u-ent', plan: 'enterprise', resumes: [richResume] },
-      ]);
+      ])
       mockLlm.generateWithFallback.mockResolvedValue({
         text: '{"message":"임팩트 정량화 추가","section":"experiences"}',
-      });
+      })
 
-      await service.sendWeeklyNudges();
+      await service.sendWeeklyNudges()
 
-      expect(mockLlm.generateWithFallback).toHaveBeenCalled();
+      expect(mockLlm.generateWithFallback).toHaveBeenCalled()
       expect(mockNotif.create).toHaveBeenCalledWith(
         'u-ent',
         'coaching_nudge',
         expect.stringContaining('정량화'),
-        '/edit/r1#experiences',
-      );
-    });
+        '/edit/r1#experiences'
+      )
+    })
 
     it('LLM 응답에 ```json``` 마커 → 정상 파싱', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
         { id: 'u-pro', plan: 'pro', resumes: [richResume] },
-      ]);
+      ])
       mockLlm.generateWithFallback.mockResolvedValue({
         text: '```json\n{"message":"수치 보강","section":"experiences"}\n```',
-      });
+      })
 
-      await service.sendWeeklyNudges();
+      await service.sendWeeklyNudges()
       expect(mockNotif.create).toHaveBeenCalledWith(
         'u-pro',
         'coaching_nudge',
         expect.stringContaining('수치 보강'),
-        '/edit/r1#experiences',
-      );
-    });
+        '/edit/r1#experiences'
+      )
+    })
 
     it('잘못된 section 값 → personalInfo 로 fallback', async () => {
       mockPrisma.user.findMany.mockResolvedValue([
         { id: 'u-pro', plan: 'pro', resumes: [richResume] },
-      ]);
+      ])
       mockLlm.generateWithFallback.mockResolvedValue({
         text: '{"message":"테스트","section":"hacker_section"}',
-      });
+      })
 
-      await service.sendWeeklyNudges();
+      await service.sendWeeklyNudges()
       expect(mockNotif.create).toHaveBeenCalledWith(
         'u-pro',
         'coaching_nudge',
         '테스트',
-        '/edit/r1#personalInfo',
-      );
-    });
-  });
-});
+        '/edit/r1#personalInfo'
+      )
+    })
+  })
+})

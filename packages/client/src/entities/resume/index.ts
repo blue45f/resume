@@ -1,2 +1,2 @@
-export * from './model';
-export { default as BookmarkButton } from './ui/BookmarkButton';
+export * from './model'
+export { default as BookmarkButton } from './ui/BookmarkButton'

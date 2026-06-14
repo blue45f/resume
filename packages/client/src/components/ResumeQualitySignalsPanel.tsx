@@ -1,33 +1,34 @@
-import { useState, useMemo } from 'react';
-import { detectEmptyClaims, analyzeVerbTense, detectAllCapsOveruse } from '@/lib/qualitySignals';
-import { analyzeNumericFormat } from '@/lib/numericFormat';
-import { estimateReadingTime } from '@/lib/metaUtils';
-import { analyzeBracketBalance, detectWhitespaceAnomalies } from '@/lib/textFormat';
+import { useState, useMemo } from 'react'
+
+import { estimateReadingTime } from '@/lib/metaUtils'
+import { analyzeNumericFormat } from '@/lib/numericFormat'
+import { detectEmptyClaims, analyzeVerbTense, detectAllCapsOveruse } from '@/lib/qualitySignals'
+import { analyzeBracketBalance, detectWhitespaceAnomalies } from '@/lib/textFormat'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeQualitySignalsPanel({ text }: Props) {
-  const emptyClaims = useMemo(() => detectEmptyClaims(text), [text]);
-  const tense = useMemo(() => analyzeVerbTense(text), [text]);
-  const allCaps = useMemo(() => detectAllCapsOveruse(text), [text]);
-  const numericFmt = useMemo(() => analyzeNumericFormat(text), [text]);
-  const readingTime = useMemo(() => estimateReadingTime(text), [text]);
-  const brackets = useMemo(() => analyzeBracketBalance(text), [text]);
-  const whitespace = useMemo(() => detectWhitespaceAnomalies(text), [text]);
-  const [expanded, setExpanded] = useState(false);
+  const emptyClaims = useMemo(() => detectEmptyClaims(text), [text])
+  const tense = useMemo(() => analyzeVerbTense(text), [text])
+  const allCaps = useMemo(() => detectAllCapsOveruse(text), [text])
+  const numericFmt = useMemo(() => analyzeNumericFormat(text), [text])
+  const readingTime = useMemo(() => estimateReadingTime(text), [text])
+  const brackets = useMemo(() => analyzeBracketBalance(text), [text])
+  const whitespace = useMemo(() => detectWhitespaceAnomalies(text), [text])
+  const [expanded, setExpanded] = useState(false)
 
-  const tenseGood = tense.dominant === 'past' || tense.dominant === 'none';
-  const claimsGood = emptyClaims.level === 'none';
-  const capsGood = allCaps.count === 0;
-  const numericGood = numericFmt.consistent || numericFmt.distinct <= 1;
+  const tenseGood = tense.dominant === 'past' || tense.dominant === 'none'
+  const claimsGood = emptyClaims.level === 'none'
+  const capsGood = allCaps.count === 0
+  const numericGood = numericFmt.consistent || numericFmt.distinct <= 1
   // Warn if too thin (< 0.5 min = < ~150 chars) or too long (> 4 min = > ~1200 chars)
-  const readingThin = readingTime.minutes < 0.5 && readingTime.chars > 0;
-  const readingLong = readingTime.minutes > 4;
-  const readingOk = !readingThin && !readingLong;
-  const bracketsOk = !brackets.unbalanced;
-  const whitespaceOk = whitespace.clean;
+  const readingThin = readingTime.minutes < 0.5 && readingTime.chars > 0
+  const readingLong = readingTime.minutes > 4
+  const readingOk = !readingThin && !readingLong
+  const bracketsOk = !brackets.unbalanced
+  const whitespaceOk = whitespace.clean
 
   const hasIssues =
     !claimsGood ||
@@ -36,8 +37,8 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
     !numericGood ||
     !readingOk ||
     !bracketsOk ||
-    !whitespaceOk;
-  if (!hasIssues) return null;
+    !whitespaceOk
+  if (!hasIssues) return null
 
   const issueCount = [
     !tenseGood,
@@ -47,16 +48,16 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
     !readingOk,
     !bracketsOk,
     !whitespaceOk,
-  ].filter(Boolean).length;
+  ].filter(Boolean).length
   const tone =
     issueCount === 0
       ? 'good'
       : emptyClaims.level === 'many' || tense.dominant === 'mixed'
         ? 'warning'
-        : 'neutral';
+        : 'neutral'
 
-  const visibleHits = expanded ? emptyClaims.hits : emptyClaims.hits.slice(0, 2);
-  const remaining = emptyClaims.hits.length - visibleHits.length;
+  const visibleHits = expanded ? emptyClaims.hits : emptyClaims.hits.slice(0, 2)
+  const remaining = emptyClaims.hits.length - visibleHits.length
 
   return (
     <aside
@@ -228,5 +229,5 @@ export default function ResumeQualitySignalsPanel({ text }: Props) {
         )}
       </ul>
     </aside>
-  );
+  )
 }

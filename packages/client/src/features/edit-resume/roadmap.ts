@@ -1,18 +1,18 @@
-import type { Resume } from '@/types/resume';
+import type { Resume } from '@/types/resume'
 
 export interface RoadmapTask {
-  label: string;
-  tip: string;
-  gain: number;
-  done: boolean;
-  sectionId: string;
+  label: string
+  tip: string
+  gain: number
+  done: boolean
+  sectionId: string
 }
 
 export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
-  if (!resume.personalInfo) return [];
-  const r = resume as Resume;
-  const tasks: RoadmapTask[] = [];
-  const pi = r.personalInfo;
+  if (!resume.personalInfo) return []
+  const r = resume as Resume
+  const tasks: RoadmapTask[] = []
+  const pi = r.personalInfo
 
   if (!pi.summary || pi.summary.replace(/<[^>]*>/g, '').length < 30)
     tasks.push({
@@ -21,7 +21,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 8,
       done: false,
       sectionId: 'summary',
-    });
+    })
   else
     tasks.push({
       label: '자기소개 완성',
@@ -29,7 +29,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 8,
       done: true,
       sectionId: 'summary',
-    });
+    })
 
   if (!pi.github && !pi.website)
     tasks.push({
@@ -38,7 +38,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 3,
       done: false,
       sectionId: 'links',
-    });
+    })
   else
     tasks.push({
       label: 'GitHub / 포트폴리오 링크',
@@ -46,11 +46,11 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 3,
       done: true,
       sectionId: 'links',
-    });
+    })
 
   const hasDescriptions = r.experiences.some(
-    (e) => e.description && e.description.replace(/<[^>]*>/g, '').length > 30,
-  );
+    (e) => e.description && e.description.replace(/<[^>]*>/g, '').length > 30
+  )
   if (r.experiences.length === 0)
     tasks.push({
       label: '경력 사항 추가',
@@ -58,7 +58,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 10,
       done: false,
       sectionId: 'experience',
-    });
+    })
   else if (!hasDescriptions)
     tasks.push({
       label: '경력 업무 내용 상세화',
@@ -66,7 +66,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 5,
       done: false,
       sectionId: 'experience',
-    });
+    })
   else if (!r.experiences.some((e) => e.techStack))
     tasks.push({
       label: '경력에 기술 스택 명시',
@@ -74,7 +74,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 2,
       done: false,
       sectionId: 'experience',
-    });
+    })
   else
     tasks.push({
       label: '경력 섹션 완성',
@@ -82,7 +82,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 25,
       done: true,
       sectionId: 'experience',
-    });
+    })
 
   if (r.educations.length === 0)
     tasks.push({
@@ -91,7 +91,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 7,
       done: false,
       sectionId: 'education',
-    });
+    })
   else
     tasks.push({
       label: '학력 완성',
@@ -99,7 +99,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 10,
       done: true,
       sectionId: 'education',
-    });
+    })
 
   if (r.skills.length === 0)
     tasks.push({
@@ -108,7 +108,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 6,
       done: false,
       sectionId: 'skills',
-    });
+    })
   else if (r.skills.length < 2)
     tasks.push({
       label: '기술 카테고리 추가',
@@ -116,7 +116,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 4,
       done: false,
       sectionId: 'skills',
-    });
+    })
   else
     tasks.push({
       label: '기술 스택 완성',
@@ -124,7 +124,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 15,
       done: true,
       sectionId: 'skills',
-    });
+    })
 
   if (r.projects.length === 0)
     tasks.push({
@@ -133,7 +133,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 5,
       done: false,
       sectionId: 'projects',
-    });
+    })
   else
     tasks.push({
       label: '프로젝트 완성',
@@ -141,9 +141,9 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 10,
       done: true,
       sectionId: 'projects',
-    });
+    })
 
-  const hasExtras = r.certifications.length > 0 || r.languages.length > 0 || r.awards.length > 0;
+  const hasExtras = r.certifications.length > 0 || r.languages.length > 0 || r.awards.length > 0
   if (!hasExtras)
     tasks.push({
       label: '자격증 또는 어학 추가',
@@ -151,7 +151,7 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 5,
       done: false,
       sectionId: 'extras',
-    });
+    })
   else
     tasks.push({
       label: '자격증 / 어학',
@@ -159,11 +159,11 @@ export function buildRoadmap(resume: Partial<Resume>): RoadmapTask[] {
       gain: 10,
       done: true,
       sectionId: 'extras',
-    });
+    })
 
   // Sort: incomplete tasks first, by gain descending
   return tasks.sort((a, b) => {
-    if (a.done !== b.done) return a.done ? 1 : -1;
-    return b.gain - a.gain;
-  });
+    if (a.done !== b.done) return a.done ? 1 : -1
+    return b.gain - a.gain
+  })
 }

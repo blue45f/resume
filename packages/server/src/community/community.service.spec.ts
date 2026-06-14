@@ -1,15 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CommunityService } from './community.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service';
-import { SystemConfigService } from '../system-config/system-config.service';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+
+import { ForbiddenWordsService } from '../forbidden-words/forbidden-words.service'
+import { NotificationsService } from '../notifications/notifications.service'
+import { PrismaService } from '../prisma/prisma.service'
+import { SystemConfigService } from '../system-config/system-config.service'
+
+import { CommunityService } from './community.service'
 
 const mockSystemConfig = {
   getReportThreshold: jest.fn().mockResolvedValue(5),
   assertFeatureEnabled: jest.fn().mockResolvedValue(undefined),
-};
+}
 
 const mockPrisma = {
   communityPost: {
@@ -35,19 +37,19 @@ const mockPrisma = {
     findFirst: jest.fn(),
   },
   $transaction: jest.fn(),
-};
+}
 // $transaction 구현은 mockPrisma 참조가 필요 — 초기화 후 별도 설정 (circular type 회피)
 mockPrisma.$transaction.mockImplementation(async (arg: unknown) => {
-  if (typeof arg === 'function') return (arg as (p: typeof mockPrisma) => unknown)(mockPrisma);
-  if (Array.isArray(arg)) return Promise.all(arg);
-  return arg;
-});
+  if (typeof arg === 'function') return (arg as (p: typeof mockPrisma) => unknown)(mockPrisma)
+  if (Array.isArray(arg)) return Promise.all(arg)
+  return arg
+})
 
-const mockNotifications = { create: jest.fn().mockResolvedValue({}) };
-const mockForbiddenWords = { validateOrThrow: jest.fn().mockResolvedValue({ blocked: false }) };
+const mockNotifications = { create: jest.fn().mockResolvedValue({}) }
+const mockForbiddenWords = { validateOrThrow: jest.fn().mockResolvedValue({ blocked: false }) }
 
 describe('CommunityService', () => {
-  let service: CommunityService;
+  let service: CommunityService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -58,73 +60,73 @@ describe('CommunityService', () => {
         { provide: ForbiddenWordsService, useValue: mockForbiddenWords },
         { provide: SystemConfigService, useValue: mockSystemConfig },
       ],
-    }).compile();
-    service = module.get(CommunityService);
-    jest.clearAllMocks();
+    }).compile()
+    service = module.get(CommunityService)
+    jest.clearAllMocks()
     // 기본: update/findUnique 가 항상 Promise 반환하도록 보장 (.catch chain 등 호출 안전)
-    mockPrisma.communityPost.update.mockResolvedValue({});
-    mockPrisma.communityLike.findUnique.mockResolvedValue(null);
-  });
+    mockPrisma.communityPost.update.mockResolvedValue({})
+    mockPrisma.communityLike.findUnique.mockResolvedValue(null)
+  })
 
   describe('getPosts', () => {
     it('기본 조회 (최신순)', async () => {
-      mockPrisma.communityPost.findMany.mockResolvedValue([]);
-      mockPrisma.communityPost.count.mockResolvedValue(0);
-      const result = await service.getPosts();
-      expect(result.items).toEqual([]);
-      expect(result.total).toBe(0);
-    });
+      mockPrisma.communityPost.findMany.mockResolvedValue([])
+      mockPrisma.communityPost.count.mockResolvedValue(0)
+      const result = await service.getPosts()
+      expect(result.items).toEqual([])
+      expect(result.total).toBe(0)
+    })
 
     it('카테고리 필터', async () => {
-      mockPrisma.communityPost.findMany.mockResolvedValue([]);
-      mockPrisma.communityPost.count.mockResolvedValue(0);
-      await service.getPosts('tips');
+      mockPrisma.communityPost.findMany.mockResolvedValue([])
+      mockPrisma.communityPost.count.mockResolvedValue(0)
+      await service.getPosts('tips')
       expect(mockPrisma.communityPost.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ category: 'tips' }) }),
-      );
-    });
+        expect.objectContaining({ where: expect.objectContaining({ category: 'tips' }) })
+      )
+    })
 
     it('검색', async () => {
-      mockPrisma.communityPost.findMany.mockResolvedValue([]);
-      mockPrisma.communityPost.count.mockResolvedValue(0);
-      await service.getPosts(undefined, '테스트');
+      mockPrisma.communityPost.findMany.mockResolvedValue([])
+      mockPrisma.communityPost.count.mockResolvedValue(0)
+      await service.getPosts(undefined, '테스트')
       expect(mockPrisma.communityPost.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: expect.objectContaining({ OR: expect.any(Array) }) }),
-      );
-    });
-  });
+        expect.objectContaining({ where: expect.objectContaining({ OR: expect.any(Array) }) })
+      )
+    })
+  })
 
   // ─────────────────────────────────────────────
   // getPost — viewCount race / 404 viewCount 부풀림 (P1-6)
   // ─────────────────────────────────────────────
   describe('getPost', () => {
     it('존재하지 않는 글 → null + update 호출 안함', async () => {
-      mockPrisma.communityPost.findUnique.mockResolvedValueOnce(null);
-      const result = await service.getPost('ghost');
-      expect(result).toBeNull();
-      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled();
-    });
+      mockPrisma.communityPost.findUnique.mockResolvedValueOnce(null)
+      const result = await service.getPost('ghost')
+      expect(result).toBeNull()
+      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled()
+    })
 
     it('본인 글 조회 → viewCount 증가 안함', async () => {
       mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
         id: 'p1',
         userId: 'u1',
         viewCount: 5,
-      });
-      await service.getPost('p1', 'u1');
-      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled();
-    });
+      })
+      await service.getPost('p1', 'u1')
+      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled()
+    })
 
     it('타인 글 첫 조회 → viewCount 1 증가', async () => {
       mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
         id: 'p-first',
         userId: 'author',
         viewCount: 5,
-      });
-      const result = await service.getPost('p-first', 'viewer');
-      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1);
-      expect(result!.viewCount).toBe(6);
-    });
+      })
+      const result = await service.getPost('p-first', 'viewer')
+      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1)
+      expect(result!.viewCount).toBe(6)
+    })
 
     it('같은 viewer 가 5분 내 재조회 → dedup, viewCount 증가 안함', async () => {
       // 1st call — increments
@@ -132,35 +134,35 @@ describe('CommunityService', () => {
         id: 'p-dedup',
         userId: 'author',
         viewCount: 5,
-      });
-      await service.getPost('p-dedup', 'viewer');
+      })
+      await service.getPost('p-dedup', 'viewer')
 
       // 2nd call — should skip update
       mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
         id: 'p-dedup',
         userId: 'author',
         viewCount: 6,
-      });
-      await service.getPost('p-dedup', 'viewer');
-      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1);
-    });
+      })
+      await service.getPost('p-dedup', 'viewer')
+      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1)
+    })
 
     it('익명(anon) 조회도 dedup 적용', async () => {
       mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
         id: 'p-anon',
         userId: 'author',
         viewCount: 0,
-      });
-      await service.getPost('p-anon');
+      })
+      await service.getPost('p-anon')
       mockPrisma.communityPost.findUnique.mockResolvedValueOnce({
         id: 'p-anon',
         userId: 'author',
         viewCount: 1,
-      });
-      await service.getPost('p-anon');
-      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1);
-    });
-  });
+      })
+      await service.getPost('p-anon')
+      expect(mockPrisma.communityPost.update).toHaveBeenCalledTimes(1)
+    })
+  })
 
   describe('createPost', () => {
     it('게시글 생성', async () => {
@@ -170,160 +172,160 @@ describe('CommunityService', () => {
         content: '내용',
         category: 'free',
         userId: 'u1',
-      };
-      mockPrisma.communityPost.create.mockResolvedValue(mockPost);
+      }
+      mockPrisma.communityPost.create.mockResolvedValue(mockPost)
       const result = await service.createPost('u1', {
         title: '테스트',
         content: '내용',
         category: 'free',
-      });
-      expect(result.title).toBe('테스트');
-      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith('테스트', '내용');
-    });
-  });
+      })
+      expect(result.title).toBe('테스트')
+      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith('테스트', '내용')
+    })
+  })
 
   describe('updatePost (금칙어 재검증)', () => {
     it('수정 시 제목/본문 금칙어 재검증 호출', async () => {
-      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
-      await service.updatePost('p1', 'u1', 'user', { title: '새 제목', content: '새 본문' });
-      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith('새 제목', '새 본문');
-    });
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' })
+      await service.updatePost('p1', 'u1', 'user', { title: '새 제목', content: '새 본문' })
+      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith('새 제목', '새 본문')
+    })
 
     it('수정 내용에 금칙어 → 차단 (clean 등록 후 update 우회 방지)', async () => {
-      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
-      mockForbiddenWords.validateOrThrow.mockRejectedValueOnce(new ForbiddenException('금칙어'));
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' })
+      mockForbiddenWords.validateOrThrow.mockRejectedValueOnce(new ForbiddenException('금칙어'))
       await expect(service.updatePost('p1', 'u1', 'user', { content: '나쁜말' })).rejects.toThrow(
-        ForbiddenException,
-      );
-      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled();
-    });
-  });
+        ForbiddenException
+      )
+      expect(mockPrisma.communityPost.update).not.toHaveBeenCalled()
+    })
+  })
 
   describe('toggleLike', () => {
     it('좋아요 추가 — likeCount 응답 포함', async () => {
-      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
-      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null)
+      mockPrisma.communityLike.create.mockResolvedValue({})
       mockPrisma.communityPost.update.mockResolvedValue({
         userId: 'author',
         title: 't',
         likeCount: 1,
-      });
-      mockPrisma.notification.findFirst.mockResolvedValue(null);
-      const result = await service.toggleLike('p1', 'u1');
-      expect(result).toEqual({ liked: true, likeCount: 1 });
-    });
+      })
+      mockPrisma.notification.findFirst.mockResolvedValue(null)
+      const result = await service.toggleLike('p1', 'u1')
+      expect(result).toEqual({ liked: true, likeCount: 1 })
+    })
 
     it('좋아요 취소', async () => {
-      mockPrisma.communityLike.findUnique.mockResolvedValue({ id: 'l1' });
-      mockPrisma.communityLike.delete.mockResolvedValue({});
-      mockPrisma.communityPost.update.mockResolvedValue({ likeCount: 0 });
-      const result = await service.toggleLike('p1', 'u1');
-      expect(result).toEqual({ liked: false, likeCount: 0 });
-    });
+      mockPrisma.communityLike.findUnique.mockResolvedValue({ id: 'l1' })
+      mockPrisma.communityLike.delete.mockResolvedValue({})
+      mockPrisma.communityPost.update.mockResolvedValue({ likeCount: 0 })
+      const result = await service.toggleLike('p1', 'u1')
+      expect(result).toEqual({ liked: false, likeCount: 0 })
+    })
 
     // P2-2 — $transaction 으로 like + likeCount 묶음
     it('좋아요 토글이 $transaction 으로 실행됨', async () => {
-      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
-      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null)
+      mockPrisma.communityLike.create.mockResolvedValue({})
       mockPrisma.communityPost.update.mockResolvedValue({
         userId: 'author',
         title: 't',
         likeCount: 1,
-      });
-      mockPrisma.notification.findFirst.mockResolvedValue(null);
-      await service.toggleLike('p1', 'u1');
-      expect(mockPrisma.$transaction).toHaveBeenCalled();
-    });
+      })
+      mockPrisma.notification.findFirst.mockResolvedValue(null)
+      await service.toggleLike('p1', 'u1')
+      expect(mockPrisma.$transaction).toHaveBeenCalled()
+    })
 
     // P2-7 — like 알림 spam dedup
     it('24h 내 같은 postId 알림 존재 시 dedup — notifications.create 호출 안함', async () => {
-      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
-      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null)
+      mockPrisma.communityLike.create.mockResolvedValue({})
       mockPrisma.communityPost.update.mockResolvedValue({
         userId: 'author',
         title: '제목',
         likeCount: 10,
-      });
-      mockPrisma.notification.findFirst.mockResolvedValueOnce({ id: 'n-existing' });
-      await service.toggleLike('p1', 'liker');
-      expect(mockNotifications.create).not.toHaveBeenCalled();
-    });
+      })
+      mockPrisma.notification.findFirst.mockResolvedValueOnce({ id: 'n-existing' })
+      await service.toggleLike('p1', 'liker')
+      expect(mockNotifications.create).not.toHaveBeenCalled()
+    })
 
     it('24h 내 알림 없음 + likeCount 10 → 작성자 알림', async () => {
-      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
-      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null)
+      mockPrisma.communityLike.create.mockResolvedValue({})
       mockPrisma.communityPost.update.mockResolvedValue({
         userId: 'author',
         title: '제목',
         likeCount: 10,
-      });
-      mockPrisma.notification.findFirst.mockResolvedValueOnce(null);
-      await service.toggleLike('p1', 'liker');
+      })
+      mockPrisma.notification.findFirst.mockResolvedValueOnce(null)
+      await service.toggleLike('p1', 'liker')
       expect(mockNotifications.create).toHaveBeenCalledWith(
         'author',
         'community_like',
         expect.stringContaining('10'),
-        '/community/p1',
-      );
-    });
+        '/community/p1'
+      )
+    })
 
     it('본인 좋아요 → 알림 발송 안함', async () => {
-      mockPrisma.communityLike.findUnique.mockResolvedValue(null);
-      mockPrisma.communityLike.create.mockResolvedValue({});
+      mockPrisma.communityLike.findUnique.mockResolvedValue(null)
+      mockPrisma.communityLike.create.mockResolvedValue({})
       mockPrisma.communityPost.update.mockResolvedValue({
         userId: 'me',
         title: '제목',
         likeCount: 10,
-      });
-      await service.toggleLike('p1', 'me');
-      expect(mockNotifications.create).not.toHaveBeenCalled();
+      })
+      await service.toggleLike('p1', 'me')
+      expect(mockNotifications.create).not.toHaveBeenCalled()
       // dedup 조회도 불필요
-      expect(mockPrisma.notification.findFirst).not.toHaveBeenCalled();
-    });
-  });
+      expect(mockPrisma.notification.findFirst).not.toHaveBeenCalled()
+    })
+  })
 
   describe('addComment', () => {
     it('댓글 추가 + 금칙어 검증', async () => {
-      const mockComment = { id: 'c1', postId: 'p1', content: '댓글 내용' };
-      mockPrisma.communityComment.create.mockResolvedValue(mockComment);
-      mockPrisma.communityPost.findUnique.mockResolvedValue({ userId: 'u2', title: '제목' });
-      const result = await service.addComment('p1', 'u1', '댓글 내용');
-      expect(result.content).toBe('댓글 내용');
-      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith('댓글 내용');
-    });
-  });
+      const mockComment = { id: 'c1', postId: 'p1', content: '댓글 내용' }
+      mockPrisma.communityComment.create.mockResolvedValue(mockComment)
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ userId: 'u2', title: '제목' })
+      const result = await service.addComment('p1', 'u1', '댓글 내용')
+      expect(result.content).toBe('댓글 내용')
+      expect(mockForbiddenWords.validateOrThrow).toHaveBeenCalledWith('댓글 내용')
+    })
+  })
 
   describe('deletePost', () => {
     it('작성자가 삭제', async () => {
-      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
-      mockPrisma.communityPost.delete.mockResolvedValue({});
-      await service.deletePost('p1', 'u1', 'user');
-      expect(mockPrisma.communityPost.delete).toHaveBeenCalled();
-    });
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' })
+      mockPrisma.communityPost.delete.mockResolvedValue({})
+      await service.deletePost('p1', 'u1', 'user')
+      expect(mockPrisma.communityPost.delete).toHaveBeenCalled()
+    })
 
     it('다른 사용자 → ForbiddenException', async () => {
-      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
-      await expect(service.deletePost('p1', 'u2', 'user')).rejects.toThrow(ForbiddenException);
-    });
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' })
+      await expect(service.deletePost('p1', 'u2', 'user')).rejects.toThrow(ForbiddenException)
+    })
 
     it('없는 게시글 → NotFoundException', async () => {
-      mockPrisma.communityPost.findUnique.mockResolvedValue(null);
-      await expect(service.deletePost('missing', 'u1', 'user')).rejects.toThrow(NotFoundException);
-    });
+      mockPrisma.communityPost.findUnique.mockResolvedValue(null)
+      await expect(service.deletePost('missing', 'u1', 'user')).rejects.toThrow(NotFoundException)
+    })
 
     it('관리자는 삭제 가능', async () => {
-      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' });
-      mockPrisma.communityPost.delete.mockResolvedValue({});
-      await service.deletePost('p1', 'u2', 'admin');
-      expect(mockPrisma.communityPost.delete).toHaveBeenCalled();
-    });
-  });
+      mockPrisma.communityPost.findUnique.mockResolvedValue({ id: 'p1', userId: 'u1' })
+      mockPrisma.communityPost.delete.mockResolvedValue({})
+      await service.deletePost('p1', 'u2', 'admin')
+      expect(mockPrisma.communityPost.delete).toHaveBeenCalled()
+    })
+  })
 
   describe('deleteComment', () => {
     it('다른 사용자 → ForbiddenException', async () => {
-      mockPrisma.communityComment.findUnique.mockResolvedValue({ id: 'c1', userId: 'u1' });
+      mockPrisma.communityComment.findUnique.mockResolvedValue({ id: 'c1', userId: 'u1' })
 
-      await expect(service.deleteComment('c1', 'u2', 'user')).rejects.toThrow(ForbiddenException);
-    });
-  });
-});
+      await expect(service.deleteComment('c1', 'u2', 'user')).rejects.toThrow(ForbiddenException)
+    })
+  })
+})

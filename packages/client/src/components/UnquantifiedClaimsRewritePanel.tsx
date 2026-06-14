@@ -1,15 +1,16 @@
-import { useMemo, useState } from 'react';
-import { detectUnquantifiedClaims } from '@/lib/koreanChecker';
-import { aiInlineAssist } from '@/lib/api';
+import { useMemo, useState } from 'react'
+
+import { aiInlineAssist } from '@/lib/api'
+import { detectUnquantifiedClaims } from '@/lib/koreanChecker'
 
 interface Props {
-  resumeId: string;
-  text: string;
-  minLength?: number;
-  className?: string;
+  resumeId: string
+  text: string
+  minLength?: number
+  className?: string
 }
 
-type Status = 'idle' | 'loading' | 'ready' | 'error';
+type Status = 'idle' | 'loading' | 'ready' | 'error'
 
 /**
  * 수치화가 필요한 문장을 검출하고, 각 문장을 AI(`inline-assist: quantify`)로 수치 보강 문장으로 리라이트.
@@ -22,34 +23,34 @@ export default function UnquantifiedClaimsRewritePanel({
   className = '',
 }: Props) {
   const claims = useMemo(() => {
-    if (!text || text.length < minLength) return [];
-    return detectUnquantifiedClaims(text).slice(0, 4);
-  }, [text, minLength]);
+    if (!text || text.length < minLength) return []
+    return detectUnquantifiedClaims(text).slice(0, 4)
+  }, [text, minLength])
 
   const [states, setStates] = useState<
     Record<number, { status: Status; improved?: string; err?: string }>
-  >({});
+  >({})
 
-  if (claims.length === 0) return null;
+  if (claims.length === 0) return null
 
   const rewrite = async (i: number, sentence: string) => {
-    setStates((s) => ({ ...s, [i]: { status: 'loading' } }));
+    setStates((s) => ({ ...s, [i]: { status: 'loading' } }))
     try {
-      const r = await aiInlineAssist(resumeId, sentence, 'quantify');
-      setStates((s) => ({ ...s, [i]: { status: 'ready', improved: r.improved } }));
+      const r = await aiInlineAssist(resumeId, sentence, 'quantify')
+      setStates((s) => ({ ...s, [i]: { status: 'ready', improved: r.improved } }))
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'AI 요청 실패';
-      setStates((s) => ({ ...s, [i]: { status: 'error', err: msg } }));
+      const msg = e instanceof Error ? e.message : 'AI 요청 실패'
+      setStates((s) => ({ ...s, [i]: { status: 'error', err: msg } }))
     }
-  };
+  }
 
   const copy = async (t: string) => {
     try {
-      await navigator.clipboard.writeText(t);
+      await navigator.clipboard.writeText(t)
     } catch {
       // ignore
     }
-  };
+  }
 
   return (
     <section
@@ -68,7 +69,7 @@ export default function UnquantifiedClaimsRewritePanel({
       </div>
       <ul className="space-y-1.5">
         {claims.map((c, i) => {
-          const st = states[i];
+          const st = states[i]
           return (
             <li
               key={i}
@@ -113,9 +114,9 @@ export default function UnquantifiedClaimsRewritePanel({
                 </p>
               )}
             </li>
-          );
+          )
         })}
       </ul>
     </section>
-  );
+  )
 }

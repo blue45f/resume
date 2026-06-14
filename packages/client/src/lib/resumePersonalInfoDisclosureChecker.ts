@@ -14,23 +14,23 @@ export type DisclosureCategory =
   | 'physical' // 키/몸무게/혈액형
   | 'origin' // 본적/출신지역
   | 'religion' // 종교
-  | 'photo'; // 증명사진 기재
+  | 'photo' // 증명사진 기재
 
-export type DisclosureSeverity = 'high' | 'medium' | 'low';
+export type DisclosureSeverity = 'high' | 'medium' | 'low'
 
 export interface DisclosureFinding {
-  category: DisclosureCategory;
-  severity: DisclosureSeverity;
-  excerpt: string;
+  category: DisclosureCategory
+  severity: DisclosureSeverity
+  excerpt: string
 }
 
-export type DisclosureGrade = 'clean' | 'caution' | 'risky';
+export type DisclosureGrade = 'clean' | 'caution' | 'risky'
 
 export interface ResumeDisclosureReport {
-  grade: DisclosureGrade;
-  findings: DisclosureFinding[];
-  summary: string;
-  recommendations: string[];
+  grade: DisclosureGrade
+  findings: DisclosureFinding[]
+  summary: string
+  recommendations: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ const PATTERNS: Array<{ category: DisclosureCategory; severity: DisclosureSeveri
       severity: 'low',
       re: /(?:증명\s*사진|반명함\s*사진|사진\s*첨부\s*[:：])/,
     },
-  ];
+  ]
 
 const CATEGORY_LABEL: Record<DisclosureCategory, string> = {
   resident_id: '주민등록번호',
@@ -93,68 +93,68 @@ const CATEGORY_LABEL: Record<DisclosureCategory, string> = {
   origin: '본적/출신지역',
   religion: '종교',
   photo: '증명사진',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function checkResumePersonalInfoDisclosure(text: string): ResumeDisclosureReport {
-  const t = (text ?? '').trim();
-  const lines = t.split('\n');
+  const t = (text ?? '').trim()
+  const lines = t.split('\n')
 
-  const findings: DisclosureFinding[] = [];
-  const seen = new Set<DisclosureCategory>();
+  const findings: DisclosureFinding[] = []
+  const seen = new Set<DisclosureCategory>()
 
   for (const line of lines) {
-    const l = line.trim();
-    if (!l) continue;
+    const l = line.trim()
+    if (!l) continue
     for (const { category, severity, re } of PATTERNS) {
       if (!seen.has(category) && re.test(l)) {
-        findings.push({ category, severity, excerpt: l.slice(0, 50) });
-        seen.add(category);
+        findings.push({ category, severity, excerpt: l.slice(0, 50) })
+        seen.add(category)
       }
     }
   }
 
-  const hasHigh = findings.some((f) => f.severity === 'high');
+  const hasHigh = findings.some((f) => f.severity === 'high')
 
-  let grade: DisclosureGrade;
+  let grade: DisclosureGrade
   if (findings.length === 0) {
-    grade = 'clean';
+    grade = 'clean'
   } else if (hasHigh) {
-    grade = 'risky';
+    grade = 'risky'
   } else {
-    grade = 'caution';
+    grade = 'caution'
   }
 
   // Summary
-  let summary: string;
+  let summary: string
   if (grade === 'clean') {
-    summary = '불필요한 개인정보가 감지되지 않았습니다.';
+    summary = '불필요한 개인정보가 감지되지 않았습니다.'
   } else if (grade === 'risky') {
-    summary = `삭제 권장 민감 정보가 ${findings.length}건 감지되었습니다 (고위험 포함).`;
+    summary = `삭제 권장 민감 정보가 ${findings.length}건 감지되었습니다 (고위험 포함).`
   } else {
-    summary = `현대 이력서에서 생략하는 항목이 ${findings.length}건 감지되었습니다.`;
+    summary = `현대 이력서에서 생략하는 항목이 ${findings.length}건 감지되었습니다.`
   }
 
   // Recommendations
-  const recommendations: string[] = [];
+  const recommendations: string[] = []
   for (const f of findings.slice(0, 5)) {
     if (f.category === 'resident_id') {
-      recommendations.push('주민등록번호는 절대 기재하지 마세요. 입사 확정 후 별도 제출합니다.');
+      recommendations.push('주민등록번호는 절대 기재하지 마세요. 입사 확정 후 별도 제출합니다.')
     } else if (f.category === 'family_info') {
-      recommendations.push('가족관계는 채용절차법상 수집 제한 항목입니다. 삭제하세요.');
+      recommendations.push('가족관계는 채용절차법상 수집 제한 항목입니다. 삭제하세요.')
     } else if (f.category === 'financial') {
-      recommendations.push('재산·소득 정보는 채용에 불필요하며 수집 제한 대상입니다. 삭제하세요.');
+      recommendations.push('재산·소득 정보는 채용에 불필요하며 수집 제한 대상입니다. 삭제하세요.')
     } else {
       recommendations.push(
-        `${CATEGORY_LABEL[f.category]}은(는) 직무와 무관하므로 삭제를 권장합니다.`,
-      );
+        `${CATEGORY_LABEL[f.category]}은(는) 직무와 무관하므로 삭제를 권장합니다.`
+      )
     }
   }
   if (grade !== 'clean') {
-    recommendations.push('이력서에는 직무 관련 역량·경험만 남기는 것이 안전하고 효과적입니다.');
+    recommendations.push('이력서에는 직무 관련 역량·경험만 남기는 것이 안전하고 효과적입니다.')
   }
 
   return {
@@ -162,5 +162,5 @@ export function checkResumePersonalInfoDisclosure(text: string): ResumeDisclosur
     findings: findings.slice(0, 8),
     summary,
     recommendations,
-  };
+  }
 }

@@ -1,7 +1,7 @@
-import Header from '@/components/Header';
+import Header from '@/components/Header'
 
 interface EditResumeNotFoundProps {
-  onBackHome: () => void;
+  onBackHome: () => void
 }
 
 export default function EditResumeNotFound({ onBackHome }: EditResumeNotFoundProps) {
@@ -40,5 +40,5 @@ export default function EditResumeNotFound({ onBackHome }: EditResumeNotFoundPro
         </div>
       </main>
     </>
-  );
+  )
 }

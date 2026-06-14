@@ -13,25 +13,25 @@ import {
   buildCoverLetterScore,
   type CoverLetterScoreAxisKey,
   type CoverLetterScoreGrade,
-} from './coverLetterScore';
+} from './coverLetterScore'
 
-export type CoverLetterImprovementSeverity = 'high' | 'medium' | 'low';
+export type CoverLetterImprovementSeverity = 'high' | 'medium' | 'low'
 
 export interface CoverLetterImprovementItem {
-  key: CoverLetterScoreAxisKey;
-  axis: string; // 축 라벨 (구성·구조·마무리·톤)
-  value: number; // 현재 점수 0~100
-  impact: number; // 개선 시 종합 점수 상승 잠재폭 (= (100-value)*weight)
-  severity: CoverLetterImprovementSeverity;
-  advice: string;
+  key: CoverLetterScoreAxisKey
+  axis: string // 축 라벨 (구성·구조·마무리·톤)
+  value: number // 현재 점수 0~100
+  impact: number // 개선 시 종합 점수 상승 잠재폭 (= (100-value)*weight)
+  severity: CoverLetterImprovementSeverity
+  advice: string
 }
 
 export interface CoverLetterImprovementPlan {
-  overall: number;
-  grade: CoverLetterScoreGrade;
-  items: CoverLetterImprovementItem[];
-  topAdvice: string;
-  hasRoom: boolean;
+  overall: number
+  grade: CoverLetterScoreGrade
+  items: CoverLetterImprovementItem[]
+  topAdvice: string
+  hasRoom: boolean
 }
 
 const ADVICE: Record<CoverLetterScoreAxisKey, string> = {
@@ -39,12 +39,12 @@ const ADVICE: Record<CoverLetterScoreAxisKey, string> = {
   structure: '문단을 명확히 나누고 첫 문장(훅)과 마무리를 강화해 읽기 쉬운 흐름을 만드세요.',
   closing: '마지막 문단에 입사 후 기여 의지를 분명한 한 문장으로 마무리하세요(CTA).',
   tone: '부정적·자기비하 표현을 긍정·성장 관점으로 바꿔 자신감 있는 톤을 유지하세요.',
-};
+}
 
 function severityOf(impact: number): CoverLetterImprovementSeverity {
-  if (impact >= 10) return 'high';
-  if (impact >= 5) return 'medium';
-  return 'low';
+  if (impact >= 10) return 'high'
+  if (impact >= 5) return 'medium'
+  return 'low'
 }
 
 /**
@@ -54,14 +54,14 @@ function severityOf(impact: number): CoverLetterImprovementSeverity {
  */
 export function buildCoverLetterImprovementPlan(
   text: string,
-  topN = 3,
+  topN = 3
 ): CoverLetterImprovementPlan {
-  const score = buildCoverLetterScore(text ?? '');
+  const score = buildCoverLetterScore(text ?? '')
 
   const items: CoverLetterImprovementItem[] = score.axes
     .filter((a) => a.score < 90)
     .map((a) => {
-      const impact = Math.round((100 - a.score) * a.weight);
+      const impact = Math.round((100 - a.score) * a.weight)
       return {
         key: a.key,
         axis: a.label,
@@ -69,20 +69,20 @@ export function buildCoverLetterImprovementPlan(
         impact,
         severity: severityOf(impact),
         advice: ADVICE[a.key],
-      };
+      }
     })
     .sort((a, b) => b.impact - a.impact || a.value - b.value)
-    .slice(0, topN);
+    .slice(0, topN)
 
-  const hasRoom = items.length > 0 && items[0].impact > 0;
+  const hasRoom = items.length > 0 && items[0].impact > 0
 
-  let topAdvice: string;
+  let topAdvice: string
   if (!hasRoom) {
-    topAdvice = '4대 평가 축이 모두 탄탄합니다. 세부 패널에서 미세 조정만 점검하세요.';
+    topAdvice = '4대 평가 축이 모두 탄탄합니다. 세부 패널에서 미세 조정만 점검하세요.'
   } else {
-    const top = items[0];
-    topAdvice = `가장 큰 개선 기회는 "${top.axis}"입니다 (현재 ${top.value}점, 보강 시 +${top.impact}점). ${top.advice}`;
+    const top = items[0]
+    topAdvice = `가장 큰 개선 기회는 "${top.axis}"입니다 (현재 ${top.value}점, 보강 시 +${top.impact}점). ${top.advice}`
   }
 
-  return { overall: score.overall, grade: score.grade, items, topAdvice, hasRoom };
+  return { overall: score.overall, grade: score.grade, items, topAdvice, hasRoom }
 }

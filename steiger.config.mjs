@@ -1,5 +1,5 @@
-import { defineConfig } from 'steiger';
-import fsd from '@feature-sliced/steiger-plugin';
+import { defineConfig } from 'steiger'
+import fsd from '@feature-sliced/steiger-plugin'
 
 // resume(이력서공방)는 포트폴리오에서 유일하게 FSD 레이어(app/pages/widgets/
 // features/entities/shared)를 명시적으로 채택한 저장소다. 개발가이드 §4.3 원칙대로
@@ -25,4 +25,4 @@ export default defineConfig([
   {
     ignores: ['**/*.test.*', '**/*.stories.*', '**/__tests__/**'],
   },
-]);
+])

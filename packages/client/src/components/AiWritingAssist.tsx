@@ -1,11 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
-import { aiInlineAssist } from '@/lib/api';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useState, useRef, useEffect } from 'react'
+
+import { aiInlineAssist } from '@/lib/api'
+import { getErrorMessage } from '@/lib/errorMessage'
 
 interface Props {
-  resumeId?: string;
-  value: string;
-  onAccept: (text: string) => void;
+  resumeId?: string
+  value: string
+  onAccept: (text: string) => void
 }
 
 const ASSIST_OPTIONS = [
@@ -13,71 +14,71 @@ const ASSIST_OPTIONS = [
   { type: 'quantify', label: '성과 수치화', desc: '정량적 지표 추가' },
   { type: 'concise', label: '간결하게', desc: '분량 30-50% 축소' },
   { type: 'english', label: '영문 변환', desc: '전문적인 영어로 번역' },
-];
+]
 
 export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ original: string; improved: string; type: string } | null>(
-    null,
-  );
-  const [error, setError] = useState('');
-  const dropdownRef = useRef<HTMLDivElement>(null);
+    null
+  )
+  const [error, setError] = useState('')
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        if (!loading && !result) setOpen(false);
+        if (!loading && !result) setOpen(false)
       }
-    };
-    if (open) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open, loading, result]);
+    }
+    if (open) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open, loading, result])
 
-  const plainText = (value || '').replace(/<[^>]*>/g, '').trim();
+  const plainText = (value || '').replace(/<[^>]*>/g, '').trim()
 
   const handleAssist = async (type: string) => {
     if (!plainText || plainText.length < 2) {
-      setError('개선할 텍스트를 먼저 입력하세요.');
-      return;
+      setError('개선할 텍스트를 먼저 입력하세요.')
+      return
     }
     if (!resumeId) {
-      setError('이력서를 먼저 저장해주세요.');
-      return;
+      setError('이력서를 먼저 저장해주세요.')
+      return
     }
-    setLoading(true);
-    setError('');
-    setResult(null);
+    setLoading(true)
+    setError('')
+    setResult(null)
     try {
-      const res = await aiInlineAssist(resumeId, plainText, type);
-      setResult(res);
+      const res = await aiInlineAssist(resumeId, plainText, type)
+      setResult(res)
     } catch (err) {
-      setError(getErrorMessage(err, 'AI 요청에 실패했습니다.'));
+      setError(getErrorMessage(err, 'AI 요청에 실패했습니다.'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleAccept = () => {
     if (result) {
-      onAccept(result.improved);
-      setResult(null);
-      setOpen(false);
+      onAccept(result.improved)
+      setResult(null)
+      setOpen(false)
     }
-  };
+  }
 
   const handleReject = () => {
-    setResult(null);
-  };
+    setResult(null)
+  }
 
   return (
     <div className="relative inline-block" ref={dropdownRef}>
       <button
         type="button"
         onClick={() => {
-          setOpen(!open);
-          setResult(null);
-          setError('');
+          setOpen(!open)
+          setResult(null)
+          setError('')
         }}
         className="inline-flex items-center gap-1 px-1.5 py-1 text-xs text-sky-600 hover:text-sky-800 hover:bg-sky-50 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-sky-400"
         title="AI 문장 개선"
@@ -262,5 +263,5 @@ export default function AiWritingAssist({ resumeId, value, onAccept }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

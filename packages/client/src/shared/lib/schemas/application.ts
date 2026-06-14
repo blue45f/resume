@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const APPLICATION_STATUS_VALUES = [
   'applied',
@@ -7,10 +7,10 @@ export const APPLICATION_STATUS_VALUES = [
   'offer',
   'rejected',
   'withdrawn',
-] as const;
+] as const
 
-export const APPLICATION_PRIORITY_VALUES = ['high', 'medium', 'low'] as const;
-export const APPLICATION_VISIBILITY_VALUES = ['public', 'private'] as const;
+export const APPLICATION_PRIORITY_VALUES = ['high', 'medium', 'low'] as const
+export const APPLICATION_VISIBILITY_VALUES = ['public', 'private'] as const
 
 export const applicationSchema = z.object({
   company: z
@@ -33,6 +33,6 @@ export const applicationSchema = z.object({
   priority: z.string(),
   interviewDate: z.string(),
   deadline: z.string(),
-});
+})
 
-export type ApplicationFormValues = z.infer<typeof applicationSchema>;
+export type ApplicationFormValues = z.infer<typeof applicationSchema>

@@ -1,10 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-import { JobsController } from './jobs.controller';
-import { JobsService, type CuratedJobBody, type JobPostBody } from './jobs.service';
-import { JobUrlParserService } from './job-url-parser.service';
-import type { AuthenticatedRequest } from '../common/request.types';
+import { UnauthorizedException } from '@nestjs/common'
+import { Test, TestingModule } from '@nestjs/testing'
+
+import { JobUrlParserService } from './job-url-parser.service'
+import { JobsController } from './jobs.controller'
+import { JobsService, type CuratedJobBody, type JobPostBody } from './jobs.service'
+
+import type { AuthenticatedRequest } from '../common/request.types'
+import type { Prisma } from '@prisma/client'
 
 const mockService = {
   findAll: jest.fn(),
@@ -26,23 +28,23 @@ const mockService = {
   updateCuratedJob: jest.fn(),
   deleteCuratedJob: jest.fn(),
   recordCuratedJobClick: jest.fn(),
-};
+}
 
 const reqWith = (user?: {
-  id?: string;
-  role?: string;
-  userType?: string;
-}): AuthenticatedRequest => ({ user });
+  id?: string
+  role?: string
+  userType?: string
+}): AuthenticatedRequest => ({ user })
 
 const externalLinkBody: Prisma.ExternalJobLinkCreateInput = {
   name: 'X',
   url: 'https://x.com',
-};
-const curatedJobBody: CuratedJobBody = { position: 'T' };
-const jobPostBody: JobPostBody = { position: 'T' };
+}
+const curatedJobBody: CuratedJobBody = { position: 'T' }
+const jobPostBody: JobPostBody = { position: 'T' }
 
 describe('JobsController', () => {
-  let controller: JobsController;
+  let controller: JobsController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -51,48 +53,48 @@ describe('JobsController', () => {
         { provide: JobsService, useValue: mockService },
         { provide: JobUrlParserService, useValue: { parse: jest.fn() } },
       ],
-    }).compile();
-    controller = module.get(JobsController);
-    jest.clearAllMocks();
-  });
+    }).compile()
+    controller = module.get(JobsController)
+    jest.clearAllMocks()
+  })
 
   describe('findAll', () => {
     it('status 기본값 "active"', () => {
-      controller.findAll('검색어');
-      expect(mockService.findAll).toHaveBeenCalledWith('active', '검색어');
-    });
+      controller.findAll('검색어')
+      expect(mockService.findAll).toHaveBeenCalledWith('active', '검색어')
+    })
 
     it('status 직접 전달', () => {
-      controller.findAll(undefined, 'closed');
-      expect(mockService.findAll).toHaveBeenCalledWith('closed', undefined);
-    });
-  });
+      controller.findAll(undefined, 'closed')
+      expect(mockService.findAll).toHaveBeenCalledWith('closed', undefined)
+    })
+  })
 
   it('findOne: id 전달 (공개)', () => {
-    controller.findOne('j1');
-    expect(mockService.findOne).toHaveBeenCalledWith('j1');
-  });
+    controller.findOne('j1')
+    expect(mockService.findOne).toHaveBeenCalledWith('j1')
+  })
 
   describe('findMy', () => {
     it('비로그인 → [] 빈 배열, service 호출 안 함', () => {
-      expect(controller.findMy(reqWith())).toEqual([]);
-      expect(mockService.findByUser).not.toHaveBeenCalled();
-    });
+      expect(controller.findMy(reqWith())).toEqual([])
+      expect(mockService.findByUser).not.toHaveBeenCalled()
+    })
 
     it('로그인 시 userId 위임', () => {
-      controller.findMy(reqWith({ id: 'u1' }));
-      expect(mockService.findByUser).toHaveBeenCalledWith('u1');
-    });
-  });
+      controller.findMy(reqWith({ id: 'u1' }))
+      expect(mockService.findByUser).toHaveBeenCalledWith('u1')
+    })
+  })
 
   it('getStats: 필터 쿼리 전달', () => {
-    controller.getStats('서울', 'fulltime', 'React');
-    expect(mockService.getJobStats).toHaveBeenCalledWith('서울', 'fulltime', 'React');
-  });
+    controller.getStats('서울', 'fulltime', 'React')
+    expect(mockService.getJobStats).toHaveBeenCalledWith('서울', 'fulltime', 'React')
+  })
 
   describe('external links', () => {
     it('getExternalLinks: 필터 객체 전달', () => {
-      controller.getExternalLinks('직무', '대기업', '시니어', 'fulltime', '서울', 'IT', '키워드');
+      controller.getExternalLinks('직무', '대기업', '시니어', 'fulltime', '서울', 'IT', '키워드')
       expect(mockService.getExternalLinks).toHaveBeenCalledWith({
         category: '직무',
         companySize: '대기업',
@@ -101,94 +103,94 @@ describe('JobsController', () => {
         location: '서울',
         jobCategory: 'IT',
         q: '키워드',
-      });
-    });
+      })
+    })
 
     it('createExternalLink: 비로그인 → Unauthorized', () => {
       expect(() => controller.createExternalLink(externalLinkBody, reqWith())).toThrow(
-        UnauthorizedException,
-      );
-    });
+        UnauthorizedException
+      )
+    })
 
     it('createExternalLink: 로그인 시 user meta 전달', () => {
       controller.createExternalLink(
         externalLinkBody,
-        reqWith({ id: 'u1', role: 'admin', userType: 'recruiter' }),
-      );
+        reqWith({ id: 'u1', role: 'admin', userType: 'recruiter' })
+      )
       expect(mockService.createExternalLink).toHaveBeenCalledWith(externalLinkBody, {
         id: 'u1',
         role: 'admin',
         userType: 'recruiter',
-      });
-    });
+      })
+    })
 
     it('updateExternalLink: 비로그인 → Unauthorized', () => {
       expect(() => controller.updateExternalLink('e1', {}, reqWith())).toThrow(
-        UnauthorizedException,
-      );
-    });
+        UnauthorizedException
+      )
+    })
 
     it('deleteExternalLink: 비로그인 → Unauthorized', () => {
-      expect(() => controller.deleteExternalLink('e1', reqWith())).toThrow(UnauthorizedException);
-    });
+      expect(() => controller.deleteExternalLink('e1', reqWith())).toThrow(UnauthorizedException)
+    })
 
     it('recordClick: 공개, id 위임', () => {
-      controller.recordClick('e1');
-      expect(mockService.recordExternalLinkClick).toHaveBeenCalledWith('e1');
-    });
-  });
+      controller.recordClick('e1')
+      expect(mockService.recordExternalLinkClick).toHaveBeenCalledWith('e1')
+    })
+  })
 
   describe('curated jobs', () => {
     it('getCuratedJobs: 쿼리 파싱 + 기본값 page=1 limit=20', () => {
-      controller.getCuratedJobs();
+      controller.getCuratedJobs()
       expect(mockService.getCuratedJobs).toHaveBeenCalledWith(
-        expect.objectContaining({ page: 1, limit: 20 }),
-      );
-    });
+        expect.objectContaining({ page: 1, limit: 20 })
+      )
+    })
 
     it('getCuratedJob: id 전달', () => {
-      controller.getCuratedJob('c1');
-      expect(mockService.getCuratedJob).toHaveBeenCalledWith('c1');
-    });
+      controller.getCuratedJob('c1')
+      expect(mockService.getCuratedJob).toHaveBeenCalledWith('c1')
+    })
 
     it('createCuratedJob: user meta 4개 인자 분해 전달', () => {
       controller.createCuratedJob(
         curatedJobBody,
-        reqWith({ id: 'u1', role: 'user', userType: 'personal' }),
-      );
+        reqWith({ id: 'u1', role: 'user', userType: 'personal' })
+      )
       expect(mockService.createCuratedJob).toHaveBeenCalledWith(
         curatedJobBody,
         'u1',
         'user',
-        'personal',
-      );
-    });
+        'personal'
+      )
+    })
 
     it('recordCuratedJobClick: 공개, id 위임', () => {
-      controller.recordCuratedJobClick('c1');
-      expect(mockService.recordCuratedJobClick).toHaveBeenCalledWith('c1');
-    });
-  });
+      controller.recordCuratedJobClick('c1')
+      expect(mockService.recordCuratedJobClick).toHaveBeenCalledWith('c1')
+    })
+  })
 
   describe('job post CRUD', () => {
     it('create: 비로그인 → error 객체', () => {
-      expect(controller.create(jobPostBody, reqWith())).toEqual({ error: '로그인 필요' });
-      expect(mockService.create).not.toHaveBeenCalled();
-    });
+      expect(controller.create(jobPostBody, reqWith())).toEqual({ error: '로그인 필요' })
+      expect(mockService.create).not.toHaveBeenCalled()
+    })
 
     it('create: 로그인 시 userId + body 전달', () => {
-      controller.create(jobPostBody, reqWith({ id: 'u1' }));
-      expect(mockService.create).toHaveBeenCalledWith('u1', jobPostBody);
-    });
+      controller.create(jobPostBody, reqWith({ id: 'u1' }))
+      expect(mockService.create).toHaveBeenCalledWith('u1', jobPostBody)
+    })
 
     it('update: userId 전달 (service 에서 권한 판정)', () => {
-      controller.update('j1', jobPostBody, reqWith({ id: 'u1' }));
-      expect(mockService.update).toHaveBeenCalledWith('j1', 'u1', jobPostBody);
-    });
+      controller.update('j1', jobPostBody, reqWith({ id: 'u1' }))
+      expect(mockService.update).toHaveBeenCalledWith('j1', 'u1', jobPostBody)
+    })
 
     it('remove: userId + role 전달', () => {
-      controller.remove('j1', reqWith({ id: 'u1', role: 'admin' }));
-      expect(mockService.remove).toHaveBeenCalledWith('j1', 'u1', 'admin');
-    });
-  });
-});
+      controller.remove('j1', reqWith({ id: 'u1', role: 'admin' }))
+      expect(mockService.remove).toHaveBeenCalledWith('j1', 'u1', 'admin')
+    })
+  })
+})

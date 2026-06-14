@@ -10,32 +10,32 @@ export type ProjectQualityDimension =
   | 'outcome_quantified' // 수치화된 성과 (응답속도 40% 개선, MAU 10만 등)
   | 'problem_statement' // 해결한 문제 서술 (기존 방식의 한계, 병목 발견 등)
   | 'team_scale' // 팀 규모·협업 언급 (5인 팀, 4개 팀 협업 등)
-  | 'timeline'; // 기간·이정표 명시 (3개월, 2024.01–2024.06)
+  | 'timeline' // 기간·이정표 명시 (3개월, 2024.01–2024.06)
 
 export type ProjectWeaknessType =
   | 'vague_verb' // "개발했습니다", "만들었습니다" 등 결과 없음
   | 'no_role' // 역할 불명확
-  | 'no_outcome'; // 성과 없음
+  | 'no_outcome' // 성과 없음
 
 export interface ProjectQualitySignal {
-  dimension: ProjectQualityDimension;
-  excerpt: string;
+  dimension: ProjectQualityDimension
+  excerpt: string
 }
 
 export interface ProjectWeaknessSignal {
-  type: ProjectWeaknessType;
-  excerpt: string;
+  type: ProjectWeaknessType
+  excerpt: string
 }
 
-export type ProjectDescriptionGrade = 'excellent' | 'good' | 'weak' | 'vague';
+export type ProjectDescriptionGrade = 'excellent' | 'good' | 'weak' | 'vague'
 
 export interface ResumeProjectDescriptionReport {
-  qualitySignals: ProjectQualitySignal[];
-  weaknessSignals: ProjectWeaknessSignal[];
-  qualityScore: number; // 0–100
-  grade: ProjectDescriptionGrade;
-  summary: string;
-  suggestions: string[];
+  qualitySignals: ProjectQualitySignal[]
+  weaknessSignals: ProjectWeaknessSignal[]
+  qualityScore: number // 0–100
+  grade: ProjectDescriptionGrade
+  summary: string
+  suggestions: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -43,9 +43,9 @@ export interface ResumeProjectDescriptionReport {
 // ---------------------------------------------------------------------------
 
 interface QualityPattern {
-  re: RegExp;
-  dimension: ProjectQualityDimension;
-  weight: number;
+  re: RegExp
+  dimension: ProjectQualityDimension
+  weight: number
 }
 
 const QUALITY_PATTERNS: QualityPattern[] = [
@@ -150,15 +150,15 @@ const QUALITY_PATTERNS: QualityPattern[] = [
     dimension: 'timeline',
     weight: 10,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Weakness patterns
 // ---------------------------------------------------------------------------
 
 interface WeaknessPattern {
-  re: RegExp;
-  type: ProjectWeaknessType;
+  re: RegExp
+  type: ProjectWeaknessType
 }
 
 const WEAKNESS_PATTERNS: WeaknessPattern[] = [
@@ -168,70 +168,68 @@ const WEAKNESS_PATTERNS: WeaknessPattern[] = [
     type: 'vague_verb',
   },
   { re: /(?:사용\s*경험이\s*있|활용\s*경험이\s*있|다룰\s*수\s*있)\s*습니다/, type: 'vague_verb' },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function checkResumeProjectDescriptionQuality(text: string): ResumeProjectDescriptionReport {
-  const t = text ?? '';
-  const qualitySignals: ProjectQualitySignal[] = [];
-  const weaknessSignals: ProjectWeaknessSignal[] = [];
-  let qualityRaw = 0;
-  const seenDimensions = new Set<ProjectQualityDimension>();
+  const t = text ?? ''
+  const qualitySignals: ProjectQualitySignal[] = []
+  const weaknessSignals: ProjectWeaknessSignal[] = []
+  let qualityRaw = 0
+  const seenDimensions = new Set<ProjectQualityDimension>()
 
   for (const { re, dimension, weight } of QUALITY_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      qualitySignals.push({ dimension, excerpt: m[0].slice(0, 60) });
+      qualitySignals.push({ dimension, excerpt: m[0].slice(0, 60) })
       if (!seenDimensions.has(dimension)) {
-        seenDimensions.add(dimension);
-        qualityRaw += weight;
+        seenDimensions.add(dimension)
+        qualityRaw += weight
       }
     }
   }
 
   for (const { re, type } of WEAKNESS_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      weaknessSignals.push({ type, excerpt: m[0].slice(0, 60) });
+      weaknessSignals.push({ type, excerpt: m[0].slice(0, 60) })
     }
   }
 
-  const qualityScore = Math.min(100, qualityRaw);
+  const qualityScore = Math.min(100, qualityRaw)
 
-  let grade: ProjectDescriptionGrade;
-  if (qualityScore >= 65) grade = 'excellent';
-  else if (qualityScore >= 35) grade = 'good';
-  else if (weaknessSignals.length >= 2) grade = 'vague';
-  else grade = 'weak';
+  let grade: ProjectDescriptionGrade
+  if (qualityScore >= 65) grade = 'excellent'
+  else if (qualityScore >= 35) grade = 'good'
+  else if (weaknessSignals.length >= 2) grade = 'vague'
+  else grade = 'weak'
 
-  let summary: string;
+  let summary: string
   if (grade === 'excellent') {
-    summary = '역할·기술·성과가 구체적으로 서술된 프로젝트 설명입니다.';
+    summary = '역할·기술·성과가 구체적으로 서술된 프로젝트 설명입니다.'
   } else if (grade === 'good') {
     summary =
-      '일부 구체적인 정보가 있습니다. 수치화된 성과와 문제 해결 과정을 보강하면 더 강해집니다.';
+      '일부 구체적인 정보가 있습니다. 수치화된 성과와 문제 해결 과정을 보강하면 더 강해집니다.'
   } else if (grade === 'weak') {
-    summary = '프로젝트 설명에 구체성이 부족합니다. 역할, 기술 스택, 결과 수치를 추가하세요.';
+    summary = '프로젝트 설명에 구체성이 부족합니다. 역할, 기술 스택, 결과 수치를 추가하세요.'
   } else {
     summary =
-      '"~을 개발했습니다" 수준의 서술이 많습니다. 왜, 어떻게, 결과가 무엇인지를 명확히 기술하세요.';
+      '"~을 개발했습니다" 수준의 서술이 많습니다. 왜, 어떻게, 결과가 무엇인지를 명확히 기술하세요.'
   }
 
-  const suggestions: string[] = [];
+  const suggestions: string[] = []
   if (!seenDimensions.has('outcome_quantified')) {
-    suggestions.push('성과를 수치로 표현하세요. (응답속도 N% 개선, MAU N만 달성 등)');
+    suggestions.push('성과를 수치로 표현하세요. (응답속도 N% 개선, MAU N만 달성 등)')
   }
   if (!seenDimensions.has('role_clarity')) {
-    suggestions.push(
-      '프로젝트에서 본인의 역할을 명확히 서술하세요. (N인 팀 리드, BE 단독 개발 등)',
-    );
+    suggestions.push('프로젝트에서 본인의 역할을 명확히 서술하세요. (N인 팀 리드, BE 단독 개발 등)')
   }
   if (!seenDimensions.has('problem_statement')) {
-    suggestions.push('해결한 문제(기존 방식의 한계, 병목 발견)를 서술하면 설득력이 높아집니다.');
+    suggestions.push('해결한 문제(기존 방식의 한계, 병목 발견)를 서술하면 설득력이 높아집니다.')
   }
 
-  return { qualitySignals, weaknessSignals, qualityScore, grade, summary, suggestions };
+  return { qualitySignals, weaknessSignals, qualityScore, grade, summary, suggestions }
 }

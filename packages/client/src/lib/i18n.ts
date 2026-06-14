@@ -1,29 +1,39 @@
-export type Locale = 'ko' | 'en' | 'ja' | 'zh-CN';
+// ────────────────────────────────────────────────────────────
+// JSON 기반 중첩 번역 사전 — locales/*.json 파일에서 직접 import.
+// tx('study.cafe') 같은 점 표기 경로 + {n}/{min} 등 플레이스홀더 치환 지원.
+// 기존 t(flat key) 와 공존. 신규 UI 는 tx() 권장.
+// ────────────────────────────────────────────────────────────
+import jsonEn from '@/i18n/locales/en.json'
+import jsonJa from '@/i18n/locales/ja.json'
+import jsonKo from '@/i18n/locales/ko.json'
+import jsonZhCN from '@/i18n/locales/zh-CN.json'
 
-const LOCALE_KEY = 'resume-locale';
-const SUPPORTED_LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh-CN'];
+export type Locale = 'ko' | 'en' | 'ja' | 'zh-CN'
+
+const LOCALE_KEY = 'resume-locale'
+const SUPPORTED_LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh-CN']
 
 export function getLocale(): Locale {
-  const stored = localStorage.getItem(LOCALE_KEY) as Locale | null;
-  return stored && SUPPORTED_LOCALES.includes(stored) ? stored : 'ko';
+  const stored = localStorage.getItem(LOCALE_KEY) as Locale | null
+  return stored && SUPPORTED_LOCALES.includes(stored) ? stored : 'ko'
 }
 
-const langMap: Record<Locale, string> = { ko: 'ko', en: 'en', ja: 'ja', 'zh-CN': 'zh-CN' };
+const langMap: Record<Locale, string> = { ko: 'ko', en: 'en', ja: 'ja', 'zh-CN': 'zh-CN' }
 
 // RTL languages for future support (e.g., Arabic, Hebrew)
-const rtlLocales: string[] = [];
+const rtlLocales: string[] = []
 
 export function isRtl(locale?: Locale): boolean {
-  return rtlLocales.includes(locale || getLocale());
+  return rtlLocales.includes(locale || getLocale())
 }
 
 export function setLocale(locale: Locale) {
-  localStorage.setItem(LOCALE_KEY, locale);
-  document.documentElement.lang = langMap[locale] || 'ko';
-  document.documentElement.dir = isRtl(locale) ? 'rtl' : 'ltr';
+  localStorage.setItem(LOCALE_KEY, locale)
+  document.documentElement.lang = langMap[locale] || 'ko'
+  document.documentElement.dir = isRtl(locale) ? 'rtl' : 'ltr'
   // 로그인된 사용자라면 서버에 preferredLocale 동기화 (i18n 통계 + 다른 디바이스 일관성).
   // 실패는 silent — 로컬 설정이 source of truth.
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token')
   if (token) {
     fetch(
       `${(import.meta as unknown as { env: Record<string, string> }).env.VITE_API_URL || ''}/api/auth/profile`,
@@ -31,214 +41,214 @@ export function setLocale(locale: Locale) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ preferredLocale: locale }),
-      },
-    ).catch(() => {});
+      }
+    ).catch(() => {})
   }
-  window.location.reload();
+  window.location.reload()
 }
 
 type TranslationKeys = {
   // Common
-  'common.home': string;
-  'common.login': string;
-  'common.logout': string;
-  'common.settings': string;
-  'common.save': string;
-  'common.cancel': string;
-  'common.delete': string;
-  'common.edit': string;
-  'common.preview': string;
-  'common.search': string;
-  'common.close': string;
-  'common.copy': string;
-  'common.share': string;
-  'common.loading': string;
-  'common.noResults': string;
-  'common.confirm': string;
-  'common.back': string;
-  'common.next': string;
-  'common.submit': string;
-  'common.download': string;
-  'common.upload': string;
-  'common.add': string;
-  'common.remove': string;
-  'common.more': string;
-  'common.retry': string;
+  'common.home': string
+  'common.login': string
+  'common.logout': string
+  'common.settings': string
+  'common.save': string
+  'common.cancel': string
+  'common.delete': string
+  'common.edit': string
+  'common.preview': string
+  'common.search': string
+  'common.close': string
+  'common.copy': string
+  'common.share': string
+  'common.loading': string
+  'common.noResults': string
+  'common.confirm': string
+  'common.back': string
+  'common.next': string
+  'common.submit': string
+  'common.download': string
+  'common.upload': string
+  'common.add': string
+  'common.remove': string
+  'common.more': string
+  'common.retry': string
 
   // Nav
-  'nav.resumes': string;
-  'nav.explore': string;
-  'nav.templates': string;
-  'nav.tags': string;
-  'nav.applications': string;
-  'nav.coverLetter': string;
-  'nav.compare': string;
-  'nav.aiGenerate': string;
-  'nav.newResume': string;
-  'nav.admin': string;
-  'nav.tutorial': string;
-  'nav.interviewPrep': string;
-  'nav.feedback': string;
-  'nav.scouts': string;
-  'nav.translate': string;
-  'nav.bookmarks': string;
-  'nav.messages': string;
-  'nav.pricing': string;
-  'nav.recruiterDashboard': string;
-  'nav.jobPostings': string;
-  'nav.myCoverLetters': string;
+  'nav.resumes': string
+  'nav.explore': string
+  'nav.templates': string
+  'nav.tags': string
+  'nav.applications': string
+  'nav.coverLetter': string
+  'nav.compare': string
+  'nav.aiGenerate': string
+  'nav.newResume': string
+  'nav.admin': string
+  'nav.tutorial': string
+  'nav.interviewPrep': string
+  'nav.feedback': string
+  'nav.scouts': string
+  'nav.translate': string
+  'nav.bookmarks': string
+  'nav.messages': string
+  'nav.pricing': string
+  'nav.recruiterDashboard': string
+  'nav.jobPostings': string
+  'nav.myCoverLetters': string
 
   // Home
-  'home.title': string;
-  'home.subtitle': string;
-  'home.myResumes': string;
-  'home.welcome': string;
-  'home.welcomeDesc': string;
-  'home.directWrite': string;
-  'home.aiGenerate': string;
-  'home.explore': string;
-  'home.quickImport': string;
+  'home.title': string
+  'home.subtitle': string
+  'home.myResumes': string
+  'home.welcome': string
+  'home.welcomeDesc': string
+  'home.directWrite': string
+  'home.aiGenerate': string
+  'home.explore': string
+  'home.quickImport': string
 
   // Resume
-  'resume.personal': string;
-  'resume.experience': string;
-  'resume.education': string;
-  'resume.skills': string;
-  'resume.projects': string;
-  'resume.certifications': string;
-  'resume.languages': string;
-  'resume.awards': string;
-  'resume.activities': string;
-  'resume.summary': string;
+  'resume.personal': string
+  'resume.experience': string
+  'resume.education': string
+  'resume.skills': string
+  'resume.projects': string
+  'resume.certifications': string
+  'resume.languages': string
+  'resume.awards': string
+  'resume.activities': string
+  'resume.summary': string
 
   // Error messages
-  'error.loginFailed': string;
-  'error.emailRequired': string;
-  'error.emailInvalid': string;
-  'error.passwordRequired': string;
-  'error.passwordMinLength': string;
-  'error.nameRequired': string;
-  'error.titleRequired': string;
-  'error.authFailed': string;
-  'error.saveFailed': string;
-  'error.networkError': string;
+  'error.loginFailed': string
+  'error.emailRequired': string
+  'error.emailInvalid': string
+  'error.passwordRequired': string
+  'error.passwordMinLength': string
+  'error.nameRequired': string
+  'error.titleRequired': string
+  'error.authFailed': string
+  'error.saveFailed': string
+  'error.networkError': string
 
   // Page titles
-  'page.login': string;
-  'page.register': string;
-  'page.interviewPrep': string;
-  'page.feedback': string;
-  'page.scouts': string;
-  'page.pricing': string;
-  'page.settings': string;
-  'page.compare': string;
-  'page.translate': string;
+  'page.login': string
+  'page.register': string
+  'page.interviewPrep': string
+  'page.feedback': string
+  'page.scouts': string
+  'page.pricing': string
+  'page.settings': string
+  'page.compare': string
+  'page.translate': string
 
   // Accessibility
-  'a11y.skipToContent': string;
-  'a11y.mainMenu': string;
-  'a11y.mobileMenu': string;
-  'a11y.openMenu': string;
-  'a11y.closeMenu': string;
-  'a11y.quickMenuOpen': string;
-  'a11y.quickMenuClose': string;
-  'a11y.shareMenu': string;
-  'a11y.themeToggle': string;
-  'a11y.languageSelect': string;
-  'a11y.searchToggle': string;
-  'a11y.profileMenu': string;
+  'a11y.skipToContent': string
+  'a11y.mainMenu': string
+  'a11y.mobileMenu': string
+  'a11y.openMenu': string
+  'a11y.closeMenu': string
+  'a11y.quickMenuOpen': string
+  'a11y.quickMenuClose': string
+  'a11y.shareMenu': string
+  'a11y.themeToggle': string
+  'a11y.languageSelect': string
+  'a11y.searchToggle': string
+  'a11y.profileMenu': string
 
   // Footer
-  'footer.copyright': string;
-  'footer.openSource': string;
+  'footer.copyright': string
+  'footer.openSource': string
 
   // Study Groups (카페형)
-  'study.title': string;
-  'study.create': string;
-  'study.join': string;
-  'study.leave': string;
-  'study.members': string;
-  'study.posts': string;
-  'study.questions': string;
-  'study.cafe': string;
-  'study.newPost': string;
-  'study.category.all': string;
-  'study.category.notice': string;
-  'study.category.free': string;
-  'study.category.question': string;
-  'study.category.resource': string;
-  'study.category.studyLog': string;
+  'study.title': string
+  'study.create': string
+  'study.join': string
+  'study.leave': string
+  'study.members': string
+  'study.posts': string
+  'study.questions': string
+  'study.cafe': string
+  'study.newPost': string
+  'study.category.all': string
+  'study.category.notice': string
+  'study.category.free': string
+  'study.category.question': string
+  'study.category.resource': string
+  'study.category.studyLog': string
 
   // Community
-  'community.title': string;
-  'community.write': string;
-  'community.category.notice': string;
-  'community.category.free': string;
-  'community.category.tips': string;
-  'community.category.resume': string;
-  'community.category.coverLetter': string;
-  'community.category.question': string;
-  'community.category.interview': string;
-  'community.comments': string;
-  'community.likes': string;
-  'community.views': string;
+  'community.title': string
+  'community.write': string
+  'community.category.notice': string
+  'community.category.free': string
+  'community.category.tips': string
+  'community.category.resume': string
+  'community.category.coverLetter': string
+  'community.category.question': string
+  'community.category.interview': string
+  'community.comments': string
+  'community.likes': string
+  'community.views': string
 
   // Jobs
-  'job.title': string;
-  'job.apply': string;
-  'job.applied': string;
-  'job.external': string;
-  'job.location': string;
-  'job.salary': string;
-  'job.company': string;
-  'job.position': string;
-  'job.requirements': string;
-  'job.benefits': string;
-  'job.deadline': string;
+  'job.title': string
+  'job.apply': string
+  'job.applied': string
+  'job.external': string
+  'job.location': string
+  'job.salary': string
+  'job.company': string
+  'job.position': string
+  'job.requirements': string
+  'job.benefits': string
+  'job.deadline': string
 
   // Application management
-  'app.status.applied': string;
-  'app.status.screening': string;
-  'app.status.interview': string;
-  'app.status.offer': string;
-  'app.status.rejected': string;
-  'app.status.withdrawn': string;
+  'app.status.applied': string
+  'app.status.screening': string
+  'app.status.interview': string
+  'app.status.offer': string
+  'app.status.rejected': string
+  'app.status.withdrawn': string
 
   // Interview
-  'interview.mock': string;
-  'interview.record': string;
-  'interview.stop': string;
-  'interview.retake': string;
-  'interview.listen': string;
-  'interview.speed': string;
-  'interview.persona': string;
+  'interview.mock': string
+  'interview.record': string
+  'interview.stop': string
+  'interview.retake': string
+  'interview.listen': string
+  'interview.speed': string
+  'interview.persona': string
 
   // Common actions (확장)
-  'common.enable': string;
-  'common.disable': string;
-  'common.publish': string;
-  'common.unpublish': string;
-  'common.apply': string;
-  'common.reset': string;
-  'common.viewAll': string;
-  'common.today': string;
-  'common.yesterday': string;
+  'common.enable': string
+  'common.disable': string
+  'common.publish': string
+  'common.unpublish': string
+  'common.apply': string
+  'common.reset': string
+  'common.viewAll': string
+  'common.today': string
+  'common.yesterday': string
 
   // Toast
-  'toast.saved': string;
-  'toast.copied': string;
-  'toast.failed': string;
-  'toast.joined': string;
-  'toast.left': string;
-  'toast.posted': string;
+  'toast.saved': string
+  'toast.copied': string
+  'toast.failed': string
+  'toast.joined': string
+  'toast.left': string
+  'toast.posted': string
 
   // Confirm dialogs
-  'confirm.delete': string;
-  'confirm.deleteIrreversible': string;
-  'confirm.leaveStudy': string;
-  'confirm.deleteStudy': string;
-  'confirm.deletePost': string;
-};
+  'confirm.delete': string
+  'confirm.deleteIrreversible': string
+  'confirm.leaveStudy': string
+  'confirm.deleteStudy': string
+  'confirm.deletePost': string
+}
 
 const ko: TranslationKeys = {
   'common.home': '홈',
@@ -426,7 +436,7 @@ const ko: TranslationKeys = {
   'confirm.leaveStudy': '스터디를 탈퇴하시겠습니까?',
   'confirm.deleteStudy': '그룹을 삭제하시겠습니까? 복구할 수 없습니다.',
   'confirm.deletePost': '게시글을 삭제하시겠습니까?',
-};
+}
 
 const en: TranslationKeys = {
   'common.home': 'Home',
@@ -614,7 +624,7 @@ const en: TranslationKeys = {
   'confirm.leaveStudy': 'Are you sure you want to leave this study?',
   'confirm.deleteStudy': 'Delete this group? This cannot be undone.',
   'confirm.deletePost': 'Delete this post?',
-};
+}
 
 const ja: TranslationKeys = {
   'common.home': 'ホーム',
@@ -802,51 +812,41 @@ const ja: TranslationKeys = {
   'confirm.leaveStudy': 'スタディを退会しますか？',
   'confirm.deleteStudy': 'グループを削除しますか？元に戻せません。',
   'confirm.deletePost': '投稿を削除しますか？',
-};
+}
 
 // zh-CN flat TranslationKeys 는 별도 작성하지 않고 영어로 fallback —
 // JSON locale (`jsonZhCN`) 에 새 키만 번역하면 됨. tx() 가 ko fallback 함.
-const translations: Record<Locale, TranslationKeys> = { ko, en, ja, 'zh-CN': en };
+const translations: Record<Locale, TranslationKeys> = { ko, en, ja, 'zh-CN': en }
 
-const currentLocale: Locale = getLocale();
+const currentLocale: Locale = getLocale()
 
 export function t(key: keyof TranslationKeys): string {
-  return translations[currentLocale]?.[key] || translations.ko[key] || key;
+  return translations[currentLocale]?.[key] || translations.ko[key] || key
 }
 
-// ────────────────────────────────────────────────────────────
-// JSON 기반 중첩 번역 사전 — locales/*.json 파일에서 직접 import.
-// tx('study.cafe') 같은 점 표기 경로 + {n}/{min} 등 플레이스홀더 치환 지원.
-// 기존 t(flat key) 와 공존. 신규 UI 는 tx() 권장.
-// ────────────────────────────────────────────────────────────
-import jsonKo from '@/i18n/locales/ko.json';
-import jsonEn from '@/i18n/locales/en.json';
-import jsonJa from '@/i18n/locales/ja.json';
-import jsonZhCN from '@/i18n/locales/zh-CN.json';
-
-type NestedDict = { [key: string]: string | NestedDict };
+type NestedDict = { [key: string]: string | NestedDict }
 const jsonDicts: Record<Locale, NestedDict> = {
   ko: jsonKo as NestedDict,
   en: jsonEn as NestedDict,
   ja: jsonJa as NestedDict,
   'zh-CN': jsonZhCN as NestedDict,
-};
+}
 
 function pick(dict: NestedDict, path: string): string | undefined {
-  const parts = path.split('.');
-  let cur: string | NestedDict | undefined = dict;
+  const parts = path.split('.')
+  let cur: string | NestedDict | undefined = dict
   for (const p of parts) {
-    if (cur == null || typeof cur === 'string') return undefined;
-    cur = cur[p];
+    if (cur == null || typeof cur === 'string') return undefined
+    cur = cur[p]
   }
-  return typeof cur === 'string' ? cur : undefined;
+  return typeof cur === 'string' ? cur : undefined
 }
 
 function interpolate(template: string, params?: Record<string, string | number>): string {
-  if (!params) return template;
+  if (!params) return template
   return template.replace(/\{(\w+)\}/g, (_, k) =>
-    params[k] !== undefined ? String(params[k]) : `{${k}}`,
-  );
+    params[k] !== undefined ? String(params[k]) : `{${k}}`
+  )
 }
 
 /**
@@ -856,9 +856,9 @@ function interpolate(template: string, params?: Record<string, string | number>)
  * @returns 번역 문자열. 미존재 시 경로 문자열 반환 (개발 중 빠지면 눈에 띄도록)
  */
 export function tx(path: string, params?: Record<string, string | number>): string {
-  const val = pick(jsonDicts[currentLocale], path) ?? pick(jsonDicts.ko, path);
-  if (!val) return path;
-  return interpolate(val, params);
+  const val = pick(jsonDicts[currentLocale], path) ?? pick(jsonDicts.ko, path)
+  if (!val) return path
+  return interpolate(val, params)
 }
 
 export function getLocaleName(locale: Locale): string {
@@ -867,12 +867,12 @@ export function getLocaleName(locale: Locale): string {
     en: 'English',
     ja: '日本語',
     'zh-CN': '简体中文',
-  };
-  return names[locale];
+  }
+  return names[locale]
 }
 
-export const LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh-CN'];
+export const LOCALES: Locale[] = ['ko', 'en', 'ja', 'zh-CN']
 
 // Initialize HTML lang and dir attributes
-document.documentElement.lang = langMap[getLocale()] || 'ko';
-document.documentElement.dir = isRtl() ? 'rtl' : 'ltr';
+document.documentElement.lang = langMap[getLocale()] || 'ko'
+document.documentElement.dir = isRtl() ? 'rtl' : 'ltr'

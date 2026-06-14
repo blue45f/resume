@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import { useEffect, useRef, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
 import {
   fetchCoffeeChat,
   completeCoffeeChat,
@@ -9,88 +11,87 @@ import {
   leaveCoffeeChatFeedback,
   downloadCoffeeChatIcs,
   type CoffeeChat,
-} from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { useWebrtcPeer } from '@/lib/useWebrtcPeer';
-import { toast } from '@/components/Toast';
-import { getErrorMessage } from '@/lib/errorMessage';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { useWebrtcPeer } from '@/lib/useWebrtcPeer'
 
 /**
  * 1:1 WebRTC 통화 방 — host/requester 양쪽이 같은 페이지에 들어오면 P2P 연결.
  * 서버는 signaling 만 담당, 미디어는 peer-to-peer.
  */
 export default function CoffeeChatRoomPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const me = getUser();
-  const [chat, setChat] = useState<CoffeeChat | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
-  const [savingFeedback, setSavingFeedback] = useState(false);
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const me = getUser()
+  const [chat, setChat] = useState<CoffeeChat | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [feedback, setFeedback] = useState('')
+  const [savingFeedback, setSavingFeedback] = useState(false)
+  const localVideoRef = useRef<HTMLVideoElement>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
-  const peerId = chat ? (chat.hostId === me?.id ? chat.requesterId : chat.hostId) : '';
-  const peerInfo = chat ? (chat.hostId === me?.id ? chat.requester : chat.host) : null;
+  const peerId = chat ? (chat.hostId === me?.id ? chat.requesterId : chat.hostId) : ''
+  const peerInfo = chat ? (chat.hostId === me?.id ? chat.requester : chat.host) : null
   // host 가 initiator (먼저 offer 생성)
-  const isInitiator = !!chat && chat.hostId === me?.id;
+  const isInitiator = !!chat && chat.hostId === me?.id
 
   const { state, localStream, remoteStream, error, start, hangup } = useWebrtcPeer({
     roomId: chat?.roomId || '',
     peerId,
     isInitiator,
     modality: chat?.modality || 'video',
-  });
+  })
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) return
     fetchCoffeeChat(id)
       .then((c) => {
-        setChat(c);
+        setChat(c)
         // 본인이 참여자면 입장 시각 기록 (no-show 추적용, fire-and-forget)
         if (c?.status === 'accepted' && me && (c.hostId === me.id || c.requesterId === me.id)) {
-          recordCoffeeChatJoin(id).catch(() => {});
+          recordCoffeeChatJoin(id).catch(() => {})
         }
         // 기존 후기 prefill
         if (c && me) {
-          const existing = c.hostId === me.id ? c.hostFeedback : c.requesterFeedback;
-          if (existing) setFeedback(existing);
+          const existing = c.hostId === me.id ? c.hostFeedback : c.requesterFeedback
+          if (existing) setFeedback(existing)
         }
       })
       .catch((e) => toast(e instanceof Error ? e.message : '불러오기 실패', 'error'))
-      .finally(() => setLoading(false));
-  }, [id, me]);
+      .finally(() => setLoading(false))
+  }, [id, me])
 
   const saveFeedback = async () => {
-    if (!id) return;
-    setSavingFeedback(true);
+    if (!id) return
+    setSavingFeedback(true)
     try {
-      await leaveCoffeeChatFeedback(id, feedback.trim());
-      toast('후기 저장됨', 'success');
+      await leaveCoffeeChatFeedback(id, feedback.trim())
+      toast('후기 저장됨', 'success')
     } catch (e: unknown) {
-      toast(getErrorMessage(e, '후기 저장 실패'), 'error');
+      toast(getErrorMessage(e, '후기 저장 실패'), 'error')
     } finally {
-      setSavingFeedback(false);
+      setSavingFeedback(false)
     }
-  };
+  }
 
   const exportIcs = async () => {
-    if (!id) return;
+    if (!id) return
     try {
-      await downloadCoffeeChatIcs(id);
-      toast('캘린더 파일이 다운로드됐어요 (Google Cal / Outlook 에서 열기)', 'success');
+      await downloadCoffeeChatIcs(id)
+      toast('캘린더 파일이 다운로드됐어요 (Google Cal / Outlook 에서 열기)', 'success')
     } catch (e: unknown) {
-      toast(getErrorMessage(e, 'ICS export 실패'), 'error');
+      toast(getErrorMessage(e, 'ICS export 실패'), 'error')
     }
-  };
+  }
 
   useEffect(() => {
-    if (localVideoRef.current && localStream) localVideoRef.current.srcObject = localStream;
-  }, [localStream]);
+    if (localVideoRef.current && localStream) localVideoRef.current.srcObject = localStream
+  }, [localStream])
 
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
-  }, [remoteStream]);
+    if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream
+  }, [remoteStream])
 
   if (loading) {
     return (
@@ -101,7 +102,7 @@ export default function CoffeeChatRoomPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (!chat || !chat.roomId || chat.status !== 'accepted') {
@@ -126,12 +127,12 @@ export default function CoffeeChatRoomPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
-  const isVideo = chat.modality === 'video';
-  const isVoice = chat.modality === 'voice';
-  const isChat = chat.modality === 'chat';
+  const isVideo = chat.modality === 'video'
+  const isVoice = chat.modality === 'voice'
+  const isChat = chat.modality === 'chat'
 
   return (
     <>
@@ -170,6 +171,8 @@ export default function CoffeeChatRoomPage() {
           <div className="relative mb-4">
             {/* Remote video — 모바일 / 데스크톱 모두 풀 폭. */}
             <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative">
+              {/* WebRTC 실시간 원격 스트림이라 자막 트랙이 없다(media-has-caption 비적용). */}
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <video
                 ref={remoteVideoRef}
                 autoPlay
@@ -230,9 +233,9 @@ export default function CoffeeChatRoomPage() {
           ) : (
             <button
               onClick={async () => {
-                await hangup();
-                toast('통화 종료', 'success');
-                navigate(`/coffee-chats/${id}`);
+                await hangup()
+                toast('통화 종료', 'success')
+                navigate(`/coffee-chats/${id}`)
               }}
               className="px-5 py-2.5 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700"
             >
@@ -242,9 +245,9 @@ export default function CoffeeChatRoomPage() {
           {(state === 'connected' || state === 'disconnected') && (
             <button
               onClick={async () => {
-                await completeCoffeeChat(id!);
-                toast('완료 처리되었습니다', 'success');
-                navigate('/coffee-chats');
+                await completeCoffeeChat(id!)
+                toast('완료 처리되었습니다', 'success')
+                navigate('/coffee-chats')
               }}
               className="px-4 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
             >
@@ -294,5 +297,5 @@ export default function CoffeeChatRoomPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

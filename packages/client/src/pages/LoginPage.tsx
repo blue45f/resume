@@ -1,16 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { getSocialLoginUrl } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { API_URL } from '@/lib/config';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, useEffect } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+
+import { getSocialLoginUrl } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { ROUTES } from '@/lib/routes'
 import {
   loginSchema,
   registerSchema,
   type LoginFormValues,
   type RegisterFormValues,
-} from '@/shared/lib/schemas';
+} from '@/shared/lib/schemas'
 
 function GoogleIcon() {
   return (
@@ -32,7 +33,7 @@ function GoogleIcon() {
         fill="#EA4335"
       />
     </svg>
-  );
+  )
 }
 
 function GitHubIcon() {
@@ -44,7 +45,7 @@ function GitHubIcon() {
         clipRule="evenodd"
       />
     </svg>
-  );
+  )
 }
 
 function KakaoIcon() {
@@ -52,46 +53,46 @@ function KakaoIcon() {
     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" role="img">
       <path d="M12 3c-5.523 0-10 3.582-10 8 0 2.839 1.89 5.33 4.729 6.727-.162.592-.586 2.146-.672 2.48-.107.416.152.41.32.298.132-.088 2.1-1.43 2.945-2.012.87.132 1.77.2 2.678.2 5.523 0 10-3.582 10-8S17.523 3 12 3z" />
     </svg>
-  );
+  )
 }
 
 // 소셜 버튼은 모두 동일한 ghost 표면으로 통일한다. 색은 아이콘에만 싣고,
 // 가장 강한 색 신호(Signal Blue)는 1차 CTA가 독점한다 (The One Signal Rule).
 const SOCIAL_BTN_CLASS =
-  'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-sunken)] hover:border-[var(--color-text-muted)] hover:shadow-sm';
+  'bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] hover:bg-[var(--color-surface-sunken)] hover:border-[var(--color-text-muted)] hover:shadow-sm'
 
 const PROVIDERS = [
   { id: 'google', name: 'Google', icon: GoogleIcon },
   { id: 'github', name: 'GitHub', icon: GitHubIcon },
   { id: 'kakao', name: 'Kakao', icon: KakaoIcon },
-];
+]
 
 // 데모 계정 — prisma/seed.ts 가 시드하는 공개 체험용 계정 (회원가입 없이 둘러보기)
-const DEMO_EMAIL = 'demo@example.com';
-const DEMO_PASSWORD = 'Demo1234!';
+const DEMO_EMAIL = 'demo@example.com'
+const DEMO_PASSWORD = 'Demo1234!'
 
 export default function LoginPage() {
-  const [params] = useSearchParams();
-  const error = params.get('error');
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [params] = useSearchParams()
+  const error = params.get('error')
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login')
 
   useEffect(() => {
-    document.title = '로그인 — 이력서공방';
+    document.title = '로그인 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [authError, setAuthError] = useState('');
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const navigate = useNavigate()
 
-  const isRegister = activeTab === 'register';
+  const isRegister = activeTab === 'register'
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
-  });
+  })
 
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -102,28 +103,28 @@ export default function LoginPage() {
       userType: 'personal',
       companyName: '',
     },
-  });
+  })
 
-  const loginPassword = useWatch({ control: loginForm.control, name: 'password' });
-  const registerPassword = useWatch({ control: registerForm.control, name: 'password' });
-  const password = isRegister ? (registerPassword ?? '') : (loginPassword ?? '');
-  const userType = useWatch({ control: registerForm.control, name: 'userType' });
+  const loginPassword = useWatch({ control: loginForm.control, name: 'password' })
+  const registerPassword = useWatch({ control: registerForm.control, name: 'password' })
+  const password = isRegister ? (registerPassword ?? '') : (loginPassword ?? '')
+  const userType = useWatch({ control: registerForm.control, name: 'userType' })
 
   const getPasswordStrength = (v: string): { level: number; label: string; color: string } => {
-    if (!v) return { level: 0, label: '', color: '' };
-    let score = 0;
-    if (v.length >= 8) score++;
-    if (v.length >= 12) score++;
-    if (/[A-Z]/.test(v)) score++;
-    if (/[0-9]/.test(v)) score++;
-    if (/[^A-Za-z0-9]/.test(v)) score++;
-    if (score <= 1) return { level: 1, label: '약함', color: 'bg-red-500' };
-    if (score <= 2) return { level: 2, label: '보통', color: 'bg-amber-500' };
-    if (score <= 3) return { level: 3, label: '양호', color: 'bg-sky-500' };
-    return { level: 4, label: '강함', color: 'bg-emerald-500' };
-  };
+    if (!v) return { level: 0, label: '', color: '' }
+    let score = 0
+    if (v.length >= 8) score++
+    if (v.length >= 12) score++
+    if (/[A-Z]/.test(v)) score++
+    if (/[0-9]/.test(v)) score++
+    if (/[^A-Za-z0-9]/.test(v)) score++
+    if (score <= 1) return { level: 1, label: '약함', color: 'bg-red-500' }
+    if (score <= 2) return { level: 2, label: '보통', color: 'bg-amber-500' }
+    if (score <= 3) return { level: 3, label: '양호', color: 'bg-sky-500' }
+    return { level: 4, label: '강함', color: 'bg-emerald-500' }
+  }
 
-  const pwStrength = getPasswordStrength(password);
+  const pwStrength = getPasswordStrength(password)
 
   const performAuth = async (endpoint: string, body: unknown) => {
     // endpoint 는 '/api/auth/login' 같은 path — production Vercel 은 /api/* rewrite 없으므로
@@ -132,37 +133,37 @@ export default function LoginPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    });
-    const data = (await res.json()) as { token?: string; message?: string };
+    })
+    const data = (await res.json()) as { token?: string; message?: string }
     if (!res.ok) {
       // 서버가 한국어 메시지를 주면(예: 중복 이메일) 그대로 쓰고,
       // "Unauthorized" 같은 영문/기술 메시지는 상태코드별 한국어로 대체한다.
       const serverMsg =
-        typeof data?.message === 'string' && /[가-힣]/.test(data.message) ? data.message : '';
+        typeof data?.message === 'string' && /[가-힣]/.test(data.message) ? data.message : ''
       const fallback =
         res.status === 401
           ? '이메일 또는 비밀번호를 확인해 주세요.'
           : res.status === 429
             ? '요청이 많습니다. 잠시 후 다시 시도해 주세요.'
-            : '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-      throw new Error(serverMsg || fallback);
+            : '요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'
+      throw new Error(serverMsg || fallback)
     }
-    if (!data.token) throw new Error('인증 토큰을 받지 못했습니다');
-    localStorage.setItem('token', data.token);
-    let me: { userType?: string } | null = null;
+    if (!data.token) throw new Error('인증 토큰을 받지 못했습니다')
+    localStorage.setItem('token', data.token)
+    let me: { userType?: string } | null = null
     const meRes = await fetch(`${API_URL}/api/auth/me`, {
       headers: { Authorization: `Bearer ${data.token}` },
-    });
+    })
     if (meRes.ok) {
-      me = (await meRes.json()) as { userType?: string };
-      localStorage.setItem('user', JSON.stringify(me));
+      me = (await meRes.json()) as { userType?: string }
+      localStorage.setItem('user', JSON.stringify(me))
     }
-    const params = new URLSearchParams(window.location.search);
-    const next = params.get('next');
-    let dest: string = ROUTES.home;
+    const params = new URLSearchParams(window.location.search)
+    const next = params.get('next')
+    let dest: string = ROUTES.home
     // open-redirect 방지: 같은 오리진의 절대 경로만 허용.
     // '//attacker.com'(protocol-relative)·'/\\'·'/@host' 등 외부 리다이렉트 우회 차단.
-    let safeNext: string | null = null;
+    let safeNext: string | null = null
     if (
       next &&
       next.startsWith('/') &&
@@ -171,42 +172,41 @@ export default function LoginPage() {
       !next.includes('@')
     ) {
       try {
-        if (new URL(next, window.location.origin).origin === window.location.origin)
-          safeNext = next;
+        if (new URL(next, window.location.origin).origin === window.location.origin) safeNext = next
       } catch {
-        safeNext = null;
+        safeNext = null
       }
     }
     if (safeNext) {
-      dest = safeNext;
+      dest = safeNext
     } else if (me?.userType === 'coach') {
-      dest = ROUTES.coaching.dashboard;
+      dest = ROUTES.coaching.dashboard
     } else if (me?.userType === 'recruiter' || me?.userType === 'company') {
-      dest = ROUTES.recruiter.dashboard;
+      dest = ROUTES.recruiter.dashboard
     }
-    navigate(dest);
-    window.location.reload();
-  };
+    navigate(dest)
+    window.location.reload()
+  }
 
   const onLogin = async (data: LoginFormValues) => {
-    setAuthError('');
+    setAuthError('')
     try {
-      await performAuth('/api/auth/login', data);
+      await performAuth('/api/auth/login', data)
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : '인증에 실패했습니다');
+      setAuthError(err instanceof Error ? err.message : '인증에 실패했습니다')
     }
-  };
+  }
 
   // 데모 계정 자동 입력 + 제출 — 폼 값을 채워 사용자가 무엇으로 로그인되는지 보이게 한다.
   const onDemoLogin = async () => {
-    setAuthError('');
-    loginForm.setValue('email', DEMO_EMAIL, { shouldValidate: true });
-    loginForm.setValue('password', DEMO_PASSWORD, { shouldValidate: true });
-    await loginForm.handleSubmit(onLogin)();
-  };
+    setAuthError('')
+    loginForm.setValue('email', DEMO_EMAIL, { shouldValidate: true })
+    loginForm.setValue('password', DEMO_PASSWORD, { shouldValidate: true })
+    await loginForm.handleSubmit(onLogin)()
+  }
 
   const onRegister = async (data: RegisterFormValues) => {
-    setAuthError('');
+    setAuthError('')
     try {
       await performAuth('/api/auth/register', {
         email: data.email,
@@ -214,23 +214,23 @@ export default function LoginPage() {
         name: data.name,
         userType: data.userType,
         companyName: data.companyName || undefined,
-      });
+      })
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : '인증에 실패했습니다');
+      setAuthError(err instanceof Error ? err.message : '인증에 실패했습니다')
     }
-  };
+  }
 
   const loading = isRegister
     ? registerForm.formState.isSubmitting
-    : loginForm.formState.isSubmitting;
+    : loginForm.formState.isSubmitting
   const emailError = isRegister
     ? registerForm.formState.errors.email?.message
-    : loginForm.formState.errors.email?.message;
+    : loginForm.formState.errors.email?.message
   const passwordError = isRegister
     ? registerForm.formState.errors.password?.message
-    : loginForm.formState.errors.password?.message;
-  const nameError = registerForm.formState.errors.name?.message;
-  const companyNameError = registerForm.formState.errors.companyName?.message;
+    : loginForm.formState.errors.password?.message
+  const nameError = registerForm.formState.errors.name?.message
+  const companyNameError = registerForm.formState.errors.companyName?.message
 
   return (
     <div className="min-h-screen flex">
@@ -389,8 +389,8 @@ export default function LoginPage() {
                 type="button"
                 aria-pressed={activeTab === 'login'}
                 onClick={() => {
-                  setActiveTab('login');
-                  setAuthError('');
+                  setActiveTab('login')
+                  setAuthError('')
                 }}
                 className={`auth-tab ${activeTab === 'login' ? 'auth-tab--active' : ''}`}
               >
@@ -400,8 +400,8 @@ export default function LoginPage() {
                 type="button"
                 aria-pressed={activeTab === 'register'}
                 onClick={() => {
-                  setActiveTab('register');
-                  setAuthError('');
+                  setActiveTab('register')
+                  setAuthError('')
                 }}
                 className={`auth-tab ${activeTab === 'register' ? 'auth-tab--active' : ''}`}
               >
@@ -443,7 +443,7 @@ export default function LoginPage() {
             {/* Social login buttons */}
             <div className="space-y-2.5 mb-6">
               {PROVIDERS.map((p) => {
-                const Icon = p.icon;
+                const Icon = p.icon
                 return (
                   <a
                     key={p.id}
@@ -453,7 +453,7 @@ export default function LoginPage() {
                     <Icon />
                     {p.name}&#xC73C;&#xB85C; {isRegister ? '가입하기' : '계속하기'}
                   </a>
-                );
+                )
               })}
             </div>
 
@@ -801,7 +801,7 @@ export default function LoginPage() {
                           ? 'var(--color-warning)'
                           : pwStrength.level <= 3
                             ? 'var(--color-accent)'
-                            : 'var(--color-success)';
+                            : 'var(--color-success)'
                     return (
                       <div className="mt-2" aria-live="polite">
                         <div className="flex gap-1 mb-1.5">
@@ -830,7 +830,7 @@ export default function LoginPage() {
                           )}
                         </p>
                       </div>
-                    );
+                    )
                   })()}
               </div>
 
@@ -1047,5 +1047,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

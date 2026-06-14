@@ -1,14 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import EmptyState from '@/components/EmptyState';
-import { toast } from '@/components/Toast';
-import { createTag, deleteTag } from '@/lib/api';
-import { useTags } from '@/hooks/useResources';
-import { t } from '@/lib/i18n';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+
+import EmptyState from '@/components/EmptyState'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { useTags } from '@/hooks/useResources'
+import { createTag, deleteTag } from '@/lib/api'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { t } from '@/lib/i18n'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 const COLOR_PRESETS = [
   '#3b82f6',
@@ -21,54 +22,54 @@ const COLOR_PRESETS = [
   '#84cc16',
   '#f97316',
   '#2563eb',
-];
+]
 
 export default function TagsPage() {
-  const queryClient = useQueryClient();
-  const { data: tagsData, isLoading: loading } = useTags();
-  const tags = tagsData ?? [];
-  const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState('#2563eb');
-  const [error, setError] = useState('');
-  const confirm = useConfirm();
+  const queryClient = useQueryClient()
+  const { data: tagsData, isLoading: loading } = useTags()
+  const tags = tagsData ?? []
+  const [newName, setNewName] = useState('')
+  const [newColor, setNewColor] = useState('#2563eb')
+  const [error, setError] = useState('')
+  const confirm = useConfirm()
 
   useEffect(() => {
-    document.title = '태그 관리 — 이력서공방';
+    document.title = '태그 관리 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const createMutation = useMutation({
     mutationFn: (data: { name: string; color?: string }) => createTag(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'] });
-      setNewName('');
-      toast('태그가 생성되었습니다', 'success');
+      queryClient.invalidateQueries({ queryKey: ['tags'] })
+      setNewName('')
+      toast('태그가 생성되었습니다', 'success')
     },
     onError: (err: unknown) => {
-      setError(getErrorMessage(err, '태그 생성에 실패했습니다'));
+      setError(getErrorMessage(err, '태그 생성에 실패했습니다'))
     },
-  });
+  })
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteTag(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tags'] });
-      toast('태그가 삭제되었습니다', 'success');
+      queryClient.invalidateQueries({ queryKey: ['tags'] })
+      toast('태그가 삭제되었습니다', 'success')
     },
     onError: (err: unknown) => {
-      toast(getErrorMessage(err, '삭제에 실패했습니다'), 'error');
+      toast(getErrorMessage(err, '삭제에 실패했습니다'), 'error')
     },
-  });
+  })
 
-  const creating = createMutation.isPending;
+  const creating = createMutation.isPending
 
   const handleCreate = () => {
-    if (!newName.trim()) return;
-    setError('');
-    createMutation.mutate({ name: newName.trim(), color: newColor });
-  };
+    if (!newName.trim()) return
+    setError('')
+    createMutation.mutate({ name: newName.trim(), color: newColor })
+  }
 
   const handleDelete = async (id: string, name: string) => {
     if (
@@ -78,9 +79,9 @@ export default function TagsPage() {
         confirmText: '삭제',
       }))
     )
-      return;
-    deleteMutation.mutate(id);
-  };
+      return
+    deleteMutation.mutate(id)
+  }
 
   return (
     <>
@@ -190,5 +191,5 @@ export default function TagsPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

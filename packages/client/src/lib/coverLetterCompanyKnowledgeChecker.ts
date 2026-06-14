@@ -11,32 +11,32 @@ export type CompanyKnowledgeSignalType =
   | 'business_context' // 회사 비즈니스·시장 포지션 이해
   | 'initiative_reference' // 공개 이니셔티브·전략 언급
   | 'culture_alignment' // 회사 특정 문화 키워드와 정렬
-  | 'milestone_reference'; // 회사 특정 성과·이정표 언급
+  | 'milestone_reference' // 회사 특정 성과·이정표 언급
 
 export type VaguePraiseType =
   | 'generic_best' // "최고의", "최고 수준"
   | 'hollow_aspiration' // "귀사의 비전에 공감"
-  | 'unspecific_culture'; // "좋은 문화"
+  | 'unspecific_culture' // "좋은 문화"
 
 export interface CompanyKnowledgeSignal {
-  type: CompanyKnowledgeSignalType;
-  excerpt: string;
+  type: CompanyKnowledgeSignalType
+  excerpt: string
 }
 
 export interface VaguePraiseSignal {
-  type: VaguePraiseType;
-  excerpt: string;
+  type: VaguePraiseType
+  excerpt: string
 }
 
-export type CompanyKnowledgeDepth = 'specific' | 'moderate' | 'generic' | 'none';
+export type CompanyKnowledgeDepth = 'specific' | 'moderate' | 'generic' | 'none'
 
 export interface CoverLetterCompanyKnowledgeReport {
-  knowledgeSignals: CompanyKnowledgeSignal[];
-  vaguePraiseSignals: VaguePraiseSignal[];
-  knowledgeScore: number; // 0–100
-  vaguePraiseCount: number;
-  depth: CompanyKnowledgeDepth;
-  suggestion: string;
+  knowledgeSignals: CompanyKnowledgeSignal[]
+  vaguePraiseSignals: VaguePraiseSignal[]
+  knowledgeScore: number // 0–100
+  vaguePraiseCount: number
+  depth: CompanyKnowledgeDepth
+  suggestion: string
 }
 
 // ---------------------------------------------------------------------------
@@ -44,9 +44,9 @@ export interface CoverLetterCompanyKnowledgeReport {
 // ---------------------------------------------------------------------------
 
 interface KnowledgePattern {
-  re: RegExp;
-  type: CompanyKnowledgeSignalType;
-  weight: number;
+  re: RegExp
+  type: CompanyKnowledgeSignalType
+  weight: number
 }
 
 const KNOWLEDGE_PATTERNS: KnowledgePattern[] = [
@@ -126,15 +126,15 @@ const KNOWLEDGE_PATTERNS: KnowledgePattern[] = [
     type: 'milestone_reference',
     weight: 20,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Vague praise patterns (reduce credibility)
 // ---------------------------------------------------------------------------
 
 interface VaguePattern {
-  re: RegExp;
-  type: VaguePraiseType;
+  re: RegExp
+  type: VaguePraiseType
 }
 
 const VAGUE_PATTERNS: VaguePattern[] = [
@@ -162,61 +162,61 @@ const VAGUE_PATTERNS: VaguePattern[] = [
     re: /(?:수평적|자유로운|열린)\s*(?:분위기|문화|환경)\s*(?:에\s*매력|을\s*좋아|로\s*유명)/,
     type: 'unspecific_culture',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function checkCoverLetterCompanyKnowledge(text: string): CoverLetterCompanyKnowledgeReport {
-  const t = text ?? '';
-  const knowledgeSignals: CompanyKnowledgeSignal[] = [];
-  const vaguePraiseSignals: VaguePraiseSignal[] = [];
-  let knowledgeRaw = 0;
-  const seenTypes = new Set<CompanyKnowledgeSignalType>();
+  const t = text ?? ''
+  const knowledgeSignals: CompanyKnowledgeSignal[] = []
+  const vaguePraiseSignals: VaguePraiseSignal[] = []
+  let knowledgeRaw = 0
+  const seenTypes = new Set<CompanyKnowledgeSignalType>()
 
   for (const { re, type, weight } of KNOWLEDGE_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      knowledgeSignals.push({ type, excerpt: m[0].slice(0, 60) });
+      knowledgeSignals.push({ type, excerpt: m[0].slice(0, 60) })
       if (!seenTypes.has(type)) {
-        seenTypes.add(type);
-        knowledgeRaw += weight;
+        seenTypes.add(type)
+        knowledgeRaw += weight
       }
     }
   }
 
   for (const { re, type } of VAGUE_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      vaguePraiseSignals.push({ type, excerpt: m[0].slice(0, 60) });
+      vaguePraiseSignals.push({ type, excerpt: m[0].slice(0, 60) })
     }
   }
 
-  const knowledgeScore = Math.min(100, knowledgeRaw);
-  const vaguePraiseCount = vaguePraiseSignals.length;
+  const knowledgeScore = Math.min(100, knowledgeRaw)
+  const vaguePraiseCount = vaguePraiseSignals.length
 
   // Adjust for vague praise penalty
-  const adjustedScore = Math.max(0, knowledgeScore - vaguePraiseCount * 5);
+  const adjustedScore = Math.max(0, knowledgeScore - vaguePraiseCount * 5)
 
-  let depth: CompanyKnowledgeDepth;
-  if (adjustedScore >= 40) depth = 'specific';
-  else if (adjustedScore >= 15) depth = 'moderate';
-  else if (vaguePraiseCount >= 2) depth = 'generic';
-  else depth = 'none';
+  let depth: CompanyKnowledgeDepth
+  if (adjustedScore >= 40) depth = 'specific'
+  else if (adjustedScore >= 15) depth = 'moderate'
+  else if (vaguePraiseCount >= 2) depth = 'generic'
+  else depth = 'none'
 
-  let suggestion: string;
+  let suggestion: string
   if (depth === 'specific') {
-    suggestion = '회사를 구체적으로 이해하고 있음이 잘 드러납니다.';
+    suggestion = '회사를 구체적으로 이해하고 있음이 잘 드러납니다.'
   } else if (depth === 'moderate') {
     suggestion =
-      '일부 구체적 언급이 있습니다. 제품 직접 사용 경험, 기술 블로그 내용, 최근 이니셔티브를 추가하면 더 강해집니다.';
+      '일부 구체적 언급이 있습니다. 제품 직접 사용 경험, 기술 블로그 내용, 최근 이니셔티브를 추가하면 더 강해집니다.'
   } else if (depth === 'generic') {
     suggestion =
-      '추상적인 찬사 위주입니다. 회사 제품을 직접 써본 경험, 기술 블로그에서 읽은 내용, 특정 전략을 언급하세요.';
+      '추상적인 찬사 위주입니다. 회사 제품을 직접 써본 경험, 기술 블로그에서 읽은 내용, 특정 전략을 언급하세요.'
   } else {
     suggestion =
-      '회사 이해도를 보여주는 내용이 없습니다. 지원 전 기업 리서치 후 구체적 사실을 삽입하세요.';
+      '회사 이해도를 보여주는 내용이 없습니다. 지원 전 기업 리서치 후 구체적 사실을 삽입하세요.'
   }
 
   return {
@@ -226,5 +226,5 @@ export function checkCoverLetterCompanyKnowledge(text: string): CoverLetterCompa
     vaguePraiseCount,
     depth,
     suggestion,
-  };
+  }
 }

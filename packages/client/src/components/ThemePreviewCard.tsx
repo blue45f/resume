@@ -1,11 +1,11 @@
-import type { ResumeTheme } from '@/lib/resumeThemes';
+import type { ResumeTheme } from '@/lib/resumeThemes'
 
 interface Props {
-  theme: ResumeTheme;
-  selected?: boolean;
-  usageCount?: number;
-  onClick: () => void;
-  onPreview?: () => void;
+  theme: ResumeTheme
+  selected?: boolean
+  usageCount?: number
+  onClick: () => void
+  onPreview?: () => void
 }
 
 export default function ThemePreviewCard({
@@ -15,8 +15,8 @@ export default function ThemePreviewCard({
   onClick,
   onPreview,
 }: Props) {
-  const p = theme.preview;
-  const isGradient = p?.headerBg.startsWith('linear-gradient');
+  const p = theme.preview
+  const isGradient = p?.headerBg.startsWith('linear-gradient')
 
   return (
     <div
@@ -30,8 +30,8 @@ export default function ThemePreviewCard({
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
+          e.preventDefault()
+          onClick()
         }
       }}
       aria-label={`${theme.name} 테마 선택`}
@@ -103,8 +103,8 @@ export default function ThemePreviewCard({
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <button
               onClick={(e) => {
-                e.stopPropagation();
-                onPreview();
+                e.stopPropagation()
+                onPreview()
               }}
               className="px-3 py-1.5 bg-white/95 text-slate-800 text-xs font-medium rounded-lg shadow-lg hover:bg-white transition-colors"
             >
@@ -186,5 +186,5 @@ export default function ThemePreviewCard({
         </div>
       )}
     </div>
-  );
+  )
 }

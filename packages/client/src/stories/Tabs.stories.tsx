@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import Tabs from '@/shared/ui/Tabs';
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import Tabs from '@/shared/ui/Tabs'
 
 const meta: Meta<typeof Tabs> = {
   title: 'UI Primitives/Tabs',
@@ -9,9 +10,9 @@ const meta: Meta<typeof Tabs> = {
     ariaLabel: { control: 'text' },
     defaultTab: { control: 'text' },
   },
-};
-export default meta;
-type Story = StoryObj<typeof Tabs>;
+}
+export default meta
+type Story = StoryObj<typeof Tabs>
 
 const baseItems = [
   {
@@ -29,7 +30,7 @@ const baseItems = [
     label: '이력',
     content: <p className="text-sm">이력 패널 — 과거 활동을 표시합니다.</p>,
   },
-];
+]
 
 export const Default: Story = {
   args: {
@@ -37,7 +38,7 @@ export const Default: Story = {
     defaultTab: 'overview',
     ariaLabel: '리소스 탭',
   },
-};
+}
 
 export const WithCounts: Story = {
   args: {
@@ -54,7 +55,7 @@ export const WithCounts: Story = {
     defaultTab: 'all',
     ariaLabel: '상태별 탭',
   },
-};
+}
 
 export const SingleTab: Story = {
   args: {
@@ -66,7 +67,7 @@ export const SingleTab: Story = {
       },
     ],
   },
-};
+}
 
 export const ManyTabs: Story = {
   args: {
@@ -76,4 +77,4 @@ export const ManyTabs: Story = {
       content: <p className="text-sm">탭 {i + 1} 콘텐츠.</p>,
     })),
   },
-};
+}

@@ -1,22 +1,22 @@
 export interface ResumeTheme {
-  id: string;
-  name: string;
-  description: string;
-  headerStyle: string;
-  sectionTitleStyle: string;
-  bodyStyle: string;
-  accentColor: string;
-  fontFamily: string;
-  premium?: boolean;
+  id: string
+  name: string
+  description: string
+  headerStyle: string
+  sectionTitleStyle: string
+  bodyStyle: string
+  accentColor: string
+  fontFamily: string
+  premium?: boolean
   /** Preview metadata for gallery cards */
   preview?: {
-    headerBg: string;
-    headerText: string;
-    accentBar: string;
-    bodyBg: string;
-    category: 'basic' | 'professional' | 'creative' | 'academic' | 'tech';
-    bestFor: string;
-  };
+    headerBg: string
+    headerText: string
+    accentBar: string
+    bodyBg: string
+    category: 'basic' | 'professional' | 'creative' | 'academic' | 'tech'
+    bestFor: string
+  }
 }
 
 export const resumeThemes: ResumeTheme[] = [
@@ -325,7 +325,7 @@ export const resumeThemes: ResumeTheme[] = [
       bestFor: '크리에이터, 포트폴리오',
     },
   },
-];
+]
 
 /** Category labels for theme gallery grouping */
 export const THEME_CATEGORY_LABELS: Record<string, string> = {
@@ -334,4 +334,4 @@ export const THEME_CATEGORY_LABELS: Record<string, string> = {
   creative: '크리에이티브',
   academic: '학술/연구',
   tech: '테크/개발',
-};
+}

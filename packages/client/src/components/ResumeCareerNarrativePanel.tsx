@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkCareerNarrative } from '@/lib/resumeCareerNarrativeChecker';
-import type { NarrativeIssueType } from '@/lib/resumeCareerNarrativeChecker';
+import { useMemo } from 'react'
+
+import type { NarrativeIssueType } from '@/lib/resumeCareerNarrativeChecker'
+
+import { checkCareerNarrative } from '@/lib/resumeCareerNarrativeChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const ISSUE_LABEL: Record<NarrativeIssueType, string> = {
@@ -13,21 +15,21 @@ const ISSUE_LABEL: Record<NarrativeIssueType, string> = {
   tech_scatter: '기술 분산',
   no_progression: '성장 부재',
   strong_narrative: '강한 내러티브',
-};
+}
 
 const COHESION_LABEL: Record<string, string> = {
   coherent: '일관됨',
   adequate: '보완 필요',
   fragmented: '산만',
-};
+}
 
 export default function ResumeCareerNarrativePanel({ text }: Props) {
-  const report = useMemo(() => checkCareerNarrative(text), [text]);
+  const report = useMemo(() => checkCareerNarrative(text), [text])
 
-  if (text.trim().length < 100) return null;
-  if (report.cohesion === 'coherent') return null;
+  if (text.trim().length < 100) return null
+  if (report.cohesion === 'coherent') return null
 
-  const isWarning = report.cohesion === 'fragmented';
+  const isWarning = report.cohesion === 'fragmented'
 
   return (
     <aside
@@ -66,5 +68,5 @@ export default function ResumeCareerNarrativePanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

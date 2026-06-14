@@ -1,21 +1,22 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
 
 export type CreateCoverLetterInput = {
-  resumeId?: string;
-  applicationId?: string;
-  company: string;
-  position: string;
-  tone: string;
-  jobDescription: string;
-  content: string;
-};
+  resumeId?: string
+  applicationId?: string
+  company: string
+  position: string
+  tone: string
+  jobDescription: string
+  content: string
+}
 
 export type UpdateCoverLetterInput = {
-  content?: string;
-  company?: string;
-  position?: string;
-};
+  content?: string
+  company?: string
+  position?: string
+}
 
 @Injectable()
 export class CoverLettersService {
@@ -36,41 +37,41 @@ export class CoverLettersService {
         createdAt: true,
         updatedAt: true,
       },
-    });
+    })
   }
 
   async findOne(id: string, userId: string) {
-    const cl = await this.prisma.coverLetter.findUnique({ where: { id } });
-    if (!cl) throw new NotFoundException('자소서를 찾을 수 없습니다');
-    if (cl.userId !== userId) throw new ForbiddenException('권한이 없습니다');
-    return cl;
+    const cl = await this.prisma.coverLetter.findUnique({ where: { id } })
+    if (!cl) throw new NotFoundException('자소서를 찾을 수 없습니다')
+    if (cl.userId !== userId) throw new ForbiddenException('권한이 없습니다')
+    return cl
   }
 
   async create(userId: string, data: CreateCoverLetterInput) {
     return this.prisma.coverLetter.create({
       data: { userId, ...data },
-    });
+    })
   }
 
   async update(id: string, userId: string, data: UpdateCoverLetterInput) {
-    const cl = await this.prisma.coverLetter.findUnique({ where: { id } });
-    if (!cl) throw new NotFoundException();
-    if (cl.userId !== userId) throw new ForbiddenException();
-    return this.prisma.coverLetter.update({ where: { id }, data });
+    const cl = await this.prisma.coverLetter.findUnique({ where: { id } })
+    if (!cl) throw new NotFoundException()
+    if (cl.userId !== userId) throw new ForbiddenException()
+    return this.prisma.coverLetter.update({ where: { id }, data })
   }
 
   async remove(id: string, userId: string) {
-    const cl = await this.prisma.coverLetter.findUnique({ where: { id } });
-    if (!cl) throw new NotFoundException();
-    if (cl.userId !== userId) throw new ForbiddenException();
-    await this.prisma.coverLetter.delete({ where: { id } });
-    return { success: true };
+    const cl = await this.prisma.coverLetter.findUnique({ where: { id } })
+    if (!cl) throw new NotFoundException()
+    if (cl.userId !== userId) throw new ForbiddenException()
+    await this.prisma.coverLetter.delete({ where: { id } })
+    return { success: true }
   }
 
   async getByResume(resumeId: string, userId: string) {
     return this.prisma.coverLetter.findMany({
       where: { resumeId, userId },
       orderBy: { updatedAt: 'desc' },
-    });
+    })
   }
 }

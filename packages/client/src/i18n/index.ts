@@ -1,11 +1,13 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
-import { getLocale, LOCALES } from '@/lib/i18n';
-import ko from './locales/ko.json';
-import en from './locales/en.json';
-import ja from './locales/ja.json';
-import zhCN from './locales/zh-CN.json';
+import i18n from 'i18next'
+import LanguageDetector from 'i18next-browser-languagedetector'
+import { initReactI18next } from 'react-i18next'
+
+import en from './locales/en.json'
+import ja from './locales/ja.json'
+import ko from './locales/ko.json'
+import zhCN from './locales/zh-CN.json'
+
+import { getLocale, LOCALES } from '@/lib/i18n'
 
 i18n
   .use(LanguageDetector)
@@ -28,11 +30,11 @@ i18n
       caches: ['localStorage'],
       lookupLocalStorage: 'lang',
     },
-  });
+  })
 
 // 언어 변경(초기 init 포함) 시 <html lang> 동기화 — 스크린리더·브라우저 번역·SEO 힌트.
 i18n.on('languageChanged', (lng) => {
-  document.documentElement.lang = lng;
-});
+  document.documentElement.lang = lng
+})
 
-export default i18n;
+export default i18n

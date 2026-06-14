@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
-import { API_URL } from '@/lib/config';
+import { useState, useEffect } from 'react'
+
+import { API_URL } from '@/lib/config'
 
 interface Attachment {
-  id: string;
-  originalName: string;
-  mimeType: string;
-  size: number;
-  category: string;
-  downloadUrl: string;
+  id: string
+  originalName: string
+  mimeType: string
+  size: number
+  category: string
+  downloadUrl: string
 }
 
 interface Props {
-  resumeId: string;
+  resumeId: string
 }
 
 const categoryLabels: Record<string, string> = {
@@ -19,33 +20,33 @@ const categoryLabels: Record<string, string> = {
   portfolio: '포트폴리오',
   document: '서류',
   reference: '참고자료',
-};
+}
 
 function fileIcon(mime: string) {
-  if (mime.startsWith('image/')) return '🖼️';
-  if (mime === 'application/pdf') return '📕';
-  if (mime.includes('word')) return '📝';
-  if (mime.includes('sheet') || mime.includes('excel')) return '📊';
-  return '📎';
+  if (mime.startsWith('image/')) return '🖼️'
+  if (mime === 'application/pdf') return '📕'
+  if (mime.includes('word')) return '📝'
+  if (mime.includes('sheet') || mime.includes('excel')) return '📊'
+  return '📎'
 }
 
 function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
 }
 
 export default function AttachmentList({ resumeId }: Props) {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([])
 
   useEffect(() => {
     fetch(`${API_URL}/api/resumes/${resumeId}/attachments`)
       .then((r) => (r.ok ? r.json() : []))
       .then(setAttachments)
-      .catch(() => {});
-  }, [resumeId]);
+      .catch(() => {})
+  }, [resumeId])
 
-  if (attachments.length === 0) return null;
+  if (attachments.length === 0) return null
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -88,5 +89,5 @@ export default function AttachmentList({ resumeId }: Props) {
         ))}
       </div>
     </div>
-  );
+  )
 }

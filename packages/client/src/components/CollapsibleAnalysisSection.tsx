@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react'
 
 interface Props {
   /** 접기 헤더에 표시할 제목 (이모지 포함 가능). */
-  title: string;
+  title: string
   /** 기본 펼침 여부. 기본값 false(접힘). */
-  defaultOpen?: boolean;
-  children: ReactNode;
+  defaultOpen?: boolean
+  children: ReactNode
 }
 
 /**
@@ -27,5 +27,5 @@ export default function CollapsibleAnalysisSection({
       </summary>
       <div className="analysis-fold__body">{children}</div>
     </details>
-  );
+  )
 }

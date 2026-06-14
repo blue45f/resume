@@ -1,12 +1,13 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { CardSkeleton, CardGridSkeleton, StatsSkeleton, FormSkeleton } from '@/components/Skeleton';
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import { CardSkeleton, CardGridSkeleton, StatsSkeleton, FormSkeleton } from '@/components/Skeleton'
 
 const meta: Meta = {
   title: 'Layout/Skeleton',
   parameters: { layout: 'padded' },
-};
-export default meta;
-type Story = StoryObj;
+}
+export default meta
+type Story = StoryObj
 
 export const Card: Story = {
   render: () => (
@@ -14,7 +15,7 @@ export const Card: Story = {
       <CardSkeleton />
     </div>
   ),
-};
+}
 
 export const CardGrid: Story = {
   render: () => (
@@ -22,7 +23,7 @@ export const CardGrid: Story = {
       <CardGridSkeleton count={6} />
     </div>
   ),
-};
+}
 
 export const Stats: Story = {
   render: () => (
@@ -30,7 +31,7 @@ export const Stats: Story = {
       <StatsSkeleton />
     </div>
   ),
-};
+}
 
 export const Form: Story = {
   render: () => (
@@ -38,4 +39,4 @@ export const Form: Story = {
       <FormSkeleton />
     </div>
   ),
-};
+}

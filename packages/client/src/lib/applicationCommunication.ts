@@ -1,37 +1,37 @@
-import type { JobApplication } from './api';
+import type { JobApplication } from './api'
 
-export type ApplicationCommunicationTone = 'primary' | 'neutral' | 'caution';
+export type ApplicationCommunicationTone = 'primary' | 'neutral' | 'caution'
 
 export interface ApplicationCommunicationTemplate {
-  id: string;
-  label: string;
-  description: string;
-  subject: string;
-  body: string;
-  tone: ApplicationCommunicationTone;
+  id: string
+  label: string
+  description: string
+  subject: string
+  body: string
+  tone: ApplicationCommunicationTone
 }
 
-const INTERVIEW_STATUSES = new Set(['interview', 'interviewing', 'technical', 'onsite', 'final']);
+const INTERVIEW_STATUSES = new Set(['interview', 'interviewing', 'technical', 'onsite', 'final'])
 
-const normalizeStatus = (status: string) => status.trim().toLowerCase();
+const normalizeStatus = (status: string) => status.trim().toLowerCase()
 
-const cleanText = (value?: string | null, fallback = '') => value?.trim() || fallback;
+const cleanText = (value?: string | null, fallback = '') => value?.trim() || fallback
 
 const formatDate = (value?: string | null, fallback = '최근') => {
-  if (!value) return fallback;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return fallback;
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}.${month}.${day}`;
-};
+  if (!value) return fallback
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return fallback
+  const year = date.getFullYear()
+  const month = `${date.getMonth() + 1}`.padStart(2, '0')
+  const day = `${date.getDate()}`.padStart(2, '0')
+  return `${year}.${month}.${day}`
+}
 
 const joinEmail = (subject: string, bodyLines: string[]) =>
-  [`제목: ${subject}`, '', ...bodyLines].join('\n');
+  [`제목: ${subject}`, '', ...bodyLines].join('\n')
 
 const makeTemplate = (
-  template: Omit<ApplicationCommunicationTemplate, 'body'> & { bodyLines: string[] },
+  template: Omit<ApplicationCommunicationTemplate, 'body'> & { bodyLines: string[] }
 ): ApplicationCommunicationTemplate => ({
   id: template.id,
   label: template.label,
@@ -39,24 +39,24 @@ const makeTemplate = (
   subject: template.subject,
   body: joinEmail(template.subject, template.bodyLines),
   tone: template.tone,
-});
+})
 
 export const buildStageCommunicationTemplates = (
   application: Pick<
     JobApplication,
     'company' | 'position' | 'status' | 'appliedDate' | 'interviewDate' | 'salary' | 'updatedAt'
   >,
-  now = new Date(),
+  now = new Date()
 ): ApplicationCommunicationTemplate[] => {
-  const company = cleanText(application.company, '귀사');
-  const position = cleanText(application.position, '지원 포지션');
-  const status = normalizeStatus(application.status);
-  const appliedDate = formatDate(application.appliedDate);
-  const interviewDate = formatDate(application.interviewDate, '면접일');
-  const updatedAtTime = new Date(application.updatedAt).getTime();
+  const company = cleanText(application.company, '귀사')
+  const position = cleanText(application.position, '지원 포지션')
+  const status = normalizeStatus(application.status)
+  const appliedDate = formatDate(application.appliedDate)
+  const interviewDate = formatDate(application.interviewDate, '면접일')
+  const updatedAtTime = new Date(application.updatedAt).getTime()
   const staleDays = Number.isFinite(updatedAtTime)
     ? Math.floor((now.getTime() - updatedAtTime) / (24 * 60 * 60 * 1000))
-    : 0;
+    : 0
 
   if (INTERVIEW_STATUSES.has(status)) {
     return [
@@ -94,7 +94,7 @@ export const buildStageCommunicationTemplates = (
           '감사합니다.',
         ],
       }),
-    ];
+    ]
   }
 
   if (status === 'offer') {
@@ -130,7 +130,7 @@ export const buildStageCommunicationTemplates = (
           '앞으로 잘 부탁드립니다.',
         ],
       }),
-    ];
+    ]
   }
 
   if (status === 'rejected') {
@@ -151,10 +151,10 @@ export const buildStageCommunicationTemplates = (
           '감사합니다.',
         ],
       }),
-    ];
+    ]
   }
 
-  const staleNoResponse = ['applied', 'screening'].includes(status) && staleDays >= 21;
+  const staleNoResponse = ['applied', 'screening'].includes(status) && staleDays >= 21
 
   return [
     ...(staleNoResponse
@@ -209,5 +209,5 @@ export const buildStageCommunicationTemplates = (
         '감사합니다.',
       ],
     }),
-  ];
-};
+  ]
+}

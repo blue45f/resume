@@ -1,24 +1,25 @@
-import { useMemo } from 'react';
-import { analyzeCareerProgression } from '@/lib/careerProgressionAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeCareerProgression } from '@/lib/careerProgressionAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function CareerProgressionPanel({ text }: Props) {
-  const report = useMemo(() => analyzeCareerProgression(text), [text]);
+  const report = useMemo(() => analyzeCareerProgression(text), [text])
 
-  if (report.clarity === 'clear') return null;
-  if (text.trim().length < 60) return null;
+  if (report.clarity === 'clear') return null
+  if (text.trim().length < 60) return null
 
-  const isWarning = report.clarity === 'unclear';
+  const isWarning = report.clarity === 'unclear'
 
   const typeIcon: Record<string, string> = {
     promotion: '⬆',
     scope: '↔',
     team_growth: '📈',
     role_change: '🔄',
-  };
+  }
 
   return (
     <aside
@@ -63,5 +64,5 @@ export default function CareerProgressionPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

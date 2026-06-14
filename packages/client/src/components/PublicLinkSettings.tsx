@@ -1,19 +1,20 @@
-import { useState, useCallback } from 'react';
-import { toast } from '@/components/Toast';
-import { updateResumeSlug } from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useState, useCallback } from 'react'
+
+import { toast } from '@/components/Toast'
+import { updateResumeSlug } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { getErrorMessage } from '@/lib/errorMessage'
 
 interface Props {
-  resumeId: string;
-  currentSlug?: string;
-  ownerName?: string;
-  onSlugUpdated?: (newSlug: string) => void;
+  resumeId: string
+  currentSlug?: string
+  ownerName?: string
+  onSlugUpdated?: (newSlug: string) => void
 }
 
 interface SlugDraft {
-  sourceSlug: string;
-  value: string;
+  sourceSlug: string
+  value: string
 }
 
 export default function PublicLinkSettings({
@@ -22,91 +23,91 @@ export default function PublicLinkSettings({
   ownerName,
   onSlugUpdated,
 }: Props) {
-  const normalizedCurrentSlug = currentSlug || '';
+  const normalizedCurrentSlug = currentSlug || ''
   const [slugDraft, setSlugDraft] = useState<SlugDraft>(() => ({
     sourceSlug: normalizedCurrentSlug,
     value: normalizedCurrentSlug,
-  }));
+  }))
   const slug =
-    slugDraft.sourceSlug === normalizedCurrentSlug ? slugDraft.value : normalizedCurrentSlug;
+    slugDraft.sourceSlug === normalizedCurrentSlug ? slugDraft.value : normalizedCurrentSlug
   const setSlug = useCallback(
     (value: string) => setSlugDraft({ sourceSlug: normalizedCurrentSlug, value }),
-    [normalizedCurrentSlug],
-  );
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [embedCopied, setEmbedCopied] = useState(false);
-  const [showEmbed, setShowEmbed] = useState(false);
+    [normalizedCurrentSlug]
+  )
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [embedCopied, setEmbedCopied] = useState(false)
+  const [showEmbed, setShowEmbed] = useState(false)
 
-  const user = getUser();
-  const username = ownerName || user?.name || 'user';
-  const shortCode = resumeId.slice(0, 8);
-  const shortUrl = `${window.location.origin}/r/${shortCode}`;
+  const user = getUser()
+  const username = ownerName || user?.name || 'user'
+  const shortCode = resumeId.slice(0, 8)
+  const shortUrl = `${window.location.origin}/r/${shortCode}`
   const previewUrl = slug
     ? `${window.location.origin}/@${encodeURIComponent(username)}/${encodeURIComponent(slug)}`
-    : window.location.href;
+    : window.location.href
 
   const generateSlug = useCallback(() => {
     const base = (ownerName || 'resume')
       .toLowerCase()
       .replace(/[^a-z0-9가-힣\s-]/g, '')
       .replace(/\s+/g, '-')
-      .slice(0, 30);
+      .slice(0, 30)
     // 사용자가 편집·서버 저장하는 슬러그라 짧은 4자 base36 접미사 포맷은 유지하고,
     // 무작위성만 crypto.getRandomValues 로 보강한다.
-    const bytes = new Uint8Array(4);
-    crypto.getRandomValues(bytes);
-    const suffix = Array.from(bytes, (b) => (b % 36).toString(36)).join('');
-    setSlug(`${base}-${suffix}`);
-    setEditing(true);
-  }, [ownerName, setSlug]);
+    const bytes = new Uint8Array(4)
+    crypto.getRandomValues(bytes)
+    const suffix = Array.from(bytes, (b) => (b % 36).toString(36)).join('')
+    setSlug(`${base}-${suffix}`)
+    setEditing(true)
+  }, [ownerName, setSlug])
 
   const handleSave = async () => {
     if (!slug.trim()) {
-      toast('슬러그를 입력해 주세요', 'error');
-      return;
+      toast('슬러그를 입력해 주세요', 'error')
+      return
     }
     const sanitized = slug
       .toLowerCase()
       .replace(/[^a-z0-9가-힣-]/g, '')
       .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/^-|-$/g, '')
     if (!sanitized) {
-      toast('유효한 슬러그를 입력해 주세요', 'error');
-      return;
+      toast('유효한 슬러그를 입력해 주세요', 'error')
+      return
     }
-    setSaving(true);
+    setSaving(true)
     try {
-      await updateResumeSlug(resumeId, sanitized);
-      setSlug(sanitized);
-      setEditing(false);
-      onSlugUpdated?.(sanitized);
-      toast('공개 링크가 업데이트되었습니다', 'success');
+      await updateResumeSlug(resumeId, sanitized)
+      setSlug(sanitized)
+      setEditing(false)
+      onSlugUpdated?.(sanitized)
+      toast('공개 링크가 업데이트되었습니다', 'success')
     } catch (err) {
-      toast(getErrorMessage(err, '슬러그 저장 실패'), 'error');
+      toast(getErrorMessage(err, '슬러그 저장 실패'), 'error')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleCopy = () => {
     navigator.clipboard.writeText(previewUrl).then(() => {
-      setCopied(true);
-      toast('공개 링크가 복사되었습니다', 'success');
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+      setCopied(true)
+      toast('공개 링크가 복사되었습니다', 'success')
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
-  const embedCode = `<iframe src="${previewUrl}" width="100%" height="900" style="border:none;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.12);" title="이력서" loading="lazy"></iframe>`;
+  const embedCode = `<iframe src="${previewUrl}" width="100%" height="900" style="border:none;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.12);" title="이력서" loading="lazy"></iframe>`
 
   const handleCopyEmbed = () => {
     navigator.clipboard.writeText(embedCode).then(() => {
-      setEmbedCopied(true);
-      toast('임베드 코드가 복사되었습니다', 'success');
-      setTimeout(() => setEmbedCopied(false), 2000);
-    });
-  };
+      setEmbedCopied(true)
+      toast('임베드 코드가 복사되었습니다', 'success')
+      setTimeout(() => setEmbedCopied(false), 2000)
+    })
+  }
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
@@ -150,8 +151,8 @@ export default function PublicLinkSettings({
           </div>
           <button
             onClick={() => {
-              navigator.clipboard.writeText(shortUrl);
-              toast('숏링크가 복사되었습니다', 'success');
+              navigator.clipboard.writeText(shortUrl)
+              toast('숏링크가 복사되었습니다', 'success')
             }}
             className="px-2.5 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -207,8 +208,8 @@ export default function PublicLinkSettings({
             </button>
             <button
               onClick={() => {
-                setSlug(currentSlug || '');
-                setEditing(false);
+                setSlug(currentSlug || '')
+                setEditing(false)
               }}
               className="px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
             >
@@ -304,5 +305,5 @@ export default function PublicLinkSettings({
         )}
       </div>
     </div>
-  );
+  )
 }

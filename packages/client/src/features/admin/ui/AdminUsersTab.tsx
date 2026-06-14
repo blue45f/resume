@@ -1,59 +1,61 @@
 /**
  * 회원 관리 탭 (확장판) — role 변경, 정지/해제, 탈퇴
  */
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_URL } from '@/lib/config';
-import { formatDate } from '@/lib/time';
-import { toast } from '@/components/Toast';
-import AlertDialog from '@/shared/ui/AlertDialog';
-import { AdminTable, type AdminTableColumn } from './AdminTable';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo } from 'react'
+
+import { AdminTable, type AdminTableColumn } from './AdminTable'
+
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import { formatDate } from '@/lib/time'
+import AlertDialog from '@/shared/ui/AlertDialog'
 
 type UserRow = {
-  id: string;
-  name: string | null;
-  email: string;
-  username?: string;
-  userType?: string;
-  provider: string;
-  role: string;
-  plan?: string;
-  isSuspended?: boolean;
-  createdAt: string;
-  lastLoginAt?: string;
-};
+  id: string
+  name: string | null
+  email: string
+  username?: string
+  userType?: string
+  provider: string
+  role: string
+  plan?: string
+  isSuspended?: boolean
+  createdAt: string
+  lastLoginAt?: string
+}
 
 function authHeader(): Record<string, string> {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  const token = localStorage.getItem('token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
-  const qc = useQueryClient();
-  const [search, setSearch] = useState('');
-  const [userType, setUserType] = useState('all');
-  const [page, setPage] = useState(1);
-  const perPage = 15;
+  const qc = useQueryClient()
+  const [search, setSearch] = useState('')
+  const [userType, setUserType] = useState('all')
+  const [page, setPage] = useState(1)
+  const perPage = 15
   const [confirm, setConfirm] = useState<
     | { kind: 'delete'; id: string; email: string }
     | { kind: 'suspend'; id: string; email: string }
     | null
-  >(null);
+  >(null)
 
   const query = useQuery<UserRow[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/api/auth/admin/users`, {
         headers: authHeader(),
-      });
-      if (!res.ok) return [];
-      return res.json();
+      })
+      if (!res.ok) return []
+      return res.json()
     },
     staleTime: 30_000,
-  });
-  const users = useMemo(() => query.data ?? [], [query.data]);
+  })
+  const users = useMemo(() => query.data ?? [], [query.data])
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-users'] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['admin-users'] })
 
   const mRole = useMutation({
     mutationFn: async (vars: { id: string; role: string }) => {
@@ -61,62 +63,62 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeader() },
         body: JSON.stringify({ role: vars.role }),
-      });
-      if (!res.ok) throw new Error((await res.json())?.message || 'failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error((await res.json())?.message || 'failed')
+      return res.json()
     },
     onSuccess: (_r, v) => {
-      toast(`역할이 ${v.role}로 변경되었습니다`, 'success');
-      invalidate();
+      toast(`역할이 ${v.role}로 변경되었습니다`, 'success')
+      invalidate()
     },
     onError: (e: unknown) => toast(e instanceof Error ? e.message : '변경에 실패했습니다', 'error'),
-  });
+  })
 
   const mSuspend = useMutation({
     mutationFn: async (vars: { id: string; suspend: boolean }) => {
-      const url = `${API_URL}/api/auth/admin/users/${vars.id}/${vars.suspend ? 'suspend' : 'resume'}`;
-      const res = await fetch(url, { method: 'PATCH', headers: authHeader() });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      const url = `${API_URL}/api/auth/admin/users/${vars.id}/${vars.suspend ? 'suspend' : 'resume'}`
+      const res = await fetch(url, { method: 'PATCH', headers: authHeader() })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: (_r, v) => {
-      toast(v.suspend ? '계정이 정지되었습니다' : '정지가 해제되었습니다', 'success');
-      invalidate();
+      toast(v.suspend ? '계정이 정지되었습니다' : '정지가 해제되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('처리에 실패했습니다', 'error'),
-  });
+  })
 
   const mDelete = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`${API_URL}/api/auth/admin/users/${id}`, {
         method: 'DELETE',
         headers: authHeader(),
-      });
-      if (!res.ok) throw new Error('failed');
-      return res.json();
+      })
+      if (!res.ok) throw new Error('failed')
+      return res.json()
     },
     onSuccess: () => {
-      toast('회원이 탈퇴 처리되었습니다', 'success');
-      invalidate();
+      toast('회원이 탈퇴 처리되었습니다', 'success')
+      invalidate()
     },
     onError: () => toast('탈퇴 처리에 실패했습니다', 'error'),
-  });
+  })
 
   const filtered = useMemo(() => {
     return users.filter((u) => {
-      const s = search.toLowerCase();
+      const s = search.toLowerCase()
       const matchSearch =
         !s ||
         u.name?.toLowerCase().includes(s) ||
         u.email?.toLowerCase().includes(s) ||
-        u.username?.toLowerCase().includes(s);
-      const matchType = userType === 'all' || (u.userType || 'personal') === userType;
-      return matchSearch && matchType;
-    });
-  }, [users, search, userType]);
+        u.username?.toLowerCase().includes(s)
+      const matchType = userType === 'all' || (u.userType || 'personal') === userType
+      return matchSearch && matchType
+    })
+  }, [users, search, userType])
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage))
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage)
 
   const columns = useMemo<AdminTableColumn<UserRow>[]>(
     () => [
@@ -230,8 +232,8 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
         ),
       },
     ],
-    [isSuperAdmin, mRole, mSuspend],
-  );
+    [isSuperAdmin, mRole, mSuspend]
+  )
 
   return (
     <div className="animate-fade-in-up">
@@ -251,8 +253,8 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
               type="search"
               value={search}
               onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
+                setSearch(e.target.value)
+                setPage(1)
               }}
               placeholder="이름/이메일/username 검색"
               className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
@@ -260,8 +262,8 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
             <select
               value={userType}
               onChange={(e) => {
-                setUserType(e.target.value);
-                setPage(1);
+                setUserType(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100"
             >
@@ -293,12 +295,12 @@ export default function AdminUsersTab({ isSuperAdmin }: { isSuperAdmin: boolean 
         confirmText={confirm?.kind === 'delete' ? '탈퇴 처리' : '정지'}
         danger={confirm?.kind === 'delete'}
         onConfirm={() => {
-          if (!confirm) return;
-          if (confirm.kind === 'delete') mDelete.mutate(confirm.id);
-          if (confirm.kind === 'suspend') mSuspend.mutate({ id: confirm.id, suspend: true });
-          setConfirm(null);
+          if (!confirm) return
+          if (confirm.kind === 'delete') mDelete.mutate(confirm.id)
+          if (confirm.kind === 'suspend') mSuspend.mutate({ id: confirm.id, suspend: true })
+          setConfirm(null)
         }}
       />
     </div>
-  );
+  )
 }

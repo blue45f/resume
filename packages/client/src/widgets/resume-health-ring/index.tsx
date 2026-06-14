@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import type { ResumeSummary } from '@/types/resume';
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import type { ResumeSummary } from '@/types/resume'
 
 /**
  * ResumeHealthRing — 내 이력서 평균 완성도 원형 링.
@@ -16,85 +17,85 @@ import type { ResumeSummary } from '@/types/resume';
  */
 
 interface Props {
-  resumes: ResumeSummary[];
+  resumes: ResumeSummary[]
 }
 
 function scoreResume(r: ResumeSummary): number {
-  let s = 0;
-  const pi = r.personalInfo;
-  if (pi?.name) s += 10;
-  if (pi?.email) s += 10;
-  if (pi?.phone) s += 10;
-  if (pi?.summary && pi.summary.replace(/<[^>]*>/g, '').length >= 30) s += 10;
+  let s = 0
+  const pi = r.personalInfo
+  if (pi?.name) s += 10
+  if (pi?.email) s += 10
+  if (pi?.phone) s += 10
+  if (pi?.summary && pi.summary.replace(/<[^>]*>/g, '').length >= 30) s += 10
 
-  const skillCount = r.skills?.length ?? 0;
-  if (skillCount >= 3) s += 30;
-  else if (skillCount === 2) s += 20;
-  else if (skillCount === 1) s += 10;
+  const skillCount = r.skills?.length ?? 0
+  if (skillCount >= 3) s += 30
+  else if (skillCount === 2) s += 20
+  else if (skillCount === 1) s += 10
 
-  if (r.visibility === 'public' || r.visibility === 'link-only') s += 10;
-  if ((r.tags?.length ?? 0) >= 1) s += 10;
+  if (r.visibility === 'public' || r.visibility === 'link-only') s += 10
+  if ((r.tags?.length ?? 0) >= 1) s += 10
 
-  const days = Math.floor((Date.now() - new Date(r.updatedAt).getTime()) / 86400000);
-  if (days <= 30) s += 20;
-  else if (days <= 60) s += 10;
+  const days = Math.floor((Date.now() - new Date(r.updatedAt).getTime()) / 86400000)
+  if (days <= 30) s += 20
+  else if (days <= 60) s += 10
 
-  return Math.min(100, s);
+  return Math.min(100, s)
 }
 
 function daysAgo(dateStr: string): number {
-  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
 }
 
 function ringColor(pct: number): string {
-  if (pct < 40) return '#0891b2'; // cyan-600
-  if (pct < 70) return '#0284c7'; // sky-600
-  return '#2563eb'; // blue-600 (sapphire-family)
+  if (pct < 40) return '#0891b2' // cyan-600
+  if (pct < 70) return '#0284c7' // sky-600
+  return '#2563eb' // blue-600 (sapphire-family)
 }
 
 function gradeLabel(pct: number): { label: string; tone: string } {
-  if (pct >= 85) return { label: '완성형', tone: 'text-blue-700 dark:text-blue-300' };
-  if (pct >= 65) return { label: '양호', tone: 'text-sky-700 dark:text-sky-300' };
-  if (pct >= 40) return { label: '성장 중', tone: 'text-cyan-700 dark:text-cyan-300' };
-  return { label: '초안', tone: 'text-slate-600 dark:text-slate-400' };
+  if (pct >= 85) return { label: '완성형', tone: 'text-blue-700 dark:text-blue-300' }
+  if (pct >= 65) return { label: '양호', tone: 'text-sky-700 dark:text-sky-300' }
+  if (pct >= 40) return { label: '성장 중', tone: 'text-cyan-700 dark:text-cyan-300' }
+  return { label: '초안', tone: 'text-slate-600 dark:text-slate-400' }
 }
 
 export default function ResumeHealthRing({ resumes }: Props) {
   const stats = useMemo(() => {
-    if (!resumes.length) return null;
-    const scores = resumes.map(scoreResume);
-    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    if (!resumes.length) return null
+    const scores = resumes.map(scoreResume)
+    const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
     const latest = resumes.reduce((prev, cur) =>
-      new Date(cur.updatedAt).getTime() > new Date(prev.updatedAt).getTime() ? cur : prev,
-    );
-    const topResume = resumes[scores.indexOf(Math.max(...scores))] ?? resumes[0];
-    return { avg, latest, topResume, count: resumes.length };
-  }, [resumes]);
+      new Date(cur.updatedAt).getTime() > new Date(prev.updatedAt).getTime() ? cur : prev
+    )
+    const topResume = resumes[scores.indexOf(Math.max(...scores))] ?? resumes[0]
+    return { avg, latest, topResume, count: resumes.length }
+  }, [resumes])
 
-  const [animatedPct, setAnimatedPct] = useState(0);
-  const targetPct = stats?.avg ?? 0;
+  const [animatedPct, setAnimatedPct] = useState(0)
+  const targetPct = stats?.avg ?? 0
 
   useEffect(() => {
     // honor reduced motion
     const prefersReduce =
       typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    const timer = setTimeout(() => setAnimatedPct(targetPct), prefersReduce ? 0 : 80);
-    return () => clearTimeout(timer);
-  }, [targetPct]);
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const timer = setTimeout(() => setAnimatedPct(targetPct), prefersReduce ? 0 : 80)
+    return () => clearTimeout(timer)
+  }, [targetPct])
 
-  if (!stats) return null;
+  if (!stats) return null
 
-  const size = 132;
-  const strokeWidth = 10;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (animatedPct / 100) * circumference;
-  const color = ringColor(stats.avg);
-  const grade = gradeLabel(stats.avg);
-  const daysSinceLatest = daysAgo(stats.latest.updatedAt);
+  const size = 132
+  const strokeWidth = 10
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (animatedPct / 100) * circumference
+  const color = ringColor(stats.avg)
+  const grade = gradeLabel(stats.avg)
+  const daysSinceLatest = daysAgo(stats.latest.updatedAt)
 
-  const editLink = `/resumes/${stats.topResume.id}/edit`;
+  const editLink = `/resumes/${stats.topResume.id}/edit`
 
   return (
     <div className="mb-6 imp-card p-5 overflow-hidden relative">
@@ -227,5 +228,5 @@ export default function ResumeHealthRing({ resumes }: Props) {
         </div>
       </div>
     </div>
-  );
+  )
 }

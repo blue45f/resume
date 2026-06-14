@@ -1,4 +1,4 @@
-import type { Resume } from '@/types/resume';
+import type { Resume } from '@/types/resume'
 
 export type NonItCategory =
   | 'sales'
@@ -14,20 +14,20 @@ export type NonItCategory =
   | 'logistics'
   | 'creative'
   | 'trade'
-  | 'other-it';
+  | 'other-it'
 
 export interface CategoryGuide {
-  label: string;
-  emoji: string;
-  achievementTemplates: string[];
-  recommendedCertifications: string[];
+  label: string
+  emoji: string
+  achievementTemplates: string[]
+  recommendedCertifications: string[]
   coverLetterTopics: {
-    title: string;
-    prompt: string;
-    sample: string;
-  }[];
-  interviewFocus: string[];
-  ncs?: string;
+    title: string
+    prompt: string
+    sample: string
+  }[]
+  interviewFocus: string[]
+  ncs?: string
 }
 
 export const NON_IT_GUIDES: Record<NonItCategory, CategoryGuide> = {
@@ -454,9 +454,9 @@ export const NON_IT_GUIDES: Record<NonItCategory, CategoryGuide> = {
     ],
     interviewFocus: ['직무 관련 용어 지식', '협업 사례 (STAR)', '본인만의 차별점'],
   },
-};
+}
 
-export const NON_IT_CATEGORY_KEYS = Object.keys(NON_IT_GUIDES) as NonItCategory[];
+export const NON_IT_CATEGORY_KEYS = Object.keys(NON_IT_GUIDES) as NonItCategory[]
 
 /**
  * 이력서 내용으로부터 카테고리를 휴리스틱 추정
@@ -470,7 +470,7 @@ export function detectNonItCategory(resume: Resume): NonItCategory | null {
     ...resume.skills.map((s) => `${s.category} ${s.items}`),
   ]
     .join(' ')
-    .toLowerCase();
+    .toLowerCase()
 
   const signals: Record<NonItCategory, string[]> = {
     sales: ['영업', '세일즈', 'sales', 'b2b', '수주', '계약', 'kpi', '매출'],
@@ -487,12 +487,12 @@ export function detectNonItCategory(resume: Resume): NonItCategory | null {
     creative: ['디자이너', '크리에이터', '브랜드', '영상', 'ux', '디자인'],
     trade: ['무역', '수출', '바이어', '해외영업', 'l/c', 'incoterms'],
     'other-it': [],
-  };
-
-  let best: { cat: NonItCategory; score: number } | null = null;
-  for (const [cat, words] of Object.entries(signals) as [NonItCategory, string[]][]) {
-    const score = words.reduce((s, w) => (haystack.includes(w) ? s + 1 : s), 0);
-    if (score > 0 && (!best || score > best.score)) best = { cat, score };
   }
-  return best?.cat ?? null;
+
+  let best: { cat: NonItCategory; score: number } | null = null
+  for (const [cat, words] of Object.entries(signals) as [NonItCategory, string[]][]) {
+    const score = words.reduce((s, w) => (haystack.includes(w) ? s + 1 : s), 0)
+    if (score > 0 && (!best || score > best.score)) best = { cat, score }
+  }
+  return best?.cat ?? null
 }

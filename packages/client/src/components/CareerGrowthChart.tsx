@@ -1,17 +1,18 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 interface YearData {
-  year: number;
-  experienceYears: number;
-  skills: number;
-  projects: number;
-  companies: number;
-  certifications: number;
+  year: number
+  experienceYears: number
+  skills: number
+  projects: number
+  companies: number
+  certifications: number
 }
 
 /**
@@ -22,31 +23,31 @@ interface YearData {
  * 순수 SVG — 외부 차트 라이브러리 없음.
  */
 export default function CareerGrowthChart({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [metric, setMetric] = useState<keyof Omit<YearData, 'year'>>('experienceYears');
+  const [expanded, setExpanded] = useState(false)
+  const [metric, setMetric] = useState<keyof Omit<YearData, 'year'>>('experienceYears')
 
-  const data = useMemo(() => buildYearlyData(resume), [resume]);
-  const thisYear = new Date().getFullYear();
+  const data = useMemo(() => buildYearlyData(resume), [resume])
+  const thisYear = new Date().getFullYear()
 
-  if (data.length === 0) return null;
+  if (data.length === 0) return null
 
-  const maxValue = Math.max(1, ...data.map((d) => d[metric]));
-  const width = 560;
-  const height = 180;
-  const pad = { top: 20, right: 20, bottom: 28, left: 36 };
-  const plotW = width - pad.left - pad.right;
-  const plotH = height - pad.top - pad.bottom;
-  const stepX = data.length > 1 ? plotW / (data.length - 1) : 0;
+  const maxValue = Math.max(1, ...data.map((d) => d[metric]))
+  const width = 560
+  const height = 180
+  const pad = { top: 20, right: 20, bottom: 28, left: 36 }
+  const plotW = width - pad.left - pad.right
+  const plotH = height - pad.top - pad.bottom
+  const stepX = data.length > 1 ? plotW / (data.length - 1) : 0
 
   const points = data.map((d, i) => ({
     x: pad.left + i * stepX,
     y: pad.top + plotH - (d[metric] / maxValue) * plotH,
     value: d[metric],
     year: d.year,
-  }));
+  }))
 
-  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${pad.top + plotH} L ${points[0].x} ${pad.top + plotH} Z`;
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+  const areaPath = `${linePath} L ${points[points.length - 1].x} ${pad.top + plotH} L ${points[0].x} ${pad.top + plotH} Z`
 
   const METRICS: Array<{ key: keyof Omit<YearData, 'year'>; label: string; icon: string }> = [
     { key: 'experienceYears', label: '누적 경력', icon: '📈' },
@@ -54,7 +55,7 @@ export default function CareerGrowthChart({ resume }: Props) {
     { key: 'projects', label: '프로젝트', icon: '🚀' },
     { key: 'companies', label: '조직 수', icon: '🏢' },
     { key: 'certifications', label: '자격증', icon: '🎖️' },
-  ];
+  ]
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -245,92 +246,92 @@ export default function CareerGrowthChart({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function buildYearlyData(resume: Resume): YearData[] {
   // 1. 경력·프로젝트 시작 연도 수집
-  const allYears: number[] = [];
+  const allYears: number[] = []
   for (const e of resume.experiences) {
-    const y = parseYear(e.startDate);
-    if (y) allYears.push(y);
+    const y = parseYear(e.startDate)
+    if (y) allYears.push(y)
   }
   for (const p of resume.projects) {
-    const y = parseYear(p.startDate);
-    if (y) allYears.push(y);
+    const y = parseYear(p.startDate)
+    if (y) allYears.push(y)
   }
   for (const c of resume.certifications || []) {
-    const y = parseYear(c.issueDate);
-    if (y) allYears.push(y);
+    const y = parseYear(c.issueDate)
+    if (y) allYears.push(y)
   }
 
-  if (allYears.length === 0) return [];
+  if (allYears.length === 0) return []
 
-  const startYear = Math.min(...allYears);
-  const thisYear = new Date().getFullYear();
-  const years = [];
-  for (let y = startYear; y <= thisYear; y++) years.push(y);
+  const startYear = Math.min(...allYears)
+  const thisYear = new Date().getFullYear()
+  const years = []
+  for (let y = startYear; y <= thisYear; y++) years.push(y)
 
   return years.map((year) => {
     // 누적 경력 연수 — 해당 연도 말 기준 합산 (병합)
-    const intervals: Array<[number, number]> = [];
+    const intervals: Array<[number, number]> = []
     for (const e of resume.experiences) {
-      const s = parseYear(e.startDate);
-      const end = e.current ? year : (parseYear(e.endDate) ?? s);
-      if (!s) continue;
-      if (s > year) continue;
-      const eEnd = Math.min(end ?? s, year);
-      intervals.push([s, eEnd]);
+      const s = parseYear(e.startDate)
+      const end = e.current ? year : (parseYear(e.endDate) ?? s)
+      if (!s) continue
+      if (s > year) continue
+      const eEnd = Math.min(end ?? s, year)
+      intervals.push([s, eEnd])
     }
     const experienceYears =
-      Math.round((mergeIntervalsToYears(intervals) + Number.EPSILON) * 10) / 10;
+      Math.round((mergeIntervalsToYears(intervals) + Number.EPSILON) * 10) / 10
 
     // 당해 이전(해당 연도 포함) 사용한 기술 (stacks 등장 시점 = 경력/프로젝트 startDate 기준)
-    const skillSet = new Set<string>();
+    const skillSet = new Set<string>()
     for (const e of resume.experiences) {
-      const s = parseYear(e.startDate);
-      if (!s || s > year) continue;
-      (e.techStack || '').split(',').forEach((t) => {
-        const trimmed = t.trim();
-        if (trimmed) skillSet.add(trimmed.toLowerCase());
-      });
+      const s = parseYear(e.startDate)
+      if (!s || s > year) continue
+      ;(e.techStack || '').split(',').forEach((t) => {
+        const trimmed = t.trim()
+        if (trimmed) skillSet.add(trimmed.toLowerCase())
+      })
     }
     for (const p of resume.projects) {
-      const s = parseYear(p.startDate);
-      if (!s || s > year) continue;
-      (p.techStack || '').split(',').forEach((t) => {
-        const trimmed = t.trim();
-        if (trimmed) skillSet.add(trimmed.toLowerCase());
-      });
+      const s = parseYear(p.startDate)
+      if (!s || s > year) continue
+      ;(p.techStack || '').split(',').forEach((t) => {
+        const trimmed = t.trim()
+        if (trimmed) skillSet.add(trimmed.toLowerCase())
+      })
     }
     // 스킬 섹션은 "현재 기준"이므로 최근 해에만 합산
     if (year === thisYear) {
       for (const s of resume.skills) {
         s.items.split(',').forEach((t) => {
-          const trimmed = t.trim();
-          if (trimmed) skillSet.add(trimmed.toLowerCase());
-        });
+          const trimmed = t.trim()
+          if (trimmed) skillSet.add(trimmed.toLowerCase())
+        })
       }
     }
 
     const projects = resume.projects.filter((p) => {
-      const s = parseYear(p.startDate);
-      return s !== null && s <= year;
-    }).length;
+      const s = parseYear(p.startDate)
+      return s !== null && s <= year
+    }).length
 
     const companies = new Set(
       resume.experiences
         .filter((e) => {
-          const s = parseYear(e.startDate);
-          return s !== null && s <= year;
+          const s = parseYear(e.startDate)
+          return s !== null && s <= year
         })
-        .map((e) => e.company),
-    ).size;
+        .map((e) => e.company)
+    ).size
 
     const certifications = (resume.certifications || []).filter((c) => {
-      const y = parseYear(c.issueDate);
-      return y !== null && y <= year;
-    }).length;
+      const y = parseYear(c.issueDate)
+      return y !== null && y <= year
+    }).length
 
     return {
       year,
@@ -339,28 +340,28 @@ function buildYearlyData(resume: Resume): YearData[] {
       projects,
       companies,
       certifications,
-    };
-  });
+    }
+  })
 }
 
 function parseYear(dateStr: string | undefined): number | null {
-  if (!dateStr) return null;
-  const y = parseInt(dateStr.slice(0, 4), 10);
-  return Number.isFinite(y) && y > 1980 && y < 2100 ? y : null;
+  if (!dateStr) return null
+  const y = parseInt(dateStr.slice(0, 4), 10)
+  return Number.isFinite(y) && y > 1980 && y < 2100 ? y : null
 }
 
 function mergeIntervalsToYears(intervals: Array<[number, number]>): number {
-  if (intervals.length === 0) return 0;
-  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
-  const merged: Array<[number, number]> = [sorted[0]];
+  if (intervals.length === 0) return 0
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0])
+  const merged: Array<[number, number]> = [sorted[0]]
   for (let i = 1; i < sorted.length; i++) {
-    const last = merged[merged.length - 1];
-    const curr = sorted[i];
+    const last = merged[merged.length - 1]
+    const curr = sorted[i]
     if (curr[0] <= last[1]) {
-      last[1] = Math.max(last[1], curr[1]);
+      last[1] = Math.max(last[1], curr[1])
     } else {
-      merged.push(curr);
+      merged.push(curr)
     }
   }
-  return merged.reduce((sum, [s, e]) => sum + Math.max(0, e - s), 0);
+  return merged.reduce((sum, [s, e]) => sum + Math.max(0, e - s), 0)
 }

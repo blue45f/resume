@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
-import { analyzeDateConsistency } from '@/lib/dateAnalyzers';
-import { validateDateRanges } from '@/lib/experience';
+import { useMemo } from 'react'
+
+import { analyzeDateConsistency } from '@/lib/dateAnalyzers'
+import { validateDateRanges } from '@/lib/experience'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -12,14 +13,13 @@ const FORMAT_LABEL: Record<string, string> = {
   slash: 'YYYY/MM',
   korean: 'YYYY년 MM월',
   other: '기타',
-};
+}
 
 export default function ResumeDateConsistencyPanel({ text }: Props) {
-  const analysis = useMemo(() => analyzeDateConsistency(text), [text]);
-  const invalidRanges = useMemo(() => validateDateRanges(text), [text]);
+  const analysis = useMemo(() => analyzeDateConsistency(text), [text])
+  const invalidRanges = useMemo(() => validateDateRanges(text), [text])
 
-  if ((analysis.consistent || analysis.hits.length === 0) && invalidRanges.length === 0)
-    return null;
+  if ((analysis.consistent || analysis.hits.length === 0) && invalidRanges.length === 0) return null
 
   return (
     <aside className="date-cons-card" aria-label="날짜 포맷 일관성 분석">
@@ -67,5 +67,5 @@ export default function ResumeDateConsistencyPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

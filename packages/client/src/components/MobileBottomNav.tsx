@@ -1,16 +1,17 @@
-import { useState, useEffect, type ReactElement } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
+import { useState, useEffect, type ReactElement } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+
+import { getUser } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 
 type NavItem = {
-  to: string;
-  label: string;
-  icon: (active: boolean) => ReactElement;
-  match: (path: string) => boolean;
-  highlight?: boolean;
-  activeColor?: string;
-};
+  to: string
+  label: string
+  icon: (active: boolean) => ReactElement
+  match: (path: string) => boolean
+  highlight?: boolean
+  activeColor?: string
+}
 
 const JOBSEEKER_ITEMS: NavItem[] = [
   {
@@ -102,11 +103,11 @@ const JOBSEEKER_ITEMS: NavItem[] = [
     ),
     match: (p) =>
       ['/settings', '/notifications', '/messages', '/bookmarks', '/applications', '/jobs'].some(
-        (r) => p.startsWith(r),
+        (r) => p.startsWith(r)
       ),
     activeColor: 'text-blue-600 dark:text-blue-400',
   },
-];
+]
 
 const RECRUITER_ITEMS: NavItem[] = [
   {
@@ -199,24 +200,24 @@ const RECRUITER_ITEMS: NavItem[] = [
     match: (p) => p === '/recruiter',
     activeColor: 'text-sky-600 dark:text-sky-400',
   },
-];
+]
 
 export default function MobileBottomNav() {
-  const location = useLocation();
-  const user = getUser();
-  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const location = useLocation()
+  const user = getUser()
+  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company'
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
 
   useEffect(() => {
-    if (typeof visualViewport === 'undefined') return;
-    const vv = visualViewport;
+    if (typeof visualViewport === 'undefined') return
+    const vv = visualViewport
     const handleResize = () => {
-      const threshold = window.innerHeight * 0.75;
-      setKeyboardOpen(vv!.height < threshold);
-    };
-    vv!.addEventListener('resize', handleResize);
-    return () => vv!.removeEventListener('resize', handleResize);
-  }, []);
+      const threshold = window.innerHeight * 0.75
+      setKeyboardOpen(vv!.height < threshold)
+    }
+    vv!.addEventListener('resize', handleResize)
+    return () => vv!.removeEventListener('resize', handleResize)
+  }, [])
 
   if (
     location.pathname === '/login' ||
@@ -225,22 +226,22 @@ export default function MobileBottomNav() {
     location.pathname.includes('/preview') ||
     keyboardOpen
   ) {
-    return null;
+    return null
   }
 
-  const items = isRecruiter ? RECRUITER_ITEMS : JOBSEEKER_ITEMS;
+  const items = isRecruiter ? RECRUITER_ITEMS : JOBSEEKER_ITEMS
   const activeColor = isRecruiter
     ? 'text-sky-600 dark:text-sky-400'
-    : 'text-blue-600 dark:text-blue-400';
+    : 'text-blue-600 dark:text-blue-400'
   const highlightGradient = isRecruiter
     ? 'bg-sky-700 shadow-blue-600/30'
-    : 'bg-sky-700 shadow-blue-600/30';
+    : 'bg-sky-700 shadow-blue-600/30'
 
   return (
     <nav className="mobile-bottom-nav no-print" aria-label="모바일 탐색">
       {items.map((item) => {
-        const active = item.match(location.pathname);
-        const itemActiveColor = item.activeColor || activeColor;
+        const active = item.match(location.pathname)
+        const itemActiveColor = item.activeColor || activeColor
         return (
           <Link
             key={item.to}
@@ -276,8 +277,8 @@ export default function MobileBottomNav() {
               {item.label}
             </span>
           </Link>
-        );
+        )
       })}
     </nav>
-  );
+  )
 }

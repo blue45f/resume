@@ -1,12 +1,14 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { ResumesController } from './resumes.controller';
-import { ResumesService } from './resumes.service';
-import { ExportService } from './export.service';
-import { AnalyticsService } from './analytics.service';
-import { ResumeViewerCleanupService } from './resume-viewer-cleanup.service';
-import { AiCoachingNudgeService } from './ai-coaching-nudge.service';
-import { NotificationsModule } from '../notifications/notifications.module';
-import { LlmModule } from '../llm/llm.module';
+import { Module, forwardRef } from '@nestjs/common'
+
+import { LlmModule } from '../llm/llm.module'
+import { NotificationsModule } from '../notifications/notifications.module'
+
+import { AiCoachingNudgeService } from './ai-coaching-nudge.service'
+import { AnalyticsService } from './analytics.service'
+import { ExportService } from './export.service'
+import { ResumeViewerCleanupService } from './resume-viewer-cleanup.service'
+import { ResumesController } from './resumes.controller'
+import { ResumesService } from './resumes.service'
 
 @Module({
   imports: [NotificationsModule, forwardRef(() => LlmModule)],

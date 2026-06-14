@@ -3,72 +3,74 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
-} from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { LlmService } from '../llm/llm.service';
+} from '@nestjs/common'
+
+import { LlmService } from '../llm/llm.service'
+import { PrismaService } from '../prisma/prisma.service'
+
+import type { Prisma } from '@prisma/client'
 
 export interface CreateJobInterviewQuestionDto {
-  jobPostId?: string;
-  curatedJobId?: string;
-  companyName: string;
-  position: string;
-  question: string;
-  sampleAnswer?: string;
-  category?: string;
-  difficulty?: string;
-  source?: string;
+  jobPostId?: string
+  curatedJobId?: string
+  companyName: string
+  position: string
+  question: string
+  sampleAnswer?: string
+  category?: string
+  difficulty?: string
+  source?: string
 }
 
 export interface ListJobInterviewQuestionsQuery {
-  company?: string;
-  position?: string;
-  jobPostId?: string;
-  curatedJobId?: string;
-  limit?: number;
+  company?: string
+  position?: string
+  jobPostId?: string
+  curatedJobId?: string
+  limit?: number
 }
 
 export interface AiGenerateDto {
-  jobPostId?: string;
-  curatedJobId?: string;
-  companyName: string;
-  position: string;
-  description?: string;
-  requirements?: string;
-  skills?: string;
-  count?: number;
-  persist?: boolean;
+  jobPostId?: string
+  curatedJobId?: string
+  companyName: string
+  position: string
+  description?: string
+  requirements?: string
+  skills?: string
+  count?: number
+  persist?: boolean
 }
 
 type GeneratedInterviewQuestion = {
-  question?: unknown;
-  sampleAnswer?: unknown;
-  category?: unknown;
-  difficulty?: unknown;
-};
+  question?: unknown
+  sampleAnswer?: unknown
+  category?: unknown
+  difficulty?: unknown
+}
 
-type GeneratedInterviewQuestionWithText = GeneratedInterviewQuestion & { question: string };
+type GeneratedInterviewQuestionWithText = GeneratedInterviewQuestion & { question: string }
 
 const hasQuestionText = (
-  value: GeneratedInterviewQuestion,
+  value: GeneratedInterviewQuestion
 ): value is GeneratedInterviewQuestionWithText =>
-  typeof value.question === 'string' && value.question.trim().length > 0;
+  typeof value.question === 'string' && value.question.trim().length > 0
 
 @Injectable()
 export class JobInterviewQuestionsService {
   constructor(
     private prisma: PrismaService,
-    private llm: LlmService,
+    private llm: LlmService
   ) {}
 
   async list(query: ListJobInterviewQuestionsQuery, userId?: string | null) {
-    const where: Prisma.JobInterviewQuestionWhereInput = {};
-    if (query.jobPostId) where.jobPostId = query.jobPostId;
-    if (query.curatedJobId) where.curatedJobId = query.curatedJobId;
-    if (query.company) where.companyName = { contains: query.company, mode: 'insensitive' };
-    if (query.position) where.position = { contains: query.position, mode: 'insensitive' };
+    const where: Prisma.JobInterviewQuestionWhereInput = {}
+    if (query.jobPostId) where.jobPostId = query.jobPostId
+    if (query.curatedJobId) where.curatedJobId = query.curatedJobId
+    if (query.company) where.companyName = { contains: query.company, mode: 'insensitive' }
+    if (query.position) where.position = { contains: query.position, mode: 'insensitive' }
 
-    const limit = Math.min(query.limit ?? 50, 200);
+    const limit = Math.min(query.limit ?? 50, 200)
 
     const items = await this.prisma.jobInterviewQuestion.findMany({
       where,
@@ -78,29 +80,29 @@ export class JobInterviewQuestionsService {
       },
       orderBy: [{ upvotes: 'desc' }, { createdAt: 'desc' }],
       take: limit,
-    });
+    })
 
     if (!userId) {
-      return items.map((q) => ({ ...q, myVote: false }));
+      return items.map((q) => ({ ...q, myVote: false }))
     }
 
     const votes = await this.prisma.jobInterviewQuestionVote.findMany({
       where: { userId, questionId: { in: items.map((i) => i.id) } },
       select: { questionId: true },
-    });
-    const votedSet = new Set(votes.map((v) => v.questionId));
-    return items.map((q) => ({ ...q, myVote: votedSet.has(q.id) }));
+    })
+    const votedSet = new Set(votes.map((v) => v.questionId))
+    return items.map((q) => ({ ...q, myVote: votedSet.has(q.id) }))
   }
 
   async create(userId: string, data: CreateJobInterviewQuestionDto) {
     if (!data?.companyName || !data.companyName.trim()) {
-      throw new BadRequestException('회사명은 필수입니다');
+      throw new BadRequestException('회사명은 필수입니다')
     }
     if (!data?.position || !data.position.trim()) {
-      throw new BadRequestException('직무는 필수입니다');
+      throw new BadRequestException('직무는 필수입니다')
     }
     if (!data?.question || !data.question.trim()) {
-      throw new BadRequestException('질문은 필수입니다');
+      throw new BadRequestException('질문은 필수입니다')
     }
 
     // Validate refs if provided
@@ -108,15 +110,15 @@ export class JobInterviewQuestionsService {
       const exists = await this.prisma.jobPost.findUnique({
         where: { id: data.jobPostId },
         select: { id: true },
-      });
-      if (!exists) throw new NotFoundException('채용 공고를 찾을 수 없습니다');
+      })
+      if (!exists) throw new NotFoundException('채용 공고를 찾을 수 없습니다')
     }
     if (data.curatedJobId) {
       const exists = await this.prisma.curatedJob.findUnique({
         where: { id: data.curatedJobId },
         select: { id: true },
-      });
-      if (!exists) throw new NotFoundException('큐레이션 채용을 찾을 수 없습니다');
+      })
+      if (!exists) throw new NotFoundException('큐레이션 채용을 찾을 수 없습니다')
     }
 
     return this.prisma.jobInterviewQuestion.create({
@@ -132,19 +134,19 @@ export class JobInterviewQuestionsService {
         source: data.source ?? 'user',
         authorId: userId,
       },
-    });
+    })
   }
 
   async toggleUpvote(questionId: string, userId: string) {
     const question = await this.prisma.jobInterviewQuestion.findUnique({
       where: { id: questionId },
       select: { id: true },
-    });
-    if (!question) throw new NotFoundException('질문을 찾을 수 없습니다');
+    })
+    if (!question) throw new NotFoundException('질문을 찾을 수 없습니다')
 
     const existing = await this.prisma.jobInterviewQuestionVote.findUnique({
       where: { questionId_userId: { questionId, userId } },
-    });
+    })
 
     if (existing) {
       await this.prisma.$transaction([
@@ -153,8 +155,8 @@ export class JobInterviewQuestionsService {
           where: { id: questionId },
           data: { upvotes: { decrement: 1 } },
         }),
-      ]);
-      return { upvoted: false };
+      ])
+      return { upvoted: false }
     }
 
     await this.prisma.$transaction([
@@ -163,19 +165,19 @@ export class JobInterviewQuestionsService {
         where: { id: questionId },
         data: { upvotes: { increment: 1 } },
       }),
-    ]);
-    return { upvoted: true };
+    ])
+    return { upvoted: true }
   }
 
   async remove(id: string, userId: string, role?: string) {
-    const question = await this.prisma.jobInterviewQuestion.findUnique({ where: { id } });
-    if (!question) throw new NotFoundException('질문을 찾을 수 없습니다');
-    const isAdmin = role === 'admin' || role === 'superadmin';
+    const question = await this.prisma.jobInterviewQuestion.findUnique({ where: { id } })
+    if (!question) throw new NotFoundException('질문을 찾을 수 없습니다')
+    const isAdmin = role === 'admin' || role === 'superadmin'
     if (question.authorId !== userId && !isAdmin) {
-      throw new ForbiddenException('권한이 없습니다');
+      throw new ForbiddenException('권한이 없습니다')
     }
-    await this.prisma.jobInterviewQuestion.delete({ where: { id } });
-    return { success: true };
+    await this.prisma.jobInterviewQuestion.delete({ where: { id } })
+    return { success: true }
   }
 
   // ─────────────────────────────────────────────
@@ -183,20 +185,20 @@ export class JobInterviewQuestionsService {
   // ─────────────────────────────────────────────
 
   async adminList(params: { status?: string; q?: string; page: number; limit: number }) {
-    const { status, q, page, limit } = params;
-    const where: Prisma.JobInterviewQuestionWhereInput = {};
-    if (status === 'approved') where.isApproved = true;
-    else if (status === 'rejected') where.isRejected = true;
+    const { status, q, page, limit } = params
+    const where: Prisma.JobInterviewQuestionWhereInput = {}
+    if (status === 'approved') where.isApproved = true
+    else if (status === 'rejected') where.isRejected = true
     else if (status === 'pending') {
-      where.isApproved = false;
-      where.isRejected = false;
+      where.isApproved = false
+      where.isRejected = false
     }
     if (q) {
       where.OR = [
         { question: { contains: q, mode: 'insensitive' } },
         { companyName: { contains: q, mode: 'insensitive' } },
         { position: { contains: q, mode: 'insensitive' } },
-      ];
+      ]
     }
 
     const [items, total] = await Promise.all([
@@ -210,50 +212,50 @@ export class JobInterviewQuestionsService {
         take: limit,
       }),
       this.prisma.jobInterviewQuestion.count({ where }),
-    ]);
+    ])
 
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) }
   }
 
   async adminApprove(id: string) {
     return this.prisma.jobInterviewQuestion.update({
       where: { id },
       data: { isApproved: true, isRejected: false },
-    });
+    })
   }
 
   async adminReject(id: string) {
     return this.prisma.jobInterviewQuestion.update({
       where: { id },
       data: { isRejected: true, isApproved: false },
-    });
+    })
   }
 
   async adminSetUpvotes(id: string, upvotes: number) {
-    const safe = Math.max(0, Math.floor(Number(upvotes) || 0));
+    const safe = Math.max(0, Math.floor(Number(upvotes) || 0))
     return this.prisma.jobInterviewQuestion.update({
       where: { id },
       data: { upvotes: safe },
-    });
+    })
   }
 
   async adminDelete(id: string) {
-    await this.prisma.jobInterviewQuestion.delete({ where: { id } });
-    return { success: true };
+    await this.prisma.jobInterviewQuestion.delete({ where: { id } })
+    return { success: true }
   }
 
   async aiGenerate(userId: string | null, dto: AiGenerateDto) {
     if (!dto?.companyName?.trim() || !dto?.position?.trim()) {
-      throw new BadRequestException('회사명/직무는 필수입니다');
+      throw new BadRequestException('회사명/직무는 필수입니다')
     }
 
-    const count = Math.min(Math.max(dto.count ?? 5, 1), 10);
+    const count = Math.min(Math.max(dto.count ?? 5, 1), 10)
 
     const systemPrompt = `당신은 기업 면접 질문 설계 전문가입니다. 주어진 채용 정보를 바탕으로 실전에서 나올 수 있는 예상 면접 질문과 모범 답변을 작성해 주세요.
 - 자기소개/기술/행동/상황/인성 중 다양한 카테고리를 섞습니다.
 - 회사/직무 맥락에 맞는 구체적인 질문을 작성합니다.
 - 모범답변은 STAR 기법 또는 구체적 경험 중심으로 150~250자로 작성합니다.
-- 반드시 순수 JSON 배열만 출력합니다. 설명/마크다운/코드블록 금지.`;
+- 반드시 순수 JSON 배열만 출력합니다. 설명/마크다운/코드블록 금지.`
 
     const userMessage = JSON.stringify(
       {
@@ -273,22 +275,22 @@ export class JobInterviewQuestionsService {
         ],
       },
       null,
-      2,
-    );
+      2
+    )
 
-    const result = await this.llm.generateWithFallback(systemPrompt, userMessage);
+    const result = await this.llm.generateWithFallback(systemPrompt, userMessage)
 
-    let parsed: GeneratedInterviewQuestion[];
+    let parsed: GeneratedInterviewQuestion[]
     try {
-      const text = (result.text || '').trim();
-      const jsonStart = text.indexOf('[');
-      const jsonEnd = text.lastIndexOf(']');
+      const text = (result.text || '').trim()
+      const jsonStart = text.indexOf('[')
+      const jsonEnd = text.lastIndexOf(']')
       const jsonStr =
-        jsonStart >= 0 && jsonEnd > jsonStart ? text.slice(jsonStart, jsonEnd + 1) : text;
-      parsed = JSON.parse(jsonStr);
-      if (!Array.isArray(parsed)) parsed = [];
+        jsonStart >= 0 && jsonEnd > jsonStart ? text.slice(jsonStart, jsonEnd + 1) : text
+      parsed = JSON.parse(jsonStr)
+      if (!Array.isArray(parsed)) parsed = []
     } catch {
-      throw new BadRequestException('AI 응답을 파싱하지 못했습니다. 다시 시도해주세요.');
+      throw new BadRequestException('AI 응답을 파싱하지 못했습니다. 다시 시도해주세요.')
     }
 
     const sanitized = parsed
@@ -299,15 +301,15 @@ export class JobInterviewQuestionsService {
           typeof q.difficulty === 'string' &&
           ['easy', 'intermediate', 'hard'].includes(q.difficulty)
             ? q.difficulty
-            : 'intermediate';
+            : 'intermediate'
 
         return {
           question: q.question.trim(),
           sampleAnswer: String(q.sampleAnswer ?? '').trim(),
           category: String(q.category ?? '').trim(),
           difficulty,
-        };
-      });
+        }
+      })
 
     if (dto.persist && userId) {
       const created = await this.prisma.$transaction(
@@ -325,15 +327,15 @@ export class JobInterviewQuestionsService {
               source: 'ai',
               authorId: userId,
             },
-          }),
-        ),
-      );
+          })
+        )
+      )
       return {
         questions: created,
         persisted: true,
         provider: result.provider,
         model: result.model,
-      };
+      }
     }
 
     return {
@@ -341,6 +343,6 @@ export class JobInterviewQuestionsService {
       persisted: false,
       provider: result.provider,
       model: result.model,
-    };
+    }
   }
 }

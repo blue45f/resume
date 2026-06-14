@@ -1,11 +1,13 @@
-import { memo, useState } from 'react';
-import type { Resume, Project } from '@/types/resume';
-import { getUser } from '@/lib/auth';
-import { useNavigate } from 'react-router-dom';
-import { ROUTES } from '@/lib/routes';
+import { memo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import type { Resume, Project } from '@/types/resume'
+
+import { getUser } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 /** Gradient palettes for project cards */
@@ -18,26 +20,26 @@ const GRADIENTS = [
   'from-rose-500 to-red-600',
   'from-blue-500 to-sapphire-600',
   'from-teal-500 to-emerald-600',
-];
+]
 
 function formatDate(d: string): string {
-  if (!d) return '';
-  const parts = d.split('-');
-  if (parts.length >= 2) return `${parts[0]}.${parts[1]}`;
-  return d;
+  if (!d) return ''
+  const parts = d.split('-')
+  if (parts.length >= 2) return `${parts[0]}.${parts[1]}`
+  return d
 }
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
-  const [expanded, setExpanded] = useState(false);
-  const gradient = GRADIENTS[index % GRADIENTS.length];
+  const [expanded, setExpanded] = useState(false)
+  const gradient = GRADIENTS[index % GRADIENTS.length]
   const techItems = project.techStack
     ? project.techStack
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean)
-    : [];
-  const plainDesc = project.description?.replace(/<[^>]*>/g, '') || '';
-  const snippet = plainDesc.length > 120 ? plainDesc.slice(0, 120) + '...' : plainDesc;
+    : []
+  const plainDesc = project.description?.replace(/<[^>]*>/g, '') || ''
+  const snippet = plainDesc.length > 120 ? plainDesc.slice(0, 120) + '...' : plainDesc
 
   return (
     <div className="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 flex flex-col">
@@ -123,16 +125,16 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 function ProjectShowcase({ resume }: Props) {
-  const navigate = useNavigate();
-  const projects = resume.projects;
-  const currentUser = getUser();
-  const isOwner = currentUser && resume.userId && currentUser.id === resume.userId;
+  const navigate = useNavigate()
+  const projects = resume.projects
+  const currentUser = getUser()
+  const isOwner = currentUser && resume.userId && currentUser.id === resume.userId
 
-  if (projects.length === 0 && !isOwner) return null;
+  if (projects.length === 0 && !isOwner) return null
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 no-print">
@@ -193,7 +195,7 @@ function ProjectShowcase({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default memo(ProjectShowcase);
+export default memo(ProjectShowcase)

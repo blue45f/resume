@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router-dom'
 
 type EmptyType =
   | 'search'
@@ -11,11 +11,11 @@ type EmptyType =
   | 'scout'
   | 'cover-letter'
   | 'message'
-  | 'notification';
+  | 'notification'
 
 interface Props {
-  type: EmptyType;
-  query?: string;
+  type: EmptyType
+  query?: string
 }
 
 const configs = {
@@ -243,7 +243,7 @@ const configs = {
     description: '새로운 소식이 있으면 여기에 표시됩니다.',
     actions: [],
   },
-};
+}
 
 /** Eyebrow text per type — teaches what state this is */
 const EYEBROW: Record<EmptyType, string> = {
@@ -258,10 +258,10 @@ const EYEBROW: Record<EmptyType, string> = {
   'cover-letter': '자소서',
   message: '메시지',
   notification: '알림',
-};
+}
 
 export default function EmptyState({ type, query }: Props) {
-  const config = configs[type];
+  const config = configs[type]
 
   return (
     <div className="flex flex-col items-center justify-center py-16 sm:py-24 animate-fade-in max-w-md mx-auto px-4">
@@ -322,5 +322,5 @@ export default function EmptyState({ type, query }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

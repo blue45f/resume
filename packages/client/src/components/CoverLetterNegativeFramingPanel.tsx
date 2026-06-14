@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { detectCoverLetterNegativeFraming } from '@/lib/coverLetterNegativeFramingDetector';
-import type { NegativeFramingType } from '@/lib/coverLetterNegativeFramingDetector';
+import { useMemo } from 'react'
+
+import type { NegativeFramingType } from '@/lib/coverLetterNegativeFramingDetector'
+
+import { detectCoverLetterNegativeFraming } from '@/lib/coverLetterNegativeFramingDetector'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const TYPE_LABEL: Record<NegativeFramingType, string> = {
@@ -11,20 +13,20 @@ const TYPE_LABEL: Record<NegativeFramingType, string> = {
   colleague_complaint: '상사·동료 불만',
   negative_resignation: '부정적 퇴사 사유',
   blame_excuse: '남·환경 탓',
-};
+}
 
 const GRADE_LABEL: Record<string, string> = {
   minor: '주의',
   concerning: '개선 권장',
-};
+}
 
 export default function CoverLetterNegativeFramingPanel({ text }: Props) {
-  const report = useMemo(() => detectCoverLetterNegativeFraming(text), [text]);
+  const report = useMemo(() => detectCoverLetterNegativeFraming(text), [text])
 
-  if (text.trim().length < 50) return null;
-  if (report.grade === 'clean') return null;
+  if (text.trim().length < 50) return null
+  if (report.grade === 'clean') return null
 
-  const isConcerning = report.grade === 'concerning';
+  const isConcerning = report.grade === 'concerning'
 
   return (
     <aside
@@ -58,5 +60,5 @@ export default function CoverLetterNegativeFramingPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

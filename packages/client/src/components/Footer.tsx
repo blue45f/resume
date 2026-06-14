@@ -1,6 +1,7 @@
-import { Link } from 'react-router-dom';
-import { tx } from '@/lib/i18n';
-import { ROUTES, TERMSDESK_URLS } from '@/lib/routes';
+import { Link } from 'react-router-dom'
+
+import { tx } from '@/lib/i18n'
+import { ROUTES, TERMSDESK_URLS } from '@/lib/routes'
 
 /**
  * 심플 Footer — 메뉴는 GNB로 집중, Footer는 법률·회사 정보만.
@@ -95,5 +96,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  );
+  )
 }

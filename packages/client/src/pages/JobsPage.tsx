@@ -1,66 +1,68 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ErrorRetry from '@/components/ErrorRetry';
-import CompanyInfoCard from '@/components/CompanyInfoCard';
-import JobAlert from '@/components/JobAlert';
-import { getUser } from '@/lib/auth';
-import { ROUTES, withQuery } from '@/lib/routes';
-import { timeAgo } from '@/lib/time';
-import { API_URL } from '@/lib/config';
-import { fetchResumes, createApplication, updateJob, applyToJobPost } from '@/lib/api';
-import SavedSearchPanel from '@/components/SavedSearchPanel';
-import { toast } from '@/components/Toast';
-import type { ResumeSummary } from '@/types/resume';
-import Tabs from '@/shared/ui/Tabs';
-import { JobQuestionsPanel } from '@/features/interview-prep';
-import { JobStudyGroupsPanel } from '@/features/study-groups';
-import { tx } from '@/lib/i18n';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { getErrorMessage } from '@/lib/errorMessage';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Link } from 'react-router-dom'
+
+import type { ResumeSummary } from '@/types/resume'
+
+import CompanyInfoCard from '@/components/CompanyInfoCard'
+import ErrorRetry from '@/components/ErrorRetry'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import JobAlert from '@/components/JobAlert'
+import SavedSearchPanel from '@/components/SavedSearchPanel'
+import { toast } from '@/components/Toast'
+import { JobQuestionsPanel } from '@/features/interview-prep'
+import { JobStudyGroupsPanel } from '@/features/study-groups'
+import { fetchResumes, createApplication, updateJob, applyToJobPost } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { tx } from '@/lib/i18n'
+import { ROUTES, withQuery } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
+import Tabs from '@/shared/ui/Tabs'
 
 /* ------------------------------------------------------------------ */
 /*  One-Click Apply: localStorage tracking for applied jobs            */
 /* ------------------------------------------------------------------ */
-const APPLIED_STORAGE_KEY = 'applied-jobs';
-const SAVED_JOBS_KEY = 'saved-jobs';
-const EMPTY_RESUME_SUMMARIES: ResumeSummary[] = [];
+const APPLIED_STORAGE_KEY = 'applied-jobs'
+const SAVED_JOBS_KEY = 'saved-jobs'
+const EMPTY_RESUME_SUMMARIES: ResumeSummary[] = []
 
 function getAppliedJobs(): Set<string> {
   try {
-    return new Set(JSON.parse(localStorage.getItem(APPLIED_STORAGE_KEY) || '[]'));
+    return new Set(JSON.parse(localStorage.getItem(APPLIED_STORAGE_KEY) || '[]'))
   } catch {
-    return new Set();
+    return new Set()
   }
 }
 
 function addAppliedJob(jobId: string) {
-  const applied = getAppliedJobs();
-  applied.add(jobId);
-  localStorage.setItem(APPLIED_STORAGE_KEY, JSON.stringify(Array.from(applied)));
+  const applied = getAppliedJobs()
+  applied.add(jobId)
+  localStorage.setItem(APPLIED_STORAGE_KEY, JSON.stringify(Array.from(applied)))
 }
 
 function getSavedJobs(): Set<string> {
   try {
-    return new Set(JSON.parse(localStorage.getItem(SAVED_JOBS_KEY) || '[]'));
+    return new Set(JSON.parse(localStorage.getItem(SAVED_JOBS_KEY) || '[]'))
   } catch {
-    return new Set();
+    return new Set()
   }
 }
 
 function toggleSavedJob(jobId: string): boolean {
-  const saved = getSavedJobs();
+  const saved = getSavedJobs()
   if (saved.has(jobId)) {
-    saved.delete(jobId);
-    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(Array.from(saved)));
-    return false;
+    saved.delete(jobId)
+    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(Array.from(saved)))
+    return false
   } else {
-    saved.add(jobId);
-    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(Array.from(saved)));
-    return true;
+    saved.add(jobId)
+    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(Array.from(saved)))
+    return true
   }
 }
 
@@ -72,44 +74,44 @@ const MARKET_AVG_SALARY: Record<string, number> = {
   contract: 4200,
   parttime: 2500,
   intern: 2400,
-};
+}
 
 function parseSalaryRange(salary: string): { min: number; max: number } | null {
-  if (!salary) return null;
-  const nums = salary.match(/\d[\d,]*/g);
-  if (!nums || nums.length === 0) return null;
-  const values = nums.map((n) => parseInt(n.replace(/,/g, ''), 10));
+  if (!salary) return null
+  const nums = salary.match(/\d[\d,]*/g)
+  if (!nums || nums.length === 0) return null
+  const values = nums.map((n) => parseInt(n.replace(/,/g, ''), 10))
   // Normalize: if values are < 100 they are in 만원 units already, otherwise convert
   const normalized = values.map((v) =>
-    v > 10000 ? Math.round(v / 10000) : v > 100 ? Math.round(v / 100) : v,
-  );
-  if (normalized.length === 1) return { min: normalized[0], max: normalized[0] };
-  return { min: Math.min(...normalized), max: Math.max(...normalized) };
+    v > 10000 ? Math.round(v / 10000) : v > 100 ? Math.round(v / 100) : v
+  )
+  if (normalized.length === 1) return { min: normalized[0], max: normalized[0] }
+  return { min: Math.min(...normalized), max: Math.max(...normalized) }
 }
 
 function getSalaryComparisonBadge(
   salary: string,
-  jobType: string,
+  jobType: string
 ): { text: string; color: string } | null {
-  const range = parseSalaryRange(salary);
-  if (!range) return null;
-  const avg = MARKET_AVG_SALARY[jobType] || 4500;
-  const midSalary = (range.min + range.max) / 2;
+  const range = parseSalaryRange(salary)
+  if (!range) return null
+  const avg = MARKET_AVG_SALARY[jobType] || 4500
+  const midSalary = (range.min + range.max) / 2
   // Treat midSalary in 만원 units; avg is also in 만원
-  const diffPct = Math.round(((midSalary - avg) / avg) * 100);
-  if (Math.abs(diffPct) < 3) return null;
+  const diffPct = Math.round(((midSalary - avg) / avg) * 100)
+  if (Math.abs(diffPct) < 3) return null
   if (diffPct > 0) {
     return {
       text: `시장 평균 대비 +${diffPct}%`,
       color:
         'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-    };
+    }
   }
   return {
     text: `시장 평균 대비 ${diffPct}%`,
     color:
       'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800',
-  };
+  }
 }
 
 /* Salary contribution modal */
@@ -120,12 +122,12 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
     salary: '',
     experience: '3',
     anonymous: true,
-  });
-  const [submitted, setSubmitted] = useState(false);
+  })
+  const [submitted, setSubmitted] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const token = localStorage.getItem('token');
+    e.preventDefault()
+    const token = localStorage.getItem('token')
     fetch(`${API_URL}/api/salary-data`, {
       method: 'POST',
       headers: {
@@ -133,15 +135,15 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(form),
-    }).catch(() => {});
-    setSubmitted(true);
-  };
+    }).catch(() => {})
+    setSubmitted(true)
+  }
 
   return (
     <RadixDialog.Root
       open={open}
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -197,10 +199,14 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
                 모든 정보는 익명으로 처리되며, 급여 통계에만 활용됩니다.
               </p>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-1"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   회사명
                 </label>
                 <input
+                  id="jobspage-field-1"
                   required
                   value={form.company}
                   onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
@@ -209,10 +215,14 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-2"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   포지션
                 </label>
                 <input
+                  id="jobspage-field-2"
                   required
                   value={form.position}
                   onChange={(e) => setForm((f) => ({ ...f, position: e.target.value }))}
@@ -222,10 +232,14 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
               </div>
               <div className="stagger-children grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  <label
+                    htmlFor="jobspage-field-3"
+                    className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                  >
                     연봉 (만원)
                   </label>
                   <input
+                    id="jobspage-field-3"
                     required
                     type="number"
                     value={form.salary}
@@ -235,10 +249,14 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                  <label
+                    htmlFor="jobspage-field-4"
+                    className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                  >
                     경력 (년)
                   </label>
                   <input
+                    id="jobspage-field-4"
                     type="number"
                     min={0}
                     max={30}
@@ -268,56 +286,56 @@ function SalaryContributeModal({ open, onClose }: { open: boolean; onClose: () =
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
 /*  External Job Site Links (API-backed, multi-filter)                 */
 /* ------------------------------------------------------------------ */
 interface ExternalLink {
-  id: string;
-  name: string;
-  url: string;
-  logoEmoji: string;
-  badgeText: string;
-  description: string;
-  gradientFrom: string;
-  gradientTo: string;
-  category: string;
-  companySize: string;
-  careerLevel: string;
-  location: string;
-  jobCategory: string;
-  jobTypes: string;
-  clickCount: number;
-  matchKeywords: string;
+  id: string
+  name: string
+  url: string
+  logoEmoji: string
+  badgeText: string
+  description: string
+  gradientFrom: string
+  gradientTo: string
+  category: string
+  companySize: string
+  careerLevel: string
+  location: string
+  jobCategory: string
+  jobTypes: string
+  clickCount: number
+  matchKeywords: string
 }
 
 interface ExternalLinkFormData {
-  name: string;
-  url: string;
-  logoEmoji: string;
-  description: string;
-  badgeText: string;
-  gradientFrom: string;
-  gradientTo: string;
-  companySize: string;
-  careerLevel: string;
-  jobCategory: string;
-  location: string;
+  name: string
+  url: string
+  logoEmoji: string
+  description: string
+  badgeText: string
+  gradientFrom: string
+  gradientTo: string
+  companySize: string
+  careerLevel: string
+  jobCategory: string
+  location: string
 }
 
 /** 외부 링크의 matchKeywords와 내부 공고 company가 매칭되면 해당 공고 목록 반환 */
 function findMatchedJobs(link: ExternalLink, internalJobs: JobPost[]): JobPost[] {
-  if (!link.matchKeywords) return [];
+  if (!link.matchKeywords) return []
   const keywords = link.matchKeywords
     .split(',')
     .map((k) => k.trim().toLowerCase())
-    .filter(Boolean);
+    .filter(Boolean)
   return internalJobs.filter((job) => {
-    const company = (job.company || job.user?.companyName || '').toLowerCase();
-    return keywords.some((kw) => company.includes(kw) || kw.includes(company.split(' ')[0]));
-  });
+    const company = (job.company || job.user?.companyName || '').toLowerCase()
+    return keywords.some((kw) => company.includes(kw) || kw.includes(company.split(' ')[0]))
+  })
 }
 
 const COMPANY_SIZE_OPTIONS = [
@@ -328,14 +346,14 @@ const COMPANY_SIZE_OPTIONS = [
   { key: 'medium', label: '중소기업' },
   { key: 'startup', label: '스타트업' },
   { key: 'small', label: '소규모(10인 미만)' },
-];
+]
 
 const CAREER_LEVEL_EXT_OPTIONS = [
   { key: 'all', label: '전 경력' },
   { key: 'junior', label: '신입/인턴' },
   { key: 'mid', label: '경력 3~7년' },
   { key: 'senior', label: '시니어 7년+' },
-];
+]
 
 const JOB_CATEGORY_OPTIONS = [
   { key: 'all', label: '전 직종' },
@@ -352,7 +370,7 @@ const JOB_CATEGORY_OPTIONS = [
   { key: 'legal', label: '법무/법조' },
   { key: 'service', label: '서비스/유통' },
   { key: 'research', label: '연구/R&D' },
-];
+]
 
 const JOB_TYPE_EXT_OPTIONS = [
   { key: 'all', label: '전체' },
@@ -361,7 +379,7 @@ const JOB_TYPE_EXT_OPTIONS = [
   { key: 'parttime', label: '파트타임' },
   { key: 'intern', label: '인턴' },
   { key: 'freelance', label: '프리랜서' },
-];
+]
 
 const LOCATION_EXT_OPTIONS = [
   { key: 'all', label: '전국' },
@@ -372,14 +390,14 @@ const LOCATION_EXT_OPTIONS = [
   { key: 'remote', label: '재택/원격' },
   { key: 'nationwide', label: '전국 가능' },
   { key: 'global', label: '해외/글로벌' },
-];
+]
 
 function ExtLinkForm({
   initial,
   onSave,
 }: {
-  initial: ExternalLink | null;
-  onSave: (data: ExternalLinkFormData) => void;
+  initial: ExternalLink | null
+  onSave: (data: ExternalLinkFormData) => void
 }) {
   const [form, setForm] = useState({
     name: initial?.name || '',
@@ -393,13 +411,19 @@ function ExtLinkForm({
     careerLevel: initial?.careerLevel || 'all',
     jobCategory: initial?.jobCategory || 'all',
     location: initial?.location || 'all',
-  });
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  })
+  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }))
   return (
     <div className="p-5 space-y-3">
       <div>
-        <label className="text-xs font-medium text-slate-600 dark:text-slate-400">사이트명 *</label>
+        <label
+          htmlFor="jobspage-field-5"
+          className="text-xs font-medium text-slate-600 dark:text-slate-400"
+        >
+          사이트명 *
+        </label>
         <input
+          id="jobspage-field-5"
           value={form.name}
           onChange={(e) => set('name', e.target.value)}
           className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -408,8 +432,14 @@ function ExtLinkForm({
         />
       </div>
       <div>
-        <label className="text-xs font-medium text-slate-600 dark:text-slate-400">URL *</label>
+        <label
+          htmlFor="jobspage-url"
+          className="text-xs font-medium text-slate-600 dark:text-slate-400"
+        >
+          URL *
+        </label>
         <input
+          id="jobspage-url"
           value={form.url}
           onChange={(e) => set('url', e.target.value)}
           type="url"
@@ -420,18 +450,28 @@ function ExtLinkForm({
       </div>
       <div className="stagger-children grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">이모지</label>
+          <label
+            htmlFor="jobspage-field-7"
+            className="text-xs font-medium text-slate-600 dark:text-slate-400"
+          >
+            이모지
+          </label>
           <input
+            id="jobspage-field-7"
             value={form.logoEmoji}
             onChange={(e) => set('logoEmoji', e.target.value)}
             className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+          <label
+            htmlFor="jobspage-field-8"
+            className="text-xs font-medium text-slate-600 dark:text-slate-400"
+          >
             뱃지 텍스트
           </label>
           <input
+            id="jobspage-field-8"
             value={form.badgeText}
             onChange={(e) => set('badgeText', e.target.value)}
             className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -440,8 +480,14 @@ function ExtLinkForm({
         </div>
       </div>
       <div>
-        <label className="text-xs font-medium text-slate-600 dark:text-slate-400">설명</label>
+        <label
+          htmlFor="jobspage-field-9"
+          className="text-xs font-medium text-slate-600 dark:text-slate-400"
+        >
+          설명
+        </label>
         <input
+          id="jobspage-field-9"
           value={form.description}
           onChange={(e) => set('description', e.target.value)}
           className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -450,8 +496,14 @@ function ExtLinkForm({
       </div>
       <div className="stagger-children grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">기업규모</label>
+          <label
+            htmlFor="jobspage-field-10"
+            className="text-xs font-medium text-slate-600 dark:text-slate-400"
+          >
+            기업규모
+          </label>
           <select
+            id="jobspage-field-10"
             value={form.companySize}
             onChange={(e) => set('companySize', e.target.value)}
             className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -464,8 +516,14 @@ function ExtLinkForm({
           </select>
         </div>
         <div>
-          <label className="text-xs font-medium text-slate-600 dark:text-slate-400">직종</label>
+          <label
+            htmlFor="jobspage-field-11"
+            className="text-xs font-medium text-slate-600 dark:text-slate-400"
+          >
+            직종
+          </label>
           <select
+            id="jobspage-field-11"
             value={form.jobCategory}
             onChange={(e) => set('jobCategory', e.target.value)}
             className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -485,78 +543,74 @@ function ExtLinkForm({
         {initial ? '수정' : '등록'}
       </button>
     </div>
-  );
+  )
 }
 
 function ExternalJobLinks({
   internalJobs,
   onDirectApply,
 }: {
-  internalJobs: JobPost[];
-  onDirectApply: (job: JobPost) => void;
+  internalJobs: JobPost[]
+  onDirectApply: (job: JobPost) => void
 }) {
-  const [companySize, setCompanySize] = useState('all');
-  const [careerLevel, setCareerLevel] = useState('all');
-  const [jobCategory, setJobCategory] = useState('all');
-  const [jobType, setJobType] = useState('all');
-  const [location, setLocation] = useState('all');
-  const [q, setQ] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [expanded, setExpanded] = useState(false);
-  const [matchModal, setMatchModal] = useState<{ link: ExternalLink; jobs: JobPost[] } | null>(
-    null,
-  );
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingLink, setEditingLink] = useState<ExternalLink | null>(null);
-  const { canDo } = usePermissions();
-  const confirm = useConfirm();
-  const canCreate = canDo('externalLinks', 'create');
-  const canEdit = canDo('externalLinks', 'edit');
-  const canDelete = canDo('externalLinks', 'delete');
+  const [companySize, setCompanySize] = useState('all')
+  const [careerLevel, setCareerLevel] = useState('all')
+  const [jobCategory, setJobCategory] = useState('all')
+  const [jobType, setJobType] = useState('all')
+  const [location, setLocation] = useState('all')
+  const [q, setQ] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [expanded, setExpanded] = useState(false)
+  const [matchModal, setMatchModal] = useState<{ link: ExternalLink; jobs: JobPost[] } | null>(null)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [editingLink, setEditingLink] = useState<ExternalLink | null>(null)
+  const { canDo } = usePermissions()
+  const confirm = useConfirm()
+  const canCreate = canDo('externalLinks', 'create')
+  const canEdit = canDo('externalLinks', 'edit')
+  const canDelete = canDo('externalLinks', 'delete')
 
   const linksQuery = useQuery<ExternalLink[]>({
     queryKey: ['external-links', { companySize, careerLevel, jobCategory, jobType, location, q }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (companySize !== 'all') params.set('companySize', companySize);
-      if (careerLevel !== 'all') params.set('careerLevel', careerLevel);
-      if (jobCategory !== 'all') params.set('jobCategory', jobCategory);
-      if (jobType !== 'all') params.set('jobType', jobType);
-      if (location !== 'all') params.set('location', location);
-      if (q) params.set('q', q);
-      const res = await fetch(`${API_URL}/api/jobs/external-links/list?${params}`);
-      if (!res.ok) return [];
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
+      const params = new URLSearchParams()
+      if (companySize !== 'all') params.set('companySize', companySize)
+      if (careerLevel !== 'all') params.set('careerLevel', careerLevel)
+      if (jobCategory !== 'all') params.set('jobCategory', jobCategory)
+      if (jobType !== 'all') params.set('jobType', jobType)
+      if (location !== 'all') params.set('location', location)
+      if (q) params.set('q', q)
+      const res = await fetch(`${API_URL}/api/jobs/external-links/list?${params}`)
+      if (!res.ok) return []
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     },
     staleTime: 30_000,
-  });
-  const links = linksQuery.data ?? [];
-  const loading = linksQuery.isLoading;
-  const loadLinks = () => linksQuery.refetch();
+  })
+  const links = linksQuery.data ?? []
+  const loading = linksQuery.isLoading
+  const loadLinks = () => linksQuery.refetch()
 
   const handleClick = async (link: ExternalLink) => {
-    fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(
-      () => {},
-    );
-    window.open(link.url, '_blank', 'noopener,noreferrer');
-  };
+    fetch(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(() => {})
+    window.open(link.url, '_blank', 'noopener,noreferrer')
+  }
 
   const handleCardClick = (link: ExternalLink) => {
-    const matched = findMatchedJobs(link, internalJobs);
+    const matched = findMatchedJobs(link, internalJobs)
     if (matched.length > 0) {
-      setMatchModal({ link, jobs: matched });
+      setMatchModal({ link, jobs: matched })
     } else {
-      handleClick(link);
+      handleClick(link)
     }
-  };
+  }
 
   const handleSaveLink = async (data: ExternalLinkFormData) => {
-    const token = localStorage.getItem('token');
-    const isEdit = !!editingLink;
+    const token = localStorage.getItem('token')
+    const isEdit = !!editingLink
     const url = isEdit
       ? `${API_URL}/api/jobs/external-links/${editingLink!.id}`
-      : `${API_URL}/api/jobs/external-links`;
+      : `${API_URL}/api/jobs/external-links`
     const res = await fetch(url, {
       method: isEdit ? 'PUT' : 'POST',
       headers: {
@@ -564,16 +618,16 @@ function ExternalJobLinks({
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(data),
-    });
+    })
     if (res.ok) {
-      toast(isEdit ? '수정되었습니다' : '등록되었습니다', 'success');
-      setShowAddForm(false);
-      setEditingLink(null);
-      loadLinks();
+      toast(isEdit ? '수정되었습니다' : '등록되었습니다', 'success')
+      setShowAddForm(false)
+      setEditingLink(null)
+      loadLinks()
     } else {
-      toast('권한이 없습니다', 'error');
+      toast('권한이 없습니다', 'error')
     }
-  };
+  }
 
   const handleDeleteLink = async (link: ExternalLink) => {
     if (
@@ -583,28 +637,28 @@ function ExternalJobLinks({
         confirmText: '삭제',
       }))
     )
-      return;
-    const token = localStorage.getItem('token');
+      return
+    const token = localStorage.getItem('token')
     const res = await fetch(`${API_URL}/api/jobs/external-links/${link.id}`, {
       method: 'DELETE',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    });
+    })
     if (res.ok) {
-      toast('삭제되었습니다', 'success');
-      loadLinks();
+      toast('삭제되었습니다', 'success')
+      loadLinks()
     } else {
-      toast('삭제 권한이 없습니다', 'error');
+      toast('삭제 권한이 없습니다', 'error')
     }
-  };
+  }
 
-  const visible = expanded ? links : links.slice(0, 8);
+  const visible = expanded ? links : links.slice(0, 8)
 
   const filterBtnClass = (active: boolean) =>
     `px-2.5 py-1 text-[11px] font-medium rounded-full whitespace-nowrap transition-colors ${
       active
         ? 'bg-blue-600 text-white'
         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-    }`;
+    }`
 
   return (
     <div className="mb-6 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 p-4">
@@ -612,7 +666,7 @@ function ExternalJobLinks({
       <RadixDialog.Root
         open={!!matchModal}
         onOpenChange={(o) => {
-          if (!o) setMatchModal(null);
+          if (!o) setMatchModal(null)
         }}
       >
         <RadixDialog.Portal>
@@ -675,8 +729,8 @@ function ExternalJobLinks({
                       </div>
                       <button
                         onClick={() => {
-                          setMatchModal(null);
-                          onDirectApply(job);
+                          setMatchModal(null)
+                          onDirectApply(job)
                         }}
                         className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
                       >
@@ -690,8 +744,8 @@ function ExternalJobLinks({
                 <div className="p-4 border-t border-slate-100 dark:border-slate-700 flex gap-2">
                   <button
                     onClick={() => {
-                      handleClick(matchModal.link);
-                      setMatchModal(null);
+                      handleClick(matchModal.link)
+                      setMatchModal(null)
                     }}
                     className="flex-1 py-2 text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                   >
@@ -715,8 +769,8 @@ function ExternalJobLinks({
         open={showAddForm}
         onOpenChange={(o) => {
           if (!o) {
-            setShowAddForm(false);
-            setEditingLink(null);
+            setShowAddForm(false)
+            setEditingLink(null)
           }
         }}
       >
@@ -754,8 +808,8 @@ function ExternalJobLinks({
           {canCreate && (
             <button
               onClick={() => {
-                setEditingLink(null);
-                setShowAddForm(true);
+                setEditingLink(null)
+                setShowAddForm(true)
               }}
               className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
             >
@@ -787,8 +841,8 @@ function ExternalJobLinks({
       {/* Search */}
       <form
         onSubmit={(e) => {
-          e.preventDefault();
-          setQ(searchInput);
+          e.preventDefault()
+          setQ(searchInput)
         }}
         className="flex gap-2 mb-3"
       >
@@ -809,8 +863,8 @@ function ExternalJobLinks({
           <button
             type="button"
             onClick={() => {
-              setQ('');
-              setSearchInput('');
+              setQ('')
+              setSearchInput('')
             }}
             className="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors"
           >
@@ -911,8 +965,8 @@ function ExternalJobLinks({
       ) : (
         <div className="stagger-children grid grid-cols-2 sm:grid-cols-4 gap-2">
           {visible.map((link) => {
-            const matched = findMatchedJobs(link, internalJobs);
-            const hasMatch = matched.length > 0;
+            const matched = findMatchedJobs(link, internalJobs)
+            const hasMatch = matched.length > 0
             return (
               <button
                 key={link.id}
@@ -959,14 +1013,16 @@ function ExternalJobLinks({
                 </div>
                 <div className="ml-auto shrink-0 flex items-center gap-0.5">
                   {canEdit && (
-                    <span
+                    <button
+                      type="button"
                       onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingLink(link);
-                        setShowAddForm(true);
+                        e.stopPropagation()
+                        setEditingLink(link)
+                        setShowAddForm(true)
                       }}
                       className="p-1 text-slate-300 hover:text-blue-500 cursor-pointer rounded transition-colors"
                       title="수정"
+                      aria-label="수정"
                     >
                       <svg
                         className="w-3 h-3"
@@ -981,16 +1037,18 @@ function ExternalJobLinks({
                           d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                         />
                       </svg>
-                    </span>
+                    </button>
                   )}
                   {canDelete && (
-                    <span
+                    <button
+                      type="button"
                       onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteLink(link);
+                        e.stopPropagation()
+                        handleDeleteLink(link)
                       }}
                       className="p-1 text-slate-300 hover:text-red-500 cursor-pointer rounded transition-colors"
                       title="삭제"
+                      aria-label="삭제"
                     >
                       <svg
                         className="w-3 h-3"
@@ -1005,7 +1063,7 @@ function ExternalJobLinks({
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                       </svg>
-                    </span>
+                    </button>
                   )}
                   {!hasMatch && !canEdit && !canDelete && (
                     <svg
@@ -1024,7 +1082,7 @@ function ExternalJobLinks({
                   )}
                 </div>
               </button>
-            );
+            )
           })}
         </div>
       )}
@@ -1037,75 +1095,75 @@ function ExternalJobLinks({
         </button>
       )}
     </div>
-  );
+  )
 }
 
 interface JobPost {
-  id: string;
-  company: string;
-  position: string;
-  location: string;
-  salary: string;
-  type: string;
-  skills: string;
-  description: string;
-  status: string;
-  createdAt: string;
-  user: { id: string; name: string; companyName?: string };
+  id: string
+  company: string
+  position: string
+  location: string
+  salary: string
+  type: string
+  skills: string
+  description: string
+  status: string
+  createdAt: string
+  user: { id: string; name: string; companyName?: string }
 }
 
-const EMPTY_JOB_POSTS: JobPost[] = [];
+const EMPTY_JOB_POSTS: JobPost[] = []
 
 /* ------------------------------------------------------------------ */
 /*  Curated Jobs (잡코리아 스타일 채용 정보 카드)                        */
 /* ------------------------------------------------------------------ */
 interface CuratedJob {
-  id: string;
-  company: string;
-  companyLogo: string;
-  position: string;
-  department: string;
-  summary: string;
-  requirements: string;
-  benefits: string;
-  skills: string;
-  jobType: string;
-  experienceLevel: string;
-  education: string;
-  salary: string;
-  location: string;
-  companySize: string;
-  industry: string;
-  sourceUrl: string;
-  sourceSite: string;
-  deadline: string | null;
-  isRolling: boolean;
-  status: string;
-  viewCount: number;
-  clickCount: number;
-  createdAt: string;
+  id: string
+  company: string
+  companyLogo: string
+  position: string
+  department: string
+  summary: string
+  requirements: string
+  benefits: string
+  skills: string
+  jobType: string
+  experienceLevel: string
+  education: string
+  salary: string
+  location: string
+  companySize: string
+  industry: string
+  sourceUrl: string
+  sourceSite: string
+  deadline: string | null
+  isRolling: boolean
+  status: string
+  viewCount: number
+  clickCount: number
+  createdAt: string
 }
 
 interface CuratedJobFormData {
-  company: string;
-  companyLogo: string;
-  position: string;
-  department: string;
-  summary: string;
-  requirements: string;
-  benefits: string;
-  skills: string;
-  jobType: string;
-  experienceLevel: string;
-  education: string;
-  salary: string;
-  location: string;
-  companySize: string;
-  industry: string;
-  sourceUrl: string;
-  sourceSite: string;
-  deadline: string;
-  isRolling: boolean;
+  company: string
+  companyLogo: string
+  position: string
+  department: string
+  summary: string
+  requirements: string
+  benefits: string
+  skills: string
+  jobType: string
+  experienceLevel: string
+  education: string
+  salary: string
+  location: string
+  companySize: string
+  industry: string
+  sourceUrl: string
+  sourceSite: string
+  deadline: string
+  isRolling: boolean
 }
 
 const EXP_LABELS: Record<string, string> = {
@@ -1113,7 +1171,7 @@ const EXP_LABELS: Record<string, string> = {
   mid: '경력 3~7년',
   senior: '시니어 7년+',
   any: '경력무관',
-};
+}
 
 const SIZE_LABELS: Record<string, string> = {
   conglomerate: '대기업',
@@ -1122,7 +1180,7 @@ const SIZE_LABELS: Record<string, string> = {
   government: '공무원',
   medium: '중소기업',
   startup: '스타트업',
-};
+}
 
 const INDUSTRY_LABELS: Record<string, string> = {
   it: 'IT/SW',
@@ -1136,35 +1194,35 @@ const INDUSTRY_LABELS: Record<string, string> = {
   manufacturing: '제조',
   government: '공공',
   healthcare: '의료/보건',
-};
+}
 
 function usePermissions() {
   const { data: permsData } = useQuery<Record<string, string>>({
     queryKey: ['system-permissions'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/permissions`);
-      if (!res.ok) return {};
-      return res.json();
+      const res = await fetch(`${API_URL}/api/system-config/permissions`)
+      if (!res.ok) return {}
+      return res.json()
     },
     staleTime: 5 * 60_000,
-  });
-  const perms = permsData ?? {};
+  })
+  const perms = permsData ?? {}
 
   const canDo = (contentType: string, action: string): boolean => {
-    const user = getUser();
-    const key = `perm.${contentType}.${action}`;
-    const allowed = (perms[key] || 'admin').split(',').map((r) => r.trim());
-    if (allowed.includes('all')) return true;
-    if (!user) return false;
-    const isAdmin = user.role === 'admin' || user.role === 'superadmin';
-    const isRecruiter = user.userType === 'recruiter' || user.userType === 'company';
-    if (allowed.includes('admin') && isAdmin) return true;
-    if (allowed.includes('recruiter') && isRecruiter) return true;
-    if (allowed.includes('user') && user.id) return true;
-    return false;
-  };
+    const user = getUser()
+    const key = `perm.${contentType}.${action}`
+    const allowed = (perms[key] || 'admin').split(',').map((r) => r.trim())
+    if (allowed.includes('all')) return true
+    if (!user) return false
+    const isAdmin = user.role === 'admin' || user.role === 'superadmin'
+    const isRecruiter = user.userType === 'recruiter' || user.userType === 'company'
+    if (allowed.includes('admin') && isAdmin) return true
+    if (allowed.includes('recruiter') && isRecruiter) return true
+    if (allowed.includes('user') && user.id) return true
+    return false
+  }
 
-  return { perms, canDo };
+  return { perms, canDo }
 }
 
 function getDday(deadline: string | null, isRolling: boolean): { text: string; color: string } {
@@ -1172,37 +1230,37 @@ function getDday(deadline: string | null, isRolling: boolean): { text: string; c
     return {
       text: '상시채용',
       color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-    };
+    }
   if (!deadline)
     return {
       text: '상시채용',
       color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
-    };
-  const diff = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000);
+    }
+  const diff = Math.ceil((new Date(deadline).getTime() - Date.now()) / 86400000)
   if (diff < 0)
     return {
       text: '마감',
       color: 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400',
-    };
+    }
   if (diff === 0)
     return {
       text: '오늘마감',
       color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
-    };
+    }
   if (diff <= 3)
     return {
       text: `D-${diff}`,
       color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
-    };
+    }
   if (diff <= 7)
     return {
       text: `D-${diff}`,
       color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
-    };
+    }
   return {
     text: `D-${diff}`,
     color: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
-  };
+  }
 }
 
 function CuratedJobForm({
@@ -1210,9 +1268,9 @@ function CuratedJobForm({
   onSave,
   onClose,
 }: {
-  initial: CuratedJob | null;
-  onSave: (data: CuratedJobFormData) => void;
-  onClose: () => void;
+  initial: CuratedJob | null
+  onSave: (data: CuratedJobFormData) => void
+  onClose: () => void
 }) {
   const [form, setForm] = useState<CuratedJobFormData>({
     company: initial?.company || '',
@@ -1234,15 +1292,15 @@ function CuratedJobForm({
     sourceSite: initial?.sourceSite || '',
     deadline: initial?.deadline ? initial.deadline.slice(0, 10) : '',
     isRolling: initial?.isRolling || false,
-  });
+  })
   const set = <K extends keyof CuratedJobFormData>(k: K, v: CuratedJobFormData[K]) =>
-    setForm((f) => ({ ...f, [k]: v }));
+    setForm((f) => ({ ...f, [k]: v }))
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -1267,10 +1325,14 @@ function CuratedJobForm({
           <div className="p-6 space-y-4">
             <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-12"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   회사명 *
                 </label>
                 <input
+                  id="jobspage-field-12"
                   value={form.company}
                   onChange={(e) => set('company', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -1279,10 +1341,14 @@ function CuratedJobForm({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-13"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   회사 이모지
                 </label>
                 <input
+                  id="jobspage-field-13"
                   value={form.companyLogo}
                   onChange={(e) => set('companyLogo', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1291,10 +1357,14 @@ function CuratedJobForm({
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              <label
+                htmlFor="jobspage-field-14"
+                className="text-xs font-medium text-slate-600 dark:text-slate-400"
+              >
                 포지션 *
               </label>
               <input
+                id="jobspage-field-14"
                 value={form.position}
                 onChange={(e) => set('position', e.target.value)}
                 className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -1304,10 +1374,14 @@ function CuratedJobForm({
             </div>
             <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-15"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   부서/직군
                 </label>
                 <input
+                  id="jobspage-field-15"
                   value={form.department}
                   onChange={(e) => set('department', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1315,10 +1389,14 @@ function CuratedJobForm({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-16"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   근무지
                 </label>
                 <input
+                  id="jobspage-field-16"
                   value={form.location}
                   onChange={(e) => set('location', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1327,10 +1405,14 @@ function CuratedJobForm({
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              <label
+                htmlFor="jobspage-field-17"
+                className="text-xs font-medium text-slate-600 dark:text-slate-400"
+              >
                 한줄 요약
               </label>
               <textarea
+                id="jobspage-field-17"
                 value={form.summary}
                 onChange={(e) => set('summary', e.target.value)}
                 rows={2}
@@ -1339,10 +1421,14 @@ function CuratedJobForm({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              <label
+                htmlFor="jobspage-field-18"
+                className="text-xs font-medium text-slate-600 dark:text-slate-400"
+              >
                 자격 요건
               </label>
               <textarea
+                id="jobspage-field-18"
                 value={form.requirements}
                 onChange={(e) => set('requirements', e.target.value)}
                 rows={2}
@@ -1351,10 +1437,14 @@ function CuratedJobForm({
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+              <label
+                htmlFor="jobspage-field-19"
+                className="text-xs font-medium text-slate-600 dark:text-slate-400"
+              >
                 복리후생
               </label>
               <textarea
+                id="jobspage-field-19"
                 value={form.benefits}
                 onChange={(e) => set('benefits', e.target.value)}
                 rows={2}
@@ -1364,10 +1454,14 @@ function CuratedJobForm({
             </div>
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-20"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   기술스택 (콤마 구분)
                 </label>
                 <input
+                  id="jobspage-field-20"
                   value={form.skills}
                   onChange={(e) => set('skills', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1375,10 +1469,14 @@ function CuratedJobForm({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-21"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   급여
                 </label>
                 <input
+                  id="jobspage-field-21"
                   value={form.salary}
                   onChange={(e) => set('salary', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1388,10 +1486,14 @@ function CuratedJobForm({
             </div>
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-22"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   고용형태
                 </label>
                 <select
+                  id="jobspage-field-22"
                   value={form.jobType}
                   onChange={(e) => set('jobType', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1403,10 +1505,14 @@ function CuratedJobForm({
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-23"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   경력
                 </label>
                 <select
+                  id="jobspage-field-23"
                   value={form.experienceLevel}
                   onChange={(e) => set('experienceLevel', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1418,10 +1524,14 @@ function CuratedJobForm({
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-24"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   기업규모
                 </label>
                 <select
+                  id="jobspage-field-24"
                   value={form.companySize}
                   onChange={(e) => set('companySize', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1438,10 +1548,14 @@ function CuratedJobForm({
             </div>
             <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-25"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   학력
                 </label>
                 <input
+                  id="jobspage-field-25"
                   value={form.education}
                   onChange={(e) => set('education', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1449,10 +1563,14 @@ function CuratedJobForm({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-26"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   산업
                 </label>
                 <input
+                  id="jobspage-field-26"
                   value={form.industry}
                   onChange={(e) => set('industry', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1462,10 +1580,14 @@ function CuratedJobForm({
             </div>
             <div className="stagger-children grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-27"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   원본 링크 *
                 </label>
                 <input
+                  id="jobspage-field-27"
                   value={form.sourceUrl}
                   onChange={(e) => set('sourceUrl', e.target.value)}
                   type="url"
@@ -1475,10 +1597,14 @@ function CuratedJobForm({
                 />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-28"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   출처 사이트명
                 </label>
                 <input
+                  id="jobspage-field-28"
                   value={form.sourceSite}
                   onChange={(e) => set('sourceSite', e.target.value)}
                   className="w-full mt-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg"
@@ -1488,10 +1614,14 @@ function CuratedJobForm({
             </div>
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                <label
+                  htmlFor="jobspage-field-29"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400"
+                >
                   마감일
                 </label>
                 <input
+                  id="jobspage-field-29"
                   value={form.deadline}
                   onChange={(e) => set('deadline', e.target.value)}
                   type="date"
@@ -1527,30 +1657,30 @@ function CuratedJobForm({
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }
 
 function CuratedJobsTab() {
-  const [page, setPage] = useState(1);
-  const [expFilter, setExpFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
-  const [sizeFilter, setSizeFilter] = useState('all');
-  const [searchInput, setSearchInput] = useState('');
-  const [q, setQ] = useState('');
+  const [page, setPage] = useState(1)
+  const [expFilter, setExpFilter] = useState('all')
+  const [typeFilter, setTypeFilter] = useState('all')
+  const [sizeFilter, setSizeFilter] = useState('all')
+  const [searchInput, setSearchInput] = useState('')
+  const [q, setQ] = useState('')
   const [sortKey, setSortKey] = useState<'deadline' | 'recent' | 'popular' | 'hot' | 'oldest'>(
-    'deadline',
-  );
-  const [urgentOnly, setUrgentOnly] = useState(false);
-  const [hasSalaryOnly, setHasSalaryOnly] = useState(false);
-  const [excludeExpired, setExcludeExpired] = useState(true);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [editingJob, setEditingJob] = useState<CuratedJob | null>(null);
-  const { canDo } = usePermissions();
-  const confirm = useConfirm();
-  const canCreate = canDo('curatedJobs', 'create');
-  const canEdit = canDo('curatedJobs', 'edit');
-  const canDelete = canDo('curatedJobs', 'delete');
+    'deadline'
+  )
+  const [urgentOnly, setUrgentOnly] = useState(false)
+  const [hasSalaryOnly, setHasSalaryOnly] = useState(false)
+  const [excludeExpired, setExcludeExpired] = useState(true)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
+  const [editingJob, setEditingJob] = useState<CuratedJob | null>(null)
+  const { canDo } = usePermissions()
+  const confirm = useConfirm()
+  const canCreate = canDo('curatedJobs', 'create')
+  const canEdit = canDo('curatedJobs', 'edit')
+  const canDelete = canDo('curatedJobs', 'delete')
 
   const jobsQuery = useQuery<{ items: CuratedJob[]; total: number }>({
     queryKey: [
@@ -1568,32 +1698,32 @@ function CuratedJobsTab() {
       },
     ],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (expFilter !== 'all') params.set('experienceLevel', expFilter);
-      if (typeFilter !== 'all') params.set('jobType', typeFilter);
-      if (sizeFilter !== 'all') params.set('companySize', sizeFilter);
-      if (q) params.set('q', q);
-      if (sortKey !== 'deadline') params.set('sort', sortKey);
-      if (urgentOnly) params.set('urgent', '1');
-      if (hasSalaryOnly) params.set('hasSalary', '1');
-      if (excludeExpired) params.set('excludeExpired', '1');
-      params.set('page', String(page));
-      params.set('limit', '20');
-      const res = await fetch(`${API_URL}/api/jobs/curated/list?${params}`);
-      if (!res.ok) return { items: [], total: 0 };
-      return res.json();
+      const params = new URLSearchParams()
+      if (expFilter !== 'all') params.set('experienceLevel', expFilter)
+      if (typeFilter !== 'all') params.set('jobType', typeFilter)
+      if (sizeFilter !== 'all') params.set('companySize', sizeFilter)
+      if (q) params.set('q', q)
+      if (sortKey !== 'deadline') params.set('sort', sortKey)
+      if (urgentOnly) params.set('urgent', '1')
+      if (hasSalaryOnly) params.set('hasSalary', '1')
+      if (excludeExpired) params.set('excludeExpired', '1')
+      params.set('page', String(page))
+      params.set('limit', '20')
+      const res = await fetch(`${API_URL}/api/jobs/curated/list?${params}`)
+      if (!res.ok) return { items: [], total: 0 }
+      return res.json()
     },
     staleTime: 30_000,
-  });
-  const jobs: CuratedJob[] = jobsQuery.data?.items ?? [];
-  const total: number = jobsQuery.data?.total ?? 0;
-  const loading = jobsQuery.isLoading;
-  const loadJobs = () => jobsQuery.refetch();
+  })
+  const jobs: CuratedJob[] = jobsQuery.data?.items ?? []
+  const total: number = jobsQuery.data?.total ?? 0
+  const loading = jobsQuery.isLoading
+  const loadJobs = () => jobsQuery.refetch()
 
   const handleClick = (job: CuratedJob) => {
-    fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {});
+    fetch(`${API_URL}/api/jobs/curated/${job.id}/click`, { method: 'POST' }).catch(() => {})
     // 로그인 상태에서 외부 채용공고를 클릭하면 지원 내역에 자동 기록 (중복은 서버가 7일 이내 중복 방지)
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     if (token) {
       createApplication({
         company: job.company,
@@ -1605,15 +1735,15 @@ function CuratedJobsTab() {
         url: job.sourceUrl,
       })
         .then(() => {
-          toast('지원 내역에 자동 기록되었습니다', 'success');
+          toast('지원 내역에 자동 기록되었습니다', 'success')
         })
         .catch((err) => {
           // 이미 같은 공고 지원 기록이 있으면 서버가 update 만 하므로 catch 는 사실상 네트워크 오류만 잡음
-          console.warn('[auto-register application failed]', err);
-        });
+          console.warn('[auto-register application failed]', err)
+        })
     }
-    window.open(job.sourceUrl, '_blank', 'noopener,noreferrer');
-  };
+    window.open(job.sourceUrl, '_blank', 'noopener,noreferrer')
+  }
 
   const handleDelete = async (job: CuratedJob) => {
     if (
@@ -1623,26 +1753,26 @@ function CuratedJobsTab() {
         confirmText: '삭제',
       }))
     )
-      return;
-    const token = localStorage.getItem('token');
+      return
+    const token = localStorage.getItem('token')
     const res = await fetch(`${API_URL}/api/jobs/curated/${job.id}`, {
       method: 'DELETE',
       headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    });
+    })
     if (res.ok) {
-      toast('삭제되었습니다', 'success');
-      loadJobs();
+      toast('삭제되었습니다', 'success')
+      loadJobs()
     } else {
-      toast('삭제 권한이 없습니다', 'error');
+      toast('삭제 권한이 없습니다', 'error')
     }
-  };
+  }
 
   const handleSave = async (data: CuratedJobFormData) => {
-    const token = localStorage.getItem('token');
-    const isEdit = !!editingJob;
+    const token = localStorage.getItem('token')
+    const isEdit = !!editingJob
     const url = isEdit
       ? `${API_URL}/api/jobs/curated/${editingJob!.id}`
-      : `${API_URL}/api/jobs/curated`;
+      : `${API_URL}/api/jobs/curated`
     const res = await fetch(url, {
       method: isEdit ? 'PUT' : 'POST',
       headers: {
@@ -1650,23 +1780,23 @@ function CuratedJobsTab() {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(data),
-    });
+    })
     if (res.ok) {
-      toast(isEdit ? '수정되었습니다' : '등록되었습니다', 'success');
-      setShowForm(false);
-      setEditingJob(null);
-      loadJobs();
+      toast(isEdit ? '수정되었습니다' : '등록되었습니다', 'success')
+      setShowForm(false)
+      setEditingJob(null)
+      loadJobs()
     } else {
-      toast('권한이 없습니다', 'error');
+      toast('권한이 없습니다', 'error')
     }
-  };
+  }
 
   const filterBtn = (active: boolean) =>
     `px-2.5 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
       active
         ? 'bg-blue-600 text-white'
         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-    }`;
+    }`
 
   return (
     <div>
@@ -1676,8 +1806,8 @@ function CuratedJobsTab() {
           initial={editingJob}
           onSave={handleSave}
           onClose={() => {
-            setShowForm(false);
-            setEditingJob(null);
+            setShowForm(false)
+            setEditingJob(null)
           }}
         />
       )}
@@ -1687,8 +1817,8 @@ function CuratedJobsTab() {
         <div className="flex justify-end mb-3">
           <button
             onClick={() => {
-              setEditingJob(null);
-              setShowForm(true);
+              setEditingJob(null)
+              setShowForm(true)
             }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition-colors"
           >
@@ -1708,9 +1838,9 @@ function CuratedJobsTab() {
       {/* Search */}
       <form
         onSubmit={(e) => {
-          e.preventDefault();
-          setQ(searchInput);
-          setPage(1);
+          e.preventDefault()
+          setQ(searchInput)
+          setPage(1)
         }}
         className="flex gap-2 mb-4"
       >
@@ -1745,8 +1875,8 @@ function CuratedJobsTab() {
             <button
               key={o.k}
               onClick={() => {
-                setExpFilter(o.k);
-                setPage(1);
+                setExpFilter(o.k)
+                setPage(1)
               }}
               className={filterBtn(expFilter === o.k)}
             >
@@ -1767,8 +1897,8 @@ function CuratedJobsTab() {
             <button
               key={o.k}
               onClick={() => {
-                setTypeFilter(o.k);
-                setPage(1);
+                setTypeFilter(o.k)
+                setPage(1)
               }}
               className={filterBtn(typeFilter === o.k)}
             >
@@ -1792,8 +1922,8 @@ function CuratedJobsTab() {
             <button
               key={o.k}
               onClick={() => {
-                setSizeFilter(o.k);
-                setPage(1);
+                setSizeFilter(o.k)
+                setPage(1)
               }}
               className={filterBtn(sizeFilter === o.k)}
             >
@@ -1811,8 +1941,8 @@ function CuratedJobsTab() {
             <select
               value={sortKey}
               onChange={(e) => {
-                setSortKey(e.target.value as typeof sortKey);
-                setPage(1);
+                setSortKey(e.target.value as typeof sortKey)
+                setPage(1)
               }}
               className="h-8 px-2 text-xs rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
             >
@@ -1828,8 +1958,8 @@ function CuratedJobsTab() {
               type="checkbox"
               checked={urgentOnly}
               onChange={(e) => {
-                setUrgentOnly(e.target.checked);
-                setPage(1);
+                setUrgentOnly(e.target.checked)
+                setPage(1)
               }}
               className="rounded border-slate-300 dark:border-slate-600 text-red-500 focus:ring-red-500"
             />
@@ -1840,8 +1970,8 @@ function CuratedJobsTab() {
               type="checkbox"
               checked={hasSalaryOnly}
               onChange={(e) => {
-                setHasSalaryOnly(e.target.checked);
-                setPage(1);
+                setHasSalaryOnly(e.target.checked)
+                setPage(1)
               }}
               className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
             />
@@ -1852,8 +1982,8 @@ function CuratedJobsTab() {
               type="checkbox"
               checked={excludeExpired}
               onChange={(e) => {
-                setExcludeExpired(e.target.checked);
-                setPage(1);
+                setExcludeExpired(e.target.checked)
+                setPage(1)
               }}
               className="rounded border-slate-300 dark:border-slate-600 text-blue-600 focus:ring-blue-500"
             />
@@ -1870,16 +2000,16 @@ function CuratedJobsTab() {
             <button
               type="button"
               onClick={() => {
-                setExpFilter('all');
-                setTypeFilter('all');
-                setSizeFilter('all');
-                setSortKey('deadline');
-                setUrgentOnly(false);
-                setHasSalaryOnly(false);
-                setExcludeExpired(true);
-                setQ('');
-                setSearchInput('');
-                setPage(1);
+                setExpFilter('all')
+                setTypeFilter('all')
+                setSizeFilter('all')
+                setSortKey('deadline')
+                setUrgentOnly(false)
+                setHasSalaryOnly(false)
+                setExcludeExpired(true)
+                setQ('')
+                setSearchInput('')
+                setPage(1)
               }}
               className="ml-auto text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 underline underline-offset-2"
             >
@@ -1909,14 +2039,14 @@ function CuratedJobsTab() {
       ) : (
         <div className="space-y-3">
           {jobs.map((job) => {
-            const dday = getDday(job.deadline, job.isRolling);
-            const expanded = expandedId === job.id;
+            const dday = getDday(job.deadline, job.isRolling)
+            const expanded = expandedId === job.id
             const skills = (job.skills || '')
               .split(',')
               .map((s) => s.trim())
-              .filter(Boolean);
+              .filter(Boolean)
 
-            const isExpired = dday.text === '마감';
+            const isExpired = dday.text === '마감'
 
             return (
               <div
@@ -1987,7 +2117,7 @@ function CuratedJobsTab() {
                       {skills.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-2">
                           {skills.slice(0, 5).map((sk, i) => {
-                            const c = SKILL_COLORS[i % SKILL_COLORS.length];
+                            const c = SKILL_COLORS[i % SKILL_COLORS.length]
                             return (
                               <span
                                 key={sk}
@@ -1995,7 +2125,7 @@ function CuratedJobsTab() {
                               >
                                 {sk}
                               </span>
-                            );
+                            )
                           })}
                           {skills.length > 5 && (
                             <span className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -2043,8 +2173,8 @@ function CuratedJobsTab() {
                       {canEdit && (
                         <button
                           onClick={() => {
-                            setEditingJob(job);
-                            setShowForm(true);
+                            setEditingJob(job)
+                            setShowForm(true)
                           }}
                           className="p-1.5 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                           title="수정"
@@ -2207,7 +2337,7 @@ function CuratedJobsTab() {
                   </div>
                 )}
               </div>
-            );
+            )
           })}
         </div>
       )}
@@ -2231,7 +2361,7 @@ function CuratedJobsTab() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 const JOB_TYPES: Record<string, string> = {
@@ -2239,7 +2369,7 @@ const JOB_TYPES: Record<string, string> = {
   contract: '계약직',
   parttime: '파트타임',
   intern: '인턴',
-};
+}
 
 const SKILL_COLORS = [
   { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400' },
@@ -2248,26 +2378,26 @@ const SKILL_COLORS = [
   { bg: 'bg-orange-50 dark:bg-orange-900/20', text: 'text-orange-600 dark:text-orange-400' },
   { bg: 'bg-rose-50 dark:bg-blue-900/20', text: 'text-blue-700 dark:text-blue-400' },
   { bg: 'bg-cyan-50 dark:bg-cyan-900/20', text: 'text-cyan-600 dark:text-cyan-400' },
-];
+]
 
 function getSkillColor(index: number) {
-  return SKILL_COLORS[index % SKILL_COLORS.length];
+  return SKILL_COLORS[index % SKILL_COLORS.length]
 }
 
 /** Calculate match score between user skills and job required skills */
 function calculateMatchScore(userSkills: Set<string>, jobSkills: string): number {
-  if (!jobSkills || userSkills.size === 0) return 0;
+  if (!jobSkills || userSkills.size === 0) return 0
   const required = jobSkills
     .split(',')
     .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  if (required.length === 0) return 0;
-  const matched = required.filter((s) => userSkills.has(s));
-  return Math.round((matched.length / required.length) * 100);
+    .filter(Boolean)
+  if (required.length === 0) return 0
+  const matched = required.filter((s) => userSkills.has(s))
+  return Math.round((matched.length / required.length) * 100)
 }
 
 function MatchBadge({ score }: { score: number }) {
-  if (score <= 0) return null;
+  if (score <= 0) return null
   const colorClass =
     score >= 80
       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800'
@@ -2275,7 +2405,7 @@ function MatchBadge({ score }: { score: number }) {
         ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
         : score >= 30
           ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
-          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800';
+          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
 
   return (
     <span
@@ -2287,109 +2417,109 @@ function MatchBadge({ score }: { score: number }) {
       </svg>
       {score}%
     </span>
-  );
+  )
 }
 
-type JobTab = 'curated' | 'internal' | 'links';
+type JobTab = 'curated' | 'internal' | 'links'
 
 export default function JobsPage() {
-  const [activeTab, setActiveTab] = useState<JobTab>('curated');
-  const [activeQuery, setActiveQuery] = useState('');
-  const [search, setSearch] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [salaryMin, setSalaryMin] = useState(0);
-  const [salaryMax, setSalaryMax] = useState(20000);
-  const [salaryFilterEnabled, setSalaryFilterEnabled] = useState(false);
-  const [showSalaryContribute, setShowSalaryContribute] = useState(false);
-  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(getAppliedJobs);
-  const [savedJobs, setSavedJobs] = useState<Set<string>>(getSavedJobs);
-  const [showSavedOnly, setShowSavedOnly] = useState(false);
-  const [levelFilter, setLevelFilter] = useState<'all' | 'junior' | 'mid' | 'senior'>('all');
-  const [applyModalJob, setApplyModalJob] = useState<JobPost | null>(null);
-  const user = getUser();
-  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
-  const isPersonal = user?.userType === 'personal';
+  const [activeTab, setActiveTab] = useState<JobTab>('curated')
+  const [activeQuery, setActiveQuery] = useState('')
+  const [search, setSearch] = useState('')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false)
+  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [salaryMin, setSalaryMin] = useState(0)
+  const [salaryMax, setSalaryMax] = useState(20000)
+  const [salaryFilterEnabled, setSalaryFilterEnabled] = useState(false)
+  const [showSalaryContribute, setShowSalaryContribute] = useState(false)
+  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(getAppliedJobs)
+  const [savedJobs, setSavedJobs] = useState<Set<string>>(getSavedJobs)
+  const [showSavedOnly, setShowSavedOnly] = useState(false)
+  const [levelFilter, setLevelFilter] = useState<'all' | 'junior' | 'mid' | 'senior'>('all')
+  const [applyModalJob, setApplyModalJob] = useState<JobPost | null>(null)
+  const user = getUser()
+  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company'
+  const isPersonal = user?.userType === 'personal'
 
   const handleQuickApply = useCallback((job: JobPost) => {
-    setApplyModalJob(job);
-  }, []);
+    setApplyModalJob(job)
+  }, [])
 
   const handleApplySuccess = useCallback((jobId: string) => {
-    addAppliedJob(jobId);
-    setAppliedJobs((prev) => new Set(prev).add(jobId));
-    setApplyModalJob(null);
-  }, []);
+    addAppliedJob(jobId)
+    setAppliedJobs((prev) => new Set(prev).add(jobId))
+    setApplyModalJob(null)
+  }, [])
 
   // Load user's resume skills for match scoring
   const userResumesQuery = useQuery<ResumeSummary[]>({
     queryKey: ['resumes'],
     queryFn: fetchResumes,
     enabled: !!user,
-  });
-  const userResumes = userResumesQuery.data ?? EMPTY_RESUME_SUMMARIES;
+  })
+  const userResumes = userResumesQuery.data ?? EMPTY_RESUME_SUMMARIES
 
   const userSkills = useMemo((): Set<string> => {
-    const skills = new Set<string>();
+    const skills = new Set<string>()
     userResumes.forEach((r) => {
       r.skills?.forEach((sk) => {
         sk.items.split(',').forEach((item) => {
-          const trimmed = item.trim().toLowerCase();
-          if (trimmed) skills.add(trimmed);
-        });
-      });
-    });
-    return skills;
-  }, [userResumes]);
+          const trimmed = item.trim().toLowerCase()
+          if (trimmed) skills.add(trimmed)
+        })
+      })
+    })
+    return skills
+  }, [userResumes])
 
   useEffect(() => {
-    document.title = '채용 공고 — 이력서공방';
+    document.title = '채용 공고 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const internalJobsQuery = useQuery<JobPost[]>({
     queryKey: ['internal-jobs', activeQuery],
     queryFn: async () => {
-      const qs = activeQuery ? `?q=${encodeURIComponent(activeQuery)}` : '';
-      const res = await fetch(`${API_URL}/api/jobs${qs}`);
-      if (!res.ok) throw new Error('Failed to fetch jobs');
-      return res.json();
+      const qs = activeQuery ? `?q=${encodeURIComponent(activeQuery)}` : ''
+      const res = await fetch(`${API_URL}/api/jobs${qs}`)
+      if (!res.ok) throw new Error('Failed to fetch jobs')
+      return res.json()
     },
     staleTime: 30_000,
-  });
-  const jobs = internalJobsQuery.data ?? EMPTY_JOB_POSTS;
-  const loading = internalJobsQuery.isLoading;
-  const error = !!internalJobsQuery.error;
+  })
+  const jobs = internalJobsQuery.data ?? EMPTY_JOB_POSTS
+  const loading = internalJobsQuery.isLoading
+  const error = !!internalJobsQuery.error
   const loadJobs = (query?: string) => {
-    if (query !== undefined) setActiveQuery(query);
-    else internalJobsQuery.refetch();
-  };
+    if (query !== undefined) setActiveQuery(query)
+    else internalJobsQuery.refetch()
+  }
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setActiveQuery(search);
-  };
+    e.preventDefault()
+    setActiveQuery(search)
+  }
 
   const handleSelectJob = (id: string) => {
-    setSelectedId(id);
-    setMobileDetailOpen(true);
-  };
+    setSelectedId(id)
+    setMobileDetailOpen(true)
+  }
 
   const handleToggleSave = useCallback((jobId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const nowSaved = toggleSavedJob(jobId);
-    setSavedJobs(getSavedJobs());
-    toast(nowSaved ? '공고를 저장했습니다' : '저장을 취소했습니다', 'success');
-  }, []);
+    e.stopPropagation()
+    const nowSaved = toggleSavedJob(jobId)
+    setSavedJobs(getSavedJobs())
+    toast(nowSaved ? '공고를 저장했습니다' : '저장을 취소했습니다', 'success')
+  }, [])
 
   const filteredJobs = useMemo(() => {
-    let result = typeFilter === 'all' ? jobs : jobs.filter((j) => j.type === typeFilter);
-    if (showSavedOnly) result = result.filter((j) => savedJobs.has(j.id));
+    let result = typeFilter === 'all' ? jobs : jobs.filter((j) => j.type === typeFilter)
+    if (showSavedOnly) result = result.filter((j) => savedJobs.has(j.id))
     if (levelFilter !== 'all') {
-      const JUNIOR_KW = ['신입', '주니어', 'junior', '1~3', '0~3', '1년', '2년', '3년'];
+      const JUNIOR_KW = ['신입', '주니어', 'junior', '1~3', '0~3', '1년', '2년', '3년']
       const SENIOR_KW = [
         '시니어',
         '선임',
@@ -2402,25 +2532,25 @@ export default function JobsPage() {
         '8년',
         '9년',
         '10년',
-      ];
+      ]
       result = result.filter((j) => {
-        const text = `${j.position} ${j.description}`.toLowerCase();
-        if (levelFilter === 'junior') return JUNIOR_KW.some((kw) => text.includes(kw));
-        if (levelFilter === 'senior') return SENIOR_KW.some((kw) => text.includes(kw));
+        const text = `${j.position} ${j.description}`.toLowerCase()
+        if (levelFilter === 'junior') return JUNIOR_KW.some((kw) => text.includes(kw))
+        if (levelFilter === 'senior') return SENIOR_KW.some((kw) => text.includes(kw))
         // mid: not junior and not senior
         return (
           !JUNIOR_KW.some((kw) => text.includes(kw)) && !SENIOR_KW.some((kw) => text.includes(kw))
-        );
-      });
+        )
+      })
     }
     if (salaryFilterEnabled) {
       result = result.filter((j) => {
-        const range = parseSalaryRange(j.salary);
-        if (!range) return true; // Keep jobs without salary info
-        return range.max >= salaryMin && range.min <= salaryMax;
-      });
+        const range = parseSalaryRange(j.salary)
+        if (!range) return true // Keep jobs without salary info
+        return range.max >= salaryMin && range.min <= salaryMax
+      })
     }
-    return result;
+    return result
   }, [
     jobs,
     typeFilter,
@@ -2430,8 +2560,8 @@ export default function JobsPage() {
     salaryFilterEnabled,
     salaryMin,
     salaryMax,
-  ]);
-  const selected = filteredJobs.find((j) => j.id === selectedId);
+  ])
+  const selected = filteredJobs.find((j) => j.id === selectedId)
 
   return (
     <>
@@ -2541,10 +2671,10 @@ export default function JobsPage() {
                 <button
                   key={opt.key}
                   onClick={() => {
-                    setTypeFilter(opt.key);
-                    setShowSavedOnly(false);
-                    setSelectedId(null);
-                    setMobileDetailOpen(false);
+                    setTypeFilter(opt.key)
+                    setShowSavedOnly(false)
+                    setSelectedId(null)
+                    setMobileDetailOpen(false)
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
                     !showSavedOnly && typeFilter === opt.key
@@ -2557,9 +2687,9 @@ export default function JobsPage() {
               ))}
               <button
                 onClick={() => {
-                  setShowSavedOnly(!showSavedOnly);
-                  setSelectedId(null);
-                  setMobileDetailOpen(false);
+                  setShowSavedOnly(!showSavedOnly)
+                  setSelectedId(null)
+                  setMobileDetailOpen(false)
                 }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors flex items-center gap-1 ${
                   showSavedOnly
@@ -2598,8 +2728,8 @@ export default function JobsPage() {
                 <button
                   key={opt.key}
                   onClick={() => {
-                    setLevelFilter(opt.key);
-                    setSelectedId(null);
+                    setLevelFilter(opt.key)
+                    setSelectedId(null)
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors ${
                     levelFilter === opt.key
@@ -2660,8 +2790,8 @@ export default function JobsPage() {
                         step={500}
                         value={salaryMin}
                         onChange={(e) => {
-                          const v = Number(e.target.value);
-                          setSalaryMin(Math.min(v, salaryMax));
+                          const v = Number(e.target.value)
+                          setSalaryMin(Math.min(v, salaryMax))
                         }}
                         className="flex-1 accent-blue-500"
                       />
@@ -2680,8 +2810,8 @@ export default function JobsPage() {
                         step={500}
                         value={salaryMax}
                         onChange={(e) => {
-                          const v = Number(e.target.value);
-                          setSalaryMax(Math.max(v, salaryMin));
+                          const v = Number(e.target.value)
+                          setSalaryMax(Math.max(v, salaryMin))
                         }}
                         className="flex-1 accent-blue-500"
                       />
@@ -2724,8 +2854,8 @@ export default function JobsPage() {
                   .map((j) => ({ job: j, score: calculateMatchScore(userSkills, j.skills || '') }))
                   .filter((m) => m.score >= 30)
                   .sort((a, b) => b.score - a.score)
-                  .slice(0, 3);
-                if (topMatches.length === 0) return null;
+                  .slice(0, 3)
+                if (topMatches.length === 0) return null
                 return (
                   <div className="mb-6 p-4 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl">
                     <div className="flex items-center gap-2 mb-3">
@@ -2768,7 +2898,7 @@ export default function JobsPage() {
                       ))}
                     </div>
                   </div>
-                );
+                )
               })()}
 
             {error ? (
@@ -2830,9 +2960,9 @@ export default function JobsPage() {
                 {(search || typeFilter !== 'all') && (
                   <button
                     onClick={() => {
-                      setSearch('');
-                      setTypeFilter('all');
-                      loadJobs();
+                      setSearch('')
+                      setTypeFilter('all')
+                      loadJobs()
                     }}
                     className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
                   >
@@ -2987,14 +3117,14 @@ export default function JobsPage() {
                           )}
                           {j.salary &&
                             (() => {
-                              const badge = getSalaryComparisonBadge(j.salary, j.type);
+                              const badge = getSalaryComparisonBadge(j.salary, j.type)
                               return badge ? (
                                 <span
                                   className={`px-1.5 py-0.5 text-[10px] font-medium rounded border ${badge.color}`}
                                 >
                                   {badge.text}
                                 </span>
-                              ) : null;
+                              ) : null
                             })()}
                         </div>
                         {j.skills && (
@@ -3003,7 +3133,7 @@ export default function JobsPage() {
                               .split(',')
                               .slice(0, 4)
                               .map((s, i) => {
-                                const c = getSkillColor(i);
+                                const c = getSkillColor(i)
                                 return (
                                   <span
                                     key={i}
@@ -3011,7 +3141,7 @@ export default function JobsPage() {
                                   >
                                     {s.trim()}
                                   </span>
-                                );
+                                )
                               })}
                             {j.skills.split(',').length > 4 && (
                               <span className="px-1.5 py-1 text-xs text-slate-500 dark:text-slate-400">
@@ -3078,7 +3208,7 @@ export default function JobsPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -3090,23 +3220,23 @@ function QuickApplyModal({
   onClose,
   onSuccess,
 }: {
-  job: JobPost;
-  resumes: ResumeSummary[];
-  onClose: () => void;
-  onSuccess: (jobId: string) => void;
+  job: JobPost
+  resumes: ResumeSummary[]
+  onClose: () => void
+  onSuccess: (jobId: string) => void
 }) {
-  const [selectedResumeId, setSelectedResumeId] = useState(resumes.length > 0 ? resumes[0].id : '');
-  const [coverLetter, setCoverLetter] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const user = getUser();
+  const [selectedResumeId, setSelectedResumeId] = useState(resumes.length > 0 ? resumes[0].id : '')
+  const [coverLetter, setCoverLetter] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const user = getUser()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!selectedResumeId) {
-      toast('지원할 이력서를 선택해주세요.', 'error');
-      return;
+      toast('지원할 이력서를 선택해주세요.', 'error')
+      return
     }
-    setSubmitting(true);
+    setSubmitting(true)
     try {
       // 1) 사용자 local 지원 트래킹 (JobApplication — 본인이 기록)
       await createApplication({
@@ -3117,34 +3247,34 @@ function QuickApplyModal({
         notes: coverLetter || undefined,
         location: job.location,
         salary: job.salary,
-      });
+      })
       // 2) 회사 dashboard 에 surface 되는 지원 (JobPostApplication, 알림 자동)
       try {
         await applyToJobPost(job.id, {
           resumeId: selectedResumeId,
           coverLetter: coverLetter || undefined,
-        });
+        })
       } catch (e: unknown) {
         // 409 conflict (중복 지원) 등은 silent — 로컬 기록은 이미 됨
-        const message = getErrorMessage(e, '');
+        const message = getErrorMessage(e, '')
         if (message && !/이미 지원/.test(message)) {
-          console.warn('[apply] pipeline push 실패:', message);
+          console.warn('[apply] pipeline push 실패:', message)
         }
       }
-      toast('지원이 완료되었습니다!', 'success');
-      onSuccess(job.id);
+      toast('지원이 완료되었습니다!', 'success')
+      onSuccess(job.id)
     } catch (err: unknown) {
-      toast(getErrorMessage(err, '지원 중 오류가 발생했습니다.'), 'error');
+      toast(getErrorMessage(err, '지원 중 오류가 발생했습니다.'), 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -3234,10 +3364,17 @@ function QuickApplyModal({
           ) : (
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                <span
+                  id="jobspage-resume-group-label"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >
                   지원할 이력서 선택
-                </label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
+                </span>
+                <div
+                  role="radiogroup"
+                  aria-labelledby="jobspage-resume-group-label"
+                  className="space-y-2 max-h-40 overflow-y-auto"
+                >
                   {resumes.map((r) => (
                     <label
                       key={r.id}
@@ -3253,6 +3390,7 @@ function QuickApplyModal({
                         value={r.id}
                         checked={selectedResumeId === r.id}
                         onChange={() => setSelectedResumeId(r.id)}
+                        aria-label={r.title || '제목 없음'}
                         className="text-blue-600 focus:ring-blue-500"
                       />
                       <div className="min-w-0">
@@ -3269,10 +3407,14 @@ function QuickApplyModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                <label
+                  htmlFor="jobspage-field-30"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+                >
                   커버레터 <span className="text-xs font-normal text-slate-400">(선택사항)</span>
                 </label>
                 <textarea
+                  id="jobspage-field-30"
                   value={coverLetter}
                   onChange={(e) => setCoverLetter(e.target.value)}
                   rows={4}
@@ -3300,7 +3442,7 @@ function QuickApplyModal({
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }
 
 /* Extracted detail panel for reuse in desktop and mobile */
@@ -3316,39 +3458,39 @@ function JobDetailPanel({
   onToggleSave,
   onQuickApply,
 }: {
-  job: JobPost;
-  isPersonal: boolean;
-  currentUserId?: string;
-  userSkills: Set<string>;
-  allJobs: JobPost[];
-  onSelectJob: (id: string) => void;
-  appliedJobs: Set<string>;
-  savedJobs: Set<string>;
-  onToggleSave: (id: string, e: React.MouseEvent) => void;
-  onQuickApply: (job: JobPost) => void;
-  userResumes: ResumeSummary[];
+  job: JobPost
+  isPersonal: boolean
+  currentUserId?: string
+  userSkills: Set<string>
+  allJobs: JobPost[]
+  onSelectJob: (id: string) => void
+  appliedJobs: Set<string>
+  savedJobs: Set<string>
+  onToggleSave: (id: string, e: React.MouseEvent) => void
+  onQuickApply: (job: JobPost) => void
+  userResumes: ResumeSummary[]
 }) {
-  const isOwner = !!currentUserId && job.user?.id === currentUserId;
-  const queryClient = useQueryClient();
+  const isOwner = !!currentUserId && job.user?.id === currentUserId
+  const queryClient = useQueryClient()
   const closeMutation = useMutation({
     mutationFn: async () => {
-      await updateJob(job.id, { status: job.status === 'closed' ? 'active' : 'closed' });
+      await updateJob(job.id, { status: job.status === 'closed' ? 'active' : 'closed' })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['jobs'] });
-      queryClient.invalidateQueries({ queryKey: ['job', job.id] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['job', job.id] })
       toast(
         job.status === 'closed' ? '공고를 다시 활성화했습니다' : '공고를 마감했습니다',
-        'success',
-      );
+        'success'
+      )
     },
     onError: () => toast('상태 변경 실패', 'error'),
-  });
+  })
   const matchScore =
-    userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0;
-  const jobSkillsList = job.skills ? job.skills.split(',').map((s) => s.trim()) : [];
-  const matchedSkills = jobSkillsList.filter((s) => userSkills.has(s.toLowerCase()));
-  const missingSkills = jobSkillsList.filter((s) => !userSkills.has(s.toLowerCase()));
+    userSkills.size > 0 && job.skills ? calculateMatchScore(userSkills, job.skills) : 0
+  const jobSkillsList = job.skills ? job.skills.split(',').map((s) => s.trim()) : []
+  const matchedSkills = jobSkillsList.filter((s) => userSkills.has(s.toLowerCase()))
+  const missingSkills = jobSkillsList.filter((s) => !userSkills.has(s.toLowerCase()))
 
   return (
     <>
@@ -3434,14 +3576,14 @@ function JobDetailPanel({
           )}
           {job.salary &&
             (() => {
-              const badge = getSalaryComparisonBadge(job.salary, job.type);
+              const badge = getSalaryComparisonBadge(job.salary, job.type)
               return badge ? (
                 <span
                   className={`px-2 py-0.5 text-[10px] font-bold rounded-lg border ${badge.color}`}
                 >
                   {badge.text}
                 </span>
-              ) : null;
+              ) : null
             })()}
           <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded-lg font-medium">
             {JOB_TYPES[job.type] || job.type}
@@ -3466,7 +3608,7 @@ function JobDetailPanel({
           </h4>
           <div className="flex flex-wrap gap-2">
             {jobSkillsList.map((s, i) => {
-              const isMatched = userSkills.has(s.trim().toLowerCase());
+              const isMatched = userSkills.has(s.trim().toLowerCase())
               if (userSkills.size > 0) {
                 return (
                   <span
@@ -3496,9 +3638,9 @@ function JobDetailPanel({
                     )}
                     {s.trim()}
                   </span>
-                );
+                )
               }
-              const c = getSkillColor(i);
+              const c = getSkillColor(i)
               return (
                 <span
                   key={i}
@@ -3506,7 +3648,7 @@ function JobDetailPanel({
                 >
                   {s.trim()}
                 </span>
-              );
+              )
             })}
           </div>
           {userSkills.size > 0 && missingSkills.length > 0 && (
@@ -3651,5 +3793,5 @@ function JobDetailPanel({
         />
       </div>
     </>
-  );
+  )
 }

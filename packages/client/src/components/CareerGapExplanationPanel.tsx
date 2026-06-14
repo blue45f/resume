@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkCareerGapExplanations } from '@/lib/careerGapExplanationChecker';
-import type { GapExplanationType } from '@/lib/careerGapExplanationChecker';
+import { useMemo } from 'react'
+
+import type { GapExplanationType } from '@/lib/careerGapExplanationChecker'
+
+import { checkCareerGapExplanations } from '@/lib/careerGapExplanationChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const TYPE_LABEL: Record<GapExplanationType, string> = {
@@ -14,7 +16,7 @@ const TYPE_LABEL: Record<GapExplanationType, string> = {
   startup: '창업',
   job_search: '구직 활동',
   explained_other: '자기계발',
-};
+}
 
 const TYPE_ICON: Record<GapExplanationType, string> = {
   military: '🎖',
@@ -24,16 +26,16 @@ const TYPE_ICON: Record<GapExplanationType, string> = {
   startup: '🚀',
   job_search: '🔍',
   explained_other: '📈',
-};
+}
 
 export default function CareerGapExplanationPanel({ text }: Props) {
-  const report = useMemo(() => checkCareerGapExplanations(text), [text]);
+  const report = useMemo(() => checkCareerGapExplanations(text), [text])
 
-  if (text.trim().length < 80) return null;
+  if (text.trim().length < 80) return null
   // Only show if there are signals worth showing (unexplained or explained worth highlighting)
-  if (report.totalGapSignals === 0 && !report.hasUnexplainedGap) return null;
+  if (report.totalGapSignals === 0 && !report.hasUnexplainedGap) return null
 
-  const isWarning = report.hasUnexplainedGap || report.totalGapSignals === 0;
+  const isWarning = report.hasUnexplainedGap || report.totalGapSignals === 0
 
   return (
     <aside
@@ -72,5 +74,5 @@ export default function CareerGapExplanationPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

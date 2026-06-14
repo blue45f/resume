@@ -1,12 +1,12 @@
-import * as RadixDialog from '@radix-ui/react-dialog';
+import * as RadixDialog from '@radix-ui/react-dialog'
 
 interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title?: string;
-  description?: string;
-  children: React.ReactNode;
-  maxWidth?: string;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title?: string
+  description?: string
+  children: React.ReactNode
+  maxWidth?: string
 }
 
 export default function Dialog({
@@ -81,5 +81,5 @@ export default function Dialog({
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

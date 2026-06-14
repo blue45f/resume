@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
-import KoreanQualityBadge from '@/components/KoreanQualityBadge';
-import StudyGroupQuestionAnswers from '@/components/StudyGroupQuestionAnswers';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useRef, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import KoreanQualityBadge from '@/components/KoreanQualityBadge'
+import StudyGroupQuestionAnswers from '@/components/StudyGroupQuestionAnswers'
+import { toast } from '@/components/Toast'
 import {
   fetchStudyGroup,
   joinStudyGroup,
@@ -19,51 +20,51 @@ import {
   uploadStudyGroupPostAttachment,
   type StudyGroup,
   type StudyGroupPost,
-} from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { processImageForUpload } from '@/lib/imageProcess';
-import { ROUTES } from '@/lib/routes';
-import { t, tx } from '@/lib/i18n';
-import { formatDate } from '@/lib/time';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { t, tx } from '@/lib/i18n'
+import { processImageForUpload } from '@/lib/imageProcess'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 type StudyGroupDetail = StudyGroup & {
-  companyTier?: string;
-  cafeCategory?: string;
-  experienceLevel?: string;
-};
+  companyTier?: string
+  cafeCategory?: string
+  experienceLevel?: string
+}
 
 // fetchStudyGroupPosts 응답 — ['study-group-posts', id, category] 캐시 형태
-type PostsCache = { items: StudyGroupPost[]; total: number; page: number; limit: number };
+type PostsCache = { items: StudyGroupPost[]; total: number; page: number; limit: number }
 
-type PostAttachment = StudyGroupPost['attachments'][number];
+type PostAttachment = StudyGroupPost['attachments'][number]
 
 // 첨부 정책 — 서버(study-groups.controller)와 동일: 이미지·PDF, 파일당 2MB.
 // 이미지는 업로드 전 1600px 리사이즈로 캡 하위 보장. UI 는 글당 5개로 제한 (서버 상한 10).
-const ATTACH_MAX_BYTES = 2 * 1024 * 1024;
-const MAX_POST_ATTACHMENTS = 5;
+const ATTACH_MAX_BYTES = 2 * 1024 * 1024
+const MAX_POST_ATTACHMENTS = 5
 const STUDY_POST_CATEGORIES: StudyGroupPost['category'][] = [
   'notice',
   'free',
   'question',
   'resource',
   'study-log',
-];
+]
 
 const isStudyPostCategory = (value: string): value is StudyGroupPost['category'] =>
-  STUDY_POST_CATEGORIES.includes(value as StudyGroupPost['category']);
+  STUDY_POST_CATEGORIES.includes(value as StudyGroupPost['category'])
 
 const formatBytes = (n: number) =>
-  n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`;
+  n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)}MB` : `${Math.max(1, Math.round(n / 1024))}KB`
 
 /** 게시글 첨부 렌더 — 이미지는 썸네일, PDF 는 파일 칩. data: URL(개발 폴백)은 download 로 저장. */
 function PostAttachmentList({ list }: { list: PostAttachment[] }) {
-  if (!list?.length) return null;
+  if (!list?.length) return null
   return (
     <div className="mt-2 flex flex-wrap gap-2">
       {list.map((att) => {
-        const isDataUrl = att.url.startsWith('data:');
-        const download = isDataUrl ? att.name || 'attachment' : undefined;
+        const isDataUrl = att.url.startsWith('data:')
+        const download = isDataUrl ? att.name || 'attachment' : undefined
         return att.type?.startsWith('image/') ? (
           <a
             key={att.url}
@@ -93,170 +94,170 @@ function PostAttachmentList({ list }: { list: PostAttachment[] }) {
             <span className="max-w-[160px] truncate">{att.name || 'PDF'}</span>
             {att.size > 0 && <span className="text-slate-400">{formatBytes(att.size)}</span>}
           </a>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 export default function StudyGroupDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const user = getUser();
-  const qc = useQueryClient();
-  const confirm = useConfirm();
-  const [busy, setBusy] = useState(false);
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const user = getUser()
+  const qc = useQueryClient()
+  const confirm = useConfirm()
+  const [busy, setBusy] = useState(false)
   // P2-5 — join/leave 직후 server 응답이 stale 일 수 있어 (members[] 빈 배열 race) 낙관적 상태 유지.
-  const [localMembership, setLocalMembership] = useState<'joined' | 'left' | null>(null);
+  const [localMembership, setLocalMembership] = useState<'joined' | 'left' | null>(null)
 
   const { data: group, isLoading } = useQuery({
     queryKey: ['study-group', id],
     queryFn: () => fetchStudyGroup(id!) as Promise<StudyGroupDetail>,
     enabled: !!id,
     retry: 1,
-  });
+  })
 
   const { data: questions = [] } = useQuery({
     queryKey: ['study-group-questions', id],
     queryFn: () => fetchStudyGroupQuestions(id!),
     enabled: !!id && !!group,
     retry: 1,
-  });
+  })
 
-  const [postCategory, setPostCategory] = useState<'all' | StudyGroupPost['category']>('all');
+  const [postCategory, setPostCategory] = useState<'all' | StudyGroupPost['category']>('all')
   const { data: postsData } = useQuery({
     queryKey: ['study-group-posts', id, postCategory],
     queryFn: () =>
       fetchStudyGroupPosts(id!, { category: postCategory === 'all' ? undefined : postCategory }),
     enabled: !!id && !!group,
     retry: 1,
-  });
-  const posts = postsData?.items ?? [];
+  })
+  const posts = postsData?.items ?? []
 
-  const [showComposer, setShowComposer] = useState(false);
-  const [newPostTitle, setNewPostTitle] = useState('');
-  const [newPostContent, setNewPostContent] = useState('');
-  const [newPostCategory, setNewPostCategory] = useState<StudyGroupPost['category']>('free');
-  const [posting, setPosting] = useState(false);
+  const [showComposer, setShowComposer] = useState(false)
+  const [newPostTitle, setNewPostTitle] = useState('')
+  const [newPostContent, setNewPostContent] = useState('')
+  const [newPostCategory, setNewPostCategory] = useState<StudyGroupPost['category']>('free')
+  const [posting, setPosting] = useState(false)
 
   // 첨부 — 업로드 완료된 { url, name, size, type } 목록 (게시 시 본문과 함께 전송)
-  const [attachments, setAttachments] = useState<PostAttachment[]>([]);
-  const [attaching, setAttaching] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<PostAttachment[]>([])
+  const [attaching, setAttaching] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handlePickFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    e.target.value = ''; // 같은 파일 재선택 허용
-    if (!files.length || !id) return;
+    const files = Array.from(e.target.files ?? [])
+    e.target.value = '' // 같은 파일 재선택 허용
+    if (!files.length || !id) return
     if (attachments.length + files.length > MAX_POST_ATTACHMENTS) {
-      toast(tx('study.attach.max', { max: MAX_POST_ATTACHMENTS }), 'info');
-      return;
+      toast(tx('study.attach.max', { max: MAX_POST_ATTACHMENTS }), 'info')
+      return
     }
-    setAttaching(true);
+    setAttaching(true)
     try {
       for (const original of files) {
-        const isPdf = original.type === 'application/pdf';
-        const isImage = original.type.startsWith('image/') || /\.(heic|heif)$/i.test(original.name);
+        const isPdf = original.type === 'application/pdf'
+        const isImage = original.type.startsWith('image/') || /\.(heic|heif)$/i.test(original.name)
         if (!isPdf && !isImage) {
-          toast(tx('study.attach.unsupported', { name: original.name }), 'error');
-          continue;
+          toast(tx('study.attach.unsupported', { name: original.name }), 'error')
+          continue
         }
         // 이미지는 업로드 전 1600px 리사이즈 + 압축 — 서버 2MB 캡 하위 보장.
         // GIF 는 재인코딩 시 애니메이션이 깨지므로 원본 그대로 (2MB 검사만).
-        let file = original;
+        let file = original
         if (isImage && original.type !== 'image/gif') {
           file = await processImageForUpload(original, {
             maxDim: 1600,
             maxSizeMB: 1.8,
             thresholdBytes: 0,
-          });
+          })
         }
         if (file.size > ATTACH_MAX_BYTES) {
-          toast(tx('study.attach.tooLarge', { name: original.name }), 'error');
-          continue;
+          toast(tx('study.attach.tooLarge', { name: original.name }), 'error')
+          continue
         }
-        const uploaded = await uploadStudyGroupPostAttachment(id, file);
-        setAttachments((prev) => [...prev, uploaded]);
+        const uploaded = await uploadStudyGroupPostAttachment(id, file)
+        setAttachments((prev) => [...prev, uploaded])
       }
     } catch (err) {
-      toast(err instanceof Error && err.message ? err.message : tx('study.attach.failed'), 'error');
+      toast(err instanceof Error && err.message ? err.message : tx('study.attach.failed'), 'error')
     } finally {
-      setAttaching(false);
+      setAttaching(false)
     }
-  };
+  }
 
   const removeAttachment = (url: string) =>
-    setAttachments((prev) => prev.filter((a) => a.url !== url));
+    setAttachments((prev) => prev.filter((a) => a.url !== url))
 
   const submitPost = async () => {
-    if (!id) return;
+    if (!id) return
     if (newPostTitle.trim().length < 2 || newPostContent.trim().length < 2) {
-      toast(tx('study.titleContentRequired'), 'info');
-      return;
+      toast(tx('study.titleContentRequired'), 'info')
+      return
     }
-    setPosting(true);
+    setPosting(true)
     try {
       await createStudyGroupPost(id, {
         title: newPostTitle,
         content: newPostContent,
         category: newPostCategory,
         attachments,
-      });
-      toast(tx('toast.posted'), 'success');
-      setNewPostTitle('');
-      setNewPostContent('');
-      setAttachments([]);
-      setShowComposer(false);
-      qc.invalidateQueries({ queryKey: ['study-group-posts', id] });
+      })
+      toast(tx('toast.posted'), 'success')
+      setNewPostTitle('')
+      setNewPostContent('')
+      setAttachments([])
+      setShowComposer(false)
+      qc.invalidateQueries({ queryKey: ['study-group-posts', id] })
     } catch (e) {
-      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error');
+      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error')
     } finally {
-      setPosting(false);
+      setPosting(false)
     }
-  };
+  }
 
   // 좋아요 토글 — 낙관적 +1 즉시 반영 → 서버 응답(멱등 토글의 실제 likeCount)으로 보정,
   // 실패 시 스냅샷 롤백 + 에러 토스트, 종료 시 invalidate 로 서버 정합 회복
   const handleLike = async (postId: string) => {
-    const postsKey = ['study-group-posts', id];
-    await qc.cancelQueries({ queryKey: postsKey });
-    const snapshots = qc.getQueriesData<PostsCache>({ queryKey: postsKey });
+    const postsKey = ['study-group-posts', id]
+    await qc.cancelQueries({ queryKey: postsKey })
+    const snapshots = qc.getQueriesData<PostsCache>({ queryKey: postsKey })
     const patchLikeCount = (next: (prev: number) => number) =>
       qc.setQueriesData<PostsCache>({ queryKey: postsKey }, (cache) =>
         cache
           ? {
               ...cache,
               items: cache.items.map((p) =>
-                p.id === postId ? { ...p, likeCount: next(p.likeCount) } : p,
+                p.id === postId ? { ...p, likeCount: next(p.likeCount) } : p
               ),
             }
-          : cache,
-      );
-    patchLikeCount((prev) => prev + 1);
+          : cache
+      )
+    patchLikeCount((prev) => prev + 1)
     try {
-      const result = await likeStudyGroupPost(postId);
-      patchLikeCount(() => result.likeCount);
+      const result = await likeStudyGroupPost(postId)
+      patchLikeCount(() => result.likeCount)
     } catch {
-      snapshots.forEach(([key, data]) => qc.setQueryData(key, data));
-      toast('좋아요 처리에 실패했습니다', 'error');
+      snapshots.forEach(([key, data]) => qc.setQueryData(key, data))
+      toast('좋아요 처리에 실패했습니다', 'error')
     } finally {
-      qc.invalidateQueries({ queryKey: postsKey });
+      qc.invalidateQueries({ queryKey: postsKey })
     }
-  };
+  }
 
   useEffect(() => {
-    if (group) document.title = `${group.name} — 스터디`;
-  }, [group]);
+    if (group) document.title = `${group.name} — 스터디`
+  }, [group])
 
   // P2-5 — isMember 계산:
   //   1) localMembership 이 'joined' / 'left' 인 경우 그대로 우선 (낙관 업데이트)
   //   2) localMembership 이 null 이면 server 응답의 members 배열로 판정
   // owner 는 별도 — 항상 member 권한 보유.
-  const serverIsMember = !!user?.id && (group?.members?.some((m) => m.userId === user.id) ?? false);
-  const isOwner = group?.ownerId === user?.id;
+  const serverIsMember = !!user?.id && (group?.members?.some((m) => m.userId === user.id) ?? false)
+  const isOwner = group?.ownerId === user?.id
   const isMember =
     isOwner ||
-    (localMembership === 'joined' ? true : localMembership === 'left' ? false : serverIsMember);
+    (localMembership === 'joined' ? true : localMembership === 'left' ? false : serverIsMember)
 
   // 서버 데이터에 local 상태가 반영되면 (members 가 일치) local 초기화
   useEffect(() => {
@@ -264,80 +265,80 @@ export default function StudyGroupDetailPage() {
       (localMembership === 'joined' && serverIsMember) ||
       (localMembership === 'left' && !serverIsMember)
     ) {
-      const timer = window.setTimeout(() => setLocalMembership(null), 0);
-      return () => window.clearTimeout(timer);
+      const timer = window.setTimeout(() => setLocalMembership(null), 0)
+      return () => window.clearTimeout(timer)
     }
-    return undefined;
-  }, [serverIsMember, localMembership]);
+    return undefined
+  }, [serverIsMember, localMembership])
 
   const handleJoin = async () => {
     if (!user) {
-      navigate(ROUTES.login);
-      return;
+      navigate(ROUTES.login)
+      return
     }
-    if (!id) return;
-    setBusy(true);
+    if (!id) return
+    setBusy(true)
     try {
-      await joinStudyGroup(id);
-      setLocalMembership('joined');
-      toast(tx('toast.joined'), 'success');
-      qc.invalidateQueries({ queryKey: ['study-group', id] });
+      await joinStudyGroup(id)
+      setLocalMembership('joined')
+      toast(tx('toast.joined'), 'success')
+      qc.invalidateQueries({ queryKey: ['study-group', id] })
     } catch (err) {
-      toast(err instanceof Error ? err.message : '가입 실패', 'error');
+      toast(err instanceof Error ? err.message : '가입 실패', 'error')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
   const handleLeave = async () => {
-    if (!id) return;
-    setBusy(true);
+    if (!id) return
+    setBusy(true)
     try {
-      await leaveStudyGroup(id);
-      setLocalMembership('left');
-      toast(tx('toast.left'), 'info');
-      qc.invalidateQueries({ queryKey: ['study-group', id] });
+      await leaveStudyGroup(id)
+      setLocalMembership('left')
+      toast(tx('toast.left'), 'info')
+      qc.invalidateQueries({ queryKey: ['study-group', id] })
     } catch (err) {
-      toast(err instanceof Error ? err.message : '탈퇴 실패', 'error');
+      toast(err instanceof Error ? err.message : '탈퇴 실패', 'error')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!id) return;
+    if (!id) return
     if (!(await confirm({ title: tx('confirm.deleteStudy'), danger: true, confirmText: '삭제' })))
-      return;
-    setBusy(true);
+      return
+    setBusy(true)
     try {
-      await deleteStudyGroup(id);
-      toast('그룹 삭제 완료', 'info');
-      navigate(ROUTES.interview.studyGroups);
+      await deleteStudyGroup(id)
+      toast('그룹 삭제 완료', 'info')
+      navigate(ROUTES.interview.studyGroups)
     } catch (err) {
-      toast(err instanceof Error ? err.message : '삭제 실패', 'error');
+      toast(err instanceof Error ? err.message : '삭제 실패', 'error')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
   const handleTogglePrivacy = async () => {
-    if (!id || !group) return;
-    const next = !group.isPrivate;
+    if (!id || !group) return
+    const next = !group.isPrivate
     const msg = next
       ? '비공개로 전환하면 검색에 노출되지 않고 초대받은 멤버만 볼 수 있습니다. 진행할까요?'
-      : '공개로 전환하면 누구나 그룹을 검색하고 가입할 수 있습니다. 진행할까요?';
-    if (!(await confirm({ title: msg }))) return;
-    setBusy(true);
+      : '공개로 전환하면 누구나 그룹을 검색하고 가입할 수 있습니다. 진행할까요?'
+    if (!(await confirm({ title: msg }))) return
+    setBusy(true)
     try {
-      await updateStudyGroup(id, { isPrivate: next });
-      toast(next ? '🔒 비공개로 전환됨' : '🌐 공개로 전환됨', 'success');
-      qc.invalidateQueries({ queryKey: ['study-group', id] });
+      await updateStudyGroup(id, { isPrivate: next })
+      toast(next ? '🔒 비공개로 전환됨' : '🌐 공개로 전환됨', 'success')
+      qc.invalidateQueries({ queryKey: ['study-group', id] })
     } catch (err) {
-      toast(err instanceof Error ? err.message : '변경 실패', 'error');
+      toast(err instanceof Error ? err.message : '변경 실패', 'error')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -352,7 +353,7 @@ export default function StudyGroupDetailPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (!group) {
@@ -374,7 +375,7 @@ export default function StudyGroupDetailPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   return (
@@ -549,7 +550,7 @@ export default function StudyGroupDetailPage() {
                     value={newPostCategory}
                     onChange={(e) => {
                       if (isStudyPostCategory(e.target.value)) {
-                        setNewPostCategory(e.target.value);
+                        setNewPostCategory(e.target.value)
                       }
                     }}
                     className="text-xs px-2 py-1.5 rounded border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700"
@@ -792,5 +793,5 @@ export default function StudyGroupDetailPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

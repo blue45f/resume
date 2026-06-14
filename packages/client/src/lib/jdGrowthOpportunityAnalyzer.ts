@@ -11,22 +11,22 @@ export type GrowthSignalType =
   | 'tech_challenges' // 기술적 도전 기회
   | 'global_exposure' // 글로벌 환경/영어 실무
   | 'ownership' // 소유권/자율성
-  | 'cross_functional'; // 타 팀 협업 기회
+  | 'cross_functional' // 타 팀 협업 기회
 
 export interface GrowthSignal {
-  type: GrowthSignalType;
-  excerpt: string;
+  type: GrowthSignalType
+  excerpt: string
 }
 
-export type GrowthRating = 'rich' | 'moderate' | 'sparse' | 'none';
+export type GrowthRating = 'rich' | 'moderate' | 'sparse' | 'none'
 
 export interface JdGrowthOpportunityReport {
-  signals: GrowthSignal[];
-  types: Set<GrowthSignalType>;
-  score: number; // 0-100
-  rating: GrowthRating;
-  summary: string;
-  missingAreas: string[];
+  signals: GrowthSignal[]
+  types: Set<GrowthSignalType>
+  score: number // 0-100
+  rating: GrowthRating
+  summary: string
+  missingAreas: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -34,9 +34,9 @@ export interface JdGrowthOpportunityReport {
 // ---------------------------------------------------------------------------
 
 interface GrowthPattern {
-  re: RegExp;
-  type: GrowthSignalType;
-  weight: number;
+  re: RegExp
+  type: GrowthSignalType
+  weight: number
 }
 
 const GROWTH_PATTERNS: GrowthPattern[] = [
@@ -151,7 +151,7 @@ const GROWTH_PATTERNS: GrowthPattern[] = [
     type: 'cross_functional',
     weight: 10,
   },
-];
+]
 
 // Labels for missing area tips
 const TYPE_TIP: Record<GrowthSignalType, string> = {
@@ -163,46 +163,46 @@ const TYPE_TIP: Record<GrowthSignalType, string> = {
   global_exposure: '글로벌 환경·영어 실무',
   ownership: '자율성·오너십',
   cross_functional: '타 직군 협업 기회',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeJdGrowthOpportunity(text: string): JdGrowthOpportunityReport {
-  const t = text ?? '';
-  const signals: GrowthSignal[] = [];
-  const types = new Set<GrowthSignalType>();
-  let totalWeight = 0;
+  const t = text ?? ''
+  const signals: GrowthSignal[] = []
+  const types = new Set<GrowthSignalType>()
+  let totalWeight = 0
 
   for (const { re, type, weight } of GROWTH_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      signals.push({ type, excerpt: m[0].slice(0, 60) });
+      signals.push({ type, excerpt: m[0].slice(0, 60) })
       if (!types.has(type)) {
-        types.add(type);
-        totalWeight += weight;
+        types.add(type)
+        totalWeight += weight
       }
     }
   }
 
-  const score = Math.min(100, totalWeight);
+  const score = Math.min(100, totalWeight)
 
-  let rating: GrowthRating;
-  if (score >= 60) rating = 'rich';
-  else if (score >= 30) rating = 'moderate';
-  else if (score >= 10) rating = 'sparse';
-  else rating = 'none';
+  let rating: GrowthRating
+  if (score >= 60) rating = 'rich'
+  else if (score >= 30) rating = 'moderate'
+  else if (score >= 10) rating = 'sparse'
+  else rating = 'none'
 
-  let summary: string;
+  let summary: string
   if (rating === 'rich') {
-    summary = '학습·멘토링·기술 도전 등 성장 기회를 다양하게 제공하는 환경으로 보입니다.';
+    summary = '학습·멘토링·기술 도전 등 성장 기회를 다양하게 제공하는 환경으로 보입니다.'
   } else if (rating === 'moderate') {
-    summary = '일부 성장 기회가 명시되어 있습니다. 면접에서 추가 제도를 구체적으로 확인하세요.';
+    summary = '일부 성장 기회가 명시되어 있습니다. 면접에서 추가 제도를 구체적으로 확인하세요.'
   } else if (rating === 'sparse') {
-    summary = '성장 지원 관련 내용이 거의 없습니다. 입사 전 반드시 성장 환경을 파악하세요.';
+    summary = '성장 지원 관련 내용이 거의 없습니다. 입사 전 반드시 성장 환경을 파악하세요.'
   } else {
-    summary = '채용공고에서 성장 기회 관련 신호가 발견되지 않았습니다. 면접에서 직접 질문하세요.';
+    summary = '채용공고에서 성장 기회 관련 신호가 발견되지 않았습니다. 면접에서 직접 질문하세요.'
   }
 
   const allTypes: GrowthSignalType[] = [
@@ -212,11 +212,11 @@ export function analyzeJdGrowthOpportunity(text: string): JdGrowthOpportunityRep
     'promotion_path',
     'tech_challenges',
     'ownership',
-  ];
+  ]
   const missingAreas = allTypes
     .filter((t) => !types.has(t))
     .slice(0, 3)
-    .map((t) => TYPE_TIP[t]);
+    .map((t) => TYPE_TIP[t])
 
-  return { signals, types, score, rating, summary, missingAreas };
+  return { signals, types, score, rating, summary, missingAreas }
 }

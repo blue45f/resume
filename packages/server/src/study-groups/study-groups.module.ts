@@ -1,12 +1,14 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { MulterModule } from '@nestjs/platform-express';
-import * as multer from 'multer';
-import { StudyGroupsController } from './study-groups.controller';
-import { StudyGroupsAdminController } from './study-groups-admin.controller';
-import { StudyGroupsService } from './study-groups.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { ForbiddenWordsModule } from '../forbidden-words/forbidden-words.module';
+import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { MulterModule } from '@nestjs/platform-express'
+import * as multer from 'multer'
+
+import { ForbiddenWordsModule } from '../forbidden-words/forbidden-words.module'
+import { PrismaModule } from '../prisma/prisma.module'
+
+import { StudyGroupsAdminController } from './study-groups-admin.controller'
+import { StudyGroupsController } from './study-groups.controller'
+import { StudyGroupsService } from './study-groups.service'
 
 @Module({
   imports: [

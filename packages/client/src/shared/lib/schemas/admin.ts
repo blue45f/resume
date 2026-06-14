@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
-export const NOTICE_TYPE_VALUES = ['GENERAL', 'MAINTENANCE', 'EVENT', 'UPDATE', 'URGENT'] as const;
-export type NoticeType = (typeof NOTICE_TYPE_VALUES)[number];
+export const NOTICE_TYPE_VALUES = ['GENERAL', 'MAINTENANCE', 'EVENT', 'UPDATE', 'URGENT'] as const
+export type NoticeType = (typeof NOTICE_TYPE_VALUES)[number]
 
 export const noticeFormSchema = z.object({
   title: z
@@ -23,12 +23,12 @@ export const noticeFormSchema = z.object({
     .max(500, '수정 사유는 최대 500자까지 입력 가능합니다')
     .optional()
     .or(z.literal('')),
-});
+})
 
-export type NoticeFormValues = z.infer<typeof noticeFormSchema>;
+export type NoticeFormValues = z.infer<typeof noticeFormSchema>
 
-export const FORBIDDEN_SEVERITY_VALUES = ['block', 'warn'] as const;
-export type ForbiddenSeverity = (typeof FORBIDDEN_SEVERITY_VALUES)[number];
+export const FORBIDDEN_SEVERITY_VALUES = ['block', 'warn'] as const
+export type ForbiddenSeverity = (typeof FORBIDDEN_SEVERITY_VALUES)[number]
 
 export const forbiddenWordSingleSchema = z.object({
   word: z
@@ -38,9 +38,9 @@ export const forbiddenWordSingleSchema = z.object({
     .max(100, '금칙어는 최대 100자까지 입력 가능합니다'),
   category: z.string().trim().min(1, '카테고리를 선택해주세요').max(50),
   severity: z.enum(FORBIDDEN_SEVERITY_VALUES),
-});
+})
 
-export type ForbiddenWordSingleValues = z.infer<typeof forbiddenWordSingleSchema>;
+export type ForbiddenWordSingleValues = z.infer<typeof forbiddenWordSingleSchema>
 
 export const forbiddenWordBulkSchema = z.object({
   words: z
@@ -50,9 +50,9 @@ export const forbiddenWordBulkSchema = z.object({
     .max(5000, '일괄 입력은 최대 5000자까지 가능합니다'),
   category: z.string().trim().min(1, '카테고리를 선택해주세요').max(50),
   severity: z.enum(FORBIDDEN_SEVERITY_VALUES),
-});
+})
 
-export type ForbiddenWordBulkValues = z.infer<typeof forbiddenWordBulkSchema>;
+export type ForbiddenWordBulkValues = z.infer<typeof forbiddenWordBulkSchema>
 
 export const forbiddenWordEditSchema = z.object({
   word: z
@@ -62,12 +62,12 @@ export const forbiddenWordEditSchema = z.object({
     .max(100, '금칙어는 최대 100자까지 입력 가능합니다'),
   category: z.string().trim().min(1, '카테고리를 선택해주세요').max(50),
   severity: z.enum(FORBIDDEN_SEVERITY_VALUES),
-});
+})
 
-export type ForbiddenWordEditValues = z.infer<typeof forbiddenWordEditSchema>;
+export type ForbiddenWordEditValues = z.infer<typeof forbiddenWordEditSchema>
 
-export const BANNER_TYPE_VALUES = ['info', 'warning', 'success', 'promo'] as const;
-export type BannerType = (typeof BANNER_TYPE_VALUES)[number];
+export const BANNER_TYPE_VALUES = ['info', 'warning', 'success', 'promo'] as const
+export type BannerType = (typeof BANNER_TYPE_VALUES)[number]
 
 export const systemBannerSchema = z.object({
   announcement: z
@@ -86,6 +86,6 @@ export const systemBannerSchema = z.object({
     .max(100, '링크 텍스트는 최대 100자까지 입력 가능합니다')
     .optional()
     .or(z.literal('')),
-});
+})
 
-export type SystemBannerValues = z.infer<typeof systemBannerSchema>;
+export type SystemBannerValues = z.infer<typeof systemBannerSchema>

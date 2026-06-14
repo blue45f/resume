@@ -1,21 +1,21 @@
-import { useMemo, useState } from 'react';
-import { analyzeStarPattern } from '@/lib/starPattern';
-import { detectSkillMentions } from '@/lib/koreanChecker';
-import { generateStarBulletTemplate } from '@/lib/koreanChecker';
+import { useMemo, useState } from 'react'
+
+import { detectSkillMentions, generateStarBulletTemplate } from '@/lib/koreanChecker'
+import { analyzeStarPattern } from '@/lib/starPattern'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeStarGuidePanel({ text }: Props) {
-  const star = useMemo(() => analyzeStarPattern(text), [text]);
-  const skills = useMemo(() => detectSkillMentions(text, 5), [text]);
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const star = useMemo(() => analyzeStarPattern(text), [text])
+  const skills = useMemo(() => detectSkillMentions(text, 5), [text])
+  const [openIdx, setOpenIdx] = useState<number | null>(null)
 
-  if (star.tier === 'excellent' || star.tier === 'good') return null;
-  if (skills.length === 0) return null;
+  if (star.tier === 'excellent' || star.tier === 'good') return null
+  if (skills.length === 0) return null
 
-  const topSkills = skills.slice(0, 3);
+  const topSkills = skills.slice(0, 3)
 
   return (
     <aside className="star-guide-card" aria-label="STAR 불릿 작성 가이드">
@@ -29,8 +29,8 @@ export default function ResumeStarGuidePanel({ text }: Props) {
       </p>
       <ul className="star-guide-card__skills" aria-label="스킬별 STAR 템플릿">
         {topSkills.map((s, i) => {
-          const tpl = generateStarBulletTemplate(s.skill);
-          const isOpen = openIdx === i;
+          const tpl = generateStarBulletTemplate(s.skill)
+          const isOpen = openIdx === i
           return (
             <li key={s.skill} className="star-guide-card__skill-item">
               <button
@@ -60,9 +60,9 @@ export default function ResumeStarGuidePanel({ text }: Props) {
                 </div>
               )}
             </li>
-          );
+          )
         })}
       </ul>
     </aside>
-  );
+  )
 }

@@ -1,22 +1,25 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
-import { Readable } from 'node:stream';
-import { v2 as cloudinary } from 'cloudinary';
-import { AttachmentsService } from './attachments.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Readable } from 'node:stream'
 
-type CloudinaryUploadCallback = (error: Error | null, result?: { secure_url: string }) => void;
+import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+import { Test, TestingModule } from '@nestjs/testing'
+import { v2 as cloudinary } from 'cloudinary'
+
+import { PrismaService } from '../prisma/prisma.service'
+
+import { AttachmentsService } from './attachments.service'
+
+type CloudinaryUploadCallback = (error: Error | null, result?: { secure_url: string }) => void
 
 const mockCloudinaryUploader = cloudinary.uploader as unknown as {
-  upload_stream: jest.Mock;
-  destroy: jest.Mock;
-};
+  upload_stream: jest.Mock
+  destroy: jest.Mock
+}
 
 // Mock cloudinary
 jest.mock('cloudinary', () => ({
   v2: { config: jest.fn(), uploader: { upload_stream: jest.fn(), destroy: jest.fn() } },
-}));
+}))
 
 const mockAttachment = {
   id: 'att-1',
@@ -28,13 +31,13 @@ const mockAttachment = {
   category: 'document',
   description: '첨부파일',
   createdAt: new Date('2024-01-01T00:00:00Z'),
-};
+}
 
 const mockResume = {
   id: 'resume-1',
   userId: 'user-1',
   attachments: [],
-};
+}
 
 const mockPrisma = {
   resume: {
@@ -49,7 +52,7 @@ const mockPrisma = {
   resumeViewer: {
     findUnique: jest.fn(),
   },
-};
+}
 
 const createMockFile = (overrides: Partial<Express.Multer.File> = {}): Express.Multer.File => ({
   fieldname: 'file',
@@ -63,10 +66,10 @@ const createMockFile = (overrides: Partial<Express.Multer.File> = {}): Express.M
   path: '',
   stream: Readable.from([]),
   ...overrides,
-});
+})
 
 describe('AttachmentsService', () => {
-  let service: AttachmentsService;
+  let service: AttachmentsService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -75,242 +78,242 @@ describe('AttachmentsService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ConfigService, useValue: { get: () => null } },
       ],
-    }).compile();
-    service = module.get(AttachmentsService);
-    jest.clearAllMocks();
+    }).compile()
+    service = module.get(AttachmentsService)
+    jest.clearAllMocks()
     // Cloudinary 모드에서는 fs 불필요
-  });
+  })
 
   describe('upload', () => {
     it('정상 파일 업로드 성공', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.attachment.create.mockResolvedValue(mockAttachment);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.attachment.create.mockResolvedValue(mockAttachment)
 
-      const file = createMockFile();
-      const result = await service.upload('resume-1', file, 'document', '첨부파일', 'user-1');
+      const file = createMockFile()
+      const result = await service.upload('resume-1', file, 'document', '첨부파일', 'user-1')
 
-      expect(result.originalName).toBe('이력서.pdf');
-      expect(result.downloadUrl).toBe('/api/attachments/att-1/download');
-      expect(mockPrisma.attachment.create).toHaveBeenCalled();
-    });
+      expect(result.originalName).toBe('이력서.pdf')
+      expect(result.downloadUrl).toBe('/api/attachments/att-1/download')
+      expect(mockPrisma.attachment.create).toHaveBeenCalled()
+    })
 
     it('다른 사용자의 이력서 업로드 시도 → ForbiddenException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      const file = createMockFile();
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      const file = createMockFile()
       await expect(service.upload('resume-1', file, 'document', '', 'other-user')).rejects.toThrow(
-        ForbiddenException,
-      );
-    });
+        ForbiddenException
+      )
+    })
 
     it('관리자는 타인 이력서에도 업로드 가능', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.attachment.create.mockResolvedValue(mockAttachment);
-      const file = createMockFile();
-      const result = await service.upload('resume-1', file, 'document', '', 'admin-x', 'admin');
-      expect(result.originalName).toBe('이력서.pdf');
-    });
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.attachment.create.mockResolvedValue(mockAttachment)
+      const file = createMockFile()
+      const result = await service.upload('resume-1', file, 'document', '', 'admin-x', 'admin')
+      expect(result.originalName).toBe('이력서.pdf')
+    })
 
     it('파일 크기 초과 → BadRequestException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
 
-      const file = createMockFile({ size: 11 * 1024 * 1024 }); // 11MB
+      const file = createMockFile({ size: 11 * 1024 * 1024 }) // 11MB
       await expect(service.upload('resume-1', file, 'document', '', 'user-1')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        BadRequestException
+      )
+    })
 
     it('허용되지 않는 MIME 타입 → BadRequestException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
 
       const file = createMockFile({
         mimetype: 'application/x-executable',
         originalname: 'malware.exe',
         size: 1024,
-      });
+      })
       await expect(service.upload('resume-1', file, 'document', '', 'user-1')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        BadRequestException
+      )
+    })
 
     it('허용되지 않는 확장자 → BadRequestException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
 
       const file = createMockFile({
         mimetype: 'application/pdf',
         originalname: 'file.exe',
         size: 1024,
-      });
+      })
       await expect(service.upload('resume-1', file, 'document', '', 'user-1')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        BadRequestException
+      )
+    })
 
     it('존재하지 않는 이력서 → NotFoundException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(null);
+      mockPrisma.resume.findUnique.mockResolvedValue(null)
 
-      const file = createMockFile();
+      const file = createMockFile()
       await expect(service.upload('fake', file, 'document', '', 'user-1')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
+        NotFoundException
+      )
+    })
 
     it('이력서당 파일 개수 초과 → BadRequestException', async () => {
       const resumeWithMany = {
         ...mockResume,
         attachments: Array.from({ length: 20 }, () => ({ size: 100 })),
-      };
-      mockPrisma.resume.findUnique.mockResolvedValue(resumeWithMany);
+      }
+      mockPrisma.resume.findUnique.mockResolvedValue(resumeWithMany)
 
-      const file = createMockFile();
+      const file = createMockFile()
       await expect(service.upload('resume-1', file, 'document', '', 'user-1')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
+        BadRequestException
+      )
+    })
 
     it('총 파일 크기 초과 → BadRequestException', async () => {
       const resumeWithLargeFiles = {
         ...mockResume,
         attachments: [{ size: 99 * 1024 * 1024 }], // 99MB already
-      };
-      mockPrisma.resume.findUnique.mockResolvedValue(resumeWithLargeFiles);
+      }
+      mockPrisma.resume.findUnique.mockResolvedValue(resumeWithLargeFiles)
 
-      const file = createMockFile({ size: 2 * 1024 * 1024 }); // 2MB, would exceed 100MB
+      const file = createMockFile({ size: 2 * 1024 * 1024 }) // 2MB, would exceed 100MB
       await expect(service.upload('resume-1', file, 'document', '', 'user-1')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-  });
+        BadRequestException
+      )
+    })
+  })
 
   describe('findAll', () => {
     it('공개 이력서의 첨부파일 목록 반환 (누구나)', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'public' });
-      mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment]);
+      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'public' })
+      mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment])
 
-      const result = await service.findAll('resume-1', 'anon');
-      expect(result).toHaveLength(1);
-      expect(result[0].originalName).toBe('이력서.pdf');
-      expect(result[0].downloadUrl).toContain('/api/attachments/');
-    });
+      const result = await service.findAll('resume-1', 'anon')
+      expect(result).toHaveLength(1)
+      expect(result[0].originalName).toBe('이력서.pdf')
+      expect(result[0].downloadUrl).toContain('/api/attachments/')
+    })
 
     it('비공개 이력서의 첨부파일 - 타인 접근 → ForbiddenException', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'private' });
-      await expect(service.findAll('resume-1', 'other-user')).rejects.toThrow(ForbiddenException);
-    });
+      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'private' })
+      await expect(service.findAll('resume-1', 'other-user')).rejects.toThrow(ForbiddenException)
+    })
 
     it('비공개 이력서의 첨부파일 - 소유자는 접근 가능', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'private' });
-      mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment]);
-      const result = await service.findAll('resume-1', 'user-1');
-      expect(result).toHaveLength(1);
-    });
+      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'private' })
+      mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment])
+      const result = await service.findAll('resume-1', 'user-1')
+      expect(result).toHaveLength(1)
+    })
 
     it('선택 공개(selective) - 화이트리스트 미등록 타인 → ForbiddenException (IDOR 방지)', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         userId: 'user-1',
         visibility: 'selective',
-      });
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null); // 등록 안 됨
-      await expect(service.findAll('resume-1', 'other-user')).rejects.toThrow(ForbiddenException);
-    });
+      })
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue(null) // 등록 안 됨
+      await expect(service.findAll('resume-1', 'other-user')).rejects.toThrow(ForbiddenException)
+    })
 
     it('선택 공개(selective) - 유효 viewer 등록자는 접근 가능', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         userId: 'user-1',
         visibility: 'selective',
-      });
-      mockPrisma.resumeViewer.findUnique.mockResolvedValue({ expiresAt: null }); // 미만료
-      mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment]);
-      const result = await service.findAll('resume-1', 'viewer-user');
-      expect(result).toHaveLength(1);
-    });
+      })
+      mockPrisma.resumeViewer.findUnique.mockResolvedValue({ expiresAt: null }) // 미만료
+      mockPrisma.attachment.findMany.mockResolvedValue([mockAttachment])
+      const result = await service.findAll('resume-1', 'viewer-user')
+      expect(result).toHaveLength(1)
+    })
 
     it('선택 공개(selective) - 만료된 viewer → ForbiddenException', async () => {
       mockPrisma.resume.findUnique.mockResolvedValue({
         userId: 'user-1',
         visibility: 'selective',
-      });
+      })
       mockPrisma.resumeViewer.findUnique.mockResolvedValue({
         expiresAt: new Date(Date.now() - 1000),
-      });
-      await expect(service.findAll('resume-1', 'expired-user')).rejects.toThrow(ForbiddenException);
-    });
+      })
+      await expect(service.findAll('resume-1', 'expired-user')).rejects.toThrow(ForbiddenException)
+    })
 
     it('첨부파일 없으면 빈 배열', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'public' });
-      mockPrisma.attachment.findMany.mockResolvedValue([]);
+      mockPrisma.resume.findUnique.mockResolvedValue({ userId: 'user-1', visibility: 'public' })
+      mockPrisma.attachment.findMany.mockResolvedValue([])
 
-      const result = await service.findAll('resume-1', 'user-1');
-      expect(result).toEqual([]);
-    });
-  });
+      const result = await service.findAll('resume-1', 'user-1')
+      expect(result).toEqual([])
+    })
+  })
 
   describe('getFileData', () => {
     it('파일 경로 반환', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         resume: { userId: 'user-1', visibility: 'public' },
-      });
+      })
 
-      const result = await service.getFileData('att-1', 'user-1');
-      expect(result.originalName).toBe('이력서.pdf');
-      expect(result.mimeType).toBe('application/pdf');
-      expect(result.originalName).toBeDefined();
-    });
+      const result = await service.getFileData('att-1', 'user-1')
+      expect(result.originalName).toBe('이력서.pdf')
+      expect(result.mimeType).toBe('application/pdf')
+      expect(result.originalName).toBeDefined()
+    })
 
     it('존재하지 않는 파일 → NotFoundException', async () => {
-      mockPrisma.attachment.findUnique.mockResolvedValue(null);
-      await expect(service.getFileData('fake')).rejects.toThrow(NotFoundException);
-    });
+      mockPrisma.attachment.findUnique.mockResolvedValue(null)
+      await expect(service.getFileData('fake')).rejects.toThrow(NotFoundException)
+    })
 
     it('비공개 이력서의 첨부파일 - 다른 사용자 → NotFoundException', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         resume: { userId: 'user-1', visibility: 'private' },
-      });
+      })
 
-      await expect(service.getFileData('att-1', 'other-user')).rejects.toThrow(NotFoundException);
-    });
-  });
+      await expect(service.getFileData('att-1', 'other-user')).rejects.toThrow(NotFoundException)
+    })
+  })
 
   describe('remove', () => {
     it('소유자의 첨부파일 삭제 성공', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         resume: { userId: 'user-1' },
-      });
-      mockPrisma.attachment.delete.mockResolvedValue(mockAttachment);
+      })
+      mockPrisma.attachment.delete.mockResolvedValue(mockAttachment)
 
-      const result = await service.remove('att-1', 'user-1');
-      expect(result).toEqual({ success: true });
-      expect(mockPrisma.attachment.delete).toHaveBeenCalledWith({ where: { id: 'att-1' } });
-    });
+      const result = await service.remove('att-1', 'user-1')
+      expect(result).toEqual({ success: true })
+      expect(mockPrisma.attachment.delete).toHaveBeenCalledWith({ where: { id: 'att-1' } })
+    })
 
     it('타인의 첨부파일 삭제 시도 → ForbiddenException', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         resume: { userId: 'user-1' },
-      });
-      await expect(service.remove('att-1', 'other-user')).rejects.toThrow(ForbiddenException);
-    });
+      })
+      await expect(service.remove('att-1', 'other-user')).rejects.toThrow(ForbiddenException)
+    })
 
     it('관리자는 타인 첨부파일 삭제 가능', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         resume: { userId: 'user-1' },
-      });
-      mockPrisma.attachment.delete.mockResolvedValue(mockAttachment);
-      const result = await service.remove('att-1', 'admin-x', 'admin');
-      expect(result).toEqual({ success: true });
-    });
+      })
+      mockPrisma.attachment.delete.mockResolvedValue(mockAttachment)
+      const result = await service.remove('att-1', 'admin-x', 'admin')
+      expect(result).toEqual({ success: true })
+    })
 
     it('존재하지 않는 첨부파일 → NotFoundException', async () => {
-      mockPrisma.attachment.findUnique.mockResolvedValue(null);
-      await expect(service.remove('fake', 'user-1')).rejects.toThrow(NotFoundException);
-    });
-  });
+      mockPrisma.attachment.findUnique.mockResolvedValue(null)
+      await expect(service.remove('fake', 'user-1')).rejects.toThrow(NotFoundException)
+    })
+  })
 
   describe('upload - Cloudinary 모드', () => {
-    let cloudinaryService: AttachmentsService;
+    let cloudinaryService: AttachmentsService
 
     beforeEach(async () => {
       mockCloudinaryUploader.upload_stream.mockImplementation(
@@ -321,10 +324,10 @@ describe('AttachmentsService', () => {
                 secure_url:
                   'https://res.cloudinary.com/test/upload/v1/resume-attachments/resume-1/uuid.pdf',
               }),
-          };
-          return stream;
-        },
-      );
+          }
+          return stream
+        }
+      )
 
       const module: TestingModule = await Test.createTestingModule({
         providers: [
@@ -337,42 +340,42 @@ describe('AttachmentsService', () => {
             },
           },
         ],
-      }).compile();
-      cloudinaryService = module.get(AttachmentsService);
-      jest.clearAllMocks();
-    });
+      }).compile()
+      cloudinaryService = module.get(AttachmentsService)
+      jest.clearAllMocks()
+    })
 
     it('Cloudinary 사용 가능 시 URL 저장', async () => {
       mockCloudinaryUploader.upload_stream.mockImplementation(
         (_opts: unknown, callback: CloudinaryUploadCallback) => ({
           end: () => callback(null, { secure_url: 'https://res.cloudinary.com/test/file.pdf' }),
-        }),
-      );
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+        })
+      )
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
       mockPrisma.attachment.create.mockResolvedValue({
         ...mockAttachment,
         filename: 'https://res.cloudinary.com/test/file.pdf',
-      });
+      })
 
-      const file = createMockFile();
-      const result = await cloudinaryService.upload('resume-1', file, 'document', '', 'user-1');
+      const file = createMockFile()
+      const result = await cloudinaryService.upload('resume-1', file, 'document', '', 'user-1')
 
-      expect(result.downloadUrl).toContain('https://res.cloudinary.com');
-    });
-  });
+      expect(result.downloadUrl).toContain('https://res.cloudinary.com')
+    })
+  })
 
   describe('upload - DB base64 폴백', () => {
     it('Cloudinary 미설정 시 base64로 DB 저장', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
-      mockPrisma.attachment.create.mockResolvedValue(mockAttachment);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
+      mockPrisma.attachment.create.mockResolvedValue(mockAttachment)
 
-      const file = createMockFile();
-      await service.upload('resume-1', file, 'document', '첨부', 'user-1');
+      const file = createMockFile()
+      await service.upload('resume-1', file, 'document', '첨부', 'user-1')
 
-      const createCall = mockPrisma.attachment.create.mock.calls[0][0];
-      expect(createCall.data.data).toBe(Buffer.from('test').toString('base64'));
-    });
-  });
+      const createCall = mockPrisma.attachment.create.mock.calls[0][0]
+      expect(createCall.data.data).toBe(Buffer.from('test').toString('base64'))
+    })
+  })
 
   describe('getFileData - 콘텐츠 타입 반환', () => {
     it('DB base64 데이터 반환 시 올바른 mimeType', async () => {
@@ -380,53 +383,53 @@ describe('AttachmentsService', () => {
         ...mockAttachment,
         data: Buffer.from('test').toString('base64'),
         resume: { userId: 'user-1', visibility: 'public' },
-      });
+      })
 
-      const result = await service.getFileData('att-1', 'user-1');
-      expect(result.mimeType).toBe('application/pdf');
-      expect('data' in result ? result.data : null).toBeInstanceOf(Buffer);
-    });
+      const result = await service.getFileData('att-1', 'user-1')
+      expect(result.mimeType).toBe('application/pdf')
+      expect('data' in result ? result.data : null).toBeInstanceOf(Buffer)
+    })
 
     it('Cloudinary URL → redirectUrl 반환', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         filename: 'https://res.cloudinary.com/test/file.pdf',
         resume: { userId: 'user-1', visibility: 'public' },
-      });
+      })
 
-      const result = await service.getFileData('att-1', 'user-1');
+      const result = await service.getFileData('att-1', 'user-1')
       expect('redirectUrl' in result ? result.redirectUrl : null).toBe(
-        'https://res.cloudinary.com/test/file.pdf',
-      );
-    });
+        'https://res.cloudinary.com/test/file.pdf'
+      )
+    })
 
     it('공개 이력서 첨부파일은 누구나 접근 가능', async () => {
       mockPrisma.attachment.findUnique.mockResolvedValue({
         ...mockAttachment,
         resume: { userId: 'user-1', visibility: 'public' },
-      });
+      })
 
-      const result = await service.getFileData('att-1', 'other-user');
-      expect(result.originalName).toBe('이력서.pdf');
-    });
-  });
+      const result = await service.getFileData('att-1', 'other-user')
+      expect(result.originalName).toBe('이력서.pdf')
+    })
+  })
 
   describe('한글 파일명 인코딩', () => {
     it('Latin1 인코딩된 한글 파일명을 UTF-8로 복원', async () => {
-      mockPrisma.resume.findUnique.mockResolvedValue(mockResume);
+      mockPrisma.resume.findUnique.mockResolvedValue(mockResume)
       mockPrisma.attachment.create.mockImplementation(
         ({ data }: { data: { originalName: string } }) => ({
           ...mockAttachment,
           originalName: data.originalName,
-        }),
-      );
+        })
+      )
 
-      const koreanName = '이력서_최종.pdf';
-      const latin1Encoded = Buffer.from(koreanName, 'utf8').toString('latin1');
-      const file = createMockFile({ originalname: latin1Encoded });
-      const result = await service.upload('resume-1', file, 'document', '', 'user-1');
+      const koreanName = '이력서_최종.pdf'
+      const latin1Encoded = Buffer.from(koreanName, 'utf8').toString('latin1')
+      const file = createMockFile({ originalname: latin1Encoded })
+      const result = await service.upload('resume-1', file, 'document', '', 'user-1')
 
-      expect(result.originalName).toBe(koreanName);
-    });
-  });
-});
+      expect(result.originalName).toBe(koreanName)
+    })
+  })
+})

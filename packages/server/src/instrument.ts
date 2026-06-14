@@ -7,9 +7,9 @@
  * no telemetry, and the package install adds zero runtime cost because
  * `init()` short-circuits.
  */
-import * as Sentry from '@sentry/nestjs';
+import * as Sentry from '@sentry/nestjs'
 
-const dsn = process.env.SENTRY_DSN?.trim();
+const dsn = process.env.SENTRY_DSN?.trim()
 if (dsn) {
   Sentry.init({
     dsn,
@@ -17,7 +17,7 @@ if (dsn) {
     release: process.env.SENTRY_RELEASE,
     tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? 0.1),
     sendDefaultPii: false,
-  });
+  })
 
-  console.log('[sentry] enabled');
+  console.log('[sentry] enabled')
 }

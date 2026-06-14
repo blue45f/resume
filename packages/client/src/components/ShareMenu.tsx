@@ -1,73 +1,73 @@
-import DropdownMenu from '@/shared/ui/DropdownMenu';
-import { toast } from '@/components/Toast';
+import { toast } from '@/components/Toast'
+import DropdownMenu from '@/shared/ui/DropdownMenu'
 
 interface ShareMenuProps {
-  url: string;
-  title: string;
-  description?: string;
+  url: string
+  title: string
+  description?: string
 }
 
 export default function ShareMenu({ url, title, description }: ShareMenuProps) {
   const copyLink = () => {
-    navigator.clipboard.writeText(url);
-    toast('링크가 복사되었습니다', 'success');
-  };
+    navigator.clipboard.writeText(url)
+    toast('링크가 복사되었습니다', 'success')
+  }
 
   const shareKakaoTalk = () => {
-    const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(url)}`;
-    window.open(kakaoUrl, '_blank', 'width=600,height=500');
-  };
+    const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(url)}`
+    window.open(kakaoUrl, '_blank', 'width=600,height=500')
+  }
 
   const shareFacebook = () => {
     window.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       '_blank',
-      'width=600,height=500',
-    );
-  };
+      'width=600,height=500'
+    )
+  }
 
   const shareInstagram = () => {
-    navigator.clipboard.writeText(url);
-    toast('링크가 복사되었습니다. 인스타그램 스토리나 DM에 붙여넣기하세요.', 'success');
-  };
+    navigator.clipboard.writeText(url)
+    toast('링크가 복사되었습니다. 인스타그램 스토리나 DM에 붙여넣기하세요.', 'success')
+  }
 
   const shareLine = () => {
     window.open(
       `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`,
       '_blank',
-      'width=600,height=500',
-    );
-  };
+      'width=600,height=500'
+    )
+  }
 
   const shareTwitter = () => {
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
       '_blank',
-      'width=600,height=500',
-    );
-  };
+      'width=600,height=500'
+    )
+  }
 
   const shareLinkedIn = () => {
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
       '_blank',
-      'width=600,height=500',
-    );
-  };
+      'width=600,height=500'
+    )
+  }
 
   const shareEmail = () => {
-    const subject = encodeURIComponent(title);
-    const body = encodeURIComponent(`${description || title}\n\n${url}`);
-    window.open(`mailto:?subject=${subject}&body=${body}`);
-  };
+    const subject = encodeURIComponent(title)
+    const body = encodeURIComponent(`${description || title}\n\n${url}`)
+    window.open(`mailto:?subject=${subject}&body=${body}`)
+  }
 
   const nativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title, text: description || title, url });
+        await navigator.share({ title, text: description || title, url })
       } catch {}
     }
-  };
+  }
 
   return (
     <DropdownMenu.Root>
@@ -210,5 +210,5 @@ export default function ShareMenu({ url, title, description }: ShareMenuProps) {
         </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu.Root>
-  );
+  )
 }

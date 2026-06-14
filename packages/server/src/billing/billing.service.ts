@@ -1,6 +1,7 @@
-import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common'
+
+import { NotificationsService } from '../notifications/notifications.service'
+import { PrismaService } from '../prisma/prisma.service'
 
 /**
  * Plan 카탈로그 — 가격 / 기능 gate / 한도.
@@ -52,21 +53,21 @@ export const PLANS = {
       adminAnnouncementCustom: true,
     },
   },
-} as const;
+} as const
 
-export type PlanId = keyof typeof PLANS;
+export type PlanId = keyof typeof PLANS
 
 @Injectable()
 export class BillingService {
-  private readonly logger = new Logger(BillingService.name);
+  private readonly logger = new Logger(BillingService.name)
 
   constructor(
     private prisma: PrismaService,
-    private notifications: NotificationsService,
+    private notifications: NotificationsService
   ) {}
 
   listPlans() {
-    return Object.values(PLANS);
+    return Object.values(PLANS)
   }
 
   /** 사용자 현재 plan + active subscription. */
@@ -74,22 +75,22 @@ export class BillingService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { plan: true, planExpiresAt: true },
-    });
-    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
+    })
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다')
 
-    const planId = (user.plan as PlanId) || 'free';
-    const plan = PLANS[planId] || PLANS.free;
+    const planId = (user.plan as PlanId) || 'free'
+    const plan = PLANS[planId] || PLANS.free
 
     const activeSub = await this.prisma.subscription.findFirst({
       where: { userId, status: 'active' },
       orderBy: { currentPeriodEnd: 'desc' },
-    });
+    })
 
     return {
       currentPlan: plan,
       planExpiresAt: user.planExpiresAt,
       subscription: activeSub,
-    };
+    }
   }
 
   /**
@@ -98,23 +99,23 @@ export class BillingService {
    */
   async grantPlan(
     userId: string,
-    body: { plan: PlanId; days: number; provider?: string; reason?: string },
+    body: { plan: PlanId; days: number; provider?: string; reason?: string }
   ) {
-    if (!PLANS[body.plan]) throw new BadRequestException('유효하지 않은 plan');
+    if (!PLANS[body.plan]) throw new BadRequestException('유효하지 않은 plan')
     if (body.days < 1 || body.days > 3650) {
-      throw new BadRequestException('days 는 1-3650 사이');
+      throw new BadRequestException('days 는 1-3650 사이')
     }
-    const days = Math.floor(body.days);
-    const periodEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+    const days = Math.floor(body.days)
+    const periodEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
 
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다');
+    const user = await this.prisma.user.findUnique({ where: { id: userId } })
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다')
 
     // 기존 active subscription cancel
     await this.prisma.subscription.updateMany({
       where: { userId, status: 'active' },
       data: { status: 'cancelled', cancelledAt: new Date() },
-    });
+    })
 
     const sub = await this.prisma.subscription.create({
       data: {
@@ -125,13 +126,13 @@ export class BillingService {
         provider: body.provider || 'manual',
         currentPeriodEnd: periodEnd,
       },
-    });
+    })
 
     // User cache 업데이트
     await this.prisma.user.update({
       where: { id: userId },
       data: { plan: body.plan, planExpiresAt: periodEnd },
-    });
+    })
 
     // 알림 발송
     await this.notifications
@@ -139,15 +140,15 @@ export class BillingService {
         userId,
         'subscription_activated',
         `${PLANS[body.plan].name} 플랜이 활성화됐어요 (${days}일)`,
-        '/payment',
+        '/payment'
       )
-      .catch(() => {});
+      .catch(() => {})
 
     this.logger.log(
-      `Plan granted: user=${userId} plan=${body.plan} days=${days} reason=${body.reason || '-'}`,
-    );
+      `Plan granted: user=${userId} plan=${body.plan} days=${days} reason=${body.reason || '-'}`
+    )
 
-    return sub;
+    return sub
   }
 
   /**
@@ -158,31 +159,31 @@ export class BillingService {
    * subscription.provider 가 'toss'/'stripe' 인지로 분기.
    */
   async startTrial(userId: string, plan: PlanId, days: number) {
-    if (!PLANS[plan]) throw new BadRequestException('유효하지 않은 plan');
+    if (!PLANS[plan]) throw new BadRequestException('유효하지 않은 plan')
     if (plan === 'free') {
-      throw new BadRequestException('무료 플랜은 trial 대상이 아닙니다');
+      throw new BadRequestException('무료 플랜은 trial 대상이 아닙니다')
     }
 
     // 이미 활성 sub 가 있으면 차단 — 이중 결제 방지
     const active = await this.prisma.subscription.findFirst({
       where: { userId, status: 'active' },
       select: { id: true, plan: true, provider: true },
-    });
+    })
     if (active) {
       throw new BadRequestException(
-        `이미 ${PLANS[active.plan as PlanId]?.name || active.plan} 구독이 활성화되어 있습니다`,
-      );
+        `이미 ${PLANS[active.plan as PlanId]?.name || active.plan} 구독이 활성화되어 있습니다`
+      )
     }
 
     // 과거 manual/trial 이력 확인 — 1회만 허용
     const pastTrial = await this.prisma.subscription.findFirst({
       where: { userId, provider: 'manual' },
       select: { id: true },
-    });
+    })
     if (pastTrial) {
       throw new BadRequestException(
-        '무료 trial 은 사용자당 1회만 가능합니다. 정식 결제를 진행해주세요.',
-      );
+        '무료 trial 은 사용자당 1회만 가능합니다. 정식 결제를 진행해주세요.'
+      )
     }
 
     return this.grantPlan(userId, {
@@ -190,7 +191,7 @@ export class BillingService {
       days,
       provider: 'manual',
       reason: 'mock-checkout-trial',
-    });
+    })
   }
 
   /** 사용자 본인 cancel — currentPeriodEnd 까지는 유효. */
@@ -198,34 +199,34 @@ export class BillingService {
     const sub = await this.prisma.subscription.findFirst({
       where: { userId, status: 'active' },
       orderBy: { currentPeriodEnd: 'desc' },
-    });
-    if (!sub) throw new NotFoundException('활성 구독이 없습니다');
+    })
+    if (!sub) throw new NotFoundException('활성 구독이 없습니다')
     if (sub.cancelAtPeriodEnd) {
-      throw new BadRequestException('이미 해지 예약 상태입니다');
+      throw new BadRequestException('이미 해지 예약 상태입니다')
     }
     return this.prisma.subscription.update({
       where: { id: sub.id },
       data: { cancelAtPeriodEnd: true, cancelledAt: new Date() },
-    });
+    })
   }
 
   /** 만료된 plan downgrade — cron job 또는 수동 호출. */
   async expireOverdueSubscriptions() {
-    const now = new Date();
+    const now = new Date()
     const overdue = await this.prisma.subscription.findMany({
       where: { status: 'active', currentPeriodEnd: { lt: now } },
       select: { id: true, userId: true, plan: true },
-    });
-    if (overdue.length === 0) return { expired: 0 };
+    })
+    if (overdue.length === 0) return { expired: 0 }
 
     await this.prisma.subscription.updateMany({
       where: { id: { in: overdue.map((s) => s.id) } },
       data: { status: 'expired' },
-    });
+    })
     await this.prisma.user.updateMany({
       where: { id: { in: overdue.map((s) => s.userId) } },
       data: { plan: 'free', planExpiresAt: null },
-    });
+    })
 
     for (const s of overdue) {
       await this.notifications
@@ -233,26 +234,26 @@ export class BillingService {
           s.userId,
           'subscription_expired',
           `${PLANS[s.plan as PlanId]?.name || s.plan} 플랜 기간이 만료됐어요`,
-          '/payment',
+          '/payment'
         )
-        .catch(() => {});
+        .catch(() => {})
     }
 
-    return { expired: overdue.length };
+    return { expired: overdue.length }
   }
 
   /** 결제 transaction 기록 — PG webhook 또는 mock checkout 에서 호출. */
   async recordPayment(
     userId: string,
     body: {
-      amount: number;
-      subscriptionId?: string;
-      provider?: string;
-      externalId?: string;
-      method?: string;
-      description?: string;
-      status?: 'pending' | 'succeeded' | 'failed' | 'refunded';
-    },
+      amount: number
+      subscriptionId?: string
+      provider?: string
+      externalId?: string
+      method?: string
+      description?: string
+      status?: 'pending' | 'succeeded' | 'failed' | 'refunded'
+    }
   ) {
     return this.prisma.payment.create({
       data: {
@@ -266,7 +267,7 @@ export class BillingService {
         status: body.status || 'pending',
         paidAt: body.status === 'succeeded' ? new Date() : null,
       },
-    });
+    })
   }
 
   /** 사용자 결제 내역 (최근 50건). */
@@ -275,7 +276,7 @@ export class BillingService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 50,
-    });
+    })
   }
 
   /**
@@ -289,23 +290,23 @@ export class BillingService {
    *   - 일치 시 payment 상태 succeeded 로 업데이트 + subscription 활성화
    */
   async verifyRecentPayment(userId: string) {
-    const cutoff = new Date(Date.now() - 10 * 60 * 1000);
+    const cutoff = new Date(Date.now() - 10 * 60 * 1000)
     const payment = await this.prisma.payment.findFirst({
       where: { userId, status: 'succeeded', paidAt: { gte: cutoff } },
       orderBy: { paidAt: 'desc' },
       include: { subscription: true },
-    });
+    })
 
     if (!payment) {
-      return { verified: false as const, reason: 'no_recent_payment' };
+      return { verified: false as const, reason: 'no_recent_payment' }
     }
 
-    const sub = payment.subscription;
+    const sub = payment.subscription
     if (!sub || sub.status !== 'active') {
-      return { verified: false as const, reason: 'no_active_subscription' };
+      return { verified: false as const, reason: 'no_active_subscription' }
     }
 
-    const planMeta = PLANS[sub.plan as PlanId] || null;
+    const planMeta = PLANS[sub.plan as PlanId] || null
     return {
       verified: true as const,
       plan: sub.plan,
@@ -314,7 +315,7 @@ export class BillingService {
       currentPeriodEnd: sub.currentPeriodEnd,
       paidAt: payment.paidAt,
       amount: payment.amount,
-    };
+    }
   }
 
   /**
@@ -330,25 +331,25 @@ export class BillingService {
   async checkQuota(
     userId: string,
     feature: 'aiAnalyze' | 'interviewAnalyze',
-    countSinceMonthStart: number,
+    countSinceMonthStart: number
   ): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { plan: true },
-    });
-    const planId = (user?.plan as PlanId) || 'free';
-    const plan = PLANS[planId] || PLANS.free;
+    })
+    const planId = (user?.plan as PlanId) || 'free'
+    const plan = PLANS[planId] || PLANS.free
     const limit =
       feature === 'aiAnalyze'
         ? plan.features.aiAnalyzePerMonth
-        : plan.features.interviewAnalyzePerMonth;
-    if (limit === -1) return; // unlimited
+        : plan.features.interviewAnalyzePerMonth
+    if (limit === -1) return // unlimited
     if (countSinceMonthStart >= limit) {
       throw new BadRequestException(
         `${plan.name} 플랜의 월간 ${
           feature === 'aiAnalyze' ? 'AI 분석' : '면접 답변 분석'
-        } 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하거나 다음 달까지 기다려주세요.`,
-      );
+        } 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하거나 다음 달까지 기다려주세요.`
+      )
     }
   }
 
@@ -368,36 +369,36 @@ export class BillingService {
   async checkQuotaAtomic(
     userId: string,
     feature: 'aiAnalyze' | 'interviewAnalyze',
-    counterFn: (tx: Parameters<Parameters<PrismaService['$transaction']>[0]>[0]) => Promise<number>,
+    counterFn: (tx: Parameters<Parameters<PrismaService['$transaction']>[0]>[0]) => Promise<number>
   ): Promise<void> {
-    if (!userId) throw new BadRequestException('userId 가 필요합니다');
+    if (!userId) throw new BadRequestException('userId 가 필요합니다')
     // pg_advisory_xact_lock 은 64bit 정수 1개 또는 32bit×2 를 받음 — userId+feature 해시.
-    const lockKey = BillingService.hashToInt(`${userId}:${feature}`);
+    const lockKey = BillingService.hashToInt(`${userId}:${feature}`)
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey);
+      await tx.$executeRawUnsafe('SELECT pg_advisory_xact_lock($1::bigint)', lockKey)
 
       const user = await tx.user.findUnique({
         where: { id: userId },
         select: { plan: true },
-      });
-      const planId = (user?.plan as PlanId) || 'free';
-      const plan = PLANS[planId] || PLANS.free;
+      })
+      const planId = (user?.plan as PlanId) || 'free'
+      const plan = PLANS[planId] || PLANS.free
       const limit =
         feature === 'aiAnalyze'
           ? plan.features.aiAnalyzePerMonth
-          : plan.features.interviewAnalyzePerMonth;
-      if (limit === -1) return; // unlimited
+          : plan.features.interviewAnalyzePerMonth
+      if (limit === -1) return // unlimited
 
-      const used = await counterFn(tx);
+      const used = await counterFn(tx)
       if (used >= limit) {
         throw new BadRequestException(
           `${plan.name} 플랜의 월간 ${
             feature === 'aiAnalyze' ? 'AI 분석' : '면접 답변 분석'
-          } 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하거나 다음 달까지 기다려주세요.`,
-        );
+          } 한도(${limit}회)를 초과했습니다. 플랜을 업그레이드하거나 다음 달까지 기다려주세요.`
+        )
       }
-    });
+    })
   }
 
   /**
@@ -405,16 +406,16 @@ export class BillingService {
    * djb2 변형 — 같은 입력 → 같은 출력, 분포는 큰 시드 공간으로 균등.
    */
   private static hashToInt(input: string): bigint {
-    let h = 5381n;
+    let h = 5381n
     for (let i = 0; i < input.length; i++) {
-      h = (h * 33n + BigInt(input.charCodeAt(i))) & 0x7fffffffffffffffn;
+      h = (h * 33n + BigInt(input.charCodeAt(i))) & 0x7fffffffffffffffn
     }
-    return h;
+    return h
   }
 
   /** 이번 달 시작 시각 (UTC). countSince... 측정용. */
   static currentMonthStart(): Date {
-    const now = new Date();
-    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const now = new Date()
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
   }
 }

@@ -1,44 +1,47 @@
-import type { Dispatch, SetStateAction } from 'react';
-import { Link, type NavigateFunction } from 'react-router-dom';
-import { ROUTES } from '@/lib/routes';
-import { timeAgo } from '@/lib/time';
-import { t, tx } from '@/lib/i18n';
-import type { ResumeSummary, Tag } from '@/types/resume';
-import ResumeThumbnail from '@/components/ResumeThumbnail';
-import ShareMenu from '@/components/ShareMenu';
+import { Link, type NavigateFunction } from 'react-router-dom'
+
 import {
   RESUME_SORT_OPTIONS,
   getResumeTagStyle,
   getTagFilterStyle,
   type ResumeSortBy,
-} from './types';
+} from './types'
+
+import type { ResumeSummary, Tag } from '@/types/resume'
+import type { Dispatch, SetStateAction } from 'react'
+
+import ResumeThumbnail from '@/components/ResumeThumbnail'
+import ShareMenu from '@/components/ShareMenu'
+import { t, tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
 
 interface MyResumesSectionProps {
-  resumes: ResumeSummary[];
-  tags: (Tag & { resumeCount: number })[];
-  filtered: ResumeSummary[];
-  sorted: ResumeSummary[];
-  searchQuery: string;
-  setSearchQuery: Dispatch<SetStateAction<string>>;
-  filterTag: string | null;
-  setFilterTag: Dispatch<SetStateAction<string | null>>;
-  filterVisibility: string;
-  setFilterVisibility: Dispatch<SetStateAction<string>>;
-  sortBy: ResumeSortBy;
-  setSortBy: Dispatch<SetStateAction<ResumeSortBy>>;
-  sortOrder: 'desc' | 'asc';
-  setSortOrder: Dispatch<SetStateAction<'desc' | 'asc'>>;
-  selectMode: boolean;
-  setSelectMode: Dispatch<SetStateAction<boolean>>;
-  selectedIds: Set<string>;
-  setSelectedIds: Dispatch<SetStateAction<Set<string>>>;
-  toggleSelect: (id: string) => void;
-  selectAll: () => void;
-  setShareDialogOpen: Dispatch<SetStateAction<boolean>>;
-  handleBulkDelete: () => void | Promise<void>;
-  handleDelete: (id: string, title: string) => void | Promise<void>;
-  handleDuplicate: (id: string) => void | Promise<void>;
-  navigate: NavigateFunction;
+  resumes: ResumeSummary[]
+  tags: (Tag & { resumeCount: number })[]
+  filtered: ResumeSummary[]
+  sorted: ResumeSummary[]
+  searchQuery: string
+  setSearchQuery: Dispatch<SetStateAction<string>>
+  filterTag: string | null
+  setFilterTag: Dispatch<SetStateAction<string | null>>
+  filterVisibility: string
+  setFilterVisibility: Dispatch<SetStateAction<string>>
+  sortBy: ResumeSortBy
+  setSortBy: Dispatch<SetStateAction<ResumeSortBy>>
+  sortOrder: 'desc' | 'asc'
+  setSortOrder: Dispatch<SetStateAction<'desc' | 'asc'>>
+  selectMode: boolean
+  setSelectMode: Dispatch<SetStateAction<boolean>>
+  selectedIds: Set<string>
+  setSelectedIds: Dispatch<SetStateAction<Set<string>>>
+  toggleSelect: (id: string) => void
+  selectAll: () => void
+  setShareDialogOpen: Dispatch<SetStateAction<boolean>>
+  handleBulkDelete: () => void | Promise<void>
+  handleDelete: (id: string, title: string) => void | Promise<void>
+  handleDuplicate: (id: string) => void | Promise<void>
+  navigate: NavigateFunction
 }
 
 export default function MyResumesSection({
@@ -90,7 +93,7 @@ export default function MyResumesSection({
                 '/community/write?category=resume' +
                 `&title=${encodeURIComponent('이력서 피드백 부탁드립니다 🙏')}` +
                 `&body=${encodeURIComponent(
-                  '안녕하세요! 아래 이력서에 대해 피드백 부탁드립니다.\n\n[관심 분야]\n예: 백엔드 / 신입\n\n[궁금한 점]\n- \n- \n\n[이력서 링크]\n(여기에 본인 이력서 링크를 붙여넣어주세요. EditResume → 공개 설정 → 링크만 공개로 토큰 URL 생성 가능)\n',
+                  '안녕하세요! 아래 이력서에 대해 피드백 부탁드립니다.\n\n[관심 분야]\n예: 백엔드 / 신입\n\n[궁금한 점]\n- \n- \n\n[이력서 링크]\n(여기에 본인 이력서 링크를 붙여넣어주세요. EditResume → 공개 설정 → 링크만 공개로 토큰 URL 생성 가능)\n'
                 )}`
               }
               className="home-hover-dim inline-flex items-center gap-1.5 px-3 py-1.5 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs font-medium rounded-lg"
@@ -203,10 +206,10 @@ export default function MyResumesSection({
           <button
             key={opt.value}
             onClick={() => {
-              if (sortBy === opt.value) setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'));
+              if (sortBy === opt.value) setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))
               else {
-                setSortBy(opt.value);
-                setSortOrder('desc');
+                setSortBy(opt.value)
+                setSortOrder('desc')
               }
             }}
             className={`px-2.5 py-1 text-xs rounded-lg home-hover-dim ${
@@ -227,8 +230,8 @@ export default function MyResumesSection({
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <button
           onClick={() => {
-            setSelectMode(!selectMode);
-            setSelectedIds(new Set());
+            setSelectMode(!selectMode)
+            setSelectedIds(new Set())
           }}
           className={`home-hover-dim text-xs px-3 py-1.5 rounded-lg ${
             selectMode
@@ -284,9 +287,9 @@ export default function MyResumesSection({
             <button
               type="button"
               onClick={() => {
-                setSearchQuery('');
-                setFilterTag(null);
-                setFilterVisibility('all');
+                setSearchQuery('')
+                setFilterTag(null)
+                setFilterVisibility('all')
               }}
               className="home-hover-dim px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white"
             >
@@ -307,7 +310,7 @@ export default function MyResumesSection({
               key={resume.id}
               className={`relative home-resume-card card-lift-subtle imp-card p-4 sm:p-5 pl-5 sm:pl-6 animate-fade-in-up stagger-${Math.min(
                 index + 1,
-                6,
+                6
               )} overflow-hidden`}
             >
               <span
@@ -349,8 +352,8 @@ export default function MyResumesSection({
                     </p>
                     {(() => {
                       const daysSinceUpdate = Math.floor(
-                        (Date.now() - new Date(resume.updatedAt).getTime()) / 86400000,
-                      );
+                        (Date.now() - new Date(resume.updatedAt).getTime()) / 86400000
+                      )
                       if (daysSinceUpdate >= 60)
                         return (
                           <span
@@ -372,7 +375,7 @@ export default function MyResumesSection({
                             </svg>
                             오래된 이력서
                           </span>
-                        );
+                        )
                       if (daysSinceUpdate >= 30)
                         return (
                           <span
@@ -394,8 +397,8 @@ export default function MyResumesSection({
                             </svg>
                             업데이트 필요
                           </span>
-                        );
-                      return null;
+                        )
+                      return null
                     })()}
                   </div>
 
@@ -546,5 +549,5 @@ export default function MyResumesSection({
         </div>
       )}
     </>
-  );
+  )
 }

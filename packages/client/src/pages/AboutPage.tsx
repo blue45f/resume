@@ -1,8 +1,9 @@
-import { useEffect, type ReactElement } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import { ROUTES } from '@/lib/routes';
-import { useSystemContent } from '@/hooks/useResources';
+import { useEffect, type ReactElement } from 'react'
+import { Link } from 'react-router-dom'
+
+import Header from '@/components/Header'
+import { useSystemContent } from '@/hooks/useResources'
+import { ROUTES } from '@/lib/routes'
 
 const featureIcons = {
   resume: (
@@ -91,7 +92,7 @@ const featureIcons = {
       />
     </svg>
   ),
-};
+}
 
 const DEFAULT_FEATURES = [
   {
@@ -169,7 +170,7 @@ const DEFAULT_FEATURES = [
     title: '소셜 로그인 + i18n',
     desc: 'Google/GitHub/Kakao 간편 로그인. 한국어/영어/일본어 UI.',
   },
-];
+]
 
 const ICON_MAP: Record<string, ReactElement> = {
   '📄': featureIcons.resume,
@@ -180,7 +181,7 @@ const ICON_MAP: Record<string, ReactElement> = {
   '📎': featureIcons.attach,
   '🔐': featureIcons.auth,
   '🖨️': featureIcons.print,
-};
+}
 
 const DEFAULT_TECH = [
   { category: '프론트엔드', items: 'React 19, TypeScript, Vite 8, Tailwind CSS 4' },
@@ -188,22 +189,22 @@ const DEFAULT_TECH = [
   { category: 'AI', items: 'Gemini, Groq, Anthropic Claude, n8n Webhook' },
   { category: '인프라', items: 'Vercel (프론트), Google Cloud Run (백엔드), Neon (DB)' },
   { category: '보안', items: 'JWT, OAuth2, Helmet, Rate Limiting, bcrypt' },
-];
+]
 
 export default function AboutPage() {
   const { data: content } = useSystemContent<{
-    features?: typeof DEFAULT_FEATURES;
-    techStack?: typeof DEFAULT_TECH;
-  }>('about');
-  const features = content?.features?.length ? content.features : DEFAULT_FEATURES;
-  const techStack = content?.techStack?.length ? content.techStack : DEFAULT_TECH;
+    features?: typeof DEFAULT_FEATURES
+    techStack?: typeof DEFAULT_TECH
+  }>('about')
+  const features = content?.features?.length ? content.features : DEFAULT_FEATURES
+  const techStack = content?.techStack?.length ? content.techStack : DEFAULT_TECH
 
   useEffect(() => {
-    document.title = '서비스 소개 — 이력서공방';
+    document.title = '서비스 소개 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   return (
     <>
@@ -374,5 +375,5 @@ export default function AboutPage() {
         </footer>
       </main>
     </>
-  );
+  )
 }

@@ -1,8 +1,11 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { fireEvent, renderWithProviders, screen, waitFor } from '@/test/render';
-import type { JobApplication } from '@/lib/api';
-import { APPLICATION_TARGET_STORAGE_KEY } from '@/lib/applicationStreakTracker';
-import ApplicationStreakStrip from './ApplicationStreakStrip';
+import { beforeEach, describe, expect, it } from 'vitest'
+
+import ApplicationStreakStrip from './ApplicationStreakStrip'
+
+import type { JobApplication } from '@/lib/api'
+
+import { APPLICATION_TARGET_STORAGE_KEY } from '@/lib/applicationStreakTracker'
+import { fireEvent, renderWithProviders, screen, waitFor } from '@/test/render'
 
 function application(id = 'app-1'): JobApplication {
   return {
@@ -13,34 +16,34 @@ function application(id = 'app-1'): JobApplication {
     appliedDate: '2026-05-25T09:00:00Z',
     createdAt: '2026-05-25T09:00:00Z',
     updatedAt: '2026-05-25T09:00:00Z',
-  };
+  }
 }
 
 describe('ApplicationStreakStrip', () => {
   beforeEach(() => {
-    localStorage.clear();
-  });
+    localStorage.clear()
+  })
 
   it('clamps manually typed weekly targets to the UI maximum', async () => {
-    renderWithProviders(<ApplicationStreakStrip applications={[application()]} />);
+    renderWithProviders(<ApplicationStreakStrip applications={[application()]} />)
 
-    fireEvent.click(screen.getByRole('button', { name: /주간 목표 5건 수정/ }));
-    const input = screen.getByLabelText('주간 지원 목표');
+    fireEvent.click(screen.getByRole('button', { name: /주간 목표 5건 수정/ }))
+    const input = screen.getByLabelText('주간 지원 목표')
 
-    fireEvent.change(input, { target: { value: '99' } });
-    fireEvent.blur(input);
+    fireEvent.change(input, { target: { value: '99' } })
+    fireEvent.blur(input)
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /주간 목표 20건 수정/ })).toBeInTheDocument();
-    });
-    expect(localStorage.getItem(APPLICATION_TARGET_STORAGE_KEY)).toBe('20');
-  });
+      expect(screen.getByRole('button', { name: /주간 목표 20건 수정/ })).toBeInTheDocument()
+    })
+    expect(localStorage.getItem(APPLICATION_TARGET_STORAGE_KEY)).toBe('20')
+  })
 
   it('clamps previously stored weekly targets to the UI maximum', () => {
-    localStorage.setItem(APPLICATION_TARGET_STORAGE_KEY, '50');
+    localStorage.setItem(APPLICATION_TARGET_STORAGE_KEY, '50')
 
-    renderWithProviders(<ApplicationStreakStrip applications={[application()]} />);
+    renderWithProviders(<ApplicationStreakStrip applications={[application()]} />)
 
-    expect(screen.getByRole('button', { name: /주간 목표 20건 수정/ })).toBeInTheDocument();
-  });
-});
+    expect(screen.getByRole('button', { name: /주간 목표 20건 수정/ })).toBeInTheDocument()
+  })
+})

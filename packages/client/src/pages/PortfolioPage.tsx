@@ -1,86 +1,87 @@
-import { useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import FollowButton from '@/components/FollowButton';
-import ShareMenu from '@/components/ShareMenu';
-import SendMessageButton from '@/components/SendMessageButton';
-import { usePublicGet } from '@/hooks/useResources';
+import { useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+
+import FollowButton from '@/components/FollowButton'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import ShareMenu from '@/components/ShareMenu'
+import { usePublicGet } from '@/hooks/useResources'
+import { getUser } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
 
 interface PortfolioResume {
-  id: string;
-  title: string;
-  viewCount: number;
-  updatedAt: string;
-  name: string;
-  summary: string;
-  github: string;
-  website: string;
-  photo: string;
+  id: string
+  title: string
+  viewCount: number
+  updatedAt: string
+  name: string
+  summary: string
+  github: string
+  website: string
+  photo: string
   experiences: {
-    company: string;
-    position: string;
-    startDate: string;
-    endDate: string;
-    current: boolean;
-  }[];
-  tags: { id: string; name: string; color: string }[];
-  topSkills: string[];
+    company: string
+    position: string
+    startDate: string
+    endDate: string
+    current: boolean
+  }[]
+  tags: { id: string; name: string; color: string }[]
+  topSkills: string[]
 }
 
 interface PortfolioData {
   user: {
-    id: string;
-    username: string;
-    name: string;
-    avatar: string;
-    isOpenToWork: boolean;
-    openToWorkRoles: string;
-    companyName: string;
-    companyTitle: string;
-    userType: string;
-  };
+    id: string
+    username: string
+    name: string
+    avatar: string
+    isOpenToWork: boolean
+    openToWorkRoles: string
+    companyName: string
+    companyTitle: string
+    userType: string
+  }
   stats: {
-    publicResumeCount: number;
-    followerCount: number;
-    followingCount: number;
-    totalViews: number;
-    totalExperiences: number;
-  };
-  topSkills: string[];
-  resumes: PortfolioResume[];
+    publicResumeCount: number
+    followerCount: number
+    followingCount: number
+    totalViews: number
+    totalExperiences: number
+  }
+  topSkills: string[]
+  resumes: PortfolioResume[]
 }
 
 function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const days = Math.floor(diff / 86400000);
-  if (days === 0) return '오늘';
-  if (days < 7) return `${days}일 전`;
-  if (days < 30) return `${Math.floor(days / 7)}주 전`;
-  if (days < 365) return `${Math.floor(days / 30)}개월 전`;
-  return `${Math.floor(days / 365)}년 전`;
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const days = Math.floor(diff / 86400000)
+  if (days === 0) return '오늘'
+  if (days < 7) return `${days}일 전`
+  if (days < 30) return `${Math.floor(days / 7)}주 전`
+  if (days < 365) return `${Math.floor(days / 30)}개월 전`
+  return `${Math.floor(days / 365)}년 전`
 }
 
 function calcYearsExp(experiences: PortfolioResume['experiences']): number {
-  if (!experiences.length) return 0;
+  if (!experiences.length) return 0
   const totalDays = experiences.reduce((sum, e) => {
-    const start = new Date(e.startDate + '-01').getTime();
+    const start = new Date(e.startDate + '-01').getTime()
     const end = e.current
       ? Date.now()
       : e.endDate
         ? new Date(e.endDate + '-01').getTime()
-        : Date.now();
-    return sum + Math.max(0, (end - start) / 86400000);
-  }, 0);
-  return Math.floor(totalDays / 365);
+        : Date.now()
+    return sum + Math.max(0, (end - start) / 86400000)
+  }, 0)
+  return Math.floor(totalDays / 365)
 }
 
 export default function PortfolioPage() {
-  const { username } = useParams<{ username: string }>();
-  const navigate = useNavigate();
-  const currentUser = getUser();
+  const { username } = useParams<{ username: string }>()
+  const navigate = useNavigate()
+  const currentUser = getUser()
   const {
     data,
     isLoading: loading,
@@ -88,17 +89,17 @@ export default function PortfolioPage() {
   } = usePublicGet<PortfolioData>(['portfolio', username], `/api/auth/u/${username}`, {
     enabled: !!username,
     staleTime: 60_000,
-  });
-  const notFound = !loading && (isError || !data);
+  })
+  const notFound = !loading && (isError || !data)
 
   useEffect(() => {
     if (data) {
-      document.title = `${data.user.name || data.user.username}의 포트폴리오 — 이력서공방`;
+      document.title = `${data.user.name || data.user.username}의 포트폴리오 — 이력서공방`
     }
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [data]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [data])
 
   if (loading) {
     return (
@@ -127,7 +128,7 @@ export default function PortfolioPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (notFound || !data) {
@@ -153,13 +154,13 @@ export default function PortfolioPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
-  const { user, stats, topSkills, resumes } = data;
-  const isOwn = currentUser?.id === user.id;
-  const totalYears = resumes.reduce((max, r) => Math.max(max, calcYearsExp(r.experiences)), 0);
-  const portfolioUrl = `${window.location.origin}/u/${user.username}`;
+  const { user, stats, topSkills, resumes } = data
+  const isOwn = currentUser?.id === user.id
+  const totalYears = resumes.reduce((max, r) => Math.max(max, calcYearsExp(r.experiences)), 0)
+  const portfolioUrl = `${window.location.origin}/u/${user.username}`
 
   return (
     <>
@@ -414,5 +415,5 @@ export default function PortfolioPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

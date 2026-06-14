@@ -1,22 +1,24 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
-import AlertDialog from '@/shared/ui/AlertDialog';
+import { useState } from 'react'
+
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import AlertDialog from '@/shared/ui/AlertDialog'
 
 const meta: Meta<typeof AlertDialog> = {
   title: 'UI Primitives/AlertDialog',
   component: AlertDialog,
   parameters: { layout: 'centered' },
-};
-export default meta;
-type Story = StoryObj<typeof AlertDialog>;
+}
+export default meta
+type Story = StoryObj<typeof AlertDialog>
 
 function Demo(props: {
-  title: string;
-  description?: string;
-  danger?: boolean;
-  confirmText?: string;
+  title: string
+  description?: string
+  danger?: boolean
+  confirmText?: string
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(true)
   return (
     <div>
       <button
@@ -38,14 +40,14 @@ function Demo(props: {
         onConfirm={() => setOpen(false)}
       />
     </div>
-  );
+  )
 }
 
 export const Confirm: Story = {
   render: () => (
     <Demo title="저장하시겠습니까?" description="변경사항을 저장합니다." confirmText="저장" />
   ),
-};
+}
 
 export const DangerDelete: Story = {
   render: () => (
@@ -56,8 +58,8 @@ export const DangerDelete: Story = {
       confirmText="삭제"
     />
   ),
-};
+}
 
 export const MinimalNoDescription: Story = {
   render: () => <Demo title="계속하시겠습니까?" />,
-};
+}

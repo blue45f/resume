@@ -12,16 +12,16 @@
 
 export interface ReadinessChecks {
   /** Result of a cheap `SELECT 1` against the shared DB. */
-  database: boolean;
+  database: boolean
   /** Whether at least one LLM provider is configured/available. */
-  llm: boolean;
+  llm: boolean
 }
 
 export interface ReadinessVerdict {
-  status: 'ok' | 'degraded' | 'error';
+  status: 'ok' | 'degraded' | 'error'
   /** HTTP status to return: 200 when ready, 503 when not. */
-  httpStatus: 200 | 503;
-  checks: Record<keyof ReadinessChecks, 'ok' | 'error'>;
+  httpStatus: 200 | 503
+  checks: Record<keyof ReadinessChecks, 'ok' | 'error'>
 }
 
 /**
@@ -33,20 +33,20 @@ export interface ReadinessVerdict {
  * - All good → `ok` + 200.
  */
 export function evaluateReadiness(checks: ReadinessChecks): ReadinessVerdict {
-  const dbState: 'ok' | 'error' = checks.database ? 'ok' : 'error';
-  const llmState: 'ok' | 'error' = checks.llm ? 'ok' : 'error';
+  const dbState: 'ok' | 'error' = checks.database ? 'ok' : 'error'
+  const llmState: 'ok' | 'error' = checks.llm ? 'ok' : 'error'
 
   if (!checks.database) {
     return {
       status: 'error',
       httpStatus: 503,
       checks: { database: dbState, llm: llmState },
-    };
+    }
   }
 
   return {
     status: checks.llm ? 'ok' : 'degraded',
     httpStatus: 200,
     checks: { database: dbState, llm: llmState },
-  };
+  }
 }

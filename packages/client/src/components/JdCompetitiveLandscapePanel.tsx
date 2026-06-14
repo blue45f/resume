@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { analyzeJdCompetitiveLandscape, type Intensity } from '@/lib/jdCompetitiveLandscape';
-import { tx } from '@/lib/i18n';
+import { useMemo } from 'react'
+
+import { tx } from '@/lib/i18n'
+import { analyzeJdCompetitiveLandscape, type Intensity } from '@/lib/jdCompetitiveLandscape'
 
 interface Props {
-  text: string;
-  minLength?: number;
-  className?: string;
+  text: string
+  minLength?: number
+  className?: string
 }
 
 // intensity → 톤. high=주의(amber), medium=중립(slate), low=유리(emerald). purple 금지.
@@ -16,7 +17,7 @@ const TONE: Record<Intensity, string> = {
   low: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-900/40',
   unknown:
     'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
-};
+}
 
 function Stat({ label, value }: { label: string; value: Intensity }) {
   return (
@@ -26,7 +27,7 @@ function Stat({ label, value }: { label: string; value: Intensity }) {
         {tx(`resumeAnalysis.jdLandscape.intensity.${value}`)}
       </span>
     </div>
-  );
+  )
 }
 
 /**
@@ -38,11 +39,11 @@ export default function JdCompetitiveLandscapePanel({
   minLength = 60,
   className = '',
 }: Props) {
-  const r = useMemo(() => analyzeJdCompetitiveLandscape(text), [text]);
+  const r = useMemo(() => analyzeJdCompetitiveLandscape(text), [text])
 
-  if (!text || text.trim().length < minLength || r.competitionIntensity === 'unknown') return null;
+  if (!text || text.trim().length < minLength || r.competitionIntensity === 'unknown') return null
 
-  const titleId = 'jd-competitive-title';
+  const titleId = 'jd-competitive-title'
   return (
     <section
       className={`mt-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 p-3 ${className}`}
@@ -104,5 +105,5 @@ export default function JdCompetitiveLandscapePanel({
         {r.fitmentSuggestion}
       </p>
     </section>
-  );
+  )
 }

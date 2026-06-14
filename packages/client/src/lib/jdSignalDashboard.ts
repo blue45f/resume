@@ -3,29 +3,29 @@
  * 종합한다. 길게 쌓인 개별 힌트 카드 대신 "한눈에" 공고 건강도를 보여준다.
  */
 
-import { checkJdPostingCompleteness } from './jdPostingCompletenessChecker';
-import { analyzeJdSalaryTransparency } from './jdSalaryTransparencyAnalyzer';
-import { analyzeJdWorkLifeBalance } from './jdWorkLifeBalanceAnalyzer';
-import { analyzeJdGrowthOpportunity } from './jdGrowthOpportunityAnalyzer';
-import { detectJdRedFlags } from './jdRedFlagDetector';
-import { detectJdStatutoryBenefits } from './jdStatutoryBenefitsDetector';
-import { detectJdResponsibilityVagueness } from './jdResponsibilityVaguenessDetector';
+import { analyzeJdGrowthOpportunity } from './jdGrowthOpportunityAnalyzer'
+import { checkJdPostingCompleteness } from './jdPostingCompletenessChecker'
+import { detectJdRedFlags } from './jdRedFlagDetector'
+import { detectJdResponsibilityVagueness } from './jdResponsibilityVaguenessDetector'
+import { analyzeJdSalaryTransparency } from './jdSalaryTransparencyAnalyzer'
+import { detectJdStatutoryBenefits } from './jdStatutoryBenefitsDetector'
+import { analyzeJdWorkLifeBalance } from './jdWorkLifeBalanceAnalyzer'
 
-export type SignalStatus = 'good' | 'caution' | 'concern' | 'unknown';
+export type SignalStatus = 'good' | 'caution' | 'concern' | 'unknown'
 
 export interface JdSignal {
-  key: string;
-  label: string;
-  status: SignalStatus;
-  note: string;
+  key: string
+  label: string
+  status: SignalStatus
+  note: string
 }
 
 export interface JdSignalDashboardReport {
-  signals: JdSignal[];
-  goodCount: number;
-  cautionCount: number;
-  concernCount: number;
-  headline: string;
+  signals: JdSignal[]
+  goodCount: number
+  cautionCount: number
+  concernCount: number
+  headline: string
 }
 
 const STATUS_NOTE: Record<SignalStatus, string> = {
@@ -33,18 +33,18 @@ const STATUS_NOTE: Record<SignalStatus, string> = {
   caution: '주의',
   concern: '우려',
   unknown: '정보 부족',
-};
+}
 
 export function buildJdSignalDashboard(text: string): JdSignalDashboardReport {
-  const t = (text ?? '').trim();
+  const t = (text ?? '').trim()
 
-  const completeness = checkJdPostingCompleteness(t);
-  const salary = analyzeJdSalaryTransparency(t);
-  const wlb = analyzeJdWorkLifeBalance(t);
-  const growth = analyzeJdGrowthOpportunity(t);
-  const redFlags = detectJdRedFlags(t);
-  const benefits = detectJdStatutoryBenefits(t);
-  const responsibility = detectJdResponsibilityVagueness(t);
+  const completeness = checkJdPostingCompleteness(t)
+  const salary = analyzeJdSalaryTransparency(t)
+  const wlb = analyzeJdWorkLifeBalance(t)
+  const growth = analyzeJdGrowthOpportunity(t)
+  const redFlags = detectJdRedFlags(t)
+  const benefits = detectJdStatutoryBenefits(t)
+  const responsibility = detectJdResponsibilityVagueness(t)
 
   const signals: JdSignal[] = [
     {
@@ -119,34 +119,34 @@ export function buildJdSignalDashboard(text: string): JdSignalDashboardReport {
       }),
       note: '',
     },
-  ];
+  ]
 
   for (const s of signals) {
-    if (!s.note) s.note = STATUS_NOTE[s.status];
+    if (!s.note) s.note = STATUS_NOTE[s.status]
   }
 
-  const goodCount = signals.filter((s) => s.status === 'good').length;
-  const cautionCount = signals.filter((s) => s.status === 'caution').length;
-  const concernCount = signals.filter((s) => s.status === 'concern').length;
+  const goodCount = signals.filter((s) => s.status === 'good').length
+  const cautionCount = signals.filter((s) => s.status === 'caution').length
+  const concernCount = signals.filter((s) => s.status === 'concern').length
 
-  let headline: string;
+  let headline: string
   if (concernCount >= 2) {
-    headline = '우려 신호가 여러 개입니다. 지원 전 면접에서 꼼꼼히 확인하세요.';
+    headline = '우려 신호가 여러 개입니다. 지원 전 면접에서 꼼꼼히 확인하세요.'
   } else if (concernCount === 1) {
-    headline = '대체로 무난하나 우려 신호가 하나 있습니다.';
+    headline = '대체로 무난하나 우려 신호가 하나 있습니다.'
   } else if (cautionCount >= 3) {
-    headline = '정보가 모호한 항목이 많습니다. 추가 확인을 권장합니다.';
+    headline = '정보가 모호한 항목이 많습니다. 추가 확인을 권장합니다.'
   } else {
-    headline = '전반적으로 양호한 공고입니다.';
+    headline = '전반적으로 양호한 공고입니다.'
   }
 
-  return { signals, goodCount, cautionCount, concernCount, headline };
+  return { signals, goodCount, cautionCount, concernCount, headline }
 }
 
 // Map an analyzer value to a status via a lookup of status → matching values.
 function pick<T extends string>(value: T, map: Partial<Record<SignalStatus, T[]>>): SignalStatus {
   for (const status of ['good', 'caution', 'concern', 'unknown'] as SignalStatus[]) {
-    if (map[status]?.includes(value)) return status;
+    if (map[status]?.includes(value)) return status
   }
-  return 'unknown';
+  return 'unknown'
 }

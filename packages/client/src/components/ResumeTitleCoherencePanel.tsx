@@ -1,19 +1,20 @@
-import { useMemo } from 'react';
-import { analyzeResumeTitleCoherence } from '@/lib/resumeTitleCoherence';
+import { useMemo } from 'react'
+
+import { analyzeResumeTitleCoherence } from '@/lib/resumeTitleCoherence'
 
 interface Props {
-  title: string;
-  text: string;
+  title: string
+  text: string
 }
 
 export default function ResumeTitleCoherencePanel({ title, text }: Props) {
   const analysis = useMemo(
     () => analyzeResumeTitleCoherence({ title, experienceText: text }),
-    [title, text],
-  );
+    [title, text]
+  )
 
   // Hide when we have nothing meaningful to report (no title and no usable experience).
-  if (!title?.trim() && analysis.experienceYears === 0) return null;
+  if (!title?.trim() && analysis.experienceYears === 0) return null
 
   return (
     <aside
@@ -49,5 +50,5 @@ export default function ResumeTitleCoherencePanel({ title, text }: Props) {
 
       <p className="title-coherence-card__suggestion">→ {analysis.suggestion}</p>
     </aside>
-  );
+  )
 }

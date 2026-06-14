@@ -1,16 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
+import { tx } from '@/lib/i18n'
 import {
   buildResumeImprovementPlan,
   type ImprovementSeverity,
   type ResumeImprovementPlan,
-} from '@/lib/koreanChecker';
-import { tx } from '@/lib/i18n';
+} from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  topN?: number;
-  minLength?: number;
-  className?: string;
+  text: string
+  topN?: number
+  minLength?: number
+  className?: string
 }
 
 const SEVERITY_BADGE: Record<ImprovementSeverity, string> = {
@@ -18,7 +19,7 @@ const SEVERITY_BADGE: Record<ImprovementSeverity, string> = {
   medium:
     'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-900/40',
   low: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-};
+}
 
 const TIER: Record<ResumeImprovementPlan['tier'], { cls: string }> = {
   'call-back': {
@@ -33,7 +34,7 @@ const TIER: Record<ResumeImprovementPlan['tier'], { cls: string }> = {
   'below-bar': {
     cls: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-900/40',
   },
-};
+}
 
 /**
  * 이력서 우선 개선 과제 패널 — 면접 적합도 breakdown 을 임팩트순으로 재가공해
@@ -46,14 +47,14 @@ export default function ResumeImprovementPlanPanel({
   className = '',
 }: Props) {
   const plan = useMemo(() => {
-    if (!text || text.length < minLength) return null;
-    return buildResumeImprovementPlan(text, topN);
-  }, [text, topN, minLength]);
+    if (!text || text.length < minLength) return null
+    return buildResumeImprovementPlan(text, topN)
+  }, [text, topN, minLength])
 
-  if (!plan) return null;
+  if (!plan) return null
 
-  const tier = TIER[plan.tier];
-  const titleId = 'improvement-plan-title';
+  const tier = TIER[plan.tier]
+  const titleId = 'improvement-plan-title'
   return (
     <section
       className={`rounded-xl border border-blue-200/70 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 p-3.5 ${className}`}
@@ -117,5 +118,5 @@ export default function ResumeImprovementPlanPanel({
         </p>
       )}
     </section>
-  );
+  )
 }

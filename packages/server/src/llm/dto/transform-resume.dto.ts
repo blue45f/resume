@@ -1,5 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsIn, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { IsString, IsOptional, IsIn, MaxLength } from 'class-validator'
 
 export const TEMPLATE_TYPES = [
   'standard',
@@ -10,9 +10,9 @@ export const TEMPLATE_TYPES = [
   'developer',
   'designer',
   'custom',
-] as const;
+] as const
 
-export type TemplateType = (typeof TEMPLATE_TYPES)[number];
+export type TemplateType = (typeof TEMPLATE_TYPES)[number]
 
 export class TransformResumeDto {
   @ApiProperty({
@@ -22,30 +22,30 @@ export class TransformResumeDto {
   })
   @IsString()
   @IsIn(TEMPLATE_TYPES)
-  templateType!: TemplateType;
+  templateType!: TemplateType
 
   @ApiPropertyOptional({ description: '타겟 언어 (ko/en)', default: 'ko' })
   @IsOptional()
   @IsString()
   @IsIn(['ko', 'en'])
-  targetLanguage?: string;
+  targetLanguage?: string
 
   @ApiPropertyOptional({ description: 'Job Description (JD 맞춤 최적화용, 3000자 이내)' })
   @IsOptional()
   @IsString()
   @MaxLength(3000, { message: 'JD는 3000자 이내여야 합니다' })
-  jobDescription?: string;
+  jobDescription?: string
 
   @ApiPropertyOptional({ description: '커스텀 프롬프트 (custom 유형일 때, 2000자 이내)' })
   @IsOptional()
   @IsString()
   @MaxLength(2000, { message: '커스텀 프롬프트는 2000자 이내여야 합니다' })
-  customPrompt?: string;
+  customPrompt?: string
 
   @ApiPropertyOptional({
     description: 'LLM 프로바이더 (anthropic/n8n/openai-compatible). 미지정시 기본 프로바이더 사용',
   })
   @IsOptional()
   @IsString()
-  provider?: string;
+  provider?: string
 }

@@ -16,7 +16,7 @@ export const powerVerbs: Record<string, string[]> = {
   '분석/연구': ['분석', '도출', '발굴', '검토', '평가', '측정', '진단', '조사', '파악'],
   '협업/소통': ['협업', '조율', '발표', '보고', '제안', '설득', '공유', '전달', '문서화'],
   '창조/혁신': ['창안', '도입', '혁신', '개척', '신규 기획', '제안', '발굴', '고안'],
-};
+}
 
 export const sectionTips: Record<string, string[]> = {
   personal: [
@@ -54,4 +54,4 @@ export const sectionTips: Record<string, string[]> = {
   ],
   awards: ['수상 규모와 경쟁률을 언급하면 임팩트가 높아집니다'],
   activities: ['직무와 관련된 활동을 우선 배치하세요', '리더십 경험을 강조하세요'],
-};
+}

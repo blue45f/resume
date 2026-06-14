@@ -1,22 +1,23 @@
-import { useMemo } from 'react';
-import { checkResumeChronology } from '@/lib/resumeChronologyChecker';
+import { useMemo } from 'react'
+
+import { checkResumeChronology } from '@/lib/resumeChronologyChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<string, string> = {
   mixed: '순서 혼재',
   reversed: '역순 권장',
-};
+}
 
 export default function ResumeChronologyPanel({ text }: Props) {
-  const report = useMemo(() => checkResumeChronology(text), [text]);
+  const report = useMemo(() => checkResumeChronology(text), [text])
 
-  if (text.trim().length < 20) return null;
-  if (report.grade === 'ordered') return null;
+  if (text.trim().length < 20) return null
+  if (report.grade === 'ordered') return null
 
-  const isReversed = report.grade === 'reversed';
+  const isReversed = report.grade === 'reversed'
 
   return (
     <aside
@@ -53,5 +54,5 @@ export default function ResumeChronologyPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

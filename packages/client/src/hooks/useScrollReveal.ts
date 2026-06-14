@@ -1,27 +1,27 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react'
 
 export function useScrollReveal(options?: IntersectionObserverInit) {
-  const ref = useRef<HTMLElement | null>(null);
+  const ref = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    const el = ref.current
+    if (!el) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          el.classList.add('is-visible');
-          observer.unobserve(el);
+          el.classList.add('is-visible')
+          observer.unobserve(el)
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px', ...options },
-    );
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px', ...options }
+    )
 
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [options]);
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [options])
 
-  return ref;
+  return ref
 }
 
 export function useScrollRevealAll(selector = '.reveal') {
@@ -30,15 +30,15 @@ export function useScrollRevealAll(selector = '.reveal') {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
+            entry.target.classList.add('is-visible')
+            observer.unobserve(entry.target)
           }
-        });
+        })
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' },
-    );
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+    )
 
-    document.querySelectorAll(selector).forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, [selector]);
+    document.querySelectorAll(selector).forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [selector])
 }

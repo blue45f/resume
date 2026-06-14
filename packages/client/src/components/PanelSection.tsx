@@ -1,12 +1,12 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react'
 
 interface Props {
-  title: string;
-  subtitle?: string;
-  icon?: string;
-  children: ReactNode;
+  title: string
+  subtitle?: string
+  icon?: string
+  children: ReactNode
   /** 기본 펼침 상태. 기본값 true */
-  defaultOpen?: boolean;
+  defaultOpen?: boolean
 }
 
 /**
@@ -21,7 +21,7 @@ export default function PanelSection({
   children,
   defaultOpen = true,
 }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(defaultOpen)
   return (
     <section className="no-print" aria-label={title}>
       <button
@@ -62,5 +62,5 @@ export default function PanelSection({
         </div>
       )}
     </section>
-  );
+  )
 }

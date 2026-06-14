@@ -1,26 +1,27 @@
-import { API_URL } from '@/lib/config';
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import SendMessageButton from '@/components/SendMessageButton';
-import { tx } from '@/lib/i18n';
-import { formatDate } from '@/lib/time';
+import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import { getUser } from '@/lib/auth'
 import {
   appendCommunityDemoLog,
   formatCommunityDemoTime,
   readCommunityDemoLog,
   summarizeCommunityDemoLog,
-} from '@/lib/communityDemoLog';
+} from '@/lib/communityDemoLog'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
 
 interface CategoryDef {
-  id: string;
-  labelKey?: string;
-  fallback: string;
-  icon: string;
+  id: string
+  labelKey?: string
+  fallback: string
+  icon: string
 }
 const CATEGORY_DEFS: CategoryDef[] = [
   { id: 'all', labelKey: 'common.all', fallback: '전체', icon: '📋' },
@@ -42,13 +43,13 @@ const CATEGORY_DEFS: CategoryDef[] = [
     icon: '🎤',
   },
   { id: 'question', labelKey: 'community.category.question', fallback: '질문', icon: '❓' },
-];
+]
 const getCATEGORIES = () =>
   CATEGORY_DEFS.map((c) => ({
     id: c.id,
     label: c.labelKey ? tx(c.labelKey) : c.fallback,
     icon: c.icon,
-  }));
+  }))
 
 const SORT_KEYS = [
   { value: 'trending', fallback: '🔥 지금 뜨는' },
@@ -57,12 +58,12 @@ const SORT_KEYS = [
   { value: 'views', labelKey: 'explore.sortByViews' },
   { value: 'comments', fallback: '댓글순' },
   { value: 'oldest', fallback: '오래된순' },
-] as const;
+] as const
 const getSORT_OPTIONS = () =>
   SORT_KEYS.map((s) => ({
     value: s.value,
     label: 'labelKey' in s ? tx(s.labelKey) : s.fallback,
-  }));
+  }))
 
 const CATEGORY_COLORS: Record<string, string> = {
   notice: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
@@ -72,82 +73,82 @@ const CATEGORY_COLORS: Record<string, string> = {
   'cover-letter': 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400',
   interview: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
   question: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-};
+}
 
 interface Post {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  viewCount: number;
-  likeCount: number;
-  isPinned: boolean;
-  createdAt: string;
-  user?: { id: string; name: string; username: string; avatar: string };
-  _count?: { comments: number; likes: number };
+  id: string
+  title: string
+  content: string
+  category: string
+  viewCount: number
+  likeCount: number
+  isPinned: boolean
+  createdAt: string
+  user?: { id: string; name: string; username: string; avatar: string }
+  _count?: { comments: number; likes: number }
 }
 
 function timeAgo(date: string) {
-  const diff = Date.now() - new Date(date).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '방금 전';
-  if (mins < 60) return `${mins}분 전`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}일 전`;
-  return formatDate(date);
+  const diff = Date.now() - new Date(date).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return '방금 전'
+  if (mins < 60) return `${mins}분 전`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}시간 전`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}일 전`
+  return formatDate(date)
 }
 
 function isHot(post: Post) {
-  const ageHours = (Date.now() - new Date(post.createdAt).getTime()) / 3600000;
-  const decay = Math.max(0.2, 1 - ageHours / 168);
+  const ageHours = (Date.now() - new Date(post.createdAt).getTime()) / 3600000
+  const decay = Math.max(0.2, 1 - ageHours / 168)
   const score =
-    (post.likeCount * 3 + (post._count?.comments ?? 0) * 2 + post.viewCount * 0.1) * decay;
-  return score >= 8;
+    (post.likeCount * 3 + (post._count?.comments ?? 0) * 2 + post.viewCount * 0.1) * decay
+  return score >= 8
 }
 
 function isNew(post: Post) {
-  const diff = Date.now() - new Date(post.createdAt).getTime();
-  return diff < 3600000; // within 1 hour
+  const diff = Date.now() - new Date(post.createdAt).getTime()
+  return diff < 3600000 // within 1 hour
 }
 
 function getReadPosts(): Set<string> {
   try {
-    return new Set(JSON.parse(localStorage.getItem('read-posts') || '[]'));
+    return new Set(JSON.parse(localStorage.getItem('read-posts') || '[]'))
   } catch {
-    return new Set();
+    return new Set()
   }
 }
 
 function markRead(id: string) {
   try {
-    const set = getReadPosts();
-    set.add(id);
-    localStorage.setItem('read-posts', JSON.stringify([...set].slice(-200)));
+    const set = getReadPosts()
+    set.add(id)
+    localStorage.setItem('read-posts', JSON.stringify([...set].slice(-200)))
   } catch {}
 }
 
 export default function CommunityPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState(searchParams.get('search') || '');
-  const [sortBy, setSortBy] = useState<string>(searchParams.get('sort') || 'recent');
-  const [readPosts, setReadPosts] = useState<Set<string>>(() => getReadPosts());
-  const [demoLogs, setDemoLogs] = useState(() => readCommunityDemoLog());
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [search, setSearch] = useState(searchParams.get('search') || '')
+  const [sortBy, setSortBy] = useState<string>(searchParams.get('sort') || 'recent')
+  const [readPosts, setReadPosts] = useState<Set<string>>(() => getReadPosts())
+  const [demoLogs, setDemoLogs] = useState(() => readCommunityDemoLog())
+  const searchInputRef = useRef<HTMLInputElement>(null)
 
   const logCommunityDemo = useCallback(
     (action: Parameters<typeof appendCommunityDemoLog>[0], label: string, detail?: string) => {
-      setDemoLogs(appendCommunityDemoLog(action, label, detail));
+      setDemoLogs(appendCommunityDemoLog(action, label, detail))
     },
-    [],
-  );
-  const communityDemoSummary = useMemo(() => summarizeCommunityDemoLog(demoLogs), [demoLogs]);
-  const recentDemoLogs = useMemo(() => demoLogs.slice().reverse().slice(0, 4), [demoLogs]);
+    []
+  )
+  const communityDemoSummary = useMemo(() => summarizeCommunityDemoLog(demoLogs), [demoLogs])
+  const recentDemoLogs = useMemo(() => demoLogs.slice().reverse().slice(0, 4), [demoLogs])
 
-  const category = searchParams.get('category') || 'all';
-  const page = parseInt(searchParams.get('page') || '1');
-  const user = getUser();
+  const category = searchParams.get('category') || 'all'
+  const page = parseInt(searchParams.get('page') || '1')
+  const user = getUser()
 
   const {
     data: postsResult,
@@ -158,120 +159,120 @@ export default function CommunityPage() {
     queryFn: async () => {
       if (category === 'scrapped') {
         try {
-          const scrappedIds: string[] = JSON.parse(localStorage.getItem('scrapped-posts') || '[]');
-          if (scrappedIds.length === 0) return { items: [], total: 0, totalPages: 1 };
-          const r = await fetch(`${API_URL}/api/community?limit=100`);
-          if (!r.ok) return { items: [], total: 0, totalPages: 1 };
-          const data = (await r.json()) as { items?: Post[] };
-          const all = Array.isArray(data.items) ? data.items : [];
-          const filtered = all.filter((p) => scrappedIds.includes(p.id));
-          return { items: filtered, total: filtered.length, totalPages: 1 };
+          const scrappedIds: string[] = JSON.parse(localStorage.getItem('scrapped-posts') || '[]')
+          if (scrappedIds.length === 0) return { items: [], total: 0, totalPages: 1 }
+          const r = await fetch(`${API_URL}/api/community?limit=100`)
+          if (!r.ok) return { items: [], total: 0, totalPages: 1 }
+          const data = (await r.json()) as { items?: Post[] }
+          const all = Array.isArray(data.items) ? data.items : []
+          const filtered = all.filter((p) => scrappedIds.includes(p.id))
+          return { items: filtered, total: filtered.length, totalPages: 1 }
         } catch {
-          return { items: [], total: 0, totalPages: 1 };
+          return { items: [], total: 0, totalPages: 1 }
         }
       }
-      const params = new URLSearchParams();
-      if (category && category !== 'all') params.set('category', category);
-      if (search) params.set('search', search);
-      params.set('page', String(page));
-      params.set('limit', '20');
-      params.set('sort', sortBy);
-      const r = await fetch(`${API_URL}/api/community?${params}`);
-      if (!r.ok) return null;
-      const data = await r.json();
-      return { items: data.items || [], total: data.total || 0, totalPages: data.totalPages || 1 };
+      const params = new URLSearchParams()
+      if (category && category !== 'all') params.set('category', category)
+      if (search) params.set('search', search)
+      params.set('page', String(page))
+      params.set('limit', '20')
+      params.set('sort', sortBy)
+      const r = await fetch(`${API_URL}/api/community?${params}`)
+      if (!r.ok) return null
+      const data = await r.json()
+      return { items: data.items || [], total: data.total || 0, totalPages: data.totalPages || 1 }
     },
-  });
-  const posts: Post[] = useMemo(() => postsResult?.items ?? [], [postsResult]);
-  const total = postsResult?.total ?? 0;
-  const totalPages = postsResult?.totalPages ?? 1;
+  })
+  const posts: Post[] = useMemo(() => postsResult?.items ?? [], [postsResult])
+  const total = postsResult?.total ?? 0
+  const totalPages = postsResult?.totalPages ?? 1
   void useCallback(() => {
-    refetch();
-  }, [refetch]);
+    refetch()
+  }, [refetch])
 
   useEffect(() => {
-    document.title = '커뮤니티 — 이력서공방';
+    document.title = '커뮤니티 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = search.trim();
+    e.preventDefault()
+    const query = search.trim()
     logCommunityDemo(
       query ? 'search' : 'search-clear',
       query ? '커뮤니티 검색 실행' : '빈 검색으로 목록 재설정',
-      query || '전체',
-    );
+      query || '전체'
+    )
     setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (search) next.set('search', search);
-      else next.delete('search');
-      next.set('page', '1');
-      return next;
-    });
-  };
+      const next = new URLSearchParams(prev)
+      if (search) next.set('search', search)
+      else next.delete('search')
+      next.set('page', '1')
+      return next
+    })
+  }
 
   const clearSearch = () => {
-    logCommunityDemo('search-clear', '커뮤니티 검색어 초기화');
-    setSearch('');
+    logCommunityDemo('search-clear', '커뮤니티 검색어 초기화')
+    setSearch('')
     setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete('search');
-      next.set('page', '1');
-      return next;
-    });
-    searchInputRef.current?.focus();
-  };
+      const next = new URLSearchParams(prev)
+      next.delete('search')
+      next.set('page', '1')
+      return next
+    })
+    searchInputRef.current?.focus()
+  }
 
   const setCategory = (cat: string) => {
-    const catInfo = getCATEGORIES().find((item) => item.id === cat);
-    logCommunityDemo('category', '커뮤니티 카테고리 필터', catInfo?.label ?? cat);
+    const catInfo = getCATEGORIES().find((item) => item.id === cat)
+    logCommunityDemo('category', '커뮤니티 카테고리 필터', catInfo?.label ?? cat)
     setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      if (cat === 'all') next.delete('category');
-      else next.set('category', cat);
-      next.set('page', '1');
-      return next;
-    });
-  };
+      const next = new URLSearchParams(prev)
+      if (cat === 'all') next.delete('category')
+      else next.set('category', cat)
+      next.set('page', '1')
+      return next
+    })
+  }
 
   const setPage = (p: number) => {
     setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('page', String(p));
-      return next;
-    });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+      const next = new URLSearchParams(prev)
+      next.set('page', String(p))
+      return next
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const handleSortChange = (s: string) => {
-    const sortLabel = getSORT_OPTIONS().find((option) => option.value === s)?.label ?? s;
-    logCommunityDemo('sort', '커뮤니티 정렬 변경', sortLabel);
-    setSortBy(s);
+    const sortLabel = getSORT_OPTIONS().find((option) => option.value === s)?.label ?? s
+    logCommunityDemo('sort', '커뮤니티 정렬 변경', sortLabel)
+    setSortBy(s)
     setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('sort', s);
-      next.set('page', '1');
-      return next;
-    });
-  };
+      const next = new URLSearchParams(prev)
+      next.set('sort', s)
+      next.set('page', '1')
+      return next
+    })
+  }
 
   const handlePostClick = (id: string) => {
-    logCommunityDemo('read', '커뮤니티 게시글 열람', id);
-    markRead(id);
-    setReadPosts((prev) => new Set([...prev, id]));
-  };
+    logCommunityDemo('read', '커뮤니티 게시글 열람', id)
+    markRead(id)
+    setReadPosts((prev) => new Set([...prev, id]))
+  }
 
   const getCategoryInfo = (cat: string) =>
-    getCATEGORIES().find((c) => c.id === cat) || getCATEGORIES()[0];
+    getCATEGORIES().find((c) => c.id === cat) || getCATEGORIES()[0]
 
   // Hot posts (top 3 by likes, only from first page)
   const hotPosts = [...posts]
     .filter((p) => !p.isPinned && isHot(p))
     .sort((a, b) => b.likeCount - a.likeCount)
-    .slice(0, 3);
+    .slice(0, 3)
 
   return (
     <>
@@ -392,7 +393,7 @@ export default function CommunityPage() {
             </div>
             <div className="space-y-2">
               {hotPosts.map((post, i) => {
-                const catInfo = getCategoryInfo(post.category);
+                const catInfo = getCategoryInfo(post.category)
                 return (
                   <Link
                     key={post.id}
@@ -417,7 +418,7 @@ export default function CommunityPage() {
                       ♥ {post.likeCount}
                     </span>
                   </Link>
-                );
+                )
               })}
             </div>
           </div>
@@ -572,11 +573,11 @@ export default function CommunityPage() {
         ) : (
           <div className="space-y-1.5">
             {posts.map((post) => {
-              const catInfo = getCategoryInfo(post.category);
-              const hot = isHot(post);
-              const fresh = isNew(post);
-              const isRead = readPosts.has(post.id);
-              const commentCount = post._count?.comments ?? 0;
+              const catInfo = getCategoryInfo(post.category)
+              const hot = isHot(post)
+              const fresh = isNew(post)
+              const isRead = readPosts.has(post.id)
+              const commentCount = post._count?.comments ?? 0
 
               return (
                 <Link
@@ -709,7 +710,7 @@ export default function CommunityPage() {
                     </div>
                   </div>
                 </Link>
-              );
+              )
             })}
           </div>
         )}
@@ -749,11 +750,11 @@ export default function CommunityPage() {
             </button>
 
             {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-              let p = i + 1;
+              let p = i + 1
               if (totalPages > 7) {
-                if (page <= 4) p = i + 1;
-                else if (page >= totalPages - 3) p = totalPages - 6 + i;
-                else p = page - 3 + i;
+                if (page <= 4) p = i + 1
+                else if (page >= totalPages - 3) p = totalPages - 6 + i
+                else p = page - 3 + i
               }
               return (
                 <button
@@ -767,7 +768,7 @@ export default function CommunityPage() {
                 >
                   {p}
                 </button>
-              );
+              )
             })}
 
             <button
@@ -805,5 +806,5 @@ export default function CommunityPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

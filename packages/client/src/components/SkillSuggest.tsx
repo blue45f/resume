@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react'
 
 /** Static skill relationship map - zero LLM cost */
 const SKILL_RELATIONS: Record<string, string[]> = {
@@ -34,7 +34,7 @@ const SKILL_RELATIONS: Record<string, string[]> = {
   elasticsearch: ['Kibana', 'Logstash', 'OpenSearch'],
   'ci/cd': ['GitHub Actions', 'Jenkins', 'GitLab CI', 'ArgoCD'],
   git: ['GitHub', 'GitLab', 'Bitbucket', 'Git Flow'],
-};
+}
 
 /** Company to common roles map */
 const COMPANY_ROLES: Record<string, string[]> = {
@@ -76,36 +76,36 @@ const COMPANY_ROLES: Record<string, string[]> = {
   microsoft: ['Software Engineer', 'Program Manager', 'Data Scientist'],
   apple: ['Software Engineer', 'Machine Learning Engineer', 'UI Engineer'],
   meta: ['Software Engineer', 'Production Engineer', 'Research Scientist'],
-};
+}
 
 function findRelatedSkills(currentItems: string): string[] {
   const existing = currentItems
     .split(',')
     .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-  const suggestions = new Set<string>();
+    .filter(Boolean)
+  const suggestions = new Set<string>()
 
   for (const item of existing) {
-    const related = SKILL_RELATIONS[item];
+    const related = SKILL_RELATIONS[item]
     if (related) {
       for (const r of related) {
         if (!existing.includes(r.toLowerCase())) {
-          suggestions.add(r);
+          suggestions.add(r)
         }
       }
     }
   }
-  return [...suggestions].slice(0, 5);
+  return [...suggestions].slice(0, 5)
 }
 
 function findRolesForCompany(company: string): string[] {
-  const lower = company.toLowerCase().trim();
+  const lower = company.toLowerCase().trim()
   for (const [key, roles] of Object.entries(COMPANY_ROLES)) {
     if (key.toLowerCase().includes(lower) || lower.includes(key.toLowerCase())) {
-      return roles;
+      return roles
     }
   }
-  return [];
+  return []
 }
 
 /** Inline skill suggestions dropdown */
@@ -113,20 +113,20 @@ export function SkillSuggestDropdown({
   currentItems,
   onAdd,
 }: {
-  currentItems: string;
-  onAdd: (skill: string) => void;
+  currentItems: string
+  onAdd: (skill: string) => void
 }) {
-  const [dismissed, setDismissed] = useState(false);
-  const suggestions = findRelatedSkills(currentItems);
+  const [dismissed, setDismissed] = useState(false)
+  const suggestions = findRelatedSkills(currentItems)
 
-  if (dismissed || suggestions.length === 0 || currentItems.trim().length < 2) return null;
+  if (dismissed || suggestions.length === 0 || currentItems.trim().length < 2) return null
 
   // Determine which skill triggered suggestions
   const existing = currentItems
     .split(',')
     .map((s) => s.trim())
-    .filter(Boolean);
-  const lastSkill = existing[existing.length - 1] || '';
+    .filter(Boolean)
+  const lastSkill = existing[existing.length - 1] || ''
 
   return (
     <div className="mt-1.5 p-2.5 bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-lg animate-fade-in w-full overflow-hidden">
@@ -173,7 +173,7 @@ export function SkillSuggestDropdown({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 /** Company-based role suggestions */
@@ -181,14 +181,14 @@ export function CompanyRoleSuggest({
   company,
   onSelect,
 }: {
-  company: string;
-  onSelect: (role: string) => void;
+  company: string
+  onSelect: (role: string) => void
 }) {
-  const [dismissedCompany, setDismissedCompany] = useState<string | null>(null);
-  const roles = findRolesForCompany(company);
-  const dismissed = dismissedCompany === company;
+  const [dismissedCompany, setDismissedCompany] = useState<string | null>(null)
+  const roles = findRolesForCompany(company)
+  const dismissed = dismissedCompany === company
 
-  if (dismissed || roles.length === 0 || company.trim().length < 2) return null;
+  if (dismissed || roles.length === 0 || company.trim().length < 2) return null
 
   return (
     <div className="mt-1 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg animate-fade-in w-full overflow-hidden">
@@ -218,8 +218,8 @@ export function CompanyRoleSuggest({
             key={role}
             type="button"
             onClick={() => {
-              onSelect(role);
-              setDismissedCompany(company);
+              onSelect(role)
+              setDismissedCompany(company)
             }}
             className="px-2 py-1 text-xs text-blue-700 dark:text-blue-300 bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
@@ -228,7 +228,7 @@ export function CompanyRoleSuggest({
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 /** Inline content quality tip for short descriptions */
@@ -236,13 +236,13 @@ export function InlineContentTip({
   text,
   section,
 }: {
-  text: string;
-  section: 'experience' | 'project' | 'summary';
+  text: string
+  section: 'experience' | 'project' | 'summary'
 }) {
-  const plain = (text || '').replace(/<[^>]*>/g, '').trim();
-  const [dismissed, setDismissed] = useState(false);
+  const plain = (text || '').replace(/<[^>]*>/g, '').trim()
+  const [dismissed, setDismissed] = useState(false)
 
-  if (dismissed || plain.length === 0 || plain.length >= 50) return null;
+  if (dismissed || plain.length === 0 || plain.length >= 50) return null
 
   const tips: Record<string, { message: string; template: string }> = {
     experience: {
@@ -260,10 +260,10 @@ export function InlineContentTip({
       template:
         '- 핵심 역량 (예: N년 경력의 OO 전문가)\n- 주요 성과 1~2개\n- 기술 스택 요약\n- 커리어 목표',
     },
-  };
+  }
 
-  const tip = tips[section];
-  if (!tip) return null;
+  const tip = tips[section]
+  if (!tip) return null
 
   return (
     <div className="mt-1.5 p-2.5 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg animate-fade-in w-full overflow-hidden">
@@ -324,5 +324,5 @@ export function InlineContentTip({
         </button>
       </div>
     </div>
-  );
+  )
 }

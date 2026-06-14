@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import Tooltip from '@/shared/ui/Tooltip';
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import Tooltip from '@/shared/ui/Tooltip'
 
 const meta: Meta<typeof Tooltip> = {
   title: 'UI Primitives/Tooltip',
@@ -9,9 +10,9 @@ const meta: Meta<typeof Tooltip> = {
     side: { control: 'select', options: ['top', 'right', 'bottom', 'left'] },
     delay: { control: { type: 'number', min: 0, max: 1500, step: 50 } },
   },
-};
-export default meta;
-type Story = StoryObj<typeof Tooltip>;
+}
+export default meta
+type Story = StoryObj<typeof Tooltip>
 
 export const Top: Story = {
   args: {
@@ -21,7 +22,7 @@ export const Top: Story = {
       <button className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm">호버</button>
     ),
   },
-};
+}
 
 export const Right: Story = {
   args: {
@@ -31,7 +32,7 @@ export const Right: Story = {
       <button className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm">호버 →</button>
     ),
   },
-};
+}
 
 export const LongContent: Story = {
   args: {
@@ -44,4 +45,4 @@ export const LongContent: Story = {
       </span>
     ),
   },
-};
+}

@@ -1,100 +1,101 @@
-import type { JobApplication } from './api';
-import { getApplicationNetworkingInsight } from './applicationNetworking';
+import { getApplicationNetworkingInsight } from './applicationNetworking'
+
+import type { JobApplication } from './api'
 
 export type ApplicationActivityType =
   | 'deadline'
   | 'interview'
   | 'follow-up'
   | 'networking'
-  | 'close-out';
-export type ApplicationActivityTone = 'danger' | 'warning' | 'info' | 'good';
+  | 'close-out'
+export type ApplicationActivityTone = 'danger' | 'warning' | 'info' | 'good'
 
 export interface ApplicationActivityItem {
-  id: string;
-  applicationId: string;
-  company: string;
-  position: string;
-  type: ApplicationActivityType;
-  title: string;
-  detail: string;
-  dueLabel: string;
-  tone: ApplicationActivityTone;
-  urgency: number;
+  id: string
+  applicationId: string
+  company: string
+  position: string
+  type: ApplicationActivityType
+  title: string
+  detail: string
+  dueLabel: string
+  tone: ApplicationActivityTone
+  urgency: number
 }
 
 interface ActivityQueueOptions {
-  now?: Date;
-  limit?: number;
+  now?: Date
+  limit?: number
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-const TERMINAL_STATUSES = new Set(['offer', 'rejected', 'withdrawn']);
-const INTERVIEW_STATUSES = new Set(['interview', 'interviewing', 'technical', 'onsite', 'final']);
+const DAY_MS = 24 * 60 * 60 * 1000
+const TERMINAL_STATUSES = new Set(['offer', 'rejected', 'withdrawn'])
+const INTERVIEW_STATUSES = new Set(['interview', 'interviewing', 'technical', 'onsite', 'final'])
 
-const normalizeStatus = (status: string) => status.trim().toLowerCase();
+const normalizeStatus = (status: string) => status.trim().toLowerCase()
 
 const dateOnly = (date: Date) =>
-  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
 
 const parseDate = (value?: string | null) => {
-  if (!value) return null;
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!value) return null
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (match) {
-    const [, year, month, day] = match;
-    return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+    const [, year, month, day] = match
+    return new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)))
   }
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : dateOnly(parsed);
-};
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : dateOnly(parsed)
+}
 
 const daysUntil = (value: string | undefined, now: Date) => {
-  const date = parseDate(value);
-  if (!date) return null;
-  return Math.ceil((date.getTime() - dateOnly(now).getTime()) / DAY_MS);
-};
+  const date = parseDate(value)
+  if (!date) return null
+  return Math.ceil((date.getTime() - dateOnly(now).getTime()) / DAY_MS)
+}
 
 const daysSince = (value: string | undefined, now: Date) => {
-  const date = parseDate(value);
-  if (!date) return Number.POSITIVE_INFINITY;
-  return Math.floor((dateOnly(now).getTime() - date.getTime()) / DAY_MS);
-};
+  const date = parseDate(value)
+  if (!date) return Number.POSITIVE_INFINITY
+  return Math.floor((dateOnly(now).getTime() - date.getTime()) / DAY_MS)
+}
 
 const priorityBoost = (priority?: string) =>
-  priority === 'high' ? 35 : priority === 'medium' ? 15 : 0;
+  priority === 'high' ? 35 : priority === 'medium' ? 15 : 0
 
 const isTerminal = (application: JobApplication) =>
-  TERMINAL_STATUSES.has(normalizeStatus(application.status));
+  TERMINAL_STATUSES.has(normalizeStatus(application.status))
 
 const isInterviewStage = (application: JobApplication) =>
-  INTERVIEW_STATUSES.has(normalizeStatus(application.status));
+  INTERVIEW_STATUSES.has(normalizeStatus(application.status))
 
 const makeItem = (
   application: JobApplication,
-  item: Omit<ApplicationActivityItem, 'applicationId' | 'company' | 'position'>,
+  item: Omit<ApplicationActivityItem, 'applicationId' | 'company' | 'position'>
 ): ApplicationActivityItem => ({
   ...item,
   applicationId: application.id,
   company: application.company,
   position: application.position,
-});
+})
 
 export const buildApplicationActivityQueue = (
   applications: JobApplication[],
-  options: ActivityQueueOptions = {},
+  options: ActivityQueueOptions = {}
 ): ApplicationActivityItem[] => {
-  const now = options.now ?? new Date();
-  const limit = options.limit ?? 6;
-  const items: ApplicationActivityItem[] = [];
+  const now = options.now ?? new Date()
+  const limit = options.limit ?? 6
+  const items: ApplicationActivityItem[] = []
 
   for (const application of applications) {
-    const status = normalizeStatus(application.status);
-    const deadlineDays = daysUntil(application.deadline, now);
-    const interviewDays = daysUntil(application.interviewDate, now);
-    const staleDays = daysSince(application.updatedAt, now);
-    const boost = priorityBoost(application.priority);
+    const status = normalizeStatus(application.status)
+    const deadlineDays = daysUntil(application.deadline, now)
+    const interviewDays = daysUntil(application.interviewDate, now)
+    const staleDays = daysSince(application.updatedAt, now)
+    const boost = priorityBoost(application.priority)
 
     if (!isTerminal(application) && deadlineDays !== null && deadlineDays <= 3) {
-      const overdue = deadlineDays < 0;
+      const overdue = deadlineDays < 0
       items.push(
         makeItem(application, {
           id: `${application.id}-deadline`,
@@ -110,8 +111,8 @@ export const buildApplicationActivityQueue = (
               : `마감 ${deadlineDays}일 전`,
           tone: overdue ? 'danger' : 'warning',
           urgency: overdue ? 1000 + Math.abs(deadlineDays) + boost : 900 - deadlineDays + boost,
-        }),
-      );
+        })
+      )
     }
 
     if (!isTerminal(application) && (isInterviewStage(application) || interviewDays !== null)) {
@@ -122,7 +123,7 @@ export const buildApplicationActivityQueue = (
             ? `면접 ${Math.abs(interviewDays)}일 경과`
             : interviewDays === 0
               ? '면접 오늘'
-              : `면접 ${interviewDays}일 전`;
+              : `면접 ${interviewDays}일 전`
       items.push(
         makeItem(application, {
           id: `${application.id}-interview`,
@@ -132,8 +133,8 @@ export const buildApplicationActivityQueue = (
           dueLabel: label,
           tone: interviewDays !== null && interviewDays <= 1 ? 'warning' : 'info',
           urgency: 820 - Math.max(interviewDays ?? 3, 0) + boost,
-        }),
-      );
+        })
+      )
     }
 
     if (
@@ -152,8 +153,8 @@ export const buildApplicationActivityQueue = (
           dueLabel: `${staleDays}일 무응답`,
           tone: 'warning',
           urgency: 760 + staleDays + boost,
-        }),
-      );
+        })
+      )
     } else if (!isTerminal(application) && staleDays >= 7) {
       items.push(
         makeItem(application, {
@@ -164,8 +165,8 @@ export const buildApplicationActivityQueue = (
           dueLabel: `${staleDays}일 정체`,
           tone: staleDays >= 14 ? 'warning' : 'info',
           urgency: 700 + staleDays + boost,
-        }),
-      );
+        })
+      )
     }
 
     if (
@@ -183,12 +184,12 @@ export const buildApplicationActivityQueue = (
           dueLabel: '관계 만들기',
           tone: 'info',
           urgency: 560 + boost,
-        }),
-      );
+        })
+      )
     }
   }
 
   return items
     .sort((a, b) => b.urgency - a.urgency || a.company.localeCompare(b.company, 'ko'))
-    .slice(0, limit);
-};
+    .slice(0, limit)
+}

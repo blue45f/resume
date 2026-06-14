@@ -1,6 +1,8 @@
-import { useRef, useState, useCallback, useMemo } from 'react';
-import type { SectionId } from '@/types/resume';
-import { DEFAULT_SECTION_ORDER } from '@/types/resume';
+import { useRef, useState, useCallback, useMemo } from 'react'
+
+import type { SectionId } from '@/types/resume'
+
+import { DEFAULT_SECTION_ORDER } from '@/types/resume'
 
 const SECTION_LABELS: Record<SectionId, string> = {
   experience: '경력',
@@ -11,13 +13,13 @@ const SECTION_LABELS: Record<SectionId, string> = {
   languages: '어학',
   awards: '수상',
   activities: '활동',
-};
+}
 
 interface Props {
-  sectionOrder: SectionId[];
-  hiddenSections: SectionId[];
-  onOrderChange: (order: SectionId[]) => void;
-  onHiddenChange: (hidden: SectionId[]) => void;
+  sectionOrder: SectionId[]
+  hiddenSections: SectionId[]
+  onOrderChange: (order: SectionId[]) => void
+  onHiddenChange: (hidden: SectionId[]) => void
 }
 
 export default function SectionOrderPanel({
@@ -26,73 +28,73 @@ export default function SectionOrderPanel({
   onOrderChange,
   onHiddenChange,
 }: Props) {
-  const [dragging, setDragging] = useState<number | null>(null);
-  const [dragOver, setDragOver] = useState<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [dragging, setDragging] = useState<number | null>(null)
+  const [dragOver, setDragOver] = useState<number | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const order = useMemo(
     () => (sectionOrder.length > 0 ? sectionOrder : [...DEFAULT_SECTION_ORDER]),
-    [sectionOrder],
-  );
+    [sectionOrder]
+  )
 
   const handleDragStart = useCallback((idx: number) => {
-    setDragging(idx);
-  }, []);
+    setDragging(idx)
+  }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
-    e.preventDefault();
-    setDragOver(idx);
-  }, []);
+    e.preventDefault()
+    setDragOver(idx)
+  }, [])
 
   const handleDrop = useCallback(
     (idx: number) => {
       if (dragging === null || dragging === idx) {
-        setDragging(null);
-        setDragOver(null);
-        return;
+        setDragging(null)
+        setDragOver(null)
+        return
       }
-      const newOrder = [...order];
-      const [moved] = newOrder.splice(dragging, 1);
-      newOrder.splice(idx, 0, moved);
-      onOrderChange(newOrder);
-      setDragging(null);
-      setDragOver(null);
+      const newOrder = [...order]
+      const [moved] = newOrder.splice(dragging, 1)
+      newOrder.splice(idx, 0, moved)
+      onOrderChange(newOrder)
+      setDragging(null)
+      setDragOver(null)
     },
-    [dragging, order, onOrderChange],
-  );
+    [dragging, order, onOrderChange]
+  )
 
   const handleDragEnd = useCallback(() => {
-    setDragging(null);
-    setDragOver(null);
-  }, []);
+    setDragging(null)
+    setDragOver(null)
+  }, [])
 
   const moveSection = useCallback(
     (fromIdx: number, direction: -1 | 1) => {
-      const toIdx = fromIdx + direction;
-      if (toIdx < 0 || toIdx >= order.length) return;
-      const newOrder = [...order];
-      [newOrder[fromIdx], newOrder[toIdx]] = [newOrder[toIdx], newOrder[fromIdx]];
-      onOrderChange(newOrder);
+      const toIdx = fromIdx + direction
+      if (toIdx < 0 || toIdx >= order.length) return
+      const newOrder = [...order]
+      ;[newOrder[fromIdx], newOrder[toIdx]] = [newOrder[toIdx], newOrder[fromIdx]]
+      onOrderChange(newOrder)
     },
-    [order, onOrderChange],
-  );
+    [order, onOrderChange]
+  )
 
   const toggleVisibility = useCallback(
     (sectionId: SectionId) => {
-      const isHidden = hiddenSections.includes(sectionId);
+      const isHidden = hiddenSections.includes(sectionId)
       if (isHidden) {
-        onHiddenChange(hiddenSections.filter((s) => s !== sectionId));
+        onHiddenChange(hiddenSections.filter((s) => s !== sectionId))
       } else {
-        onHiddenChange([...hiddenSections, sectionId]);
+        onHiddenChange([...hiddenSections, sectionId])
       }
     },
-    [hiddenSections, onHiddenChange],
-  );
+    [hiddenSections, onHiddenChange]
+  )
 
   const resetOrder = useCallback(() => {
-    onOrderChange([...DEFAULT_SECTION_ORDER]);
-    onHiddenChange([]);
-  }, [onOrderChange, onHiddenChange]);
+    onOrderChange([...DEFAULT_SECTION_ORDER])
+    onHiddenChange([])
+  }, [onOrderChange, onHiddenChange])
 
   return (
     <div className="mb-6">
@@ -128,9 +130,9 @@ export default function SectionOrderPanel({
         aria-label="섹션 순서 변경"
       >
         {order.map((sectionId, idx) => {
-          const isHidden = hiddenSections.includes(sectionId);
-          const isDraggingThis = dragging === idx;
-          const isDragOverThis = dragOver === idx;
+          const isHidden = hiddenSections.includes(sectionId)
+          const isDraggingThis = dragging === idx
+          const isDragOverThis = dragOver === idx
 
           return (
             <div
@@ -174,8 +176,8 @@ export default function SectionOrderPanel({
                 <button
                   type="button"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    moveSection(idx, -1);
+                    e.stopPropagation()
+                    moveSection(idx, -1)
                   }}
                   disabled={idx === 0}
                   className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-20 transition-colors"
@@ -193,8 +195,8 @@ export default function SectionOrderPanel({
                 <button
                   type="button"
                   onClick={(e) => {
-                    e.stopPropagation();
-                    moveSection(idx, 1);
+                    e.stopPropagation()
+                    moveSection(idx, 1)
                   }}
                   disabled={idx === order.length - 1}
                   className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 disabled:opacity-20 transition-colors"
@@ -215,8 +217,8 @@ export default function SectionOrderPanel({
               <button
                 type="button"
                 onClick={(e) => {
-                  e.stopPropagation();
-                  toggleVisibility(sectionId);
+                  e.stopPropagation()
+                  toggleVisibility(sectionId)
                 }}
                 className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors ml-0.5"
                 aria-label={
@@ -263,12 +265,12 @@ export default function SectionOrderPanel({
                 )}
               </button>
             </div>
-          );
+          )
         })}
       </div>
       <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
         드래그하여 순서를 변경하세요. 눈 아이콘으로 섹션을 숨길 수 있습니다.
       </p>
     </div>
-  );
+  )
 }

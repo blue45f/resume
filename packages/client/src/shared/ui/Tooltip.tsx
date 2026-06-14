@@ -15,14 +15,15 @@
  * Note: For best results, wrap the app root with <TooltipProvider> once.
  * This component also includes a local Provider as a fallback.
  */
-import * as RadixTooltip from '@radix-ui/react-tooltip';
-import type { ReactNode } from 'react';
+import * as RadixTooltip from '@radix-ui/react-tooltip'
+
+import type { ReactNode } from 'react'
 
 interface TooltipProps {
-  content: string | ReactNode;
-  children: ReactNode;
-  side?: 'top' | 'bottom' | 'left' | 'right';
-  delay?: number;
+  content: string | ReactNode
+  children: ReactNode
+  side?: 'top' | 'bottom' | 'left' | 'right'
+  delay?: number
 }
 
 export default function Tooltip({ content, children, side = 'top', delay = 300 }: TooltipProps) {
@@ -46,5 +47,5 @@ export default function Tooltip({ content, children, side = 'top', delay = 300 }
         </RadixTooltip.Portal>
       </RadixTooltip.Root>
     </RadixTooltip.Provider>
-  );
+  )
 }

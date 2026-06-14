@@ -1,19 +1,20 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useQuery } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import KoreanQualityBadge from '@/components/KoreanQualityBadge';
-import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { API_URL } from '@/lib/config';
-import { t, tx } from '@/lib/i18n';
-import { appendCommunityDemoLog } from '@/lib/communityDemoLog';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { z } from 'zod'
 
-const CATEGORY_PATTERN = /^[\w가-힣 ·/\-()]{1,24}$/;
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner'
+import Header from '@/components/Header'
+import KoreanQualityBadge from '@/components/KoreanQualityBadge'
+import { getUser } from '@/lib/auth'
+import { appendCommunityDemoLog } from '@/lib/communityDemoLog'
+import { API_URL } from '@/lib/config'
+import { t, tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+
+const CATEGORY_PATTERN = /^[\w가-힣 ·/\-()]{1,24}$/
 
 const postSchema = z.object({
   title: z.string().min(2, '제목을 2자 이상 입력하세요').max(100, '제목은 100자 이내여야 합니다'),
@@ -26,15 +27,15 @@ const postSchema = z.object({
     .min(1, '카테고리를 선택하거나 입력하세요')
     .max(24, '카테고리는 24자 이내여야 합니다')
     .regex(CATEGORY_PATTERN, '한글·영문·숫자·공백·- · / ( ) 만 사용 가능합니다'),
-});
+})
 
-type PostForm = z.infer<typeof postSchema>;
+type PostForm = z.infer<typeof postSchema>
 
 interface CategoryDef {
-  id: string;
-  labelKey: string;
-  icon: string;
-  adminOnly?: boolean;
+  id: string
+  labelKey: string
+  icon: string
+  adminOnly?: boolean
 }
 const CATEGORY_DEFS: CategoryDef[] = [
   { id: 'notice', labelKey: 'community.category.notice', icon: '📢', adminOnly: true },
@@ -43,188 +44,187 @@ const CATEGORY_DEFS: CategoryDef[] = [
   { id: 'resume', labelKey: 'community.category.resume', icon: '📄' },
   { id: 'cover-letter', labelKey: 'community.category.coverLetter', icon: '✍️' },
   { id: 'question', labelKey: 'community.category.question', icon: '❓' },
-];
+]
 const getCATEGORIES = () =>
   CATEGORY_DEFS.map((c) => ({
     id: c.id,
     label: tx(c.labelKey),
     icon: c.icon,
     adminOnly: c.adminOnly,
-  }));
+  }))
 
 // ── Markdown renderer for preview ────────────────────────────────────────────
 function renderMarkdown(text: string): string {
-  const escape = (s: string) =>
-    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const lines = text.split('\n');
-  const out: string[] = [];
-  let inCode = false;
-  let inList = false;
-  let inQuote = false;
+  const escape = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const lines = text.split('\n')
+  const out: string[] = []
+  let inCode = false
+  let inList = false
+  let inQuote = false
 
   const closeList = () => {
     if (inList) {
-      out.push('</ul>');
-      inList = false;
+      out.push('</ul>')
+      inList = false
     }
-  };
+  }
   const closeQuote = () => {
     if (inQuote) {
-      out.push('</blockquote>');
-      inQuote = false;
+      out.push('</blockquote>')
+      inQuote = false
     }
-  };
+  }
 
   for (const raw of lines) {
     // Code block fence
     if (raw.startsWith('```')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       if (!inCode) {
         out.push(
-          '<pre class="bg-slate-100 dark:bg-slate-800 rounded-lg px-4 py-3 overflow-x-auto text-sm font-mono my-3 text-slate-800 dark:text-slate-200">',
-        );
-        inCode = true;
+          '<pre class="bg-slate-100 dark:bg-slate-800 rounded-lg px-4 py-3 overflow-x-auto text-sm font-mono my-3 text-slate-800 dark:text-slate-200">'
+        )
+        inCode = true
       } else {
-        out.push('</pre>');
-        inCode = false;
+        out.push('</pre>')
+        inCode = false
       }
-      continue;
+      continue
     }
     if (inCode) {
-      out.push(escape(raw));
-      continue;
+      out.push(escape(raw))
+      continue
     }
 
     // Headings
     if (raw.startsWith('### ')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       out.push(
-        `<h3 class="text-lg font-bold mt-5 mb-2 text-slate-900 dark:text-slate-100">${escape(raw.slice(4))}</h3>`,
-      );
-      continue;
+        `<h3 class="text-lg font-bold mt-5 mb-2 text-slate-900 dark:text-slate-100">${escape(raw.slice(4))}</h3>`
+      )
+      continue
     }
     if (raw.startsWith('## ')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       out.push(
-        `<h2 class="text-xl font-bold mt-6 mb-2 text-slate-900 dark:text-slate-100">${escape(raw.slice(3))}</h2>`,
-      );
-      continue;
+        `<h2 class="text-xl font-bold mt-6 mb-2 text-slate-900 dark:text-slate-100">${escape(raw.slice(3))}</h2>`
+      )
+      continue
     }
     if (raw.startsWith('# ')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       out.push(
-        `<h1 class="text-2xl font-bold mt-6 mb-3 text-slate-900 dark:text-slate-100">${escape(raw.slice(2))}</h1>`,
-      );
-      continue;
+        `<h1 class="text-2xl font-bold mt-6 mb-3 text-slate-900 dark:text-slate-100">${escape(raw.slice(2))}</h1>`
+      )
+      continue
     }
 
     // Blockquote
     if (raw.startsWith('> ')) {
-      closeList();
+      closeList()
       if (!inQuote) {
         out.push(
-          '<blockquote class="border-l-4 border-sky-400 pl-4 my-3 text-slate-500 dark:text-slate-400 italic">',
-        );
-        inQuote = true;
+          '<blockquote class="border-l-4 border-sky-400 pl-4 my-3 text-slate-500 dark:text-slate-400 italic">'
+        )
+        inQuote = true
       }
-      out.push(`<p class="mb-1">${inlineFormat(escape(raw.slice(2)))}</p>`);
-      continue;
+      out.push(`<p class="mb-1">${inlineFormat(escape(raw.slice(2)))}</p>`)
+      continue
     } else {
-      closeQuote();
+      closeQuote()
     }
 
     // Unordered list
     if (raw.startsWith('- ') || raw.startsWith('* ')) {
       if (!inList) {
         out.push(
-          '<ul class="list-disc list-inside my-2 space-y-1 text-slate-700 dark:text-slate-300">',
-        );
-        inList = true;
+          '<ul class="list-disc list-inside my-2 space-y-1 text-slate-700 dark:text-slate-300">'
+        )
+        inList = true
       }
-      out.push(`<li>${inlineFormat(escape(raw.slice(2)))}</li>`);
-      continue;
+      out.push(`<li>${inlineFormat(escape(raw.slice(2)))}</li>`)
+      continue
     } else {
-      closeList();
+      closeList()
     }
 
     // Ordered list
-    const olMatch = raw.match(/^(\d+)\. (.+)/);
+    const olMatch = raw.match(/^(\d+)\. (.+)/)
     if (olMatch) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       // simple: just render as paragraph with number
       out.push(
-        `<p class="my-1 ml-4 text-slate-700 dark:text-slate-300">${olMatch[1]}. ${inlineFormat(escape(olMatch[2]))}</p>`,
-      );
-      continue;
+        `<p class="my-1 ml-4 text-slate-700 dark:text-slate-300">${olMatch[1]}. ${inlineFormat(escape(olMatch[2]))}</p>`
+      )
+      continue
     }
 
     // Horizontal rule
     if (raw === '---' || raw === '***') {
-      closeList();
-      closeQuote();
-      out.push('<hr class="my-4 border-slate-200 dark:border-slate-700" />');
-      continue;
+      closeList()
+      closeQuote()
+      out.push('<hr class="my-4 border-slate-200 dark:border-slate-700" />')
+      continue
     }
 
     // Empty line
     if (raw.trim() === '') {
-      closeList();
-      closeQuote();
-      out.push('<div class="h-3" />');
-      continue;
+      closeList()
+      closeQuote()
+      out.push('<div class="h-3" />')
+      continue
     }
 
     // Normal paragraph
     out.push(
-      `<p class="my-1.5 text-slate-700 dark:text-slate-300 leading-relaxed">${inlineFormat(escape(raw))}</p>`,
-    );
+      `<p class="my-1.5 text-slate-700 dark:text-slate-300 leading-relaxed">${inlineFormat(escape(raw))}</p>`
+    )
   }
-  closeList();
-  closeQuote();
-  if (inCode) out.push('</pre>');
-  return out.join('\n');
+  closeList()
+  closeQuote()
+  if (inCode) out.push('</pre>')
+  return out.join('\n')
 }
 
 function inlineFormat(s: string): string {
   // Bold+italic
-  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
   // Bold
-  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
   // Italic
-  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>')
   // Inline code
   s = s.replace(
     /`([^`]+)`/g,
-    '<code class="bg-slate-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>',
-  );
+    '<code class="bg-slate-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>'
+  )
   // Strikethrough
-  s = s.replace(/~~(.+?)~~/g, '<del class="opacity-60">$1</del>');
+  s = s.replace(/~~(.+?)~~/g, '<del class="opacity-60">$1</del>')
   // Link
   s = s.replace(
     /\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80">$1</a>',
-  );
+    '<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80">$1</a>'
+  )
   // Auto URL
   s = s.replace(
     /(^|[\s])(https?:\/\/[^\s<]+)/g,
-    '$1<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80">$2</a>',
-  );
-  return s;
+    '$1<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80">$2</a>'
+  )
+  return s
 }
 
 // ── Toolbar button helper ────────────────────────────────────────────────────
 interface ToolbarAction {
-  label: string;
-  icon: string;
-  title: string;
-  wrap?: [string, string]; // wrap selection
-  prefix?: string; // prefix each line
-  block?: string; // insert block at cursor
+  label: string
+  icon: string
+  title: string
+  wrap?: [string, string] // wrap selection
+  prefix?: string // prefix each line
+  block?: string // insert block at cursor
 }
 
 const TOOLBAR: (ToolbarAction | null)[] = [
@@ -243,24 +243,24 @@ const TOOLBAR: (ToolbarAction | null)[] = [
   null,
   { label: 'Link', icon: '🔗', title: '링크', wrap: ['[', '](url)'] },
   { label: 'HR', icon: '──', title: '구분선', block: '\n---\n' },
-];
+]
 
 export default function CommunityWritePage() {
-  const { id } = useParams<{ id: string }>();
-  const isEdit = !!id;
-  const navigate = useNavigate();
-  const user = getUser();
+  const { id } = useParams<{ id: string }>()
+  const isEdit = !!id
+  const navigate = useNavigate()
+  const user = getUser()
 
   // ?category= ?title= ?body= 쿼리로부터 기본값 읽기
   // (커뮤니티 리스트 → 글쓰기 진입 시 현재 필터 유지, HomePage CTA prefill 등)
-  const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams()
   const initialCategory = (() => {
-    const q = searchParams.get('category');
-    const valid = ['notice', 'free', 'tips', 'resume', 'cover-letter', 'interview', 'question'];
-    return q && valid.includes(q) ? q : 'free';
-  })();
-  const initialTitle = searchParams.get('title') || '';
-  const initialBody = searchParams.get('body') || '';
+    const q = searchParams.get('category')
+    const valid = ['notice', 'free', 'tips', 'resume', 'cover-letter', 'interview', 'question']
+    return q && valid.includes(q) ? q : 'free'
+  })()
+  const initialTitle = searchParams.get('title') || ''
+  const initialBody = searchParams.get('body') || ''
 
   const {
     register,
@@ -271,254 +271,254 @@ export default function CommunityWritePage() {
   } = useForm<PostForm>({
     resolver: zodResolver(postSchema),
     defaultValues: { title: initialTitle, content: initialBody, category: initialCategory },
-  });
+  })
 
-  const title = useWatch({ control, name: 'title' });
-  const content = useWatch({ control, name: 'content' });
-  const category = useWatch({ control, name: 'category' });
-  const userId = user?.id;
+  const title = useWatch({ control, name: 'title' })
+  const content = useWatch({ control, name: 'content' })
+  const category = useWatch({ control, name: 'category' })
+  const userId = user?.id
 
-  const [error, setError] = useState('');
-  const [preview, setPreview] = useState(false);
-  const [customCatMode, setCustomCatMode] = useState(false);
-  const [customCat, setCustomCat] = useState('');
+  const [error, setError] = useState('')
+  const [preview, setPreview] = useState(false)
+  const [customCatMode, setCustomCatMode] = useState(false)
+  const [customCat, setCustomCat] = useState('')
   const [attachments, setAttachments] = useState<
     { url: string; name: string; size: number; type: string }[]
-  >([]);
-  const [uploading, setUploading] = useState(false);
-  const [draftSaved, setDraftSaved] = useState(false);
+  >([])
+  const [uploading, setUploading] = useState(false)
+  const [draftSaved, setDraftSaved] = useState(false)
 
   // 서버 Draft 로드
   useEffect(() => {
-    if (isEdit || !userId) return;
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    if (isEdit || !userId) return
+    const token = localStorage.getItem('token')
+    if (!token) return
     fetch(`${API_URL}/api/health/drafts/community_post`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (d?.title) setValue('title', d.title);
-        if (d?.content) setValue('content', d.content);
-        if (d?.category) setValue('category', d.category);
+        if (d?.title) setValue('title', d.title)
+        if (d?.content) setValue('content', d.content)
+        if (d?.category) setValue('category', d.category)
       })
-      .catch(() => {});
-  }, [isEdit, userId, setValue]);
+      .catch(() => {})
+  }, [isEdit, userId, setValue])
 
   // 서버 Draft 자동 저장 (3초 디바운스)
   useEffect(() => {
-    if (isEdit || !userId) return;
+    if (isEdit || !userId) return
     const timer = setTimeout(() => {
       if (title?.trim() || content?.trim()) {
-        const token = localStorage.getItem('token');
-        if (!token) return;
+        const token = localStorage.getItem('token')
+        if (!token) return
         fetch(`${API_URL}/api/health/drafts/community_post`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ title, content, category }),
         })
           .then(() => {
-            appendCommunityDemoLog('draft-save', '커뮤니티 글 임시 저장', category);
-            setDraftSaved(true);
-            setTimeout(() => setDraftSaved(false), 2000);
+            appendCommunityDemoLog('draft-save', '커뮤니티 글 임시 저장', category)
+            setDraftSaved(true)
+            setTimeout(() => setDraftSaved(false), 2000)
           })
-          .catch(() => {});
+          .catch(() => {})
       }
-    }, 3000);
+    }, 3000)
     return () => {
-      clearTimeout(timer);
-    };
-  }, [title, content, category, isEdit, userId]);
+      clearTimeout(timer)
+    }
+  }, [title, content, category, isEdit, userId])
 
   const clearDraft = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     if (token)
       fetch(`${API_URL}/api/health/drafts/community_post`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
-  };
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+      }).catch(() => {})
+  }
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
-    if (!user) navigate(ROUTES.login);
-  }, [user, navigate]);
+    if (!user) navigate(ROUTES.login)
+  }, [user, navigate])
 
   const { data: editData } = useQuery({
     queryKey: ['community-post', id],
     queryFn: async () => {
-      const r = await fetch(`${API_URL}/api/community/${id}`);
-      return r.ok ? await r.json() : null;
+      const r = await fetch(`${API_URL}/api/community/${id}`)
+      return r.ok ? await r.json() : null
     },
     enabled: !!isEdit && !!id,
-  });
+  })
 
   useEffect(() => {
     if (editData) {
-      setValue('title', editData.title || '');
-      setValue('content', editData.content || '');
-      const cat = editData.category || 'free';
-      setValue('category', cat);
+      setValue('title', editData.title || '')
+      setValue('content', editData.content || '')
+      const cat = editData.category || 'free'
+      setValue('category', cat)
       const timer = window.setTimeout(() => {
         if (!CATEGORY_DEFS.some((c) => c.id === cat)) {
-          setCustomCatMode(true);
-          setCustomCat(cat);
+          setCustomCatMode(true)
+          setCustomCat(cat)
         }
-        setAttachments(Array.isArray(editData.attachments) ? editData.attachments : []);
-      }, 0);
-      return () => window.clearTimeout(timer);
+        setAttachments(Array.isArray(editData.attachments) ? editData.attachments : [])
+      }, 0)
+      return () => window.clearTimeout(timer)
     }
-    return undefined;
-  }, [editData, setValue]);
+    return undefined
+  }, [editData, setValue])
 
   const handleFileUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    const token = localStorage.getItem('token');
-    setUploading(true);
+    if (!files || files.length === 0) return
+    const token = localStorage.getItem('token')
+    setUploading(true)
     for (const file of Array.from(files)) {
       if (file.size > 20 * 1024 * 1024) {
-        setError(`${file.name}: 20MB 이하 파일만 첨부 가능합니다.`);
-        continue;
+        setError(`${file.name}: 20MB 이하 파일만 첨부 가능합니다.`)
+        continue
       }
       if (attachments.length >= 5) {
-        setError('첨부파일은 최대 5개까지 가능합니다.');
-        break;
+        setError('첨부파일은 최대 5개까지 가능합니다.')
+        break
       }
-      const formData = new FormData();
-      formData.append('file', file);
+      const formData = new FormData()
+      formData.append('file', file)
       const r = await fetch(`${API_URL}/api/community/upload`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
-      });
+      })
       if (r.ok) {
-        const data = await r.json();
-        setAttachments((prev) => [...prev, data]);
-        appendCommunityDemoLog('upload', '커뮤니티 첨부파일 업로드', file.name);
+        const data = await r.json()
+        setAttachments((prev) => [...prev, data])
+        appendCommunityDemoLog('upload', '커뮤니티 첨부파일 업로드', file.name)
       } else {
-        setError(`${file.name} 업로드 실패`);
+        setError(`${file.name} 업로드 실패`)
       }
     }
-    setUploading(false);
-  };
+    setUploading(false)
+  }
 
   // ── Apply toolbar action ───────────────────────────────────────────────
   const applyAction = useCallback(
     (action: ToolbarAction) => {
-      const ta = textareaRef.current;
-      if (!ta) return;
-      const currentContent = content || '';
-      const start = ta.selectionStart;
-      const end = ta.selectionEnd;
-      const selected = currentContent.slice(start, end);
-      let newContent = currentContent;
-      let newCursorStart = start;
-      let newCursorEnd = end;
+      const ta = textareaRef.current
+      if (!ta) return
+      const currentContent = content || ''
+      const start = ta.selectionStart
+      const end = ta.selectionEnd
+      const selected = currentContent.slice(start, end)
+      let newContent = currentContent
+      let newCursorStart = start
+      let newCursorEnd = end
 
       if (action.block) {
-        newContent = currentContent.slice(0, start) + action.block + currentContent.slice(end);
-        newCursorStart = newCursorEnd = start + action.block.length;
+        newContent = currentContent.slice(0, start) + action.block + currentContent.slice(end)
+        newCursorStart = newCursorEnd = start + action.block.length
       } else if (action.prefix) {
-        const before = currentContent.slice(0, start);
-        const lineStart = before.lastIndexOf('\n') + 1;
-        const lineContent = currentContent.slice(lineStart, end);
+        const before = currentContent.slice(0, start)
+        const lineStart = before.lastIndexOf('\n') + 1
+        const lineContent = currentContent.slice(lineStart, end)
         const prefixed = lineContent
           .split('\n')
           .map((l) =>
-            l.startsWith(action.prefix!) ? l.slice(action.prefix!.length) : action.prefix + l,
+            l.startsWith(action.prefix!) ? l.slice(action.prefix!.length) : action.prefix + l
           )
-          .join('\n');
-        newContent = currentContent.slice(0, lineStart) + prefixed + currentContent.slice(end);
-        newCursorStart = lineStart;
-        newCursorEnd = lineStart + prefixed.length;
+          .join('\n')
+        newContent = currentContent.slice(0, lineStart) + prefixed + currentContent.slice(end)
+        newCursorStart = lineStart
+        newCursorEnd = lineStart + prefixed.length
       } else if (action.wrap) {
-        const [pre, post] = action.wrap;
+        const [pre, post] = action.wrap
         if (selected) {
           newContent =
-            currentContent.slice(0, start) + pre + selected + post + currentContent.slice(end);
-          newCursorStart = start + pre.length;
-          newCursorEnd = start + pre.length + selected.length;
+            currentContent.slice(0, start) + pre + selected + post + currentContent.slice(end)
+          newCursorStart = start + pre.length
+          newCursorEnd = start + pre.length + selected.length
         } else {
-          const placeholder = '텍스트';
+          const placeholder = '텍스트'
           newContent =
-            currentContent.slice(0, start) + pre + placeholder + post + currentContent.slice(end);
-          newCursorStart = start + pre.length;
-          newCursorEnd = start + pre.length + placeholder.length;
+            currentContent.slice(0, start) + pre + placeholder + post + currentContent.slice(end)
+          newCursorStart = start + pre.length
+          newCursorEnd = start + pre.length + placeholder.length
         }
       }
 
-      appendCommunityDemoLog('editor-tool', '마크다운 도구 사용', action.label);
-      setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
+      appendCommunityDemoLog('editor-tool', '마크다운 도구 사용', action.label)
+      setValue('content', newContent, { shouldValidate: true, shouldDirty: true })
       requestAnimationFrame(() => {
-        ta.focus();
-        ta.setSelectionRange(newCursorStart, newCursorEnd);
-      });
+        ta.focus()
+        ta.setSelectionRange(newCursorStart, newCursorEnd)
+      })
     },
-    [content, setValue],
-  );
+    [content, setValue]
+  )
 
   // ── Keyboard shortcuts ─────────────────────────────────────────────────
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.ctrlKey || e.metaKey) {
         if (e.key === 'b') {
-          e.preventDefault();
-          applyAction({ label: 'Bold', icon: 'B', title: '', wrap: ['**', '**'] });
+          e.preventDefault()
+          applyAction({ label: 'Bold', icon: 'B', title: '', wrap: ['**', '**'] })
         }
         if (e.key === 'i') {
-          e.preventDefault();
-          applyAction({ label: 'Italic', icon: 'I', title: '', wrap: ['*', '*'] });
+          e.preventDefault()
+          applyAction({ label: 'Italic', icon: 'I', title: '', wrap: ['*', '*'] })
         }
         if (e.key === 'k') {
-          e.preventDefault();
-          applyAction({ label: 'Code', icon: '', title: '', wrap: ['`', '`'] });
+          e.preventDefault()
+          applyAction({ label: 'Code', icon: '', title: '', wrap: ['`', '`'] })
         }
       }
-      const currentContent = content || '';
+      const currentContent = content || ''
       // Auto-indent list continuation
       if (e.key === 'Enter') {
-        const ta = e.currentTarget;
-        const start = ta.selectionStart;
-        const before = currentContent.slice(0, start);
-        const lineStart = before.lastIndexOf('\n') + 1;
-        const currentLine = before.slice(lineStart);
-        const listMatch = currentLine.match(/^(- |\* |\d+\. )/);
+        const ta = e.currentTarget
+        const start = ta.selectionStart
+        const before = currentContent.slice(0, start)
+        const lineStart = before.lastIndexOf('\n') + 1
+        const currentLine = before.slice(lineStart)
+        const listMatch = currentLine.match(/^(- |\* |\d+\. )/)
         if (listMatch) {
-          e.preventDefault();
-          const prefix = listMatch[1];
+          e.preventDefault()
+          const prefix = listMatch[1]
           const newContent =
-            currentContent.slice(0, start) + '\n' + prefix + currentContent.slice(ta.selectionEnd);
-          appendCommunityDemoLog('editor-tool', '목록 자동완성', 'Enter');
-          setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
+            currentContent.slice(0, start) + '\n' + prefix + currentContent.slice(ta.selectionEnd)
+          appendCommunityDemoLog('editor-tool', '목록 자동완성', 'Enter')
+          setValue('content', newContent, { shouldValidate: true, shouldDirty: true })
           requestAnimationFrame(() => {
-            ta.setSelectionRange(start + 1 + prefix.length, start + 1 + prefix.length);
-          });
+            ta.setSelectionRange(start + 1 + prefix.length, start + 1 + prefix.length)
+          })
         }
       }
       // Tab → insert 2 spaces
       if (e.key === 'Tab') {
-        e.preventDefault();
-        const ta = e.currentTarget;
-        const start = ta.selectionStart;
-        const end = ta.selectionEnd;
-        const newContent = currentContent.slice(0, start) + '  ' + currentContent.slice(end);
-        appendCommunityDemoLog('editor-tool', '탭 들여쓰기', 'Tab');
-        setValue('content', newContent, { shouldValidate: true, shouldDirty: true });
+        e.preventDefault()
+        const ta = e.currentTarget
+        const start = ta.selectionStart
+        const end = ta.selectionEnd
+        const newContent = currentContent.slice(0, start) + '  ' + currentContent.slice(end)
+        appendCommunityDemoLog('editor-tool', '탭 들여쓰기', 'Tab')
+        setValue('content', newContent, { shouldValidate: true, shouldDirty: true })
         requestAnimationFrame(() => {
-          ta.setSelectionRange(start + 2, start + 2);
-        });
+          ta.setSelectionRange(start + 2, start + 2)
+        })
       }
     },
-    [content, applyAction, setValue],
-  );
+    [content, applyAction, setValue]
+  )
 
   const onSubmit = async (values: PostForm) => {
-    setError('');
+    setError('')
 
-    const token = localStorage.getItem('token');
-    const url = isEdit ? `${API_URL}/api/community/${id}` : `${API_URL}/api/community`;
-    const method = isEdit ? 'PATCH' : 'POST';
+    const token = localStorage.getItem('token')
+    const url = isEdit ? `${API_URL}/api/community/${id}` : `${API_URL}/api/community`
+    const method = isEdit ? 'PATCH' : 'POST'
 
     const r = await fetch(url, {
       method,
@@ -529,25 +529,25 @@ export default function CommunityWritePage() {
         category: values.category,
         attachments,
       }),
-    });
+    })
 
     if (r.ok) {
-      const data = await r.json();
+      const data = await r.json()
       appendCommunityDemoLog(
         isEdit ? 'post-submit' : 'post-submit',
         isEdit ? '커뮤니티 글 수정 완료' : '커뮤니티 글 등록 완료',
-        values.category,
-      );
-      clearDraft();
-      navigate(ROUTES.community.post(isEdit ? (id as string) : data.id));
+        values.category
+      )
+      clearDraft()
+      navigate(ROUTES.community.post(isEdit ? (id as string) : data.id))
     } else {
-      setError('저장에 실패했습니다. 다시 시도해주세요.');
+      setError('저장에 실패했습니다. 다시 시도해주세요.')
     }
-  };
+  }
 
-  const charCount = (content || '').replace(/\s/g, '').length;
-  const titleRegister = register('title');
-  const contentRegister = register('content');
+  const charCount = (content || '').replace(/\s/g, '').length
+  const titleRegister = register('title')
+  const contentRegister = register('content')
 
   return (
     <>
@@ -593,25 +593,32 @@ export default function CommunityWritePage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Category */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <span
+                id="community-category-label"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >
                 카테고리
-              </label>
-              <div className="flex flex-wrap gap-2 items-center">
+              </span>
+              <div
+                role="group"
+                aria-labelledby="community-category-label"
+                className="flex flex-wrap gap-2 items-center"
+              >
                 {getCATEGORIES()
                   .filter(
                     (cat) =>
                       !('adminOnly' in cat && cat.adminOnly) ||
                       user?.role === 'admin' ||
-                      user?.role === 'superadmin',
+                      user?.role === 'superadmin'
                   )
                   .map((cat) => (
                     <button
                       key={cat.id}
                       type="button"
                       onClick={() => {
-                        setCustomCatMode(false);
-                        appendCommunityDemoLog('category', '글쓰기 카테고리 선택', cat.id);
-                        setValue('category', cat.id, { shouldValidate: true, shouldDirty: true });
+                        setCustomCatMode(false)
+                        appendCommunityDemoLog('category', '글쓰기 카테고리 선택', cat.id)
+                        setValue('category', cat.id, { shouldValidate: true, shouldDirty: true })
                       }}
                       className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-xl border transition-all ${
                         category === cat.id && !customCatMode
@@ -626,10 +633,10 @@ export default function CommunityWritePage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setCustomCatMode(true);
-                      appendCommunityDemoLog('category', '커스텀 카테고리 입력 시작');
-                      setCustomCat('');
-                      setValue('category', '', { shouldValidate: false });
+                      setCustomCatMode(true)
+                      appendCommunityDemoLog('category', '커스텀 카테고리 입력 시작')
+                      setCustomCat('')
+                      setValue('category', '', { shouldValidate: false })
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-xl border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:border-sky-400 hover:text-sky-700 dark:hover:text-sky-400 transition-all"
                     aria-label="새 카테고리 입력"
@@ -642,9 +649,9 @@ export default function CommunityWritePage() {
                       type="text"
                       value={customCat}
                       onChange={(e) => {
-                        const v = e.target.value;
-                        setCustomCat(v);
-                        setValue('category', v, { shouldValidate: true, shouldDirty: true });
+                        const v = e.target.value
+                        setCustomCat(v)
+                        setValue('category', v, { shouldValidate: true, shouldDirty: true })
                       }}
                       placeholder="예: 테크면접, 신입공채"
                       maxLength={24}
@@ -654,9 +661,9 @@ export default function CommunityWritePage() {
                     <button
                       type="button"
                       onClick={() => {
-                        setCustomCatMode(false);
-                        setCustomCat('');
-                        setValue('category', 'free', { shouldValidate: true });
+                        setCustomCatMode(false)
+                        setCustomCat('')
+                        setValue('category', 'free', { shouldValidate: true })
                       }}
                       className="text-sky-400 hover:text-sky-700 dark:hover:text-sky-200 px-1"
                       aria-label="커스텀 카테고리 취소"
@@ -675,10 +682,14 @@ export default function CommunityWritePage() {
 
             {/* Title */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              <label
+                htmlFor="communitywritepage-field-1"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >
                 제목
               </label>
               <input
+                id="communitywritepage-field-1"
                 type="text"
                 {...titleRegister}
                 placeholder="제목을 입력하세요"
@@ -725,20 +736,20 @@ export default function CommunityWritePage() {
                     >
                       {action.icon}
                     </button>
-                  ),
+                  )
                 )}
                 <div className="flex-1" />
                 {/* Preview toggle */}
                 <button
                   type="button"
                   onClick={() => {
-                    const nextPreview = !preview;
+                    const nextPreview = !preview
                     appendCommunityDemoLog(
                       'preview',
                       nextPreview ? '커뮤니티 글 미리보기' : '커뮤니티 글 편집 복귀',
-                      `${charCount}자`,
-                    );
-                    setPreview(nextPreview);
+                      `${charCount}자`
+                    )
+                    setPreview(nextPreview)
                   }}
                   className={`ml-2 px-3 py-1 text-xs rounded-lg border transition-all ${
                     preview
@@ -764,8 +775,8 @@ export default function CommunityWritePage() {
                 <textarea
                   {...contentRegister}
                   ref={(el) => {
-                    contentRegister.ref(el);
-                    textareaRef.current = el;
+                    contentRegister.ref(el)
+                    textareaRef.current = el
                   }}
                   onKeyDown={handleKeyDown}
                   placeholder={`내용을 마크다운으로 작성하세요 (최소 10자)\n\n**굵게** *기울임* \`코드\`\n## 제목\n- 목록 항목\n> 인용문`}
@@ -957,5 +968,5 @@ export default function CommunityWritePage() {
         </FeatureDisabledBanner>
       </main>
     </>
-  );
+  )
 }

@@ -1,21 +1,22 @@
-import { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
-import { upsertCoachProfile } from '@/lib/api';
-import { useMyCoachingSessions } from '@/hooks/useResources';
-import { fetchMe, getUser, setAuth, getToken } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import { FieldError, fieldAria } from '@/shared/ui/FieldError';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { useMyCoachingSessions } from '@/hooks/useResources'
+import { upsertCoachProfile } from '@/lib/api'
+import { fetchMe, getUser, setAuth, getToken } from '@/lib/auth'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 import {
   coachProfileSchema,
   type CoachProfileFormInput,
   type CoachProfileFormOutput,
-} from '@/shared/lib/schemas';
+} from '@/shared/lib/schemas'
+import { FieldError, fieldAria } from '@/shared/ui/FieldError'
 
 const SPECIALTIES = [
   '이력서 첨삭',
@@ -26,15 +27,15 @@ const SPECIALTIES = [
   '연봉 협상',
   '이직 전략',
   '기타',
-];
+]
 
 export default function CoachProfileEditPage() {
-  const navigate = useNavigate();
-  const sessionsQuery = useMyCoachingSessions();
-  const loading = sessionsQuery.isLoading;
-  const user = getUser();
-  const coachProfile = sessionsQuery.data?.asCoach?.[0]?.coach;
-  const hasProfile = Boolean(coachProfile || user?.userType === 'coach');
+  const navigate = useNavigate()
+  const sessionsQuery = useMyCoachingSessions()
+  const loading = sessionsQuery.isLoading
+  const user = getUser()
+  const coachProfile = sessionsQuery.data?.asCoach?.[0]?.coach
+  const hasProfile = Boolean(coachProfile || user?.userType === 'coach')
 
   const {
     register,
@@ -54,15 +55,15 @@ export default function CoachProfileEditPage() {
       availableHours: '',
       isActive: true,
     },
-  });
+  })
 
-  const specialtyValue = useWatch({ control, name: 'specialty' });
-  const isActive = useWatch({ control, name: 'isActive' });
-  const bioValue = useWatch({ control, name: 'bio' });
-  const hourlyRateValue = useWatch({ control, name: 'hourlyRate' });
-  const yearsExpValue = useWatch({ control, name: 'yearsExp' });
-  const languagesValue = useWatch({ control, name: 'languages' });
-  const availableHoursValue = useWatch({ control, name: 'availableHours' });
+  const specialtyValue = useWatch({ control, name: 'specialty' })
+  const isActive = useWatch({ control, name: 'isActive' })
+  const bioValue = useWatch({ control, name: 'bio' })
+  const hourlyRateValue = useWatch({ control, name: 'hourlyRate' })
+  const yearsExpValue = useWatch({ control, name: 'yearsExp' })
+  const languagesValue = useWatch({ control, name: 'languages' })
+  const availableHoursValue = useWatch({ control, name: 'availableHours' })
 
   // 프로필 완성도 점수 — 각 필드가 채워졌는지에 따라 0~100%
   const completeness = (() => {
@@ -76,18 +77,18 @@ export default function CoachProfileEditPage() {
         done: !!availableHoursValue && String(availableHoursValue).trim().length > 0,
       },
       { label: '언어', done: !!languagesValue && String(languagesValue).trim().length > 0 },
-    ];
-    const doneCount = items.filter((i) => i.done).length;
-    const percent = Math.round((doneCount / items.length) * 100);
-    return { items, doneCount, total: items.length, percent };
-  })();
+    ]
+    const doneCount = items.filter((i) => i.done).length
+    const percent = Math.round((doneCount / items.length) * 100)
+    return { items, doneCount, total: items.length, percent }
+  })()
 
   useEffect(() => {
-    document.title = '코치 프로필 — 이력서공방';
+    document.title = '코치 프로필 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   useEffect(() => {
     if (coachProfile) {
@@ -99,9 +100,9 @@ export default function CoachProfileEditPage() {
         languages: coachProfile.languages || '한국어',
         availableHours: coachProfile.availableHours || '',
         isActive: coachProfile.isActive ?? true,
-      });
+      })
     }
-  }, [coachProfile, reset]);
+  }, [coachProfile, reset])
 
   const onSubmit = async (data: CoachProfileFormOutput) => {
     try {
@@ -113,23 +114,23 @@ export default function CoachProfileEditPage() {
         languages: data.languages?.trim() || undefined,
         availableHours: data.availableHours?.trim() || undefined,
         isActive: data.isActive ?? true,
-      });
-      toast('코치 프로필이 저장되었습니다', 'success');
+      })
+      toast('코치 프로필이 저장되었습니다', 'success')
 
       // Sync userType from server (auto-promotion to coach)
       try {
-        const updated = await fetchMe();
-        const token = getToken();
-        if (updated && token) setAuth(token, updated);
+        const updated = await fetchMe()
+        const token = getToken()
+        if (updated && token) setAuth(token, updated)
       } catch {
         /* noop */
       }
 
-      navigate(ROUTES.coaching.sessions);
+      navigate(ROUTES.coaching.sessions)
     } catch (err) {
-      toast(err instanceof Error ? err.message : '프로필 저장에 실패했습니다', 'error');
+      toast(err instanceof Error ? err.message : '프로필 저장에 실패했습니다', 'error')
     }
-  };
+  }
 
   return (
     <>
@@ -258,6 +259,7 @@ export default function CoachProfileEditPage() {
                   className="sr-only peer"
                   checked={!!isActive}
                   onChange={(e) => setValue('isActive', e.target.checked, { shouldDirty: true })}
+                  aria-label="프로필 활성화"
                 />
                 <div className="w-11 h-6 bg-slate-300 dark:bg-slate-600 peer-checked:bg-blue-600 rounded-full peer transition-colors" />
                 <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform peer-checked:translate-x-5" />
@@ -422,5 +424,5 @@ export default function CoachProfileEditPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

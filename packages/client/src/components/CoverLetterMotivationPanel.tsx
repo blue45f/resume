@@ -1,23 +1,24 @@
-import { useMemo } from 'react';
-import { analyzeCoverLetterMotivation } from '@/lib/coverLetterMotivationAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeCoverLetterMotivation } from '@/lib/coverLetterMotivationAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CLARITY_LABEL: Record<string, string> = {
   specific: '구체적',
   generic: '막연함',
   missing: '없음',
-};
+}
 
 export default function CoverLetterMotivationPanel({ text }: Props) {
-  const report = useMemo(() => analyzeCoverLetterMotivation(text), [text]);
+  const report = useMemo(() => analyzeCoverLetterMotivation(text), [text])
 
-  if (text.trim().length < 60) return null;
-  if (report.clarity === 'specific') return null;
+  if (text.trim().length < 60) return null
+  if (report.clarity === 'specific') return null
 
-  const isWarning = report.clarity === 'missing';
+  const isWarning = report.clarity === 'missing'
 
   return (
     <aside
@@ -48,5 +49,5 @@ export default function CoverLetterMotivationPanel({ text }: Props) {
 
       <p className="cl-motivation-card__tip">{report.tip}</p>
     </aside>
-  );
+  )
 }

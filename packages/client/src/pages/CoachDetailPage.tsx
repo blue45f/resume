@@ -1,47 +1,48 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
-import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
-import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
-import SendMessageButton from '@/components/SendMessageButton';
-import { bookCoachingSession, type CoachProfile } from '@/lib/api';
-import { useCoach, useResumes } from '@/hooks/useResources';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import { bookingSchema, type BookingFormInput, type BookingFormOutput } from '@/shared/lib/schemas';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useMemo, useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
-const DURATION_OPTIONS = [30, 45, 60, 90, 120];
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog'
+import { toast } from '@/components/Toast'
+import { useCoach, useResumes } from '@/hooks/useResources'
+import { bookCoachingSession, type CoachProfile } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { bookingSchema, type BookingFormInput, type BookingFormOutput } from '@/shared/lib/schemas'
 
-const PLATFORM_FEE_RATE = 0.15;
+const DURATION_OPTIONS = [30, 45, 60, 90, 120]
+
+const PLATFORM_FEE_RATE = 0.15
 
 function getDefaultDateTime() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  d.setHours(19, 0, 0, 0);
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  d.setHours(19, 0, 0, 0)
   // datetime-local expects YYYY-MM-DDTHH:mm
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 export default function CoachDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const coachQuery = useCoach(id);
-  const coach: CoachProfile | null = (coachQuery.data as CoachProfile | undefined) ?? null;
-  const loading = coachQuery.isLoading;
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const coachQuery = useCoach(id)
+  const coach: CoachProfile | null = (coachQuery.data as CoachProfile | undefined) ?? null
+  const loading = coachQuery.isLoading
   const error: string | null = coachQuery.error
     ? coachQuery.error instanceof Error
       ? coachQuery.error.message
       : '코치 정보를 불러오지 못했습니다'
-    : null;
-  const user = getUser();
-  const [shareOpen, setShareOpen] = useState(false);
-  const [coffeeChatOpen, setCoffeeChatOpen] = useState(false);
+    : null
+  const user = getUser()
+  const [shareOpen, setShareOpen] = useState(false)
+  const [coffeeChatOpen, setCoffeeChatOpen] = useState(false)
 
   const {
     register,
@@ -56,56 +57,56 @@ export default function CoachDetailPage() {
       note: '',
       resumeId: '',
     },
-  });
+  })
 
   // 로그인 유저의 이력서 목록 (예약 시 첨부할 이력서 선택용)
-  const { data: resumesData } = useResumes(!!user);
+  const { data: resumesData } = useResumes(!!user)
   const myResumes: Array<{ id: string; title?: string }> = Array.isArray(resumesData)
     ? resumesData
-    : ((resumesData as { data?: Array<{ id: string; title?: string }> } | undefined)?.data ?? []);
+    : ((resumesData as { data?: Array<{ id: string; title?: string }> } | undefined)?.data ?? [])
 
-  const durationValue = useWatch({ control, name: 'duration' });
+  const durationValue = useWatch({ control, name: 'duration' })
 
   useEffect(() => {
     document.title = coach?.user?.name
       ? `${coach.user.name} 코치 — 이력서공방`
-      : '코치 상세 — 이력서공방';
+      : '코치 상세 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [coach?.user?.name]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [coach?.user?.name])
 
   const priceBreakdown = useMemo(() => {
-    const rate = coach?.hourlyRate || 0;
-    const duration = Number(durationValue) || 0;
-    const base = Math.round((rate * duration) / 60);
-    const fee = Math.round(base * PLATFORM_FEE_RATE);
-    const total = base + fee;
-    return { base, fee, total };
-  }, [coach?.hourlyRate, durationValue]);
+    const rate = coach?.hourlyRate || 0
+    const duration = Number(durationValue) || 0
+    const base = Math.round((rate * duration) / 60)
+    const fee = Math.round(base * PLATFORM_FEE_RATE)
+    const total = base + fee
+    return { base, fee, total }
+  }, [coach?.hourlyRate, durationValue])
 
   const onSubmit = async (data: BookingFormOutput) => {
     if (!user) {
-      toast('로그인이 필요합니다', 'error');
-      navigate(ROUTES.login);
-      return;
+      toast('로그인이 필요합니다', 'error')
+      navigate(ROUTES.login)
+      return
     }
-    if (!coach) return;
+    if (!coach) return
     try {
-      const isoDate = new Date(data.scheduledAt).toISOString();
+      const isoDate = new Date(data.scheduledAt).toISOString()
       await bookCoachingSession({
         coachId: coach.id,
         scheduledAt: isoDate,
         duration: Number(data.duration),
         note: data.note?.trim() || undefined,
         resumeId: data.resumeId?.trim() || undefined,
-      });
-      toast('세션 예약이 요청되었습니다', 'success');
-      navigate(ROUTES.coaching.sessions);
+      })
+      toast('세션 예약이 요청되었습니다', 'success')
+      navigate(ROUTES.coaching.sessions)
     } catch (err) {
-      toast(err instanceof Error ? err.message : '세션 예약에 실패했습니다', 'error');
+      toast(err instanceof Error ? err.message : '세션 예약에 실패했습니다', 'error')
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -123,7 +124,7 @@ export default function CoachDetailPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (error || !coach) {
@@ -149,16 +150,16 @@ export default function CoachDetailPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
-  const name = coach.user?.name || '익명 코치';
-  const avatar = coach.user?.avatar || '';
-  const initials = (name || 'C').slice(0, 1).toUpperCase();
+  const name = coach.user?.name || '익명 코치'
+  const avatar = coach.user?.avatar || ''
+  const initials = (name || 'C').slice(0, 1).toUpperCase()
   const languages = (coach.languages || '')
     .split(',')
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
 
   return (
     <>
@@ -516,7 +517,7 @@ export default function CoachDetailPage() {
         />
       )}
     </>
-  );
+  )
 }
 
 const TONE_MAP: Record<string, string> = {
@@ -524,16 +525,16 @@ const TONE_MAP: Record<string, string> = {
   amber: 'text-amber-600 dark:text-amber-400',
   blue: 'text-blue-600 dark:text-blue-400',
   emerald: 'text-emerald-600 dark:text-emerald-400',
-};
+}
 
 function Stat({
   label,
   value,
   tone,
 }: {
-  label: string;
-  value: string;
-  tone: keyof typeof TONE_MAP;
+  label: string
+  value: string
+  tone: keyof typeof TONE_MAP
 }) {
   return (
     <div className="text-center">
@@ -542,5 +543,5 @@ function Stat({
         {label}
       </p>
     </div>
-  );
+  )
 }

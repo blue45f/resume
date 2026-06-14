@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
-import { API_URL } from '@/lib/config';
-import { timeAgo } from '@/lib/time';
+import { useState, useEffect } from 'react'
+
+import { API_URL } from '@/lib/config'
+import { timeAgo } from '@/lib/time'
 
 interface Viewer {
-  id: string;
-  label: string;
-  viewedAt: string;
-  type: 'recruiter' | 'company' | 'personal' | 'anonymous';
+  id: string
+  label: string
+  viewedAt: string
+  type: 'recruiter' | 'company' | 'personal' | 'anonymous'
 }
 
 interface ViewerStats {
-  viewers: Viewer[];
-  thisWeek: number;
-  lastWeek: number;
+  viewers: Viewer[]
+  thisWeek: number
+  lastWeek: number
 }
 
 const VIEWER_ICONS: Record<string, string> = {
@@ -20,15 +21,15 @@ const VIEWER_ICONS: Record<string, string> = {
   company: '🏢',
   personal: '🧑',
   anonymous: '👁',
-};
+}
 
 export default function ProfileViewers() {
-  const [data, setData] = useState<ViewerStats | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [data, setData] = useState<ViewerStats | null>(null)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    const token = localStorage.getItem('token')
+    if (!token) return
 
     fetch(`${API_URL}/api/resumes/dashboard/viewers`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -36,7 +37,7 @@ export default function ProfileViewers() {
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d) {
-          setData(d);
+          setData(d)
         } else {
           // Fallback: display view count stats from analytics without random data
           fetch(`${API_URL}/api/resumes/dashboard/analytics`, {
@@ -44,23 +45,23 @@ export default function ProfileViewers() {
           })
             .then((r) => (r.ok ? r.json() : null))
             .then((analytics) => {
-              if (!analytics) return;
-              const totalViews = analytics.summary?.totalViews || 0;
-              const thisWeek = analytics.summary?.thisWeekViews ?? Math.min(totalViews, 0);
-              const lastWeek = analytics.summary?.lastWeekViews ?? 0;
-              setData({ viewers: [], thisWeek, lastWeek });
+              if (!analytics) return
+              const totalViews = analytics.summary?.totalViews || 0
+              const thisWeek = analytics.summary?.thisWeekViews ?? Math.min(totalViews, 0)
+              const lastWeek = analytics.summary?.lastWeekViews ?? 0
+              setData({ viewers: [], thisWeek, lastWeek })
             })
-            .catch(() => {});
+            .catch(() => {})
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
-  if (!data) return null;
+  if (!data) return null
 
-  const { viewers, thisWeek, lastWeek } = data;
-  const diff = thisWeek - lastWeek;
-  const diffPct = lastWeek === 0 ? (thisWeek > 0 ? 100 : 0) : Math.round((diff / lastWeek) * 100);
+  const { viewers, thisWeek, lastWeek } = data
+  const diff = thisWeek - lastWeek
+  const diffPct = lastWeek === 0 ? (thisWeek > 0 ? 100 : 0) : Math.round((diff / lastWeek) * 100)
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-6 animate-fade-in">
@@ -185,11 +186,11 @@ export default function ProfileViewers() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function WeekTrendBars({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number }) {
-  const max = Math.max(thisWeek, lastWeek, 1);
+  const max = Math.max(thisWeek, lastWeek, 1)
   return (
     <div className="flex items-end gap-0.5" style={{ height: '20px' }}>
       <div
@@ -203,5 +204,5 @@ function WeekTrendBars({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: num
         title={`이번 주: ${thisWeek}`}
       />
     </div>
-  );
+  )
 }

@@ -1,38 +1,39 @@
-import { useState, useEffect, useCallback, type ReactNode } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { fetchVersions, restoreVersion } from '@/lib/api';
-import { timeAgo } from '@/lib/time';
-import { API_URL } from '@/lib/config';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect, useCallback, type ReactNode } from 'react'
+
+import { fetchVersions, restoreVersion } from '@/lib/api'
+import { API_URL } from '@/lib/config'
+import { timeAgo } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface Version {
-  id: string;
-  versionNumber: number;
-  description: string;
-  createdAt: string;
+  id: string
+  versionNumber: number
+  description: string
+  createdAt: string
 }
 
 interface Props {
-  resumeId: string;
-  onClose: () => void;
-  onRestore: () => void;
+  resumeId: string
+  onClose: () => void
+  onRestore: () => void
 }
 
-type DiffChangeType = 'added' | 'removed' | 'changed' | 'unchanged';
+type DiffChangeType = 'added' | 'removed' | 'changed' | 'unchanged'
 
 interface DiffItem {
-  field: string;
-  label: string;
-  type: DiffChangeType;
-  oldValue?: string;
-  newValue?: string;
+  field: string
+  label: string
+  type: DiffChangeType
+  oldValue?: string
+  newValue?: string
 }
 
 function diffSnapshots(
   oldSnap: Record<string, unknown> | null,
-  newSnap: Record<string, unknown> | null,
+  newSnap: Record<string, unknown> | null
 ): DiffItem[] {
-  if (!oldSnap || !newSnap) return [];
+  if (!oldSnap || !newSnap) return []
 
   const fieldLabels: Record<string, string> = {
     title: '제목',
@@ -45,34 +46,34 @@ function diffSnapshots(
     'personalInfo.github': 'GitHub',
     'personalInfo.birthYear': '생년',
     'personalInfo.military': '병역사항',
-  };
+  }
 
   const getDeep = (obj: Record<string, unknown>, path: string): unknown => {
     return path.split('.').reduce((acc: unknown, key) => {
-      if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key];
-      return undefined;
-    }, obj);
-  };
+      if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key]
+      return undefined
+    }, obj)
+  }
 
   const stripHtml = (v: unknown): string => {
-    if (v === null || v === undefined) return '';
-    const s = String(v);
-    return s.replace(/<[^>]*>/g, '').trim();
-  };
+    if (v === null || v === undefined) return ''
+    const s = String(v)
+    return s.replace(/<[^>]*>/g, '').trim()
+  }
 
-  const diffs: DiffItem[] = [];
+  const diffs: DiffItem[] = []
 
   // Compare scalar fields
   for (const [path, label] of Object.entries(fieldLabels)) {
-    const oldVal = stripHtml(getDeep(oldSnap, path));
-    const newVal = stripHtml(getDeep(newSnap, path));
-    if (oldVal === newVal) continue;
+    const oldVal = stripHtml(getDeep(oldSnap, path))
+    const newVal = stripHtml(getDeep(newSnap, path))
+    if (oldVal === newVal) continue
     if (!oldVal && newVal) {
-      diffs.push({ field: path, label, type: 'added', newValue: newVal });
+      diffs.push({ field: path, label, type: 'added', newValue: newVal })
     } else if (oldVal && !newVal) {
-      diffs.push({ field: path, label, type: 'removed', oldValue: oldVal });
+      diffs.push({ field: path, label, type: 'removed', oldValue: oldVal })
     } else {
-      diffs.push({ field: path, label, type: 'changed', oldValue: oldVal, newValue: newVal });
+      diffs.push({ field: path, label, type: 'changed', oldValue: oldVal, newValue: newVal })
     }
   }
 
@@ -86,33 +87,33 @@ function diffSnapshots(
     ['languages', '어학'],
     ['awards', '수상'],
     ['activities', '활동'],
-  ];
+  ]
 
   for (const [key, label] of arraySections) {
-    const oldArr = Array.isArray(oldSnap[key]) ? (oldSnap[key] as unknown[]) : [];
-    const newArr = Array.isArray(newSnap[key]) ? (newSnap[key] as unknown[]) : [];
-    const oldJson = JSON.stringify(oldArr);
-    const newJson = JSON.stringify(newArr);
-    if (oldJson === newJson) continue;
+    const oldArr = Array.isArray(oldSnap[key]) ? (oldSnap[key] as unknown[]) : []
+    const newArr = Array.isArray(newSnap[key]) ? (newSnap[key] as unknown[]) : []
+    const oldJson = JSON.stringify(oldArr)
+    const newJson = JSON.stringify(newArr)
+    if (oldJson === newJson) continue
 
     if (oldArr.length === 0 && newArr.length > 0) {
-      diffs.push({ field: key, label, type: 'added', newValue: `${newArr.length}건 추가` });
+      diffs.push({ field: key, label, type: 'added', newValue: `${newArr.length}건 추가` })
     } else if (oldArr.length > 0 && newArr.length === 0) {
-      diffs.push({ field: key, label, type: 'removed', oldValue: `${oldArr.length}건 삭제` });
+      diffs.push({ field: key, label, type: 'removed', oldValue: `${oldArr.length}건 삭제` })
     } else {
-      const countDiff = newArr.length - oldArr.length;
-      const countText = countDiff > 0 ? `(+${countDiff})` : countDiff < 0 ? `(${countDiff})` : '';
+      const countDiff = newArr.length - oldArr.length
+      const countText = countDiff > 0 ? `(+${countDiff})` : countDiff < 0 ? `(${countDiff})` : ''
       diffs.push({
         field: key,
         label,
         type: 'changed',
         oldValue: `${oldArr.length}건`,
         newValue: `${newArr.length}건 ${countText}`,
-      });
+      })
     }
   }
 
-  return diffs;
+  return diffs
 }
 
 function DiffBadge({ type }: { type: DiffChangeType }) {
@@ -130,9 +131,9 @@ function DiffBadge({ type }: { type: DiffChangeType }) {
       color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     },
     unchanged: { label: '동일', color: 'bg-slate-100 text-slate-500' },
-  };
-  const c = config[type];
-  return <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${c.color}`}>{c.label}</span>;
+  }
+  const c = config[type]
+  return <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${c.color}`}>{c.label}</span>
 }
 
 /**
@@ -145,35 +146,35 @@ function DiffBadge({ type }: { type: DiffChangeType }) {
  * O(N*M) 시간 — 이력서 문장(수백 토큰)에서 충분히 빠름.
  */
 function wordDiff(oldText: string, newText: string): { old: ReactNode; nw: ReactNode } {
-  const oldTokens = oldText.split(/(\s+)/);
-  const newTokens = newText.split(/(\s+)/);
-  const N = oldTokens.length;
-  const M = newTokens.length;
+  const oldTokens = oldText.split(/(\s+)/)
+  const newTokens = newText.split(/(\s+)/)
+  const N = oldTokens.length
+  const M = newTokens.length
 
   // dp[i][j] = LCS length of oldTokens[0..i) vs newTokens[0..j)
-  const dp: number[][] = Array.from({ length: N + 1 }, () => new Array(M + 1).fill(0));
+  const dp: number[][] = Array.from({ length: N + 1 }, () => new Array(M + 1).fill(0))
   for (let i = 1; i <= N; i++) {
     for (let j = 1; j <= M; j++) {
-      if (oldTokens[i - 1] === newTokens[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1;
-      else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      if (oldTokens[i - 1] === newTokens[j - 1]) dp[i][j] = dp[i - 1][j - 1] + 1
+      else dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1])
     }
   }
 
   // backtrack — 각 토큰을 'common' / 'removed' / 'added' 로 분류
-  const oldFlags: Array<'common' | 'removed'> = new Array(N).fill('removed');
-  const newFlags: Array<'common' | 'added'> = new Array(M).fill('added');
-  let i = N;
-  let j = M;
+  const oldFlags: Array<'common' | 'removed'> = new Array(N).fill('removed')
+  const newFlags: Array<'common' | 'added'> = new Array(M).fill('added')
+  let i = N
+  let j = M
   while (i > 0 && j > 0) {
     if (oldTokens[i - 1] === newTokens[j - 1]) {
-      oldFlags[i - 1] = 'common';
-      newFlags[j - 1] = 'common';
-      i--;
-      j--;
+      oldFlags[i - 1] = 'common'
+      newFlags[j - 1] = 'common'
+      i--
+      j--
     } else if (dp[i - 1][j] >= dp[i][j - 1]) {
-      i--;
+      i--
     } else {
-      j--;
+      j--
     }
   }
 
@@ -187,8 +188,8 @@ function wordDiff(oldText: string, newText: string): { old: ReactNode; nw: React
       </mark>
     ) : (
       <span key={idx}>{t}</span>
-    ),
-  );
+    )
+  )
   const newRendered = newTokens.map((t, idx) =>
     newFlags[idx] === 'added' && t.trim() ? (
       <mark
@@ -199,19 +200,19 @@ function wordDiff(oldText: string, newText: string): { old: ReactNode; nw: React
       </mark>
     ) : (
       <span key={idx}>{t}</span>
-    ),
-  );
-  return { old: oldRendered, nw: newRendered };
+    )
+  )
+  return { old: oldRendered, nw: newRendered }
 }
 
 function DiffValue({ text, kind }: { text: string; kind: 'old' | 'new' }) {
-  const [expanded, setExpanded] = useState(false);
-  const long = text.length > 100;
-  const display = long && !expanded ? text.substring(0, 100) + '…' : text;
+  const [expanded, setExpanded] = useState(false)
+  const long = text.length > 100
+  const display = long && !expanded ? text.substring(0, 100) + '…' : text
   const cls =
     kind === 'old'
       ? 'text-red-700 dark:text-red-400 line-through break-words whitespace-pre-wrap'
-      : 'text-green-700 dark:text-green-400 break-words whitespace-pre-wrap';
+      : 'text-green-700 dark:text-green-400 break-words whitespace-pre-wrap'
   return (
     <>
       <p className={cls}>{display}</p>
@@ -225,7 +226,7 @@ function DiffValue({ text, kind }: { text: string; kind: 'old' | 'new' }) {
         </button>
       )}
     </>
-  );
+  )
 }
 
 function DiffViewer({ diffs }: { diffs: DiffItem[] }) {
@@ -234,7 +235,7 @@ function DiffViewer({ diffs }: { diffs: DiffItem[] }) {
       <div className="p-4 text-center text-sm text-slate-400 dark:text-slate-500">
         두 버전 간 차이가 없습니다.
       </div>
-    );
+    )
   }
 
   return (
@@ -243,7 +244,7 @@ function DiffViewer({ diffs }: { diffs: DiffItem[] }) {
         const wordHighlight =
           d.type === 'changed' && d.oldValue && d.newValue && d.oldValue.length < 500
             ? wordDiff(d.oldValue, d.newValue)
-            : null;
+            : null
         return (
           <div
             key={i}
@@ -281,132 +282,132 @@ function DiffViewer({ diffs }: { diffs: DiffItem[] }) {
               )}
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
-  const [versions, setVersions] = useState<Version[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [restoring, setRestoring] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [selectedVersion, setSelectedVersion] = useState<Record<string, unknown> | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
+  const [versions, setVersions] = useState<Version[]>([])
+  const [loading, setLoading] = useState(true)
+  const [restoring, setRestoring] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [selectedVersion, setSelectedVersion] = useState<Record<string, unknown> | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [activeVersionId, setActiveVersionId] = useState<string | null>(null)
 
   // Diff mode state
-  const [diffMode, setDiffMode] = useState(false);
-  const [diffBaseId, setDiffBaseId] = useState<string | null>(null);
-  const [diffTargetId, setDiffTargetId] = useState<string | null>(null);
-  const [diffBaseSnapshot, setDiffBaseSnapshot] = useState<Record<string, unknown> | null>(null);
-  const [, setDiffTargetSnapshot] = useState<Record<string, unknown> | null>(null);
-  const [diffLoading, setDiffLoading] = useState(false);
-  const [diffs, setDiffs] = useState<DiffItem[]>([]);
+  const [diffMode, setDiffMode] = useState(false)
+  const [diffBaseId, setDiffBaseId] = useState<string | null>(null)
+  const [diffTargetId, setDiffTargetId] = useState<string | null>(null)
+  const [diffBaseSnapshot, setDiffBaseSnapshot] = useState<Record<string, unknown> | null>(null)
+  const [, setDiffTargetSnapshot] = useState<Record<string, unknown> | null>(null)
+  const [diffLoading, setDiffLoading] = useState(false)
+  const [diffs, setDiffs] = useState<DiffItem[]>([])
 
   const load = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const data = await fetchVersions(resumeId);
-      setVersions(data);
+      const data = await fetchVersions(resumeId)
+      setVersions(data)
     } catch {
-      setError('버전 목록을 불러올 수 없습니다');
+      setError('버전 목록을 불러올 수 없습니다')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [resumeId]);
+  }, [resumeId])
 
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false
     fetchVersions(resumeId)
       .then((data) => {
-        if (!cancelled) setVersions(data);
+        if (!cancelled) setVersions(data)
       })
       .catch(() => {
-        if (!cancelled) setError('버전 목록을 불러올 수 없습니다');
+        if (!cancelled) setError('버전 목록을 불러올 수 없습니다')
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+        if (!cancelled) setLoading(false)
+      })
     return () => {
-      cancelled = true;
-    };
-  }, [resumeId]);
+      cancelled = true
+    }
+  }, [resumeId])
 
   const fetchSnapshot = async (versionId: string): Promise<Record<string, unknown> | null> => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token')
       const res = await fetch(`${API_URL}/api/resumes/${resumeId}/versions/${versionId}`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
+      })
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json()
         const snapshot =
-          typeof data.snapshot === 'string' ? JSON.parse(data.snapshot) : data.snapshot;
-        return snapshot;
+          typeof data.snapshot === 'string' ? JSON.parse(data.snapshot) : data.snapshot
+        return snapshot
       }
     } catch {
       /* empty */
     }
-    return null;
-  };
+    return null
+  }
 
   const handlePreview = async (versionId: string) => {
     if (diffMode) {
       // In diff mode, handle selection of base/target
       if (!diffBaseId) {
-        setDiffBaseId(versionId);
-        return;
+        setDiffBaseId(versionId)
+        return
       }
       if (diffBaseId === versionId) {
-        setDiffBaseId(null);
-        setDiffBaseSnapshot(null);
-        setDiffs([]);
-        return;
+        setDiffBaseId(null)
+        setDiffBaseSnapshot(null)
+        setDiffs([])
+        return
       }
       if (diffTargetId === versionId) {
-        setDiffTargetId(null);
-        setDiffTargetSnapshot(null);
-        setDiffs([]);
-        return;
+        setDiffTargetId(null)
+        setDiffTargetSnapshot(null)
+        setDiffs([])
+        return
       }
-      setDiffTargetId(versionId);
-      setDiffLoading(true);
+      setDiffTargetId(versionId)
+      setDiffLoading(true)
       try {
         const [baseSnap, targetSnap] = await Promise.all([
           diffBaseSnapshot || fetchSnapshot(diffBaseId),
           fetchSnapshot(versionId),
-        ]);
-        setDiffBaseSnapshot(baseSnap);
-        setDiffTargetSnapshot(targetSnap);
+        ])
+        setDiffBaseSnapshot(baseSnap)
+        setDiffTargetSnapshot(targetSnap)
         if (baseSnap && targetSnap) {
-          setDiffs(diffSnapshots(baseSnap, targetSnap));
+          setDiffs(diffSnapshots(baseSnap, targetSnap))
         }
       } finally {
-        setDiffLoading(false);
+        setDiffLoading(false)
       }
-      return;
+      return
     }
 
     // Normal preview mode
     if (activeVersionId === versionId) {
-      setSelectedVersion(null);
-      setActiveVersionId(null);
-      return;
+      setSelectedVersion(null)
+      setActiveVersionId(null)
+      return
     }
-    setPreviewLoading(true);
-    setActiveVersionId(versionId);
+    setPreviewLoading(true)
+    setActiveVersionId(versionId)
     try {
-      const snapshot = await fetchSnapshot(versionId);
-      setSelectedVersion(snapshot ? { snapshot } : null);
+      const snapshot = await fetchSnapshot(versionId)
+      setSelectedVersion(snapshot ? { snapshot } : null)
     } finally {
-      setPreviewLoading(false);
+      setPreviewLoading(false)
     }
-  };
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const handleRestore = async (versionId: string, versionNumber: number) => {
     if (
@@ -417,69 +418,69 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
         danger: true,
       }))
     )
-      return;
-    setRestoring(versionId);
-    setError('');
-    setSuccess('');
+      return
+    setRestoring(versionId)
+    setError('')
+    setSuccess('')
     try {
-      const result = await restoreVersion(resumeId, versionId);
-      setSuccess(`버전 ${result.restoredVersion}으로 복원되었습니다`);
-      setSelectedVersion(null);
-      setActiveVersionId(null);
-      setDiffMode(false);
-      setDiffBaseId(null);
-      setDiffTargetId(null);
-      setDiffs([]);
-      onRestore();
-      await load();
+      const result = await restoreVersion(resumeId, versionId)
+      setSuccess(`버전 ${result.restoredVersion}으로 복원되었습니다`)
+      setSelectedVersion(null)
+      setActiveVersionId(null)
+      setDiffMode(false)
+      setDiffBaseId(null)
+      setDiffTargetId(null)
+      setDiffs([])
+      onRestore()
+      await load()
     } catch {
-      setError('복원에 실패했습니다');
+      setError('복원에 실패했습니다')
     } finally {
-      setRestoring(null);
+      setRestoring(null)
     }
-  };
+  }
 
   const toggleDiffMode = () => {
-    const next = !diffMode;
-    setDiffMode(next);
+    const next = !diffMode
+    setDiffMode(next)
     if (!next) {
-      setDiffBaseId(null);
-      setDiffTargetId(null);
-      setDiffBaseSnapshot(null);
-      setDiffTargetSnapshot(null);
-      setDiffs([]);
+      setDiffBaseId(null)
+      setDiffTargetId(null)
+      setDiffBaseSnapshot(null)
+      setDiffTargetSnapshot(null)
+      setDiffs([])
     } else {
-      setSelectedVersion(null);
-      setActiveVersionId(null);
+      setSelectedVersion(null)
+      setActiveVersionId(null)
     }
-  };
+  }
 
   const renderPreview = () => {
-    if (!selectedVersion) return null;
+    if (!selectedVersion) return null
     if (previewLoading) {
       return (
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
           <p className="text-xs text-slate-500">불러오는 중...</p>
         </div>
-      );
+      )
     }
     try {
       const snapshot =
         typeof selectedVersion.snapshot === 'string'
           ? JSON.parse(selectedVersion.snapshot as string)
-          : selectedVersion.snapshot;
+          : selectedVersion.snapshot
       if (!snapshot)
         return (
           <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
             <p className="text-xs text-slate-500 dark:text-slate-400">데이터 없음</p>
           </div>
-        );
-      const s = snapshot as Record<string, unknown>;
-      const experiences = Array.isArray(s.experiences) ? s.experiences : [];
-      const educations = Array.isArray(s.educations) ? s.educations : [];
-      const skills = Array.isArray(s.skills) ? s.skills : [];
-      const projects = Array.isArray(s.projects) ? s.projects : [];
-      const personalInfo = (s.personalInfo || {}) as Record<string, unknown>;
+        )
+      const s = snapshot as Record<string, unknown>
+      const experiences = Array.isArray(s.experiences) ? s.experiences : []
+      const educations = Array.isArray(s.educations) ? s.educations : []
+      const skills = Array.isArray(s.skills) ? s.skills : []
+      const projects = Array.isArray(s.projects) ? s.projects : []
+      const personalInfo = (s.personalInfo || {}) as Record<string, unknown>
       return (
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
           <h4 className="text-xs font-medium text-blue-700 dark:text-blue-400 mb-2">
@@ -514,26 +515,26 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
             </div>
           </div>
         </div>
-      );
+      )
     } catch {
       return (
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-2">
           <p className="text-xs text-slate-500 dark:text-slate-400">미리보기 불가</p>
         </div>
-      );
+      )
     }
-  };
+  }
 
   const getVersionLabel = (id: string) => {
-    const v = versions.find((v) => v.id === id);
-    return v ? `v${v.versionNumber}` : '';
-  };
+    const v = versions.find((v) => v.id === id)
+    return v ? `v${v.versionNumber}` : ''
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -652,8 +653,8 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                       tabIndex={0}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handlePreview(v.id);
+                          e.preventDefault()
+                          handlePreview(v.id)
                         }
                       }}
                       aria-expanded={activeVersionId === v.id}
@@ -700,8 +701,8 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                       {!diffMode && (
                         <button
                           onClick={(e) => {
-                            e.stopPropagation();
-                            handleRestore(v.id, v.versionNumber);
+                            e.stopPropagation()
+                            handleRestore(v.id, v.versionNumber)
                           }}
                           disabled={restoring === v.id}
                           className="ml-3 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shrink-0"
@@ -741,9 +742,9 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
                       <div className="px-3 py-2 border-t border-blue-100 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-900/10">
                         <button
                           onClick={() => {
-                            const targetVersion = versions.find((v) => v.id === diffTargetId);
+                            const targetVersion = versions.find((v) => v.id === diffTargetId)
                             if (targetVersion)
-                              handleRestore(diffTargetId, targetVersion.versionNumber);
+                              handleRestore(diffTargetId, targetVersion.versionNumber)
                           }}
                           disabled={!!restoring}
                           className="w-full px-3 py-2 text-xs font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 disabled:opacity-50 transition-colors"
@@ -769,5 +770,5 @@ export default function VersionPanel({ resumeId, onClose, onRestore }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

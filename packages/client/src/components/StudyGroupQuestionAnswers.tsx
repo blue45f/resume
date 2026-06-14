@@ -1,21 +1,22 @@
-import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+
+import { toast } from '@/components/Toast'
 import {
   fetchStudyGroupQuestionAnswers,
   createStudyGroupQuestionAnswer,
   deleteStudyGroupQuestionAnswer,
   upvoteStudyGroupQuestionAnswer,
   type StudyGroupQuestionAnswer,
-} from '@/lib/api';
-import { getUser } from '@/lib/auth';
-import { toast } from '@/components/Toast';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { t, tx } from '@/lib/i18n';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { t, tx } from '@/lib/i18n'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface Props {
-  questionId: string;
+  questionId: string
   /** 그룹 owner — 다른 사람 답변 삭제 가능 */
-  groupOwnerId?: string;
+  groupOwnerId?: string
 }
 
 /**
@@ -25,45 +26,45 @@ interface Props {
  * 사용 예: <StudyGroupQuestionAnswers questionId={q.id} groupOwnerId={group.ownerId} />
  */
 export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: Props) {
-  const user = getUser();
-  const qc = useQueryClient();
-  const [sort, setSort] = useState<'upvotes' | 'recent'>('upvotes');
-  const [composing, setComposing] = useState(false);
-  const [body, setBody] = useState('');
-  const [replyTo, setReplyTo] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const user = getUser()
+  const qc = useQueryClient()
+  const [sort, setSort] = useState<'upvotes' | 'recent'>('upvotes')
+  const [composing, setComposing] = useState(false)
+  const [body, setBody] = useState('')
+  const [replyTo, setReplyTo] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const { data: answers = [], isLoading } = useQuery({
     queryKey: ['study-group-answers', questionId, sort],
     queryFn: () => fetchStudyGroupQuestionAnswers(questionId, { sort }),
     enabled: !!questionId,
     retry: 1,
-  });
+  })
 
-  const invalidate = () => qc.invalidateQueries({ queryKey: ['study-group-answers', questionId] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: ['study-group-answers', questionId] })
 
   const submit = async () => {
-    const trimmed = body.trim();
+    const trimmed = body.trim()
     if (trimmed.length < 2) {
-      toast(tx('study.answerPlaceholder'), 'info');
-      return;
+      toast(tx('study.answerPlaceholder'), 'info')
+      return
     }
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      await createStudyGroupQuestionAnswer(questionId, { body: trimmed, parentId: replyTo });
-      setBody('');
-      setReplyTo(null);
-      setComposing(false);
-      invalidate();
-      toast(tx('toast.posted'), 'success');
+      await createStudyGroupQuestionAnswer(questionId, { body: trimmed, parentId: replyTo })
+      setBody('')
+      setReplyTo(null)
+      setComposing(false)
+      invalidate()
+      toast(tx('toast.posted'), 'success')
     } catch (e) {
-      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error');
+      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const remove = async (id: string) => {
     if (
@@ -73,38 +74,38 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
         danger: true,
       }))
     )
-      return;
+      return
     try {
-      await deleteStudyGroupQuestionAnswer(id);
-      invalidate();
-      toast(tx('toast.deleted'), 'success');
+      await deleteStudyGroupQuestionAnswer(id)
+      invalidate()
+      toast(tx('toast.deleted'), 'success')
     } catch (e) {
-      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error');
+      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error')
     }
-  };
+  }
 
   const toggleUpvote = async (id: string) => {
     try {
-      await upvoteStudyGroupQuestionAnswer(id);
-      invalidate();
+      await upvoteStudyGroupQuestionAnswer(id)
+      invalidate()
     } catch (e) {
-      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error');
+      toast(e instanceof Error ? e.message : tx('toast.failed'), 'error')
     }
-  };
+  }
 
   // parentId 가 같은 답글끼리 묶기 (top-level + replies)
-  const topLevel = answers.filter((a) => !a.parentId);
-  const repliesByParent = new Map<string, StudyGroupQuestionAnswer[]>();
+  const topLevel = answers.filter((a) => !a.parentId)
+  const repliesByParent = new Map<string, StudyGroupQuestionAnswer[]>()
   for (const a of answers) {
     if (a.parentId) {
-      const arr = repliesByParent.get(a.parentId) || [];
-      arr.push(a);
-      repliesByParent.set(a.parentId, arr);
+      const arr = repliesByParent.get(a.parentId) || []
+      arr.push(a)
+      repliesByParent.set(a.parentId, arr)
     }
   }
 
   const canDelete = (answer: StudyGroupQuestionAnswer) =>
-    !!user && (answer.userId === user.id || groupOwnerId === user.id);
+    !!user && (answer.userId === user.id || groupOwnerId === user.id)
 
   return (
     <section
@@ -128,8 +129,8 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
           {user && (
             <button
               onClick={() => {
-                setReplyTo(null);
-                setComposing((v) => !v);
+                setReplyTo(null)
+                setComposing((v) => !v)
               }}
               className="text-[11px] px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
@@ -175,9 +176,9 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
 
       <ul className="space-y-2">
         {topLevel.map((a) => {
-          const replies = repliesByParent.get(a.id) || [];
+          const replies = repliesByParent.get(a.id) || []
           // 서버 tombstone sentinel — 답글이 달린 답변을 삭제하면 body='' 로 전환되어 스레드만 보존
-          const isTombstone = a.body === '';
+          const isTombstone = a.body === ''
           return (
             <li
               key={a.id}
@@ -226,9 +227,9 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
                       {user && (
                         <button
                           onClick={() => {
-                            setReplyTo(a.id);
-                            setComposing(true);
-                            setBody('');
+                            setReplyTo(a.id)
+                            setComposing(true)
+                            setBody('')
                           }}
                           className="text-slate-500 dark:text-slate-400 hover:text-blue-600"
                         >
@@ -259,9 +260,9 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
                       <div className="flex items-center justify-end gap-2 mt-1">
                         <button
                           onClick={() => {
-                            setReplyTo(null);
-                            setComposing(false);
-                            setBody('');
+                            setReplyTo(null)
+                            setComposing(false)
+                            setBody('')
                           }}
                           className="text-[10px] px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded"
                         >
@@ -308,9 +309,9 @@ export default function StudyGroupQuestionAnswers({ questionId, groupOwnerId }: 
                 </div>
               </div>
             </li>
-          );
+          )
         })}
       </ul>
     </section>
-  );
+  )
 }

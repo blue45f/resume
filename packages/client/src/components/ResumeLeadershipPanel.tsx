@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
-import { analyzeResumeLeadership, LEADERSHIP_TYPE_LABEL } from '@/lib/resumeLeadershipAnalyzer';
-import { estimateJobLevel } from '@/lib/resumeScoring';
+import { useMemo } from 'react'
+
+import { analyzeResumeLeadership, LEADERSHIP_TYPE_LABEL } from '@/lib/resumeLeadershipAnalyzer'
+import { estimateJobLevel } from '@/lib/resumeScoring'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const STRENGTH_LABEL: Record<string, string> = {
@@ -11,19 +12,19 @@ const STRENGTH_LABEL: Record<string, string> = {
   moderate: '보통',
   weak: '부족',
   none: '없음',
-};
+}
 
 export default function ResumeLeadershipPanel({ text }: Props) {
-  const report = useMemo(() => analyzeResumeLeadership(text), [text]);
-  const level = useMemo(() => estimateJobLevel(text), [text]);
+  const report = useMemo(() => analyzeResumeLeadership(text), [text])
+  const level = useMemo(() => estimateJobLevel(text), [text])
 
-  if (text.trim().length < 80) return null;
+  if (text.trim().length < 80) return null
   // Only show for mid+ level resumes where leadership matters
-  if (level.level === 'junior') return null;
+  if (level.level === 'junior') return null
   // If already strong, nothing to flag
-  if (report.strength === 'strong') return null;
+  if (report.strength === 'strong') return null
 
-  const isWarning = report.strength === 'none' || report.strength === 'weak';
+  const isWarning = report.strength === 'none' || report.strength === 'weak'
 
   return (
     <aside
@@ -58,5 +59,5 @@ export default function ResumeLeadershipPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

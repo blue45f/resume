@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect } from 'react'
 
 const shortcuts = [
   { keys: ['⌘/Ctrl', 'K'], description: '글로벌 검색', category: '탐색' },
@@ -12,34 +12,34 @@ const shortcuts = [
   { keys: ['/'], description: '검색 포커스', category: '탐색' },
   { keys: ['?'], description: '단축키 도움말', category: '일반' },
   { keys: ['Esc'], description: '모달/패널 닫기', category: '일반' },
-];
+]
 
 export default function KeyboardShortcuts() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
+      const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-        return;
+        return
       if (e.key === '?' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        setOpen((prev) => !prev);
+        e.preventDefault()
+        setOpen((prev) => !prev)
       }
       if (e.key === 'e' && !e.ctrlKey && !e.metaKey) {
-        window.location.href = '/explore';
+        window.location.href = '/explore'
       }
       if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
+        e.preventDefault()
         const searchInput = document.querySelector<HTMLInputElement>(
-          'input[type="text"][placeholder*="검색"]',
-        );
-        if (searchInput) searchInput.focus();
+          'input[type="text"][placeholder*="검색"]'
+        )
+        if (searchInput) searchInput.focus()
       }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   return (
     <RadixDialog.Root open={open} onOpenChange={setOpen}>
@@ -61,8 +61,8 @@ export default function KeyboardShortcuts() {
           </div>
           <div className="space-y-4">
             {['편집', '미리보기', '탐색', '일반'].map((cat) => {
-              const items = shortcuts.filter((s) => s.category === cat);
-              if (!items.length) return null;
+              const items = shortcuts.filter((s) => s.category === cat)
+              if (!items.length) return null
               return (
                 <div key={cat}>
                   <h3 className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-2">
@@ -90,12 +90,12 @@ export default function KeyboardShortcuts() {
                     ))}
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
           <p className="mt-4 text-xs text-neutral-400 text-center">Esc 로 닫기</p>
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

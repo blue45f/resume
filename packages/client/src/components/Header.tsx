@@ -1,47 +1,48 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { getTheme, setTheme } from '@/lib/theme';
-import { t, tx, getLocale, setLocale, LOCALES, getLocaleName, type Locale } from '@/lib/i18n';
-import NotificationBell from '@/components/NotificationBell';
-import GlobalSearch from '@/components/GlobalSearch';
-import { fetchFollowers, fetchFollowing } from '@/lib/api';
-import { API_URL } from '@/lib/config';
+import { useState, useEffect, useRef } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+
+import GlobalSearch from '@/components/GlobalSearch'
+import NotificationBell from '@/components/NotificationBell'
+import { fetchFollowers, fetchFollowing } from '@/lib/api'
+import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { t, tx, getLocale, setLocale, LOCALES, getLocaleName, type Locale } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { getTheme, setTheme } from '@/lib/theme'
 
 export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setThemeState] = useState(getTheme());
-  const [locale, setLocaleState] = useState(getLocale());
-  const [showSearch, setShowSearch] = useState(false);
-  const [switching, setSwitching] = useState(false);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const [followerCount, setFollowerCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
-  const profileMenuRef = useRef<HTMLDivElement>(null);
-  const profileTriggerRef = useRef<HTMLButtonElement>(null);
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(getUser());
-  const user = currentUser;
-  const userId = user?.id;
-  const location = useLocation();
-  const isHome = location.pathname === '/';
-  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company';
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [theme, setThemeState] = useState(getTheme())
+  const [locale, setLocaleState] = useState(getLocale())
+  const [showSearch, setShowSearch] = useState(false)
+  const [switching, setSwitching] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [followerCount, setFollowerCount] = useState(0)
+  const [followingCount, setFollowingCount] = useState(0)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+  const profileTriggerRef = useRef<HTMLButtonElement>(null)
+  const navigate = useNavigate()
+  const [currentUser, setCurrentUser] = useState(getUser())
+  const user = currentUser
+  const userId = user?.id
+  const location = useLocation()
+  const isHome = location.pathname === '/'
+  const isRecruiter = user?.userType === 'recruiter' || user?.userType === 'company'
 
   const handleLocaleChange = (value: string) => {
-    if (!LOCALES.includes(value as Locale)) return;
-    const nextLocale = value as Locale;
-    setLocale(nextLocale);
-    setLocaleState(nextLocale);
-  };
+    if (!LOCALES.includes(value as Locale)) return
+    const nextLocale = value as Locale
+    setLocale(nextLocale)
+    setLocaleState(nextLocale)
+  }
 
   const toggleUserType = async () => {
-    if (!user || switching) return;
-    setSwitching(true);
-    const newType = isRecruiter ? 'personal' : 'recruiter';
+    if (!user || switching) return
+    setSwitching(true)
+    const newType = isRecruiter ? 'personal' : 'recruiter'
     try {
-      const token = getToken();
+      const token = getToken()
       const res = await fetch(`${API_URL}/api/auth/profile`, {
         method: 'PATCH',
         headers: {
@@ -49,121 +50,121 @@ export default function Header() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ userType: newType }),
-      });
-      if (!res.ok) throw new Error();
-      const updated = await res.json();
-      if (token) setAuth(token, updated);
-      setCurrentUser(updated);
-      setProfileMenuOpen(false);
+      })
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      if (token) setAuth(token, updated)
+      setCurrentUser(updated)
+      setProfileMenuOpen(false)
     } catch {
       // silently fail
     } finally {
-      setSwitching(false);
+      setSwitching(false)
     }
-  };
+  }
 
   const cycleTheme = () => {
-    const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
-    setTheme(next);
-    setThemeState(next);
-  };
+    const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
+    setTheme(next)
+    setThemeState(next)
+  }
   const themeIcon =
-    theme === 'dark' ? '\u{1F319}' : theme === 'light' ? '\u{2600}\u{FE0F}' : '\u{1F4BB}';
+    theme === 'dark' ? '\u{1F319}' : theme === 'light' ? '\u{2600}\u{FE0F}' : '\u{1F4BB}'
   const themeLabel =
     theme === 'dark'
       ? '\uB2E4\uD06C'
       : theme === 'light'
         ? '\uB77C\uC774\uD2B8'
-        : '\uC2DC\uC2A4\uD15C';
+        : '\uC2DC\uC2A4\uD15C'
 
   // Escape 키로 메뉴 닫기 + 프로필 메뉴 키보드 내비게이션
   useEffect(() => {
-    if (!menuOpen && !profileMenuOpen) return;
+    if (!menuOpen && !profileMenuOpen) return
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setMenuOpen(false);
-        setProfileMenuOpen(false);
-        profileTriggerRef.current?.focus();
-        return;
+        setMenuOpen(false)
+        setProfileMenuOpen(false)
+        profileTriggerRef.current?.focus()
+        return
       }
       // Arrow key navigation for profile dropdown
       if (profileMenuOpen && profileMenuRef.current) {
         const items = Array.from(
-          profileMenuRef.current.querySelectorAll<HTMLElement>('a, button:not([disabled])'),
-        );
-        const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+          profileMenuRef.current.querySelectorAll<HTMLElement>('a, button:not([disabled])')
+        )
+        const currentIndex = items.indexOf(document.activeElement as HTMLElement)
         if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          const next = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
-          items[next]?.focus();
+          e.preventDefault()
+          const next = currentIndex < items.length - 1 ? currentIndex + 1 : 0
+          items[next]?.focus()
         } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          const prev = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
-          items[prev]?.focus();
+          e.preventDefault()
+          const prev = currentIndex > 0 ? currentIndex - 1 : items.length - 1
+          items[prev]?.focus()
         } else if (e.key === 'Home') {
-          e.preventDefault();
-          items[0]?.focus();
+          e.preventDefault()
+          items[0]?.focus()
         } else if (e.key === 'End') {
-          e.preventDefault();
-          items[items.length - 1]?.focus();
+          e.preventDefault()
+          items[items.length - 1]?.focus()
         } else if (e.key === 'Tab') {
-          if (items.length === 0) return;
+          if (items.length === 0) return
           if (e.shiftKey && currentIndex <= 0) {
-            e.preventDefault();
-            profileTriggerRef.current?.focus();
+            e.preventDefault()
+            profileTriggerRef.current?.focus()
           } else if (!e.shiftKey && currentIndex >= items.length - 1) {
-            e.preventDefault();
-            profileTriggerRef.current?.focus();
+            e.preventDefault()
+            profileTriggerRef.current?.focus()
           }
         }
       }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [menuOpen, profileMenuOpen]);
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [menuOpen, profileMenuOpen])
 
   // Cmd+K 글로벌 검색 단축키
   useEffect(() => {
     const handleGlobalKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setShowSearch(true);
+        e.preventDefault()
+        setShowSearch(true)
       }
-    };
-    document.addEventListener('keydown', handleGlobalKey);
-    return () => document.removeEventListener('keydown', handleGlobalKey);
-  }, []);
+    }
+    document.addEventListener('keydown', handleGlobalKey)
+    return () => document.removeEventListener('keydown', handleGlobalKey)
+  }, [])
 
   // 외부 클릭 시 프로필 메뉴 닫기
   useEffect(() => {
-    if (!profileMenuOpen) return;
-    const handleClick = () => setProfileMenuOpen(false);
+    if (!profileMenuOpen) return
+    const handleClick = () => setProfileMenuOpen(false)
     // delay to avoid closing on the same click that opened it
-    const timer = setTimeout(() => document.addEventListener('click', handleClick), 0);
+    const timer = setTimeout(() => document.addEventListener('click', handleClick), 0)
     return () => {
-      clearTimeout(timer);
-      document.removeEventListener('click', handleClick);
-    };
-  }, [profileMenuOpen]);
+      clearTimeout(timer)
+      document.removeEventListener('click', handleClick)
+    }
+  }, [profileMenuOpen])
 
   // 팔로워/팔로잉 수 로드
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) return
     fetchFollowers()
       .then((f) => setFollowerCount(Array.isArray(f) ? f.length : 0))
-      .catch(() => {});
+      .catch(() => {})
     fetchFollowing()
       .then((f) => setFollowingCount(Array.isArray(f) ? f.length : 0))
-      .catch(() => {});
-  }, [userId]);
+      .catch(() => {})
+  }, [userId])
 
   // 스크롤 시 header glassmorphism 전환
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10);
-    onScroll(); // check initial state
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    const onScroll = () => setScrolled(window.scrollY > 10)
+    onScroll() // check initial state
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <>
@@ -628,7 +629,7 @@ export default function Header() {
               <select
                 value={locale}
                 onChange={(e) => {
-                  handleLocaleChange(e.target.value);
+                  handleLocaleChange(e.target.value)
                 }}
                 className="text-xs px-1 py-0.5 border border-slate-200 dark:border-slate-600 rounded bg-transparent text-slate-500 dark:text-slate-400 cursor-pointer hidden xl:inline-block"
                 aria-label="언어"
@@ -780,9 +781,9 @@ export default function Header() {
                       </Link>
                       <button
                         onClick={() => {
-                          clearAuth();
-                          navigate(ROUTES.home);
-                          window.location.reload();
+                          clearAuth()
+                          navigate(ROUTES.home)
+                          window.location.reload()
                         }}
                         role="menuitem"
                         className="w-full text-left px-3 py-2 text-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"
@@ -1155,7 +1156,7 @@ export default function Header() {
                 <select
                   value={locale}
                   onChange={(e) => {
-                    handleLocaleChange(e.target.value);
+                    handleLocaleChange(e.target.value)
                   }}
                   className="flex-1 text-sm px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-transparent dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                 >
@@ -1178,5 +1179,5 @@ export default function Header() {
       </header>
       {showSearch && <GlobalSearch onClose={() => setShowSearch(false)} />}
     </>
-  );
+  )
 }

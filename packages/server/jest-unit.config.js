@@ -27,10 +27,6 @@ module.exports = {
   workerIdleMemoryLimit: '512MB',
   testPathIgnorePatterns: ['/node_modules/', '/dist/', '\\.e2e-spec\\.ts$'],
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
-  collectCoverageFrom: [
-    'src/**/*.service.ts',
-    'src/**/*.guard.ts',
-    '!src/**/prisma.service.ts',
-  ],
+  collectCoverageFrom: ['src/**/*.service.ts', 'src/**/*.guard.ts', '!src/**/prisma.service.ts'],
   coverageDirectory: './coverage',
-};
+}

@@ -1,7 +1,7 @@
-import type { Resume } from '@/types/resume';
+import type { Resume } from '@/types/resume'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 export default function CareerTimeline({ resume }: Props) {
@@ -22,14 +22,14 @@ export default function CareerTimeline({ resume }: Props) {
       end: e.endDate,
       color: 'green',
     })),
-  ].sort((a, b) => (b.start || '').localeCompare(a.start || ''));
+  ].sort((a, b) => (b.start || '').localeCompare(a.start || ''))
 
-  if (items.length === 0) return null;
+  if (items.length === 0) return null
 
   const colorMap: Record<string, string> = {
     blue: 'bg-blue-500',
     green: 'bg-green-500',
-  };
+  }
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -85,5 +85,5 @@ export default function CareerTimeline({ resume }: Props) {
         </span>
       </div>
     </div>
-  );
+  )
 }

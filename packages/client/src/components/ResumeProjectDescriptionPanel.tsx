@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkResumeProjectDescriptionQuality } from '@/lib/resumeProjectDescriptionQualityChecker';
-import type { ProjectQualityDimension } from '@/lib/resumeProjectDescriptionQualityChecker';
+import { useMemo } from 'react'
+
+import type { ProjectQualityDimension } from '@/lib/resumeProjectDescriptionQualityChecker'
+
+import { checkResumeProjectDescriptionQuality } from '@/lib/resumeProjectDescriptionQualityChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const DIMENSION_LABEL: Record<ProjectQualityDimension, string> = {
@@ -13,22 +15,22 @@ const DIMENSION_LABEL: Record<ProjectQualityDimension, string> = {
   problem_statement: '문제 서술',
   team_scale: '팀 규모',
   timeline: '기간',
-};
+}
 
 const GRADE_LABEL: Record<string, string> = {
   excellent: '우수',
   good: '보통',
   weak: '부족',
   vague: '모호',
-};
+}
 
 export default function ResumeProjectDescriptionPanel({ text }: Props) {
-  const report = useMemo(() => checkResumeProjectDescriptionQuality(text), [text]);
+  const report = useMemo(() => checkResumeProjectDescriptionQuality(text), [text])
 
-  if (text.trim().length < 100) return null;
-  if (report.grade === 'excellent') return null;
+  if (text.trim().length < 100) return null
+  if (report.grade === 'excellent') return null
 
-  const isWarning = report.grade === 'vague';
+  const isWarning = report.grade === 'vague'
 
   return (
     <aside
@@ -64,5 +66,5 @@ export default function ResumeProjectDescriptionPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

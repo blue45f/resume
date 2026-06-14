@@ -1,14 +1,15 @@
-import type { Resume } from '@/types/resume';
-import { findDuplicates } from '@/lib/similarity';
+import type { Resume } from '@/types/resume'
+
+import { findDuplicates } from '@/lib/similarity'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 export default function SimilarityPanel({ resume }: Props) {
-  const issues = findDuplicates(resume);
+  const issues = findDuplicates(resume)
 
-  if (issues.length === 0) return null;
+  if (issues.length === 0) return null
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-amber-200 dark:border-amber-800 p-4 no-print">
@@ -37,5 +38,5 @@ export default function SimilarityPanel({ resume }: Props) {
         ))}
       </div>
     </div>
-  );
+  )
 }
