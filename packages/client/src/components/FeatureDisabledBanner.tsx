@@ -1,14 +1,14 @@
-import { useFeatureToggle } from '@/hooks/useResources';
+import { useFeatureToggle } from '@/hooks/useResources'
 
 interface Props {
   /** feature.X.enabled 에서 X 부분 (예: 'ai.resume', 'messaging') */
-  feature: string;
+  feature: string
   /** 기능 한글 라벨 (예: "AI 이력서 변환") */
-  label: string;
+  label: string
   /** 활성 상태일 때 렌더할 자식 */
-  children: React.ReactNode;
+  children: React.ReactNode
   /** 비활성 시 className 커스터마이즈 */
-  disabledClassName?: string;
+  disabledClassName?: string
 }
 
 /**
@@ -26,8 +26,8 @@ export default function FeatureDisabledBanner({
   children,
   disabledClassName = '',
 }: Props) {
-  const enabled = useFeatureToggle(feature);
-  if (enabled) return <>{children}</>;
+  const enabled = useFeatureToggle(feature)
+  if (enabled) return <>{children}</>
   return (
     <div
       className={`p-6 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-center ${disabledClassName}`}
@@ -41,5 +41,5 @@ export default function FeatureDisabledBanner({
         주세요.
       </p>
     </div>
-  );
+  )
 }

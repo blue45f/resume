@@ -4,14 +4,14 @@
  * - admin: 콘텐츠 관리 (이력서/댓글 삭제, 사용자 목록 조회)
  * - user: 일반 사용자
  */
-export type Role = 'superadmin' | 'admin' | 'user';
+export type Role = 'superadmin' | 'admin' | 'user'
 
 export function isAdmin(role?: string): boolean {
-  return role === 'admin' || role === 'superadmin';
+  return role === 'admin' || role === 'superadmin'
 }
 
 export function isSuperAdmin(role?: string): boolean {
-  return role === 'superadmin';
+  return role === 'superadmin'
 }
 
-export const VALID_ROLES: Role[] = ['user', 'admin', 'superadmin'];
+export const VALID_ROLES: Role[] = ['user', 'admin', 'superadmin']

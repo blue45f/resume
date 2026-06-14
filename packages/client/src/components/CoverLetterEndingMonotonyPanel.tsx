@@ -1,24 +1,25 @@
-import { useMemo } from 'react';
-import { detectCoverLetterEndingMonotony } from '@/lib/coverLetterEndingMonotonyDetector';
+import { useMemo } from 'react'
+
+import { detectCoverLetterEndingMonotony } from '@/lib/coverLetterEndingMonotonyDetector'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<string, string> = {
   varied: '다양',
   adequate: '보통',
   monotonous: '단조',
-};
+}
 
 export default function CoverLetterEndingMonotonyPanel({ text }: Props) {
-  const report = useMemo(() => detectCoverLetterEndingMonotony(text), [text]);
+  const report = useMemo(() => detectCoverLetterEndingMonotony(text), [text])
 
-  if (text.trim().length < 80) return null;
-  if (report.sentenceCount < 4) return null;
-  if (report.grade === 'varied') return null;
+  if (text.trim().length < 80) return null
+  if (report.sentenceCount < 4) return null
+  if (report.grade === 'varied') return null
 
-  const isWarning = report.grade === 'monotonous';
+  const isWarning = report.grade === 'monotonous'
 
   return (
     <aside
@@ -58,5 +59,5 @@ export default function CoverLetterEndingMonotonyPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

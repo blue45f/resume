@@ -2,17 +2,17 @@
  * 공지사항 샘플 데이터 시드 스크립트
  * 실행: npx tsx scripts/seed-notices.ts
  */
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 async function main() {
-  console.log('📢 공지사항 샘플 데이터 생성 중...');
+  console.log('📢 공지사항 샘플 데이터 생성 중...')
 
-  const now = new Date();
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate());
-  const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const now = new Date()
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, now.getDate())
+  const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
 
   const notices = [
     // GENERAL - 필수 공지
@@ -164,33 +164,33 @@ async function main() {
       startAt: now,
       endAt: new Date('2026-05-31T23:59:59'),
     },
-  ];
+  ]
 
   for (const notice of notices) {
     const existing = await prisma.notice.findFirst({
       where: { title: notice.title },
-    });
+    })
 
     if (existing) {
-      await prisma.notice.update({ where: { id: existing.id }, data: notice });
-      console.log(`  ✅ 공지 업데이트: ${notice.title.slice(0, 40)}...`);
+      await prisma.notice.update({ where: { id: existing.id }, data: notice })
+      console.log(`  ✅ 공지 업데이트: ${notice.title.slice(0, 40)}...`)
     } else {
-      await prisma.notice.create({ data: notice });
-      console.log(`  ✅ 공지 생성: [${notice.type}] ${notice.title.slice(0, 35)}...`);
+      await prisma.notice.create({ data: notice })
+      console.log(`  ✅ 공지 생성: [${notice.type}] ${notice.title.slice(0, 35)}...`)
     }
   }
 
-  console.log('\n🎉 공지사항 샘플 데이터 생성 완료!');
-  console.log(`  - GENERAL: ${notices.filter((n) => n.type === 'GENERAL').length}개`);
-  console.log(`  - EVENT: ${notices.filter((n) => n.type === 'EVENT').length}개`);
-  console.log(`  - MAINTENANCE: ${notices.filter((n) => n.type === 'MAINTENANCE').length}개`);
-  console.log(`  - 팝업: ${notices.filter((n) => n.isPopup).length}개`);
-  console.log(`  - 고정: ${notices.filter((n) => n.isPinned).length}개`);
+  console.log('\n🎉 공지사항 샘플 데이터 생성 완료!')
+  console.log(`  - GENERAL: ${notices.filter((n) => n.type === 'GENERAL').length}개`)
+  console.log(`  - EVENT: ${notices.filter((n) => n.type === 'EVENT').length}개`)
+  console.log(`  - MAINTENANCE: ${notices.filter((n) => n.type === 'MAINTENANCE').length}개`)
+  console.log(`  - 팝업: ${notices.filter((n) => n.isPopup).length}개`)
+  console.log(`  - 고정: ${notices.filter((n) => n.isPinned).length}개`)
 }
 
 main()
   .catch((e) => {
-    console.error(e);
-    process.exit(1);
+    console.error(e)
+    process.exit(1)
   })
-  .finally(() => prisma.$disconnect());
+  .finally(() => prisma.$disconnect())

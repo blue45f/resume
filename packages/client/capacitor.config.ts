@@ -1,4 +1,4 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from '@capacitor/cli'
 
 /**
  * 이력서공방 Capacitor wrap.
@@ -39,6 +39,6 @@ const config: CapacitorConfig = {
     // 마이크/카메라 권한 (커피챗 WebRTC 용) — info.plist / AndroidManifest 수정 필요
     // 별도 plugin install 시 사용: @capacitor/camera, @capacitor/share 등
   },
-};
+}
 
-export default config;
+export default config

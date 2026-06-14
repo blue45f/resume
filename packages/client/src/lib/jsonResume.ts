@@ -1,4 +1,4 @@
-import type { Resume } from '@/types/resume';
+import type { Resume } from '@/types/resume'
 
 /**
  * JSON Resume 표준 스키마 (https://jsonresume.org/schema/) 변환기.
@@ -9,77 +9,77 @@ import type { Resume } from '@/types/resume';
  */
 export interface JsonResumeSchema {
   basics: {
-    name: string;
-    label?: string;
-    image?: string;
-    email?: string;
-    phone?: string;
-    url?: string;
-    summary?: string;
+    name: string
+    label?: string
+    image?: string
+    email?: string
+    phone?: string
+    url?: string
+    summary?: string
     location?: {
-      address?: string;
-      postalCode?: string;
-      city?: string;
-      countryCode?: string;
-      region?: string;
-    };
-    profiles?: Array<{ network: string; username?: string; url: string }>;
-  };
+      address?: string
+      postalCode?: string
+      city?: string
+      countryCode?: string
+      region?: string
+    }
+    profiles?: Array<{ network: string; username?: string; url: string }>
+  }
   work?: Array<{
-    name: string;
-    position?: string;
-    url?: string;
-    startDate?: string;
-    endDate?: string;
-    summary?: string;
-    highlights?: string[];
-  }>;
+    name: string
+    position?: string
+    url?: string
+    startDate?: string
+    endDate?: string
+    summary?: string
+    highlights?: string[]
+  }>
   education?: Array<{
-    institution: string;
-    url?: string;
-    area?: string;
-    studyType?: string;
-    startDate?: string;
-    endDate?: string;
-    score?: string;
-  }>;
-  skills?: Array<{ name: string; level?: string; keywords?: string[] }>;
+    institution: string
+    url?: string
+    area?: string
+    studyType?: string
+    startDate?: string
+    endDate?: string
+    score?: string
+  }>
+  skills?: Array<{ name: string; level?: string; keywords?: string[] }>
   projects?: Array<{
-    name: string;
-    description?: string;
-    highlights?: string[];
-    keywords?: string[];
-    startDate?: string;
-    endDate?: string;
-    url?: string;
-    roles?: string[];
-    entity?: string;
-    type?: string;
-  }>;
-  awards?: Array<{ title: string; date?: string; awarder?: string; summary?: string }>;
-  certificates?: Array<{ name: string; date?: string; issuer?: string; url?: string }>;
-  languages?: Array<{ language: string; fluency?: string }>;
+    name: string
+    description?: string
+    highlights?: string[]
+    keywords?: string[]
+    startDate?: string
+    endDate?: string
+    url?: string
+    roles?: string[]
+    entity?: string
+    type?: string
+  }>
+  awards?: Array<{ title: string; date?: string; awarder?: string; summary?: string }>
+  certificates?: Array<{ name: string; date?: string; issuer?: string; url?: string }>
+  languages?: Array<{ language: string; fluency?: string }>
   meta?: {
-    canonical?: string;
-    version?: string;
-    lastModified?: string;
-  };
+    canonical?: string
+    version?: string
+    lastModified?: string
+  }
 }
 
 export function buildJsonResume(
   resume: Resume,
-  options: { canonical?: string } = {},
+  options: { canonical?: string } = {}
 ): JsonResumeSchema {
-  const p = resume.personalInfo;
+  const p = resume.personalInfo
 
   // basics.profiles — GitHub + 커스텀 links
-  const profiles: JsonResumeSchema['basics']['profiles'] = [];
+  const profiles: JsonResumeSchema['basics']['profiles'] = []
   if (p.github) {
     profiles.push({
       network: 'GitHub',
       username: p.github,
       url: `https://github.com/${p.github}`,
-    });
+    })
   }
   if (p.links && Array.isArray(p.links)) {
     for (const l of p.links) {
@@ -87,7 +87,7 @@ export function buildJsonResume(
         profiles.push({
           network: inferNetworkFromUrl(l.url) || l.label || 'Website',
           url: l.url,
-        });
+        })
       }
     }
   }
@@ -167,43 +167,43 @@ export function buildJsonResume(
       version: 'v1.0.0',
       lastModified: new Date().toISOString(),
     },
-  };
+  }
 
   // 빈 배열은 omit (JSON Resume 표준은 optional)
-  if (!schema.work?.length) delete schema.work;
-  if (!schema.education?.length) delete schema.education;
-  if (!schema.skills?.length) delete schema.skills;
-  if (!schema.projects?.length) delete schema.projects;
+  if (!schema.work?.length) delete schema.work
+  if (!schema.education?.length) delete schema.education
+  if (!schema.skills?.length) delete schema.skills
+  if (!schema.projects?.length) delete schema.projects
 
-  return schema;
+  return schema
 }
 
 export function downloadJsonResume(resume: Resume, options: { canonical?: string } = {}): void {
-  const schema = buildJsonResume(resume, options);
-  const json = JSON.stringify(schema, null, 2);
-  const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const schema = buildJsonResume(resume, options)
+  const json = JSON.stringify(schema, null, 2)
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
   const safeName = (resume.personalInfo.name || resume.title || 'resume').replace(
     /[^a-zA-Z0-9가-힣_-]/g,
-    '_',
-  );
-  a.href = url;
-  a.download = `${safeName}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+    '_'
+  )
+  a.href = url
+  a.download = `${safeName}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
 function normalizeDate(date: string | undefined): string | undefined {
-  if (!date) return undefined;
+  if (!date) return undefined
   // 'YYYY' | 'YYYY-MM' | 'YYYY-MM-DD' 모두 유효
-  return date.trim() || undefined;
+  return date.trim() || undefined
 }
 
 function stripHtml(html: string | undefined): string | undefined {
-  if (!html) return undefined;
+  if (!html) return undefined
   const text = html
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|div|li)>/gi, '\n')
@@ -214,32 +214,32 @@ function stripHtml(html: string | undefined): string | undefined {
     .replace(/&gt;/g, '>')
     .replace(/[ \t]+/g, ' ')
     .replace(/\n\s*\n/g, '\n\n')
-    .trim();
-  return text || undefined;
+    .trim()
+  return text || undefined
 }
 
 function splitBullets(text: string): string[] {
   return text
     .split(/[\n•·\-—]\s*/)
     .map((s) => stripHtml(s) || '')
-    .filter((s) => s.length > 3);
+    .filter((s) => s.length > 3)
 }
 
 function inferNetworkFromUrl(url: string): string | null {
   try {
-    const host = new URL(url).hostname.replace('www.', '');
-    if (host.includes('github.com')) return 'GitHub';
-    if (host.includes('linkedin.com')) return 'LinkedIn';
-    if (host.includes('twitter.com') || host.includes('x.com')) return 'Twitter';
-    if (host.includes('medium.com')) return 'Medium';
-    if (host.includes('velog.io')) return 'Velog';
-    if (host.includes('tistory.com')) return 'Tistory';
-    if (host.includes('notion.')) return 'Notion';
-    if (host.includes('dev.to')) return 'DEV';
-    if (host.includes('behance.net')) return 'Behance';
-    if (host.includes('dribbble.com')) return 'Dribbble';
-    return host.split('.')[0];
+    const host = new URL(url).hostname.replace('www.', '')
+    if (host.includes('github.com')) return 'GitHub'
+    if (host.includes('linkedin.com')) return 'LinkedIn'
+    if (host.includes('twitter.com') || host.includes('x.com')) return 'Twitter'
+    if (host.includes('medium.com')) return 'Medium'
+    if (host.includes('velog.io')) return 'Velog'
+    if (host.includes('tistory.com')) return 'Tistory'
+    if (host.includes('notion.')) return 'Notion'
+    if (host.includes('dev.to')) return 'DEV'
+    if (host.includes('behance.net')) return 'Behance'
+    if (host.includes('dribbble.com')) return 'Dribbble'
+    return host.split('.')[0]
   } catch {
-    return null;
+    return null
   }
 }

@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { analyzeSentiment, analyzeFirstPersonUsage, analyzeEnglishMix } from '@/lib/toneAnalyzers';
+import { useMemo } from 'react'
+
+import { analyzeSentiment, analyzeFirstPersonUsage, analyzeEnglishMix } from '@/lib/toneAnalyzers'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const TONE_LABEL: Record<string, string> = {
@@ -10,27 +11,27 @@ const TONE_LABEL: Record<string, string> = {
   balanced: '균형적',
   negative: '부정적',
   none: '중립',
-};
+}
 
 const LEVEL_LABEL: Record<string, string> = {
   low: '적음',
   medium: '보통',
   high: '많음',
-};
+}
 
 export default function CoverLetterTonePanel({ text }: Props) {
-  const sentiment = useMemo(() => analyzeSentiment(text), [text]);
-  const firstPerson = useMemo(() => analyzeFirstPersonUsage(text), [text]);
-  const englishMix = useMemo(() => analyzeEnglishMix(text), [text]);
+  const sentiment = useMemo(() => analyzeSentiment(text), [text])
+  const firstPerson = useMemo(() => analyzeFirstPersonUsage(text), [text])
+  const englishMix = useMemo(() => analyzeEnglishMix(text), [text])
 
-  if (text.trim().length < 80) return null;
-  if (sentiment.tone === 'none' && firstPerson.total === 0) return null;
+  if (text.trim().length < 80) return null
+  if (sentiment.tone === 'none' && firstPerson.total === 0) return null
 
-  const toneGood = sentiment.tone === 'positive' || sentiment.tone === 'balanced';
-  const fp1pGood = firstPerson.level !== 'high';
-  const engGood = englishMix.level !== 'high';
-  const issueCount = [!toneGood, !fp1pGood, !engGood].filter(Boolean).length;
-  const tone = issueCount === 0 ? 'good' : issueCount === 1 ? 'neutral' : 'warning';
+  const toneGood = sentiment.tone === 'positive' || sentiment.tone === 'balanced'
+  const fp1pGood = firstPerson.level !== 'high'
+  const engGood = englishMix.level !== 'high'
+  const issueCount = [!toneGood, !fp1pGood, !engGood].filter(Boolean).length
+  const tone = issueCount === 0 ? 'good' : issueCount === 1 ? 'neutral' : 'warning'
 
   return (
     <aside className={`cl-tone-card cl-tone-card--${tone}`} aria-label="자기소개서 톤 분석">
@@ -94,5 +95,5 @@ export default function CoverLetterTonePanel({ text }: Props) {
         </li>
       </ul>
     </aside>
-  );
+  )
 }

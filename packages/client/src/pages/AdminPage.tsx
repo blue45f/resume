@@ -1,23 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { PLANS, type PlanConfig } from '@/lib/plans';
-import { API_URL } from '@/lib/config';
-import { tx } from '@/lib/i18n';
-import { formatDate } from '@/lib/time';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import {
-  AdminInterviewQuestionsTab,
-  AdminPostsTab,
-  AdminStudyGroupsTab,
-  AdminUsersTab,
-} from '@/features/admin';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   ResponsiveContainer,
   AreaChart,
@@ -32,53 +16,71 @@ import {
   Pie,
   Cell,
   Legend,
-} from 'recharts';
+} from 'recharts'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import {
+  AdminInterviewQuestionsTab,
+  AdminPostsTab,
+  AdminStudyGroupsTab,
+  AdminUsersTab,
+} from '@/domains/admin/admin'
+import { getUser } from '@/lib/auth'
+import { CHART_COLORS } from '@/lib/chartColors'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
+import { PLANS, type PlanConfig } from '@/lib/plans'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 // Impeccable chart palette — sapphire/cyan baseline + emerald/amber/rose 시맨틱
 // (.impeccable.md 정의: blue/cyan/sapphire 베이스 + 의미 기반 상태색)
 // CHART_COLORS 의 단일 정의는 lib/chartColors. 여기는 import.
-import { CHART_COLORS } from '@/lib/chartColors';
 
 interface RecentUser {
-  id: string;
-  name: string | null;
-  email: string;
-  provider: string;
-  createdAt: string;
+  id: string
+  name: string | null
+  email: string
+  provider: string
+  createdAt: string
 }
 
 interface Stats {
-  users: { total: number; today: number; week: number; month: number };
-  resumes: { total: number; today: number; week: number; public: number };
-  content: { templates: number; tags: number; comments: number; versions: number };
-  activity: { applications: number; transforms: number; totalViews: number };
+  users: { total: number; today: number; week: number; month: number }
+  resumes: { total: number; today: number; week: number; public: number }
+  content: { templates: number; tags: number; comments: number; versions: number }
+  activity: { applications: number; transforms: number; totalViews: number }
   coaching?: {
-    totalCoaches: number;
-    activeCoaches: number;
-    totalSessions: number;
-    totalCommission: number;
+    totalCoaches: number
+    activeCoaches: number
+    totalSessions: number
+    totalCommission: number
     byStatus: {
-      requested?: number;
-      confirmed?: number;
-      completed?: number;
-      cancelled?: number;
-      refunded?: number;
-    };
-  };
-  recentUsers?: RecentUser[];
+      requested?: number
+      confirmed?: number
+      completed?: number
+      cancelled?: number
+      refunded?: number
+    }
+  }
+  recentUsers?: RecentUser[]
   // Extended stats for charts
-  dailyUsers?: number[];
-  dailyResumes?: number[];
-  topFeatures?: { name: string; count: number }[];
-  revenue?: { thisMonth: number; lastMonth: number };
-  locales?: { unset: number; ko: number; en: number; ja: number };
+  dailyUsers?: number[]
+  dailyResumes?: number[]
+  topFeatures?: { name: string; count: number }[]
+  revenue?: { thisMonth: number; lastMonth: number }
+  locales?: { unset: number; ko: number; en: number; ja: number }
   newFeatures?: {
-    coffeeChat: { total: number; pending: number; accepted: number; completed: number };
-    selective: { resumes: number; viewers: number };
-    jobUrlParser: { totalCached: number; weeklyParsed: number };
-    interviewAnalysis: { totalAnswers: number; weeklyAnswers: number };
-    avatars: { uploaded: number };
-  };
+    coffeeChat: { total: number; pending: number; accepted: number; completed: number }
+    selective: { resumes: number; viewers: number }
+    jobUrlParser: { totalCached: number; weeklyParsed: number }
+    interviewAnalysis: { totalAnswers: number; weeklyAnswers: number }
+    avatars: { uploaded: number }
+  }
 }
 
 type TabId =
@@ -96,20 +98,20 @@ type TabId =
   | 'interview-questions'
   | 'extlinks'
   | 'permissions'
-  | 'forbidden-words';
+  | 'forbidden-words'
 
-type NumberPlanFeatureKey = 'maxResumes' | 'aiTransformsPerMonth' | 'themes';
+type NumberPlanFeatureKey = 'maxResumes' | 'aiTransformsPerMonth' | 'themes'
 type BooleanPlanFeatureKey =
   | 'atsCheck'
   | 'aiCoaching'
   | 'coverLetter'
   | 'translation'
   | 'jobTracker'
-  | 'prioritySupport';
-type EditablePlanFeatureKey = NumberPlanFeatureKey | BooleanPlanFeatureKey;
+  | 'prioritySupport'
+type EditablePlanFeatureKey = NumberPlanFeatureKey | BooleanPlanFeatureKey
 type PlanFeatureEditor =
   | { key: NumberPlanFeatureKey; label: string; type: 'number' }
-  | { key: BooleanPlanFeatureKey; label: string; type: 'boolean' };
+  | { key: BooleanPlanFeatureKey; label: string; type: 'boolean' }
 
 const PLAN_FEATURE_EDITORS: readonly PlanFeatureEditor[] = [
   { key: 'maxResumes', label: '이력서 수', type: 'number' },
@@ -121,16 +123,16 @@ const PLAN_FEATURE_EDITORS: readonly PlanFeatureEditor[] = [
   { key: 'translation', label: '번역', type: 'boolean' },
   { key: 'jobTracker', label: '지원관리', type: 'boolean' },
   { key: 'prioritySupport', label: '우선지원', type: 'boolean' },
-];
+]
 
 export default function AdminPage() {
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<TabId>('stats');
-  const user = getUser();
-  const navigate = useNavigate();
-  const isAdminUser = !!user && (user.role === 'admin' || user.role === 'superadmin');
+  const queryClient = useQueryClient()
+  const [activeTab, setActiveTab] = useState<TabId>('stats')
+  const user = getUser()
+  const navigate = useNavigate()
+  const isAdminUser = !!user && (user.role === 'admin' || user.role === 'superadmin')
 
-  const isSuperAdmin = user?.role === 'superadmin';
+  const isSuperAdmin = user?.role === 'superadmin'
 
   const tabs: { id: TabId; label: string; icon: string; superOnly?: boolean }[] = [
     { id: 'stats', label: '대시보드', icon: '📊' },
@@ -148,38 +150,38 @@ export default function AdminPage() {
     { id: 'moderation', label: '신고 관리', icon: '🛡' },
     { id: 'settings', label: '시스템', icon: '⚙', superOnly: true },
     { id: 'plans', label: '요금제', icon: '💰' },
-  ];
+  ]
 
-  const visibleTabs = tabs.filter((t) => !t.superOnly || isSuperAdmin);
+  const visibleTabs = tabs.filter((t) => !t.superOnly || isSuperAdmin)
 
   useEffect(() => {
     if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
-      navigate(ROUTES.home);
+      navigate(ROUTES.home)
     }
-  }, [navigate, user]);
+  }, [navigate, user])
 
   const statsQuery = useQuery<Stats | null>({
     queryKey: ['admin-stats'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/health/admin/stats`, {
+      const token = localStorage.getItem('token')
+      const res = await httpClient(`${API_URL}/api/health/admin/stats`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) return null;
-      const data = await res.json();
+      })
+      if (!res.ok) return null
+      const data = await res.json()
       if (data) {
         // Generate mock daily data if API doesn't provide it yet
         if (!data.dailyUsers) {
           data.dailyUsers = Array.from({ length: 7 }, () =>
-            Math.floor(Math.random() * (data.users.today * 3 + 5)),
-          );
-          data.dailyUsers[6] = data.users.today;
+            Math.floor(Math.random() * (data.users.today * 3 + 5))
+          )
+          data.dailyUsers[6] = data.users.today
         }
         if (!data.dailyResumes) {
           data.dailyResumes = Array.from({ length: 7 }, () =>
-            Math.floor(Math.random() * (data.resumes.today * 3 + 5)),
-          );
-          data.dailyResumes[6] = data.resumes.today;
+            Math.floor(Math.random() * (data.resumes.today * 3 + 5))
+          )
+          data.dailyResumes[6] = data.resumes.today
         }
         if (!data.topFeatures) {
           data.topFeatures = [
@@ -188,29 +190,29 @@ export default function AdminPage() {
             { name: '템플릿 사용', count: data.content.templates * 10 },
             { name: '댓글', count: data.content.comments },
             { name: '공개 공유', count: data.resumes.public },
-          ].sort((a, b) => b.count - a.count);
+          ].sort((a, b) => b.count - a.count)
         }
         if (!data.revenue) {
-          data.revenue = { thisMonth: 0, lastMonth: 0 };
+          data.revenue = { thisMonth: 0, lastMonth: 0 }
         }
       }
-      return data as Stats;
+      return data as Stats
     },
     enabled: isAdminUser,
     staleTime: 60_000,
-  });
-  const stats = statsQuery.data ?? null;
-  const loading = statsQuery.isLoading;
-  const loadStats = () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+  })
+  const stats = statsQuery.data ?? null
+  const loading = statsQuery.isLoading
+  const loadStats = () => queryClient.invalidateQueries({ queryKey: ['admin-stats'] })
 
   useEffect(() => {
-    document.title = '관리자 대시보드 — 이력서공방';
+    document.title = '관리자 대시보드 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
-  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return null;
+  if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) return null
 
   return (
     <>
@@ -486,7 +488,7 @@ export default function AdminPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 // ─── Helper: Provider badge classes ─────────────────────
@@ -497,33 +499,33 @@ function providerBadge(provider: string) {
       ? 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
       : provider === 'kakao'
         ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
 }
 
 // ─── Helper: Relative time ──────────────────────────────
 function relativeTime(dateStr?: string) {
-  if (!dateStr) return '—';
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '방금 전';
-  if (mins < 60) return `${mins}분 전`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}일 전`;
-  return formatDate(dateStr);
+  if (!dateStr) return '—'
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return '방금 전'
+  if (mins < 60) return `${mins}분 전`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}시간 전`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}일 전`
+  return formatDate(dateStr)
 }
 
 // ─── Helper: Day labels ─────────────────────────────────
 function getDayLabels(count: number) {
-  const days = ['일', '월', '화', '수', '목', '금', '토'];
-  const result: string[] = [];
+  const days = ['일', '월', '화', '수', '목', '금', '토']
+  const result: string[] = []
   for (let i = count - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    result.push(days[d.getDay()]);
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    result.push(days[d.getDay()])
   }
-  return result;
+  return result
 }
 
 // ─── Recharts AreaChart Component ──────────────────────
@@ -533,13 +535,13 @@ function AreaChartCard({
   color,
   title,
 }: {
-  data: number[];
-  labels: string[];
-  color: string;
-  title: string;
+  data: number[]
+  labels: string[]
+  color: string
+  title: string
 }) {
-  const chartData = data.map((val, i) => ({ name: labels[i], value: val }));
-  const gradientId = `grad-${title.replace(/\s/g, '')}`;
+  const chartData = data.map((val, i) => ({ name: labels[i], value: val }))
+  const gradientId = `grad-${title.replace(/\s/g, '')}`
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
       <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-3">{title}</h3>
@@ -577,7 +579,7 @@ function AreaChartCard({
         </AreaChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }
 
 // ─── Recharts Horizontal BarChart Component ─────────────
@@ -585,8 +587,8 @@ function HorizontalBarChart({
   items,
   title,
 }: {
-  items: { name: string; count: number }[];
-  title: string;
+  items: { name: string; count: number }[]
+  title: string
 }) {
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
@@ -629,7 +631,7 @@ function HorizontalBarChart({
         </RechartsBarChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }
 
 // ─── 플랜별 분포 PieChart Component ─────────────────────
@@ -638,7 +640,7 @@ function PlanPieChart({ stats }: { stats: Stats }) {
     { name: 'Free', value: Math.max(0, stats.users.total - 10) },
     { name: 'Standard', value: 7 },
     { name: 'Premium', value: 3 },
-  ].filter((d) => d.value > 0);
+  ].filter((d) => d.value > 0)
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
@@ -671,7 +673,7 @@ function PlanPieChart({ stats }: { stats: Stats }) {
         </PieChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }
 
 // ─── StatCard Component ─────────────────────────────────
@@ -683,12 +685,12 @@ function StatCard({
   icon,
   trend,
 }: {
-  label: string;
-  value: number | string;
-  sub?: string;
-  color?: string;
-  icon?: string;
-  trend?: { value: number; label: string };
+  label: string
+  value: number | string
+  sub?: string
+  color?: string
+  icon?: string
+  trend?: { value: number; label: string }
 }) {
   const colorMap: Record<string, string> = {
     blue: 'text-blue-600',
@@ -697,7 +699,7 @@ function StatCard({
     amber: 'text-amber-600',
     rose: 'text-blue-700',
     indigo: 'text-sky-700',
-  };
+  }
   const bgMap: Record<string, string> = {
     blue: 'bg-blue-50 dark:bg-blue-900/20',
     green: 'bg-green-50 dark:bg-green-900/20',
@@ -705,7 +707,7 @@ function StatCard({
     amber: 'bg-amber-50 dark:bg-amber-900/20',
     rose: 'bg-rose-50 dark:bg-blue-900/20',
     indigo: 'bg-sky-50 dark:bg-sky-900/20',
-  };
+  }
   return (
     <div
       className={`${bgMap[color] || bgMap.blue} rounded-xl border border-slate-200/50 dark:border-slate-700/50 p-4`}
@@ -725,31 +727,31 @@ function StatCard({
         </p>
       )}
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // 0. Announcement Push Panel — 활성 사용자에게 1회성 알림 발송
 // ═══════════════════════════════════════════════════════════
 function AnnouncementPushPanel() {
-  const confirm = useConfirm();
-  const [open, setOpen] = useState(false);
+  const confirm = useConfirm()
+  const [open, setOpen] = useState(false)
   const [message, setMessage] = useState(
-    '✨ 새 기능 가이드 추가 — AI 자동 생성 / 채용공고 URL / 선택 공개 / 커피챗 / AI 면접 분석 등 8종',
-  );
-  const [link, setLink] = useState('/tutorial?guide=new-features');
-  const [activeWithinDays, setActiveWithinDays] = useState(30);
-  const [submitting, setSubmitting] = useState(false);
+    '✨ 새 기능 가이드 추가 — AI 자동 생성 / 채용공고 URL / 선택 공개 / 커피챗 / AI 면접 분석 등 8종'
+  )
+  const [link, setLink] = useState('/tutorial?guide=new-features')
+  const [activeWithinDays, setActiveWithinDays] = useState(30)
+  const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState<{
-    sent: number;
-    skipped: number;
-    candidates: number;
-  } | null>(null);
+    sent: number
+    skipped: number
+    candidates: number
+  } | null>(null)
 
   const handleSend = async () => {
     if (!message.trim()) {
-      toast('메시지를 입력해주세요', 'error');
-      return;
+      toast('메시지를 입력해주세요', 'error')
+      return
     }
     if (
       !(await confirm({
@@ -758,12 +760,12 @@ function AnnouncementPushPanel() {
         confirmText: '발송',
       }))
     )
-      return;
-    setSubmitting(true);
-    setResult(null);
+      return
+    setSubmitting(true)
+    setResult(null)
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/notifications/admin/announce`, {
+      const token = localStorage.getItem('token')
+      const res = await httpClient(`${API_URL}/api/notifications/admin/announce`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -775,20 +777,20 @@ function AnnouncementPushPanel() {
           link: link.trim() || undefined,
           activeWithinDays,
         }),
-      });
+      })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: '실패' }));
-        throw new Error(err.message || '실패');
+        const err = await res.json().catch(() => ({ message: '실패' }))
+        throw new Error(err.message || '실패')
       }
-      const data = await res.json();
-      setResult(data);
-      toast(`공지 발송 완료: ${data.sent}명 발송, ${data.skipped}명 skip`, 'success');
+      const data = await res.json()
+      setResult(data)
+      toast(`공지 발송 완료: ${data.sent}명 발송, ${data.skipped}명 skip`, 'success')
     } catch (err) {
-      toast(err instanceof Error ? err.message : '공지 발송 실패', 'error');
+      toast(err instanceof Error ? err.message : '공지 발송 실패', 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <section className="imp-card p-4 border border-cyan-200 dark:border-cyan-900/40 bg-cyan-50/40 dark:bg-cyan-900/10">
@@ -808,10 +810,14 @@ function AnnouncementPushPanel() {
       {open && (
         <div className="mt-3 space-y-3 animate-fade-in-up">
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label
+              htmlFor="adminpage-field-1"
+              className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
               메시지 (200자 이내)
             </label>
             <textarea
+              id="adminpage-field-1"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               maxLength={200}
@@ -823,10 +829,14 @@ function AnnouncementPushPanel() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <label
+                htmlFor="adminpage-field-2"
+                className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+              >
                 링크 (클릭 시 이동)
               </label>
               <input
+                id="adminpage-field-2"
                 type="text"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
@@ -835,10 +845,13 @@ function AnnouncementPushPanel() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+              <span
+                id="admin-active-within-label"
+                className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+              >
                 활성 기준 (최근 N일)
-              </label>
-              <div className="flex gap-1">
+              </span>
+              <div role="group" aria-labelledby="admin-active-within-label" className="flex gap-1">
                 {[7, 30, 90, 365].map((d) => (
                   <button
                     key={d}
@@ -882,14 +895,14 @@ function AnnouncementPushPanel() {
         </div>
       )}
     </section>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // 1. Dashboard Home Tab
 // ═══════════════════════════════════════════════════════════
 function DashboardHome({ stats }: { stats: Stats }) {
-  const dayLabels = getDayLabels(7);
+  const dayLabels = getDayLabels(7)
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -944,7 +957,7 @@ function DashboardHome({ stats }: { stats: Stats }) {
               stats.revenue?.lastMonth
                 ? {
                     value: Math.round(
-                      (stats.revenue.thisMonth / stats.revenue.lastMonth - 1) * 100,
+                      (stats.revenue.thisMonth / stats.revenue.lastMonth - 1) * 100
                     ),
                     label: '전월 대비',
                   }
@@ -1022,15 +1035,15 @@ function DashboardHome({ stats }: { stats: Stats }) {
         </section>
       )}
     </div>
-  );
+  )
 }
 
 function NewFeaturesUsageWidget({
   data,
   locales,
 }: {
-  data: NonNullable<Stats['newFeatures']>;
-  locales?: Stats['locales'];
+  data: NonNullable<Stats['newFeatures']>
+  locales?: Stats['locales']
 }) {
   const groups = [
     {
@@ -1072,7 +1085,7 @@ function NewFeaturesUsageWidget({
       color: 'rose',
       items: [{ label: '업로드', value: data.avatars.uploaded }],
     },
-  ];
+  ]
 
   return (
     <div className="space-y-3">
@@ -1121,15 +1134,15 @@ function NewFeaturesUsageWidget({
         )}
       </div>
     </div>
-  );
+  )
 }
 
 function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
-  const totalCoaches = coaching?.totalCoaches ?? 0;
-  const activeCoaches = coaching?.activeCoaches ?? 0;
-  const totalSessions = coaching?.totalSessions ?? 0;
-  const totalCommission = coaching?.totalCommission ?? 0;
-  const by: NonNullable<Stats['coaching']>['byStatus'] = coaching?.byStatus || {};
+  const totalCoaches = coaching?.totalCoaches ?? 0
+  const activeCoaches = coaching?.activeCoaches ?? 0
+  const totalSessions = coaching?.totalSessions ?? 0
+  const totalCommission = coaching?.totalCommission ?? 0
+  const by: NonNullable<Stats['coaching']>['byStatus'] = coaching?.byStatus || {}
 
   return (
     <div className="imp-card p-4 sm:p-5 space-y-4">
@@ -1189,7 +1202,7 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
                 cls: 'bg-blue-100 dark:bg-blue-900/30 text-rose-700 dark:text-rose-300',
               },
             ].map((item) => {
-              const n = Number(by[item.key as keyof typeof by] ?? 0);
+              const n = Number(by[item.key as keyof typeof by] ?? 0)
               return (
                 <span
                   key={item.key}
@@ -1197,32 +1210,32 @@ function CoachingStatsWidget({ coaching }: { coaching?: Stats['coaching'] }) {
                 >
                   {item.label} <span className="font-bold">{n}</span>
                 </span>
-              );
+              )
             })}
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }
 // ═══════════════════════════════════════════════════════════
 // 3. Reported Content Queue (Moderation)
 // ═══════════════════════════════════════════════════════════
 interface ReportedItem {
-  id: string;
-  type: 'resume' | 'comment';
-  targetId: string;
-  reason: string;
-  reporterEmail: string;
-  reportedAt: string;
-  status: 'pending' | 'approved' | 'rejected';
-  content?: string;
-  title?: string;
+  id: string
+  type: 'resume' | 'comment'
+  targetId: string
+  reason: string
+  reporterEmail: string
+  reportedAt: string
+  status: 'pending' | 'approved' | 'rejected'
+  content?: string
+  title?: string
 }
 
 function ReportedContentQueue() {
-  const [rejectReason, setRejectReason] = useState<Record<string, string>>({});
-  const reportsQueryClient = useQueryClient();
+  const [rejectReason, setRejectReason] = useState<Record<string, string>>({})
+  const reportsQueryClient = useQueryClient()
 
   const REJECT_REASONS = [
     '부적절한 콘텐츠',
@@ -1231,55 +1244,55 @@ function ReportedContentQueue() {
     '저작권 침해',
     '허위 정보',
     '기타',
-  ];
+  ]
 
   const reportsQuery = useQuery<ReportedItem[]>({
     queryKey: ['admin-reports'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/health/admin/reports`, {
+      const token = localStorage.getItem('token')
+      const res = await httpClient(`${API_URL}/api/health/admin/reports`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return [];
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
+      })
+      if (!res.ok) return []
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     },
     staleTime: 30_000,
-  });
-  const items = reportsQuery.data ?? [];
-  const loading = reportsQuery.isLoading;
+  })
+  const items = reportsQuery.data ?? []
+  const loading = reportsQuery.isLoading
 
   const handleAction = async (itemId: string, action: 'approve' | 'reject') => {
-    const reason = action === 'reject' ? rejectReason[itemId] || REJECT_REASONS[0] : undefined;
-    const token = localStorage.getItem('token');
+    const reason = action === 'reject' ? rejectReason[itemId] || REJECT_REASONS[0] : undefined
+    const token = localStorage.getItem('token')
     try {
-      const res = await fetch(`${API_URL}/api/health/admin/reports/${itemId}`, {
+      const res = await httpClient(`${API_URL}/api/health/admin/reports/${itemId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ action, reason }),
-      });
+      })
       if (res.ok) {
         reportsQueryClient.setQueryData<ReportedItem[]>(['admin-reports'], (prev = []) =>
           prev.map((i) =>
-            i.id === itemId ? { ...i, status: action === 'approve' ? 'approved' : 'rejected' } : i,
-          ),
-        );
+            i.id === itemId ? { ...i, status: action === 'approve' ? 'approved' : 'rejected' } : i
+          )
+        )
         toast(
           action === 'approve' ? '콘텐츠가 승인되었습니다' : '콘텐츠가 거부되었습니다',
-          'success',
-        );
+          'success'
+        )
       } else {
-        toast('처리에 실패했습니다', 'error');
+        toast('처리에 실패했습니다', 'error')
       }
     } catch {
-      toast('처리에 실패했습니다', 'error');
+      toast('처리에 실패했습니다', 'error')
     }
-  };
+  }
 
-  if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
+  if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>
 
-  const pending = items.filter((i) => i.status === 'pending');
-  const processed = items.filter((i) => i.status !== 'pending');
+  const pending = items.filter((i) => i.status === 'pending')
+  const processed = items.filter((i) => i.status !== 'pending')
 
   return (
     <div className="space-y-4">
@@ -1398,23 +1411,23 @@ function ReportedContentQueue() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // NEW: AdminBannersTab
 // ═══════════════════════════════════════════════════════════
 interface Banner {
-  id: string;
-  title: string;
-  subtitle?: string;
-  imageUrl?: string;
-  linkUrl?: string;
-  bgColor: string;
-  isActive: boolean;
-  order: number;
-  startAt?: string;
-  endAt?: string;
+  id: string
+  title: string
+  subtitle?: string
+  imageUrl?: string
+  linkUrl?: string
+  bgColor: string
+  isActive: boolean
+  order: number
+  startAt?: string
+  endAt?: string
 }
 
 const BANNER_COLORS = [
@@ -1448,13 +1461,13 @@ const BANNER_COLORS = [
     value: 'linear-gradient(135deg, #0ea5e9, #2563eb)',
     preview: 'from-sky-500 to-sky-700',
   },
-];
+]
 
 function AdminBannersTab() {
-  const confirm = useConfirm();
-  const [editing, setEditing] = useState<Banner | null>(null);
-  const [creating, setCreating] = useState(false);
-  const token = localStorage.getItem('token');
+  const confirm = useConfirm()
+  const [editing, setEditing] = useState<Banner | null>(null)
+  const [creating, setCreating] = useState(false)
+  const token = localStorage.getItem('token')
 
   const emptyBanner: Omit<Banner, 'id' | 'order'> = {
     title: '',
@@ -1463,70 +1476,70 @@ function AdminBannersTab() {
     linkUrl: '',
     bgColor: 'from-sky-700 to-sky-700',
     isActive: true,
-  };
-  const [form, setForm] = useState({ ...emptyBanner });
+  }
+  const [form, setForm] = useState({ ...emptyBanner })
 
-  const bannersQueryClient = useQueryClient();
+  const bannersQueryClient = useQueryClient()
   const bannersQuery = useQuery<Banner[]>({
     queryKey: ['admin-banners'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/banners`, {
+      const res = await httpClient(`${API_URL}/api/banners`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return [];
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
+      })
+      if (!res.ok) return []
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     },
     staleTime: 60_000,
-  });
-  const banners = bannersQuery.data ?? [];
-  const loading = bannersQuery.isLoading;
-  const load = () => bannersQueryClient.invalidateQueries({ queryKey: ['admin-banners'] });
+  })
+  const banners = bannersQuery.data ?? []
+  const loading = bannersQuery.isLoading
+  const load = () => bannersQueryClient.invalidateQueries({ queryKey: ['admin-banners'] })
 
   const handleSave = async () => {
-    const method = editing ? 'PATCH' : 'POST';
-    const url = editing ? `${API_URL}/api/banners/${editing.id}` : `${API_URL}/api/banners`;
-    const res = await fetch(url, {
+    const method = editing ? 'PATCH' : 'POST'
+    const url = editing ? `${API_URL}/api/banners/${editing.id}` : `${API_URL}/api/banners`
+    const res = await httpClient(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify(form),
-    });
+    })
     if (res.ok) {
-      toast(editing ? '배너가 수정되었습니다' : '배너가 생성되었습니다', 'success');
-      setEditing(null);
-      setCreating(false);
-      setForm({ ...emptyBanner });
-      load();
+      toast(editing ? '배너가 수정되었습니다' : '배너가 생성되었습니다', 'success')
+      setEditing(null)
+      setCreating(false)
+      setForm({ ...emptyBanner })
+      load()
     } else {
-      toast('저장 실패', 'error');
+      toast('저장 실패', 'error')
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
     if (!(await confirm({ title: '배너를 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
-      return;
-    const res = await fetch(`${API_URL}/api/banners/${id}`, {
+      return
+    const res = await httpClient(`${API_URL}/api/banners/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
-    });
+    })
     if (res.ok) {
-      toast('삭제되었습니다', 'success');
-      load();
+      toast('삭제되었습니다', 'success')
+      load()
     }
-  };
+  }
 
   const handleToggleActive = async (b: Banner) => {
-    const res = await fetch(`${API_URL}/api/banners/${b.id}`, {
+    const res = await httpClient(`${API_URL}/api/banners/${b.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ isActive: !b.isActive }),
-    });
-    if (res.ok) load();
-  };
+    })
+    if (res.ok) load()
+  }
 
   const startEdit = (b: Banner) => {
-    setEditing(b);
-    setCreating(true);
+    setEditing(b)
+    setCreating(true)
     setForm({
       title: b.title,
       subtitle: b.subtitle || '',
@@ -1534,14 +1547,14 @@ function AdminBannersTab() {
       linkUrl: b.linkUrl || '',
       bgColor: b.bgColor,
       isActive: b.isActive,
-    });
-  };
+    })
+  }
 
   const cancelForm = () => {
-    setEditing(null);
-    setCreating(false);
-    setForm({ ...emptyBanner });
-  };
+    setEditing(null)
+    setCreating(false)
+    setForm({ ...emptyBanner })
+  }
 
   return (
     <div className="space-y-6">
@@ -1564,10 +1577,14 @@ function AdminBannersTab() {
           </h3>
           <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
+              <label
+                htmlFor="adminpage-field-3"
+                className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+              >
                 제목 *
               </label>
               <input
+                id="adminpage-field-3"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
@@ -1575,10 +1592,14 @@ function AdminBannersTab() {
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
+              <label
+                htmlFor="adminpage-field-4"
+                className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+              >
                 부제목
               </label>
               <input
+                id="adminpage-field-4"
                 value={form.subtitle}
                 onChange={(e) => setForm((f) => ({ ...f, subtitle: e.target.value }))}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
@@ -1586,10 +1607,14 @@ function AdminBannersTab() {
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
+              <label
+                htmlFor="adminpage-field-5"
+                className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+              >
                 링크 URL
               </label>
               <input
+                id="adminpage-field-5"
                 value={form.linkUrl}
                 onChange={(e) => setForm((f) => ({ ...f, linkUrl: e.target.value }))}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
@@ -1597,11 +1622,15 @@ function AdminBannersTab() {
               />
             </div>
             <div>
-              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
+              <label
+                htmlFor="admin-banner-image-url"
+                className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+              >
                 배경 이미지
               </label>
               <div className="flex gap-2 items-center">
                 <input
+                  id="admin-banner-image-url"
                   value={form.imageUrl}
                   onChange={(e) => setForm((f) => ({ ...f, imageUrl: e.target.value }))}
                   className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
@@ -1614,25 +1643,25 @@ function AdminBannersTab() {
                     accept="image/*"
                     className="hidden"
                     onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const fd = new FormData();
-                      fd.append('file', file);
-                      fd.append('upload_preset', 'resume_upload');
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      const fd = new FormData()
+                      fd.append('file', file)
+                      fd.append('upload_preset', 'resume_upload')
                       try {
                         const res = await fetch(
                           'https://api.cloudinary.com/v1_1/democloud/image/upload',
-                          { method: 'POST', body: fd },
-                        );
+                          { method: 'POST', body: fd }
+                        )
                         if (res.ok) {
-                          const data = await res.json();
-                          setForm((f) => ({ ...f, imageUrl: data.secure_url }));
-                          toast('이미지 업로드 완료', 'success');
+                          const data = await res.json()
+                          setForm((f) => ({ ...f, imageUrl: data.secure_url }))
+                          toast('이미지 업로드 완료', 'success')
                         } else {
-                          toast('업로드 실패 — URL 직접 입력을 사용해주세요', 'error');
+                          toast('업로드 실패 — URL 직접 입력을 사용해주세요', 'error')
                         }
                       } catch {
-                        toast('업로드 실패 — URL 직접 입력을 사용해주세요', 'error');
+                        toast('업로드 실패 — URL 직접 입력을 사용해주세요', 'error')
                       }
                     }}
                   />
@@ -1645,7 +1674,7 @@ function AdminBannersTab() {
                     alt="미리보기"
                     className="h-12 w-20 object-cover rounded-lg border border-slate-200 dark:border-slate-600"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
+                      ;(e.target as HTMLImageElement).style.display = 'none'
                     }}
                   />
                   <button
@@ -1659,10 +1688,17 @@ function AdminBannersTab() {
             </div>
           </div>
           <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 mb-2 block">
+            <span
+              id="admin-banner-color-label"
+              className="text-xs text-slate-500 dark:text-slate-400 mb-2 block"
+            >
               배경 색상
-            </label>
-            <div className="flex gap-2 flex-wrap">
+            </span>
+            <div
+              role="group"
+              aria-labelledby="admin-banner-color-label"
+              className="flex gap-2 flex-wrap"
+            >
               {BANNER_COLORS.map((c) => (
                 <button
                   key={c.value}
@@ -1776,35 +1812,35 @@ function AdminBannersTab() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // NEW: AdminNoticesTab
 // ═══════════════════════════════════════════════════════════
 interface Notice {
-  id: string;
-  title: string;
-  content: string;
-  type: string;
-  isPopup: boolean;
-  isPinned: boolean;
-  allowComments: boolean;
-  viewCount: number;
-  startAt?: string;
-  endAt?: string;
-  createdAt: string;
-  author?: { id: string; name: string; avatar: string };
-  _count?: { comments: number };
+  id: string
+  title: string
+  content: string
+  type: string
+  isPopup: boolean
+  isPinned: boolean
+  allowComments: boolean
+  viewCount: number
+  startAt?: string
+  endAt?: string
+  createdAt: string
+  author?: { id: string; name: string; avatar: string }
+  _count?: { comments: number }
 }
 
 interface NoticeHistoryEntry {
-  id: string;
-  reason?: string;
-  createdAt?: string;
-  prevTitle?: string;
-  prevContent?: string;
-  editor?: { name?: string };
+  id: string
+  reason?: string
+  createdAt?: string
+  prevTitle?: string
+  prevContent?: string
+  editor?: { name?: string }
 }
 
 const NOTICE_TYPE_LABELS: Record<string, string> = {
@@ -1813,26 +1849,26 @@ const NOTICE_TYPE_LABELS: Record<string, string> = {
   EVENT: '이벤트',
   UPDATE: '업데이트',
   URGENT: '긴급',
-};
+}
 const NOTICE_TYPE_COLORS: Record<string, string> = {
   GENERAL: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
   MAINTENANCE: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
   EVENT: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400',
   UPDATE: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400',
   URGENT: 'bg-blue-100 dark:bg-blue-900/30 text-rose-700 dark:text-blue-400',
-};
+}
 
 function AdminNoticesTab() {
-  const confirm = useConfirm();
-  const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState<Notice | null>(null);
-  const [historyNotice, setHistoryNotice] = useState<Notice | null>(null);
-  const [history, setHistory] = useState<NoticeHistoryEntry[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [editReason, setEditReason] = useState('');
-  const token = localStorage.getItem('token');
+  const confirm = useConfirm()
+  const [creating, setCreating] = useState(false)
+  const [editing, setEditing] = useState<Notice | null>(null)
+  const [historyNotice, setHistoryNotice] = useState<Notice | null>(null)
+  const [history, setHistory] = useState<NoticeHistoryEntry[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [editReason, setEditReason] = useState('')
+  const token = localStorage.getItem('token')
 
-  type NoticeType = 'GENERAL' | 'MAINTENANCE' | 'EVENT' | 'UPDATE' | 'URGENT';
+  type NoticeType = 'GENERAL' | 'MAINTENANCE' | 'EVENT' | 'UPDATE' | 'URGENT'
   const emptyForm = {
     title: '',
     content: '',
@@ -1840,88 +1876,88 @@ function AdminNoticesTab() {
     isPopup: false,
     isPinned: false,
     allowComments: true,
-  };
-  const [form, setForm] = useState({ ...emptyForm });
+  }
+  const [form, setForm] = useState({ ...emptyForm })
 
-  const noticesQueryClient = useQueryClient();
+  const noticesQueryClient = useQueryClient()
   const noticesQuery = useQuery<{ items: Notice[] }>({
     queryKey: ['admin-notices'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/notices?limit=100`, {
+      const res = await httpClient(`${API_URL}/api/notices?limit=100`, {
         headers: { Authorization: `Bearer ${token ?? ''}` },
-      });
-      if (!res.ok) return { items: [] };
-      return res.json();
+      })
+      if (!res.ok) return { items: [] }
+      return res.json()
     },
     staleTime: 30_000,
-  });
-  const notices = noticesQuery.data?.items ?? [];
-  const loading = noticesQuery.isLoading;
-  const load = () => noticesQueryClient.invalidateQueries({ queryKey: ['admin-notices'] });
+  })
+  const notices = noticesQuery.data?.items ?? []
+  const loading = noticesQuery.isLoading
+  const load = () => noticesQueryClient.invalidateQueries({ queryKey: ['admin-notices'] })
 
   const handleSave = async () => {
-    const method = editing ? 'PATCH' : 'POST';
-    const url = editing ? `${API_URL}/api/notices/${editing.id}` : `${API_URL}/api/notices`;
-    const body = editing ? { ...form, reason: editReason } : form;
-    const res = await fetch(url, {
+    const method = editing ? 'PATCH' : 'POST'
+    const url = editing ? `${API_URL}/api/notices/${editing.id}` : `${API_URL}/api/notices`
+    const body = editing ? { ...form, reason: editReason } : form
+    const res = await httpClient(url, {
       method,
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
       body: JSON.stringify(body),
-    });
+    })
     if (res.ok) {
-      toast(editing ? '공지가 수정되었습니다' : '공지가 등록되었습니다', 'success');
-      setEditing(null);
-      setCreating(false);
-      setForm({ ...emptyForm });
-      setEditReason('');
-      load();
+      toast(editing ? '공지가 수정되었습니다' : '공지가 등록되었습니다', 'success')
+      setEditing(null)
+      setCreating(false)
+      setForm({ ...emptyForm })
+      setEditReason('')
+      load()
     } else {
-      toast('저장 실패', 'error');
+      toast('저장 실패', 'error')
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
     if (
       !(await confirm({ title: '공지사항을 삭제하시겠습니까?', danger: true, confirmText: '삭제' }))
     )
-      return;
-    const res = await fetch(`${API_URL}/api/notices/${id}`, {
+      return
+    const res = await httpClient(`${API_URL}/api/notices/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token ?? ''}` },
-    });
+    })
     if (res.ok) {
-      toast('삭제되었습니다', 'success');
-      load();
+      toast('삭제되었습니다', 'success')
+      load()
     }
-  };
+  }
 
   const handleToggleComments = async (n: Notice) => {
-    const res = await fetch(`${API_URL}/api/notices/${n.id}/toggle-comments`, {
+    const res = await httpClient(`${API_URL}/api/notices/${n.id}/toggle-comments`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token ?? ''}` },
       body: JSON.stringify({ allow: !n.allowComments }),
-    });
+    })
     if (res.ok) {
-      toast(!n.allowComments ? '댓글을 허용했습니다' : '댓글을 비허용했습니다', 'success');
-      load();
+      toast(!n.allowComments ? '댓글을 허용했습니다' : '댓글을 비허용했습니다', 'success')
+      load()
     }
-  };
+  }
 
   const handleShowHistory = async (n: Notice) => {
-    setHistoryNotice(n);
-    setHistoryLoading(true);
-    const res = await fetch(`${API_URL}/api/notices/${n.id}/history`, {
+    setHistoryNotice(n)
+    setHistoryLoading(true)
+    const res = await httpClient(`${API_URL}/api/notices/${n.id}/history`, {
       headers: { Authorization: `Bearer ${token ?? ''}` },
-    });
-    if (res.ok) setHistory(await res.json());
-    else setHistory([]);
-    setHistoryLoading(false);
-  };
+    })
+    if (res.ok) setHistory(await res.json())
+    else setHistory([])
+    setHistoryLoading(false)
+  }
 
   const startEdit = (n: Notice) => {
-    setEditing(n);
-    setCreating(true);
-    setEditReason('');
+    setEditing(n)
+    setCreating(true)
+    setEditReason('')
     setForm({
       title: n.title,
       content: n.content,
@@ -1929,27 +1965,33 @@ function AdminNoticesTab() {
       isPopup: n.isPopup,
       isPinned: n.isPinned,
       allowComments: n.allowComments,
-    });
-  };
+    })
+  }
 
   const cancelForm = () => {
-    setEditing(null);
-    setCreating(false);
-    setForm({ ...emptyForm });
-    setEditReason('');
-  };
+    setEditing(null)
+    setCreating(false)
+    setForm({ ...emptyForm })
+    setEditReason('')
+  }
 
   return (
     <div className="space-y-6">
       {/* History modal */}
       {historyNotice && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setHistoryNotice(null)}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* 백드롭: 클릭-아웃-투-클로즈를 버튼으로 제공해 키보드로도 닫힌다. */}
+          <button
+            type="button"
+            aria-label="닫기"
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setHistoryNotice(null)}
+          />
           <div
-            className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl mx-4 p-6 max-h-[80dvh] overflow-y-auto animate-fade-in"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`수정 히스토리 — ${historyNotice.title}`}
+            className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-xl mx-4 p-6 max-h-[80dvh] overflow-y-auto animate-fade-in"
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
@@ -2018,8 +2060,14 @@ function AdminNoticesTab() {
             {editing ? '공지 수정' : '새 공지 작성'}
           </h3>
           <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">제목 *</label>
+            <label
+              htmlFor="adminpage-field-6"
+              className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+            >
+              제목 *
+            </label>
             <input
+              id="adminpage-field-6"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
@@ -2027,8 +2075,14 @@ function AdminNoticesTab() {
             />
           </div>
           <div>
-            <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">내용 *</label>
+            <label
+              htmlFor="adminpage-field-7"
+              className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+            >
+              내용 *
+            </label>
             <textarea
+              id="adminpage-field-7"
               value={form.content}
               onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
               rows={5}
@@ -2038,8 +2092,17 @@ function AdminNoticesTab() {
           </div>
           <div className="flex flex-wrap gap-4">
             <div>
-              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">유형</label>
-              <div className="flex gap-2 flex-wrap">
+              <span
+                id="admin-notice-type-label"
+                className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+              >
+                유형
+              </span>
+              <div
+                role="group"
+                aria-labelledby="admin-notice-type-label"
+                className="flex gap-2 flex-wrap"
+              >
                 {(['GENERAL', 'MAINTENANCE', 'EVENT', 'UPDATE', 'URGENT'] as const).map((t) => (
                   <button
                     key={t}
@@ -2083,10 +2146,14 @@ function AdminNoticesTab() {
           </div>
           {editing && (
             <div>
-              <label className="text-xs text-slate-500 dark:text-slate-400 mb-1 block">
+              <label
+                htmlFor="adminpage-field-8"
+                className="text-xs text-slate-500 dark:text-slate-400 mb-1 block"
+              >
                 수정 사유 (히스토리에 기록됩니다)
               </label>
               <input
+                id="adminpage-field-8"
                 value={editReason}
                 onChange={(e) => setEditReason(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-xl dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500"
@@ -2194,52 +2261,52 @@ function AdminNoticesTab() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // Community Moderation Tab
 // ═══════════════════════════════════════════════════════════
 function AdminCommunityTab() {
-  const confirm = useConfirm();
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('all');
-  const [page, setPage] = useState(1);
-  const [showHidden, setShowHidden] = useState(false);
-  const [actionId, setActionId] = useState<string | null>(null);
-  const token = localStorage.getItem('token');
+  const confirm = useConfirm()
+  const [search, setSearch] = useState('')
+  const [category, setCategory] = useState('all')
+  const [page, setPage] = useState(1)
+  const [showHidden, setShowHidden] = useState(false)
+  const [actionId, setActionId] = useState<string | null>(null)
+  const token = localStorage.getItem('token')
 
   interface AdminCommunityPost {
-    id: string;
-    title: string;
-    category: string;
-    isHidden?: boolean;
-    isPinned?: boolean;
-    user?: { name?: string };
-    viewCount?: number;
-    likeCount?: number;
-    _count?: { comments?: number };
+    id: string
+    title: string
+    category: string
+    isHidden?: boolean
+    isPinned?: boolean
+    user?: { name?: string }
+    viewCount?: number
+    likeCount?: number
+    _count?: { comments?: number }
   }
 
   const communityQuery = useQuery<{ items: AdminCommunityPost[]; total: number }>({
     queryKey: ['admin-community', { category, page, showHidden, search }],
     queryFn: async () => {
-      const params = new URLSearchParams({ page: String(page), limit: '20' });
-      if (category !== 'all') params.set('category', category);
-      if (search) params.set('search', search);
-      if (showHidden) params.set('showHidden', 'true');
-      const r = await fetch(`${API_URL}/api/community?${params}`, {
+      const params = new URLSearchParams({ page: String(page), limit: '20' })
+      if (category !== 'all') params.set('category', category)
+      if (search) params.set('search', search)
+      if (showHidden) params.set('showHidden', 'true')
+      const r = await httpClient(`${API_URL}/api/community?${params}`, {
         headers: { Authorization: `Bearer ${token ?? ''}` },
-      });
-      if (!r.ok) return { items: [], total: 0 };
-      return r.json();
+      })
+      if (!r.ok) return { items: [], total: 0 }
+      return r.json()
     },
     staleTime: 30_000,
-  });
-  const posts = communityQuery.data?.items ?? [];
-  const total: number = communityQuery.data?.total ?? 0;
-  const loading = communityQuery.isLoading;
-  const fetchPosts = () => communityQuery.refetch();
+  })
+  const posts = communityQuery.data?.items ?? []
+  const total: number = communityQuery.data?.total ?? 0
+  const loading = communityQuery.isLoading
+  const fetchPosts = () => communityQuery.refetch()
 
   const deletePost = async (id: string) => {
     if (
@@ -2250,32 +2317,32 @@ function AdminCommunityTab() {
         confirmText: '삭제',
       }))
     )
-      return;
-    setActionId(id);
-    const r = await fetch(`${API_URL}/api/community/${id}`, {
+      return
+    setActionId(id)
+    const r = await httpClient(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token ?? ''}` },
-    });
+    })
     if (r.ok) {
-      fetchPosts();
+      fetchPosts()
     }
-    setActionId(null);
-  };
+    setActionId(null)
+  }
 
   const patchPost = async (id: string, data: Record<string, unknown>) => {
-    setActionId(id);
-    const r = await fetch(`${API_URL}/api/community/${id}`, {
+    setActionId(id)
+    const r = await httpClient(`${API_URL}/api/community/${id}`, {
       method: 'PATCH',
       headers: { Authorization: `Bearer ${token ?? ''}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
-    });
+    })
     if (r.ok) {
-      fetchPosts();
+      fetchPosts()
     }
-    setActionId(null);
-  };
+    setActionId(null)
+  }
 
-  const CATS = ['all', 'free', 'tips', 'resume', 'cover-letter', 'question'];
+  const CATS = ['all', 'free', 'tips', 'resume', 'cover-letter', 'question']
   const CAT_LABELS: Record<string, string> = {
     all: '전체',
     free: '자유',
@@ -2283,16 +2350,16 @@ function AdminCommunityTab() {
     resume: '이력서피드백',
     'cover-letter': '자소서',
     question: '질문',
-  };
+  }
   const CAT_COLORS: Record<string, string> = {
     free: 'bg-slate-100 text-slate-600',
     tips: 'bg-yellow-100 text-yellow-700',
     resume: 'bg-blue-100 text-blue-700',
     'cover-letter': 'bg-sky-100 text-sky-700',
     question: 'bg-green-100 text-green-700',
-  };
+  }
 
-  const hiddenCount = posts.filter((p) => p.isHidden).length;
+  const hiddenCount = posts.filter((p) => p.isHidden).length
 
   return (
     <div className="space-y-5 animate-fade-in-up">
@@ -2358,8 +2425,8 @@ function AdminCommunityTab() {
           <button
             key={cat}
             onClick={() => {
-              setCategory(cat);
-              setPage(1);
+              setCategory(cat)
+              setPage(1)
             }}
             className={`px-3 py-1 text-xs rounded-lg transition-colors ${category === cat ? 'bg-sky-700 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
           >
@@ -2506,7 +2573,7 @@ function AdminCommunityTab() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2538,54 +2605,54 @@ const FEATURE_LABELS: Array<{ key: string; label: string; hint: string; group: s
   { key: 'community.create', label: '커뮤니티 작성', hint: '신규 게시물', group: '커뮤니티' },
   { key: 'community.comment', label: '커뮤니티 댓글', hint: '댓글 작성', group: '커뮤니티' },
   { key: 'publicResume', label: '공개 이력서', hint: '이력서 public visibility', group: '기타' },
-];
+]
 
 function FeatureTogglesSection() {
-  const queryClient = useQueryClient();
-  const token = localStorage.getItem('token');
+  const queryClient = useQueryClient()
+  const token = localStorage.getItem('token')
   const { data, isLoading } = useQuery<Record<string, boolean>>({
     queryKey: ['admin-feature-toggles'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`);
-      if (!res.ok) return {};
-      return res.json();
+      const res = await httpClient(`${API_URL}/api/system-config/feature-toggles`)
+      if (!res.ok) return {}
+      return res.json()
     },
     staleTime: 60_000,
-  });
-  const [toggleDraft, setToggleDraft] = useState<Record<string, boolean> | null>(null);
-  const toggles = toggleDraft ?? data ?? {};
-  const [saving, setSaving] = useState(false);
+  })
+  const [toggleDraft, setToggleDraft] = useState<Record<string, boolean> | null>(null)
+  const toggles = toggleDraft ?? data ?? {}
+  const [saving, setSaving] = useState(false)
 
   const flip = (key: string) =>
     setToggleDraft((current) => {
-      const base = current ?? data ?? {};
-      return { ...base, [key]: !base[key] };
-    });
+      const base = current ?? data ?? {}
+      return { ...base, [key]: !base[key] }
+    })
 
   const save = async () => {
-    setSaving(true);
+    setSaving(true)
     try {
-      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`, {
+      const res = await httpClient(`${API_URL}/api/system-config/feature-toggles`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(toggles),
-      });
-      if (!res.ok) throw new Error();
-      toast('기능 토글 설정이 저장되었습니다', 'success');
-      setToggleDraft(null);
-      queryClient.invalidateQueries({ queryKey: ['admin-feature-toggles'] });
-      queryClient.invalidateQueries({ queryKey: ['feature-toggles'] });
+      })
+      if (!res.ok) throw new Error()
+      toast('기능 토글 설정이 저장되었습니다', 'success')
+      setToggleDraft(null)
+      queryClient.invalidateQueries({ queryKey: ['admin-feature-toggles'] })
+      queryClient.invalidateQueries({ queryKey: ['feature-toggles'] })
     } catch {
-      toast('저장에 실패했습니다', 'error');
+      toast('저장에 실패했습니다', 'error')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   // group by category
-  const grouped: Record<string, typeof FEATURE_LABELS> = {};
-  for (const f of FEATURE_LABELS) (grouped[f.group] ||= []).push(f);
-  const disabledCount = FEATURE_LABELS.filter((f) => toggles[f.key] === false).length;
+  const grouped: Record<string, typeof FEATURE_LABELS> = {}
+  for (const f of FEATURE_LABELS) (grouped[f.group] ||= []).push(f)
+  const disabledCount = FEATURE_LABELS.filter((f) => toggles[f.key] === false).length
 
   return (
     <section>
@@ -2610,11 +2677,11 @@ function FeatureTogglesSection() {
             </div>
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2">
               {items.map((f) => {
-                const on = toggles[f.key] !== false;
+                const on = toggles[f.key] !== false
                 return (
-                  <label
+                  <div
                     key={f.key}
-                    className="flex items-start justify-between gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors"
+                    className="flex items-start justify-between gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -2627,10 +2694,12 @@ function FeatureTogglesSection() {
                     <button
                       type="button"
                       onClick={(e) => {
-                        e.preventDefault();
-                        flip(f.key);
+                        e.preventDefault()
+                        flip(f.key)
                       }}
                       disabled={isLoading}
+                      role="switch"
+                      aria-checked={on}
                       className={`shrink-0 w-10 h-6 rounded-full transition-colors disabled:opacity-50 ${
                         on ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
                       }`}
@@ -2640,8 +2709,8 @@ function FeatureTogglesSection() {
                         className={`block w-4 h-4 bg-white rounded-full transition-transform shadow ${on ? 'translate-x-5' : 'translate-x-1'}`}
                       />
                     </button>
-                  </label>
-                );
+                  </div>
+                )
               })}
             </div>
           </div>
@@ -2658,65 +2727,65 @@ function FeatureTogglesSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // 4a. Upload Settings — 파일 업로드 전역 토글 + 크기/MIME 제한
 // ═══════════════════════════════════════════════════════════
 function UploadSettingsSection() {
-  const queryClient = useQueryClient();
-  const token = localStorage.getItem('token');
+  const queryClient = useQueryClient()
+  const token = localStorage.getItem('token')
   type UploadSettings = {
-    enabled: boolean;
-    maxSizeMb: number;
-    allowedMime: string;
-  };
+    enabled: boolean
+    maxSizeMb: number
+    allowedMime: string
+  }
   const defaultUploadSettings: UploadSettings = {
     enabled: true,
     maxSizeMb: 10,
     allowedMime: 'image/*,application/pdf,application/zip',
-  };
+  }
   const { data, isLoading } = useQuery<UploadSettings>({
     queryKey: ['admin-upload-settings'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/upload-settings`);
-      if (!res.ok) return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' };
-      return res.json();
+      const res = await httpClient(`${API_URL}/api/system-config/upload-settings`)
+      if (!res.ok) return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' }
+      return res.json()
     },
     staleTime: 60_000,
-  });
-  const uploadSettings = data ?? defaultUploadSettings;
-  const [uploadDraft, setUploadDraft] = useState<Partial<UploadSettings>>({});
-  const enabled = uploadDraft.enabled ?? uploadSettings.enabled;
-  const maxSizeMb = uploadDraft.maxSizeMb ?? uploadSettings.maxSizeMb;
-  const mime = uploadDraft.allowedMime ?? uploadSettings.allowedMime;
-  const [saving, setSaving] = useState(false);
+  })
+  const uploadSettings = data ?? defaultUploadSettings
+  const [uploadDraft, setUploadDraft] = useState<Partial<UploadSettings>>({})
+  const enabled = uploadDraft.enabled ?? uploadSettings.enabled
+  const maxSizeMb = uploadDraft.maxSizeMb ?? uploadSettings.maxSizeMb
+  const mime = uploadDraft.allowedMime ?? uploadSettings.allowedMime
+  const [saving, setSaving] = useState(false)
 
   const save = async () => {
-    setSaving(true);
+    setSaving(true)
     try {
       const configs = [
         { key: 'feature.fileUpload.enabled', value: String(enabled) },
         { key: 'feature.fileUpload.maxSizeMb', value: String(maxSizeMb) },
         { key: 'feature.fileUpload.allowedMime', value: mime },
-      ];
-      const res = await fetch(`${API_URL}/api/system-config`, {
+      ]
+      const res = await httpClient(`${API_URL}/api/system-config`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ configs }),
-      });
-      if (!res.ok) throw new Error();
-      toast('파일 업로드 설정이 저장되었습니다', 'success');
-      setUploadDraft({});
-      queryClient.invalidateQueries({ queryKey: ['admin-upload-settings'] });
-      queryClient.invalidateQueries({ queryKey: ['upload-settings'] });
+      })
+      if (!res.ok) throw new Error()
+      toast('파일 업로드 설정이 저장되었습니다', 'success')
+      setUploadDraft({})
+      queryClient.invalidateQueries({ queryKey: ['admin-upload-settings'] })
+      queryClient.invalidateQueries({ queryKey: ['upload-settings'] })
     } catch {
-      toast('저장에 실패했습니다', 'error');
+      toast('저장에 실패했습니다', 'error')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   return (
     <section>
@@ -2796,80 +2865,80 @@ function UploadSettingsSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // 4. System Settings (superadmin only)
 // ═══════════════════════════════════════════════════════════
 function SystemSettings() {
-  const [localMaintenance] = useState(() => localStorage.getItem('admin-maintenance') === 'true');
-  const [maintenanceOverride, setMaintenanceOverride] = useState<boolean | null>(null);
-  const [monetizationOverride, setMonetizationOverride] = useState<boolean | null>(null);
-  const token = localStorage.getItem('token');
+  const [localMaintenance] = useState(() => localStorage.getItem('admin-maintenance') === 'true')
+  const [maintenanceOverride, setMaintenanceOverride] = useState<boolean | null>(null)
+  const [monetizationOverride, setMonetizationOverride] = useState<boolean | null>(null)
+  const token = localStorage.getItem('token')
 
-  type SystemConfigPublic = Record<string, string | boolean | number | null | undefined>;
+  type SystemConfigPublic = Record<string, string | boolean | number | null | undefined>
   const sysConfigQuery = useQuery<SystemConfigPublic | null>({
     queryKey: ['admin-system-config-public'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/public`);
-      if (!res.ok) return null;
-      return res.json();
+      const res = await httpClient(`${API_URL}/api/system-config/public`)
+      if (!res.ok) return null
+      return res.json()
     },
     staleTime: 60_000,
-  });
+  })
   const remoteMaintenance =
     sysConfigQuery.data?.maintenance_mode === 'true' ||
-    sysConfigQuery.data?.maintenance_mode === true;
+    sysConfigQuery.data?.maintenance_mode === true
   const remoteMonetization =
     sysConfigQuery.data?.monetization_enabled === 'true' ||
-    sysConfigQuery.data?.monetization_enabled === true;
-  const maintenance = maintenanceOverride ?? (remoteMaintenance || localMaintenance);
-  const monetization = monetizationOverride ?? remoteMonetization;
-  const sysConfigLoaded = !sysConfigQuery.isLoading;
+    sysConfigQuery.data?.monetization_enabled === true
+  const maintenance = maintenanceOverride ?? (remoteMaintenance || localMaintenance)
+  const monetization = monetizationOverride ?? remoteMonetization
+  const sysConfigLoaded = !sysConfigQuery.isLoading
 
   const toggleSysConfig = async (key: string, value: boolean) => {
     try {
-      await fetch(`${API_URL}/api/system-config`, {
+      await httpClient(`${API_URL}/api/system-config`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ [key]: String(value) }),
-      });
-      toast(`설정이 저장되었습니다`, 'success');
+      })
+      toast(`설정이 저장되었습니다`, 'success')
     } catch {
-      toast('저장 실패 — 설정이 로컬에만 반영됩니다', 'error');
+      toast('저장 실패 — 설정이 로컬에만 반영됩니다', 'error')
     }
-  };
+  }
 
   const [announcement, setAnnouncement] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').message || '';
+      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').message || ''
     } catch {
-      return '';
+      return ''
     }
-  });
+  })
   const [bannerType, setBannerType] = useState<'info' | 'warning' | 'success' | 'promo'>(() => {
     try {
-      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').type || 'info';
+      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').type || 'info'
     } catch {
-      return 'info';
+      return 'info'
     }
-  });
+  })
   const [bannerLink, setBannerLink] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').link || '';
+      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').link || ''
     } catch {
-      return '';
+      return ''
     }
-  });
+  })
   const [bannerLinkText, setBannerLinkText] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').linkText || '';
+      return JSON.parse(localStorage.getItem('admin-announcement') || '{}').linkText || ''
     } catch {
-      return '';
+      return ''
     }
-  });
-  const [saved, setSaved] = useState(true);
+  })
+  const [saved, setSaved] = useState(true)
 
   const rateLimits = [
     { endpoint: '/api/resumes', limit: '100 req/min', status: 'active' },
@@ -2877,10 +2946,10 @@ function SystemSettings() {
     { endpoint: '/api/auth/*', limit: '20 req/min', status: 'active' },
     { endpoint: '/api/attachments', limit: '30 req/min', status: 'active' },
     { endpoint: '/api/share', limit: '50 req/min', status: 'active' },
-  ];
+  ]
 
   const handleSave = async () => {
-    localStorage.setItem('admin-maintenance', String(maintenance));
+    localStorage.setItem('admin-maintenance', String(maintenance))
     const bannerData = announcement
       ? JSON.stringify({
           id: Date.now().toString(),
@@ -2889,24 +2958,24 @@ function SystemSettings() {
           link: bannerLink || undefined,
           linkText: bannerLinkText || undefined,
         })
-      : '';
-    localStorage.setItem('admin-announcement', bannerData);
+      : ''
+    localStorage.setItem('admin-announcement', bannerData)
 
     // Try to persist to backend
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     try {
-      await fetch(`${API_URL}/api/health/admin/settings`, {
+      await httpClient(`${API_URL}/api/health/admin/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ maintenance, announcement }),
-      });
+      })
     } catch {
       // Backend might not support this yet, local storage is fallback
     }
 
-    setSaved(true);
-    toast('시스템 설정이 저장되었습니다', 'success');
-  };
+    setSaved(true)
+    toast('시스템 설정이 저장되었습니다', 'success')
+  }
 
   return (
     <div className="space-y-6">
@@ -2928,10 +2997,10 @@ function SystemSettings() {
             </div>
             <button
               onClick={() => {
-                const next = !maintenance;
-                setMaintenanceOverride(next);
-                setSaved(false);
-                toggleSysConfig('maintenance_mode', next);
+                const next = !maintenance
+                setMaintenanceOverride(next)
+                setSaved(false)
+                toggleSysConfig('maintenance_mode', next)
               }}
               className={`w-12 h-7 rounded-full transition-colors ${maintenance ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-600'}`}
             >
@@ -2973,9 +3042,9 @@ function SystemSettings() {
             </div>
             <button
               onClick={() => {
-                const next = !monetization;
-                setMonetizationOverride(next);
-                toggleSysConfig('monetization_enabled', next);
+                const next = !monetization
+                setMonetizationOverride(next)
+                toggleSysConfig('monetization_enabled', next)
               }}
               disabled={!sysConfigLoaded}
               className={`w-12 h-7 rounded-full transition-colors disabled:opacity-50 ${monetization ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}
@@ -3016,8 +3085,8 @@ function SystemSettings() {
               <button
                 key={t}
                 onClick={() => {
-                  setBannerType(t);
-                  setSaved(false);
+                  setBannerType(t)
+                  setSaved(false)
                 }}
                 className={`px-2.5 py-1 text-xs rounded-lg transition-colors ${
                   bannerType === t
@@ -3037,8 +3106,8 @@ function SystemSettings() {
           <textarea
             value={announcement}
             onChange={(e) => {
-              setAnnouncement(e.target.value);
-              setSaved(false);
+              setAnnouncement(e.target.value)
+              setSaved(false)
             }}
             placeholder="예: 4월 5일 02:00~06:00 서버 점검이 예정되어 있습니다."
             rows={2}
@@ -3048,8 +3117,8 @@ function SystemSettings() {
             <input
               value={bannerLink}
               onChange={(e) => {
-                setBannerLink(e.target.value);
-                setSaved(false);
+                setBannerLink(e.target.value)
+                setSaved(false)
               }}
               placeholder="링크 URL (선택)"
               className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
@@ -3057,8 +3126,8 @@ function SystemSettings() {
             <input
               value={bannerLinkText}
               onChange={(e) => {
-                setBannerLinkText(e.target.value);
-                setSaved(false);
+                setBannerLinkText(e.target.value)
+                setSaved(false)
               }}
               placeholder="링크 텍스트 (선택)"
               className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
@@ -3142,41 +3211,41 @@ function SystemSettings() {
         {saved ? '저장됨' : '설정 저장'}
       </button>
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // Existing: RecentResumes
 // ═══════════════════════════════════════════════════════════
 function RecentResumes() {
-  const confirm = useConfirm();
-  const recentResumesQueryClient = useQueryClient();
+  const confirm = useConfirm()
+  const recentResumesQueryClient = useQueryClient()
   interface AdminRecentResume {
-    id: string;
-    title?: string;
-    personalInfo?: { name?: string };
+    id: string
+    title?: string
+    personalInfo?: { name?: string }
   }
 
   const recentResumesQuery = useQuery<{ data: AdminRecentResume[] }>({
     queryKey: ['admin-recent-resumes'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/public?limit=50`);
-      if (!res.ok) return { data: [] };
-      return res.json();
+      const res = await httpClient(`${API_URL}/api/resumes/public?limit=50`)
+      if (!res.ok) return { data: [] }
+      return res.json()
     },
     staleTime: 60_000,
-  });
-  const [page, setPage] = useState(1);
-  const perPage = 10;
-  const resumes = recentResumesQuery.data?.data ?? [];
-  const loading = recentResumesQuery.isLoading;
+  })
+  const [page, setPage] = useState(1)
+  const perPage = 10
+  const resumes = recentResumesQuery.data?.data ?? []
+  const loading = recentResumesQuery.isLoading
 
   const removeResumeFromCache = (id: string) => {
     recentResumesQueryClient.setQueryData<{ data: AdminRecentResume[] }>(
       ['admin-recent-resumes'],
-      (prev) => ({ data: (prev?.data ?? []).filter((r) => r.id !== id) }),
-    );
-  };
+      (prev) => ({ data: (prev?.data ?? []).filter((r) => r.id !== id) })
+    )
+  }
 
   const handleHide = async (id: string) => {
     if (
@@ -3186,18 +3255,18 @@ function RecentResumes() {
         confirmText: '변경',
       }))
     )
-      return;
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/api/resumes/${id}/visibility`, {
+      return
+    const token = localStorage.getItem('token')
+    const res = await httpClient(`${API_URL}/api/resumes/${id}/visibility`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ visibility: 'private' }),
-    });
+    })
     if (res.ok) {
-      toast('비공개로 변경되었습니다', 'success');
-      removeResumeFromCache(id);
+      toast('비공개로 변경되었습니다', 'success')
+      removeResumeFromCache(id)
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
     if (
@@ -3208,24 +3277,24 @@ function RecentResumes() {
         confirmText: '삭제',
       }))
     )
-      return;
-    const token = localStorage.getItem('token');
-    const res = await fetch(`${API_URL}/api/resumes/${id}`, {
+      return
+    const token = localStorage.getItem('token')
+    const res = await httpClient(`${API_URL}/api/resumes/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
-    });
+    })
     if (res.ok) {
-      toast('이력서가 삭제되었습니다', 'success');
-      removeResumeFromCache(id);
+      toast('이력서가 삭제되었습니다', 'success')
+      removeResumeFromCache(id)
     }
-  };
+  }
 
-  if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>;
+  if (loading) return <p className="text-sm text-slate-400 py-4 text-center">불러오는 중...</p>
   if (resumes.length === 0)
-    return <p className="text-sm text-slate-400 py-4 text-center">공개 이력서가 없습니다</p>;
+    return <p className="text-sm text-slate-400 py-4 text-center">공개 이력서가 없습니다</p>
 
-  const totalPages = Math.ceil(resumes.length / perPage);
-  const paginated = resumes.slice((page - 1) * perPage, page * perPage);
+  const totalPages = Math.ceil(resumes.length / perPage)
+  const paginated = resumes.slice((page - 1) * perPage, page * perPage)
 
   return (
     <div>
@@ -3287,47 +3356,47 @@ function RecentResumes() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // Existing: PlanConfig
 // ═══════════════════════════════════════════════════════════
 function PlanConfig() {
-  const [plans, setPlans] = useState(PLANS.map((p) => ({ ...p })));
-  const [saved, setSaved] = useState(false);
-  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
+  const [plans, setPlans] = useState(PLANS.map((p) => ({ ...p })))
+  const [saved, setSaved] = useState(false)
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null)
 
   const updateFeature = <T extends EditablePlanFeatureKey>(
     planIdx: number,
     feature: T,
-    value: PlanConfig['features'][T],
+    value: PlanConfig['features'][T]
   ) => {
     setPlans((prev) => {
-      const updated = [...prev];
+      const updated = [...prev]
       updated[planIdx] = {
         ...updated[planIdx],
         features: { ...updated[planIdx].features, [feature]: value },
-      };
-      return updated;
-    });
-    setSaved(false);
-  };
+      }
+      return updated
+    })
+    setSaved(false)
+  }
 
   const updatePrice = (planIdx: number, price: number) => {
     setPlans((prev) => {
-      const updated = [...prev];
-      updated[planIdx] = { ...updated[planIdx], price };
-      return updated;
-    });
-    setSaved(false);
-  };
+      const updated = [...prev]
+      updated[planIdx] = { ...updated[planIdx], price }
+      return updated
+    })
+    setSaved(false)
+  }
 
   const handleSave = () => {
-    localStorage.setItem('admin-plan-config', JSON.stringify(plans));
-    setSaved(true);
-    toast('요금제 설정이 저장되었습니다', 'success');
-  };
+    localStorage.setItem('admin-plan-config', JSON.stringify(plans))
+    setSaved(true)
+    toast('요금제 설정이 저장되었습니다', 'success')
+  }
 
   return (
     <div className="space-y-4">
@@ -3420,27 +3489,27 @@ function PlanConfig() {
       </button>
       <p className="text-xs text-slate-500 dark:text-slate-400">-1 = 무제한, 0 = 사용 불가</p>
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // ResumeReportsQueue — 공개 이력서 신고 관리
 // ═══════════════════════════════════════════════════════════
 interface ResumeReportItem {
-  id: string;
-  reason: string;
-  detail: string;
-  createdAt: string;
-  resume: { id: string; title: string; reportCount: number; autoHidden: boolean };
-  reporter: { id: string; name: string; email: string };
+  id: string
+  reason: string
+  detail: string
+  createdAt: string
+  resume: { id: string; title: string; reportCount: number; autoHidden: boolean }
+  reporter: { id: string; name: string; email: string }
 }
 interface AutoHiddenResume {
-  id: string;
-  title: string;
-  reportCount: number;
-  visibility: string;
-  userId: string | null;
-  updatedAt: string;
+  id: string
+  title: string
+  reportCount: number
+  visibility: string
+  userId: string | null
+  updatedAt: string
 }
 const REPORT_REASON_LABEL: Record<string, string> = {
   spam: '스팸',
@@ -3448,33 +3517,33 @@ const REPORT_REASON_LABEL: Record<string, string> = {
   fake: '허위',
   copyright: '저작권',
   other: '기타',
-};
+}
 function ResumeReportsQueue() {
-  const confirm = useConfirm();
-  const queryClient = useQueryClient();
-  const token = localStorage.getItem('token');
+  const confirm = useConfirm()
+  const queryClient = useQueryClient()
+  const token = localStorage.getItem('token')
   const reportsQuery = useQuery<{ items: ResumeReportItem[]; total: number }>({
     queryKey: ['admin-resume-reports'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/admin/reports?limit=50`, {
+      const res = await httpClient(`${API_URL}/api/resumes/admin/reports?limit=50`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return { items: [], total: 0 };
-      return res.json();
+      })
+      if (!res.ok) return { items: [], total: 0 }
+      return res.json()
     },
     staleTime: 30_000,
-  });
+  })
   const hiddenQuery = useQuery<AutoHiddenResume[]>({
     queryKey: ['admin-auto-hidden'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/admin/auto-hidden`, {
+      const res = await httpClient(`${API_URL}/api/resumes/admin/auto-hidden`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return [];
-      return res.json();
+      })
+      if (!res.ok) return []
+      return res.json()
     },
     staleTime: 30_000,
-  });
+  })
 
   const unhide = async (id: string) => {
     if (
@@ -3484,19 +3553,19 @@ function ResumeReportsQueue() {
         confirmText: '해제',
       }))
     )
-      return;
-    const res = await fetch(`${API_URL}/api/resumes/admin/${id}/unhide`, {
+      return
+    const res = await httpClient(`${API_URL}/api/resumes/admin/${id}/unhide`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
-    });
+    })
     if (res.ok) {
-      toast('자동숨김 해제 완료', 'success');
-      queryClient.invalidateQueries({ queryKey: ['admin-auto-hidden'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-resume-reports'] });
+      toast('자동숨김 해제 완료', 'success')
+      queryClient.invalidateQueries({ queryKey: ['admin-auto-hidden'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-resume-reports'] })
     } else {
-      toast('해제 실패', 'error');
+      toast('해제 실패', 'error')
     }
-  };
+  }
 
   const dismissReport = async (reportId: string) => {
     if (
@@ -3507,22 +3576,22 @@ function ResumeReportsQueue() {
         confirmText: '기각',
       }))
     )
-      return;
-    const res = await fetch(`${API_URL}/api/resumes/admin/reports/${reportId}`, {
+      return
+    const res = await httpClient(`${API_URL}/api/resumes/admin/reports/${reportId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
-    });
+    })
     if (res.ok) {
-      toast('신고 기각 완료', 'success');
-      queryClient.invalidateQueries({ queryKey: ['admin-resume-reports'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-auto-hidden'] });
+      toast('신고 기각 완료', 'success')
+      queryClient.invalidateQueries({ queryKey: ['admin-resume-reports'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-auto-hidden'] })
     } else {
-      toast('기각 실패', 'error');
+      toast('기각 실패', 'error')
     }
-  };
+  }
 
-  const reports = reportsQuery.data?.items ?? [];
-  const hidden = hiddenQuery.data ?? [];
+  const reports = reportsQuery.data?.items ?? []
+  const hidden = hiddenQuery.data ?? []
 
   return (
     <div className="space-y-4">
@@ -3611,41 +3680,41 @@ function ResumeReportsQueue() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
 // CommunityPostReportsQueue — 커뮤니티 게시물 신고 관리
 // ═══════════════════════════════════════════════════════════
 interface CommunityReportItem {
-  id: string;
-  reason: string;
-  detail: string;
-  createdAt: string;
+  id: string
+  reason: string
+  detail: string
+  createdAt: string
   post: {
-    id: string;
-    title: string;
-    reportCount: number;
-    autoHidden: boolean;
-    category: string;
-  };
-  reporter: { id: string; name: string; email: string };
+    id: string
+    title: string
+    reportCount: number
+    autoHidden: boolean
+    category: string
+  }
+  reporter: { id: string; name: string; email: string }
 }
 function CommunityPostReportsQueue() {
-  const confirm = useConfirm();
-  const queryClient = useQueryClient();
-  const token = localStorage.getItem('token');
+  const confirm = useConfirm()
+  const queryClient = useQueryClient()
+  const token = localStorage.getItem('token')
   const { data } = useQuery<{ items: CommunityReportItem[]; total: number }>({
     queryKey: ['admin-community-reports'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/community/admin/reports?limit=50`, {
+      const res = await httpClient(`${API_URL}/api/community/admin/reports?limit=50`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) return { items: [], total: 0 };
-      return res.json();
+      })
+      if (!res.ok) return { items: [], total: 0 }
+      return res.json()
     },
     staleTime: 30_000,
-  });
+  })
   const unhide = async (id: string) => {
     if (
       !(await confirm({
@@ -3654,23 +3723,23 @@ function CommunityPostReportsQueue() {
         confirmText: '해제',
       }))
     )
-      return;
-    const res = await fetch(`${API_URL}/api/community/admin/${id}/unhide`, {
+      return
+    const res = await httpClient(`${API_URL}/api/community/admin/${id}/unhide`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
-    });
+    })
     if (res.ok) {
-      toast('자동숨김 해제 완료', 'success');
-      queryClient.invalidateQueries({ queryKey: ['admin-community-reports'] });
+      toast('자동숨김 해제 완료', 'success')
+      queryClient.invalidateQueries({ queryKey: ['admin-community-reports'] })
     } else {
-      toast('해제 실패', 'error');
+      toast('해제 실패', 'error')
     }
-  };
-  const reports = data?.items ?? [];
+  }
+  const reports = data?.items ?? []
   // 자동숨김된 게시물만 상단 요약
   const hidden = Array.from(
-    new Map(reports.filter((r) => r.post.autoHidden).map((r) => [r.post.id, r.post])).values(),
-  );
+    new Map(reports.filter((r) => r.post.autoHidden).map((r) => [r.post.id, r.post])).values()
+  )
 
   return (
     <div className="space-y-4">
@@ -3749,7 +3818,7 @@ function CommunityPostReportsQueue() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3782,30 +3851,30 @@ function ContentModeration() {
         </p>
       </div>
     </div>
-  );
+  )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminExtLinksTab — 외부 채용 링크 관리
 // ─────────────────────────────────────────────────────────────────────────────
 interface ExtLink {
-  id: string;
-  name: string;
-  url: string;
-  logoEmoji: string;
-  badgeText: string;
-  description: string;
-  gradientFrom: string;
-  gradientTo: string;
-  category: string;
-  companySize: string;
-  careerLevel: string;
-  location: string;
-  jobCategory: string;
-  jobTypes: string;
-  isActive: boolean;
-  order: number;
-  clickCount: number;
+  id: string
+  name: string
+  url: string
+  logoEmoji: string
+  badgeText: string
+  description: string
+  gradientFrom: string
+  gradientTo: string
+  category: string
+  companySize: string
+  careerLevel: string
+  location: string
+  jobCategory: string
+  jobTypes: string
+  isActive: boolean
+  order: number
+  clickCount: number
 }
 
 const EXT_COMPANY_SIZES = [
@@ -3816,13 +3885,13 @@ const EXT_COMPANY_SIZES = [
   { key: 'medium', label: '중소기업' },
   { key: 'startup', label: '스타트업' },
   { key: 'small', label: '소규모' },
-];
+]
 const EXT_CAREER_LEVELS = [
   { key: 'all', label: '전 경력' },
   { key: 'junior', label: '신입' },
   { key: 'mid', label: '경력' },
   { key: 'senior', label: '시니어' },
-];
+]
 const EXT_JOB_CATEGORIES = [
   { key: 'all', label: '전 직종' },
   { key: 'it', label: 'IT/개발' },
@@ -3838,7 +3907,7 @@ const EXT_JOB_CATEGORIES = [
   { key: 'legal', label: '법무' },
   { key: 'service', label: '서비스' },
   { key: 'research', label: '연구' },
-];
+]
 const EXT_LOCATIONS = [
   { key: 'all', label: '전국' },
   { key: 'seoul', label: '서울' },
@@ -3848,71 +3917,71 @@ const EXT_LOCATIONS = [
   { key: 'remote', label: '재택' },
   { key: 'nationwide', label: '전국가능' },
   { key: 'global', label: '글로벌' },
-];
+]
 function AdminExtLinksTab() {
-  const confirm = useConfirm();
-  const [editing, setEditing] = useState<Partial<ExtLink> | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+  const confirm = useConfirm()
+  const [editing, setEditing] = useState<Partial<ExtLink> | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all')
 
-  const token = localStorage.getItem('token');
-  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+  const token = localStorage.getItem('token')
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
 
-  const extLinksQueryClient = useQueryClient();
+  const extLinksQueryClient = useQueryClient()
   const extLinksQuery = useQuery<ExtLink[]>({
     queryKey: ['admin-ext-links'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/jobs/external-links/list`);
-      if (!res.ok) return [];
-      const data = await res.json();
-      return Array.isArray(data) ? data : [];
+      const res = await httpClient(`${API_URL}/api/jobs/external-links/list`)
+      if (!res.ok) return []
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
     },
     staleTime: 30_000,
-  });
-  const links = extLinksQuery.data ?? [];
-  const loading = extLinksQuery.isLoading;
-  const load = () => extLinksQueryClient.invalidateQueries({ queryKey: ['admin-ext-links'] });
+  })
+  const links = extLinksQuery.data ?? []
+  const loading = extLinksQuery.isLoading
+  const load = () => extLinksQueryClient.invalidateQueries({ queryKey: ['admin-ext-links'] })
 
   const handleSave = async () => {
-    if (!editing) return;
-    setSaving(true);
+    if (!editing) return
+    setSaving(true)
     try {
-      const method = editing.id ? 'PUT' : 'POST';
+      const method = editing.id ? 'PUT' : 'POST'
       const url = editing.id
         ? `${API_URL}/api/jobs/external-links/${editing.id}`
-        : `${API_URL}/api/jobs/external-links`;
-      const res = await fetch(url, { method, headers, body: JSON.stringify(editing) });
-      if (!res.ok) throw new Error();
-      toast(editing.id ? '수정되었습니다' : '등록되었습니다', 'success');
-      setEditing(null);
-      load();
+        : `${API_URL}/api/jobs/external-links`
+      const res = await httpClient(url, { method, headers, body: JSON.stringify(editing) })
+      if (!res.ok) throw new Error()
+      toast(editing.id ? '수정되었습니다' : '등록되었습니다', 'success')
+      setEditing(null)
+      load()
     } catch {
-      toast('저장 실패', 'error');
+      toast('저장 실패', 'error')
     }
-    setSaving(false);
-  };
+    setSaving(false)
+  }
 
   const handleDelete = async (id: string) => {
     if (!(await confirm({ title: '정말 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
-      return;
-    const res = await fetch(`${API_URL}/api/jobs/external-links/${id}`, {
+      return
+    const res = await httpClient(`${API_URL}/api/jobs/external-links/${id}`, {
       method: 'DELETE',
       headers,
-    });
+    })
     if (res.ok) {
-      toast('삭제되었습니다', 'success');
-      load();
-    } else toast('삭제 실패', 'error');
-  };
+      toast('삭제되었습니다', 'success')
+      load()
+    } else toast('삭제 실패', 'error')
+  }
 
   const handleToggleActive = async (link: ExtLink) => {
-    await fetch(`${API_URL}/api/jobs/external-links/${link.id}`, {
+    await httpClient(`${API_URL}/api/jobs/external-links/${link.id}`, {
       method: 'PUT',
       headers,
       body: JSON.stringify({ isActive: !link.isActive }),
-    });
-    load();
-  };
+    })
+    load()
+  }
 
   const newLink: Partial<ExtLink> = {
     name: '',
@@ -3930,16 +3999,16 @@ function AdminExtLinksTab() {
     jobTypes: 'all',
     isActive: true,
     order: 0,
-  };
+  }
 
   const filtered = links.filter((l) =>
-    filterActive === 'all' ? true : filterActive === 'active' ? l.isActive : !l.isActive,
-  );
+    filterActive === 'all' ? true : filterActive === 'active' ? l.isActive : !l.isActive
+  )
 
   const inputCls =
-    'w-full px-2.5 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none';
-  const labelCls = 'block text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5';
-  const selCls = inputCls;
+    'w-full px-2.5 py-1.5 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none'
+  const labelCls = 'block text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5'
+  const selCls = inputCls
 
   return (
     <div className="space-y-4 animate-fade-in-up">
@@ -3977,7 +4046,7 @@ function AdminExtLinksTab() {
       <RadixDialog.Root
         open={!!editing}
         onOpenChange={(o) => {
-          if (!o) setEditing(null);
+          if (!o) setEditing(null)
         }}
       >
         <RadixDialog.Portal>
@@ -3993,48 +4062,66 @@ function AdminExtLinksTab() {
                 </RadixDialog.Title>
                 <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>사이트명 *</label>
+                    <label htmlFor="adminpage-field-9" className={labelCls}>
+                      사이트명 *
+                    </label>
                     <input
+                      id="adminpage-field-9"
                       className={inputCls}
                       value={editing.name || ''}
                       onChange={(e) => setEditing((p) => ({ ...p, name: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>URL *</label>
+                    <label htmlFor="adminpage-url" className={labelCls}>
+                      URL *
+                    </label>
                     <input
+                      id="adminpage-url"
                       className={inputCls}
                       value={editing.url || ''}
                       onChange={(e) => setEditing((p) => ({ ...p, url: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>이모지</label>
+                    <label htmlFor="adminpage-field-11" className={labelCls}>
+                      이모지
+                    </label>
                     <input
+                      id="adminpage-field-11"
                       className={inputCls}
                       value={editing.logoEmoji || ''}
                       onChange={(e) => setEditing((p) => ({ ...p, logoEmoji: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>뱃지 텍스트</label>
+                    <label htmlFor="adminpage-field-12" className={labelCls}>
+                      뱃지 텍스트
+                    </label>
                     <input
+                      id="adminpage-field-12"
                       className={inputCls}
                       value={editing.badgeText || ''}
                       onChange={(e) => setEditing((p) => ({ ...p, badgeText: e.target.value }))}
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className={labelCls}>설명</label>
+                    <label htmlFor="adminpage-field-13" className={labelCls}>
+                      설명
+                    </label>
                     <input
+                      id="adminpage-field-13"
                       className={inputCls}
                       value={editing.description || ''}
                       onChange={(e) => setEditing((p) => ({ ...p, description: e.target.value }))}
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>그라데이션 시작색</label>
+                    <label htmlFor="adminpage-field-14" className={labelCls}>
+                      그라데이션 시작색
+                    </label>
                     <input
+                      id="adminpage-field-14"
                       type="color"
                       className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer"
                       value={editing.gradientFrom || '#2563eb'}
@@ -4042,8 +4129,11 @@ function AdminExtLinksTab() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>그라데이션 끝색</label>
+                    <label htmlFor="adminpage-field-15" className={labelCls}>
+                      그라데이션 끝색
+                    </label>
                     <input
+                      id="adminpage-field-15"
                       type="color"
                       className="w-full h-9 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer"
                       value={editing.gradientTo || '#1d4ed8'}
@@ -4051,8 +4141,11 @@ function AdminExtLinksTab() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>기업 규모</label>
+                    <label htmlFor="adminpage-field-16" className={labelCls}>
+                      기업 규모
+                    </label>
                     <select
+                      id="adminpage-field-16"
                       className={selCls}
                       value={editing.companySize || 'all'}
                       onChange={(e) => setEditing((p) => ({ ...p, companySize: e.target.value }))}
@@ -4065,8 +4158,11 @@ function AdminExtLinksTab() {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>직종</label>
+                    <label htmlFor="adminpage-field-17" className={labelCls}>
+                      직종
+                    </label>
                     <select
+                      id="adminpage-field-17"
                       className={selCls}
                       value={editing.jobCategory || 'all'}
                       onChange={(e) => setEditing((p) => ({ ...p, jobCategory: e.target.value }))}
@@ -4079,8 +4175,11 @@ function AdminExtLinksTab() {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>경력 수준</label>
+                    <label htmlFor="adminpage-field-18" className={labelCls}>
+                      경력 수준
+                    </label>
                     <select
+                      id="adminpage-field-18"
                       className={selCls}
                       value={editing.careerLevel || 'all'}
                       onChange={(e) => setEditing((p) => ({ ...p, careerLevel: e.target.value }))}
@@ -4093,8 +4192,11 @@ function AdminExtLinksTab() {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>고용 형태</label>
+                    <label htmlFor="adminpage-field-19" className={labelCls}>
+                      고용 형태
+                    </label>
                     <input
+                      id="adminpage-field-19"
                       className={inputCls}
                       placeholder="all 또는 fulltime,intern"
                       value={editing.jobTypes || ''}
@@ -4102,8 +4204,11 @@ function AdminExtLinksTab() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>지역</label>
+                    <label htmlFor="adminpage-field-20" className={labelCls}>
+                      지역
+                    </label>
                     <select
+                      id="adminpage-field-20"
                       className={selCls}
                       value={editing.location || 'all'}
                       onChange={(e) => setEditing((p) => ({ ...p, location: e.target.value }))}
@@ -4116,8 +4221,11 @@ function AdminExtLinksTab() {
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>정렬 순서</label>
+                    <label htmlFor="adminpage-field-21" className={labelCls}>
+                      정렬 순서
+                    </label>
                     <input
+                      id="adminpage-field-21"
                       type="number"
                       className={inputCls}
                       value={editing.order ?? 0}
@@ -4257,7 +4365,7 @@ function AdminExtLinksTab() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 /* ── 권한 관리 탭 ─────────────────────────────────────────────── */
@@ -4269,13 +4377,13 @@ const PERM_CONTENT_TYPES = [
   { key: 'notices', label: '공지사항', icon: '📢', desc: '사이트 공지/이벤트' },
   { key: 'community', label: '커뮤니티', icon: '💬', desc: '게시판 글' },
   { key: 'banners', label: '배너', icon: '🖼', desc: '메인 페이지 배너' },
-];
+]
 
 const PERM_ACTIONS = [
   { key: 'create', label: '생성' },
   { key: 'edit', label: '수정' },
   { key: 'delete', label: '삭제' },
-];
+]
 
 const PERM_ROLES = [
   {
@@ -4308,78 +4416,78 @@ const PERM_ROLES = [
     color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     border: 'border-amber-300 dark:border-amber-700',
   },
-];
+]
 
 function AdminPermissionsTab() {
-  const [permissionOverrides, setPermissionOverrides] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const [changed, setChanged] = useState(false);
+  const [permissionOverrides, setPermissionOverrides] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState(false)
+  const [changed, setChanged] = useState(false)
 
   const permsQuery = useQuery<Record<string, string>>({
     queryKey: ['admin-permissions'],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/system-config/permissions`);
-      if (!res.ok) return {};
-      return res.json();
+      const res = await httpClient(`${API_URL}/api/system-config/permissions`)
+      if (!res.ok) return {}
+      return res.json()
     },
     staleTime: 60_000,
-  });
-  const perms = { ...(permsQuery.data ?? {}), ...permissionOverrides };
-  const loading = permsQuery.isLoading;
+  })
+  const perms = { ...(permsQuery.data ?? {}), ...permissionOverrides }
+  const loading = permsQuery.isLoading
 
   const getRoles = (contentType: string, action: string): string[] => {
-    const key = `perm.${contentType}.${action}`;
-    return (perms[key] || 'admin').split(',').map((r) => r.trim());
-  };
+    const key = `perm.${contentType}.${action}`
+    return (perms[key] || 'admin').split(',').map((r) => r.trim())
+  }
 
   const toggleRole = (contentType: string, action: string, role: string) => {
-    const key = `perm.${contentType}.${action}`;
-    const current = getRoles(contentType, action);
-    let next: string[];
+    const key = `perm.${contentType}.${action}`
+    const current = getRoles(contentType, action)
+    let next: string[]
 
     if (role === 'all') {
-      next = current.includes('all') ? ['admin'] : ['all'];
+      next = current.includes('all') ? ['admin'] : ['all']
     } else {
-      next = current.filter((r) => r !== 'all');
+      next = current.filter((r) => r !== 'all')
       if (next.includes(role)) {
-        next = next.filter((r) => r !== role);
-        if (next.length === 0) next = ['admin'];
+        next = next.filter((r) => r !== role)
+        if (next.length === 0) next = ['admin']
       } else {
-        next.push(role);
+        next.push(role)
       }
     }
 
-    setPermissionOverrides((prev) => ({ ...prev, [key]: next.join(',') }));
-    setChanged(true);
-  };
+    setPermissionOverrides((prev) => ({ ...prev, [key]: next.join(',') }))
+    setChanged(true)
+  }
 
   const handleSave = async () => {
-    setSaving(true);
-    const token = localStorage.getItem('token');
+    setSaving(true)
+    const token = localStorage.getItem('token')
     try {
-      const res = await fetch(`${API_URL}/api/system-config/permissions`, {
+      const res = await httpClient(`${API_URL}/api/system-config/permissions`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(perms),
-      });
+      })
       if (res.ok) {
-        const updated = (await res.json()) as Record<string, string>;
-        setPermissionOverrides(updated);
-        setChanged(false);
-        toast('권한 설정이 저장되었습니다', 'success');
+        const updated = (await res.json()) as Record<string, string>
+        setPermissionOverrides(updated)
+        setChanged(false)
+        toast('권한 설정이 저장되었습니다', 'success')
       }
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   if (loading) {
     return (
       <div className="py-12 text-center text-slate-400 animate-pulse">권한 설정 로딩 중...</div>
-    );
+    )
   }
 
   return (
@@ -4428,8 +4536,8 @@ function AdminPermissionsTab() {
             <div className="p-4 sm:p-5">
               <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-5">
                 {PERM_ACTIONS.map((action) => {
-                  const roles = getRoles(ct.key, action.key);
-                  const isAll = roles.includes('all');
+                  const roles = getRoles(ct.key, action.key)
+                  const isAll = roles.includes('all')
                   return (
                     <div key={action.key}>
                       <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2.5 flex items-center gap-2">
@@ -4440,7 +4548,7 @@ function AdminPermissionsTab() {
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {PERM_ROLES.map((role) => {
-                          const active = isAll ? role.key === 'all' : roles.includes(role.key);
+                          const active = isAll ? role.key === 'all' : roles.includes(role.key)
                           return (
                             <button
                               key={role.key}
@@ -4454,11 +4562,11 @@ function AdminPermissionsTab() {
                               {active && <span className="mr-0.5">✓</span>}
                               {role.label}
                             </button>
-                          );
+                          )
                         })}
                       </div>
                     </div>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -4493,31 +4601,31 @@ function AdminPermissionsTab() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 /* ─────────────────────────── Forbidden Words Tab ─────────────────────────── */
 
 interface ForbiddenWord {
-  id: string;
-  word: string;
-  category: string;
-  severity: string;
-  isActive: boolean;
-  createdAt: string;
+  id: string
+  word: string
+  category: string
+  severity: string
+  isActive: boolean
+  createdAt: string
 }
 
 type ForbiddenWordsResponse = {
-  items: ForbiddenWord[];
-  total: number;
-};
+  items: ForbiddenWord[]
+  total: number
+}
 
 type ForbiddenWordsStats = {
-  total: number;
-  active: number;
-  blocked: number;
-  warned: number;
-};
+  total: number
+  active: number
+  blocked: number
+  warned: number
+}
 
 const FORBIDDEN_CATEGORIES = [
   { value: 'general', label: '일반' },
@@ -4526,80 +4634,80 @@ const FORBIDDEN_CATEGORIES = [
   { value: 'spam', label: '스팸' },
   { value: 'adult', label: '성인' },
   { value: 'fraud', label: '사기' },
-];
+]
 
 function AdminForbiddenWordsTab() {
-  const confirm = useConfirm();
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const [filterCat, setFilterCat] = useState('all');
+  const confirm = useConfirm()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [filterCat, setFilterCat] = useState('all')
 
   // Form
-  const [formMode, setFormMode] = useState<'single' | 'bulk'>('single');
-  const [newWord, setNewWord] = useState('');
-  const [bulkWords, setBulkWords] = useState('');
-  const [newCategory, setNewCategory] = useState('general');
-  const [newSeverity, setNewSeverity] = useState('block');
-  const [submitting, setSubmitting] = useState(false);
+  const [formMode, setFormMode] = useState<'single' | 'bulk'>('single')
+  const [newWord, setNewWord] = useState('')
+  const [bulkWords, setBulkWords] = useState('')
+  const [newCategory, setNewCategory] = useState('general')
+  const [newSeverity, setNewSeverity] = useState('block')
+  const [submitting, setSubmitting] = useState(false)
 
   // Selection
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   // Edit
-  const [editing, setEditing] = useState<string | null>(null);
-  const [editWord, setEditWord] = useState('');
-  const [editCat, setEditCat] = useState('');
-  const [editSev, setEditSev] = useState('');
+  const [editing, setEditing] = useState<string | null>(null)
+  const [editWord, setEditWord] = useState('')
+  const [editCat, setEditCat] = useState('')
+  const [editSev, setEditSev] = useState('')
 
   // Test
-  const [testText, setTestText] = useState('');
+  const [testText, setTestText] = useState('')
   const [testResult, setTestResult] = useState<{
-    blocked: boolean;
-    matched: string[];
-    warnings: string[];
-  } | null>(null);
+    blocked: boolean
+    matched: string[]
+    warnings: string[]
+  } | null>(null)
 
-  const token = localStorage.getItem('token');
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const token = localStorage.getItem('token')
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
 
-  const forbiddenWordsQueryClient = useQueryClient();
+  const forbiddenWordsQueryClient = useQueryClient()
   const wordsQuery = useQuery<ForbiddenWordsResponse>({
     queryKey: ['forbidden-words', { page, filterCat, search }],
     queryFn: async () => {
-      const params = new URLSearchParams({ page: String(page), limit: '30' });
-      if (search) params.set('search', search);
-      if (filterCat !== 'all') params.set('category', filterCat);
-      const r = await fetch(`${API_URL}/api/forbidden-words?${params}`, { headers });
-      if (!r.ok) return { items: [], total: 0 };
-      return r.json();
+      const params = new URLSearchParams({ page: String(page), limit: '30' })
+      if (search) params.set('search', search)
+      if (filterCat !== 'all') params.set('category', filterCat)
+      const r = await httpClient(`${API_URL}/api/forbidden-words?${params}`, { headers })
+      if (!r.ok) return { items: [], total: 0 }
+      return r.json()
     },
     staleTime: 30_000,
-  });
+  })
   const statsQueryFW = useQuery<ForbiddenWordsStats | null>({
     queryKey: ['forbidden-words-stats'],
     queryFn: async () => {
-      const r = await fetch(`${API_URL}/api/forbidden-words/stats`, { headers });
-      if (!r.ok) return null;
-      return r.json();
+      const r = await httpClient(`${API_URL}/api/forbidden-words/stats`, { headers })
+      if (!r.ok) return null
+      return r.json()
     },
     staleTime: 60_000,
-  });
-  const words = wordsQuery.data?.items ?? [];
-  const total = wordsQuery.data?.total ?? 0;
-  const loading = wordsQuery.isLoading;
-  const stats = statsQueryFW.data ?? null;
-  const load = () => forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words'] });
+  })
+  const words = wordsQuery.data?.items ?? []
+  const total = wordsQuery.data?.total ?? 0
+  const loading = wordsQuery.isLoading
+  const stats = statsQueryFW.data ?? null
+  const load = () => forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words'] })
   const loadStats = () =>
-    forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words-stats'] });
+    forbiddenWordsQueryClient.invalidateQueries({ queryKey: ['forbidden-words-stats'] })
 
   const handleCreate = async () => {
-    if (formMode === 'single' && !newWord.trim()) return;
-    if (formMode === 'bulk' && !bulkWords.trim()) return;
-    setSubmitting(true);
+    if (formMode === 'single' && !newWord.trim()) return
+    if (formMode === 'bulk' && !bulkWords.trim()) return
+    setSubmitting(true)
     try {
       if (formMode === 'single') {
-        const r = await fetch(`${API_URL}/api/forbidden-words`, {
+        const r = await httpClient(`${API_URL}/api/forbidden-words`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -4607,76 +4715,76 @@ function AdminForbiddenWordsTab() {
             category: newCategory,
             severity: newSeverity,
           }),
-        });
+        })
         if (r.ok) {
-          setNewWord('');
-          toast('금칙어가 등록되었습니다', 'success');
-          load();
-          loadStats();
+          setNewWord('')
+          toast('금칙어가 등록되었습니다', 'success')
+          load()
+          loadStats()
         } else {
-          const data = await r.json();
-          toast(data.message || '등록 실패', 'error');
+          const data = await r.json()
+          toast(data.message || '등록 실패', 'error')
         }
       } else {
         const wordList = bulkWords
           .split('\n')
           .map((w) => w.trim())
-          .filter(Boolean);
-        if (!wordList.length) return;
-        const r = await fetch(`${API_URL}/api/forbidden-words/bulk`, {
+          .filter(Boolean)
+        if (!wordList.length) return
+        const r = await httpClient(`${API_URL}/api/forbidden-words/bulk`, {
           method: 'POST',
           headers,
           body: JSON.stringify({ words: wordList, category: newCategory, severity: newSeverity }),
-        });
+        })
         if (r.ok) {
-          const data = await r.json();
-          toast(`${data.created}개 등록, ${data.skipped}개 중복 건너뜀`, 'success');
-          setBulkWords('');
-          load();
-          loadStats();
+          const data = await r.json()
+          toast(`${data.created}개 등록, ${data.skipped}개 중복 건너뜀`, 'success')
+          setBulkWords('')
+          load()
+          loadStats()
         }
       }
     } catch {
-      toast('등록 중 오류가 발생했습니다', 'error');
+      toast('등록 중 오류가 발생했습니다', 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   const handleUpdate = async (id: string) => {
-    const r = await fetch(`${API_URL}/api/forbidden-words/${id}`, {
+    const r = await httpClient(`${API_URL}/api/forbidden-words/${id}`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ word: editWord, category: editCat, severity: editSev }),
-    });
+    })
     if (r.ok) {
-      setEditing(null);
-      toast('수정되었습니다', 'success');
-      load();
-      loadStats();
+      setEditing(null)
+      toast('수정되었습니다', 'success')
+      load()
+      loadStats()
     }
-  };
+  }
 
   const handleToggleActive = async (id: string, isActive: boolean) => {
-    await fetch(`${API_URL}/api/forbidden-words/${id}`, {
+    await httpClient(`${API_URL}/api/forbidden-words/${id}`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ isActive: !isActive }),
-    });
-    load();
-    loadStats();
-  };
+    })
+    load()
+    loadStats()
+  }
 
   const handleDelete = async (id: string) => {
     if (!(await confirm({ title: '정말 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
-      return;
-    await fetch(`${API_URL}/api/forbidden-words/${id}`, { method: 'DELETE', headers });
-    load();
-    loadStats();
-  };
+      return
+    await httpClient(`${API_URL}/api/forbidden-words/${id}`, { method: 'DELETE', headers })
+    load()
+    loadStats()
+  }
 
   const handleBulkDelete = async () => {
-    if (!selected.size) return;
+    if (!selected.size) return
     if (
       !(await confirm({
         title: `${selected.size}개 금칙어를 삭제하시겠습니까?`,
@@ -4684,45 +4792,45 @@ function AdminForbiddenWordsTab() {
         confirmText: '삭제',
       }))
     )
-      return;
-    await fetch(`${API_URL}/api/forbidden-words/bulk`, {
+      return
+    await httpClient(`${API_URL}/api/forbidden-words/bulk`, {
       method: 'DELETE',
       headers,
       body: JSON.stringify({ ids: [...selected] }),
-    });
-    setSelected(new Set());
-    load();
-    loadStats();
-  };
+    })
+    setSelected(new Set())
+    load()
+    loadStats()
+  }
 
   const handleTest = async () => {
-    if (!testText.trim()) return;
-    const r = await fetch(`${API_URL}/api/forbidden-words/check`, {
+    if (!testText.trim()) return
+    const r = await httpClient(`${API_URL}/api/forbidden-words/check`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ text: testText }),
-    });
-    if (r.ok) setTestResult(await r.json());
-  };
+    })
+    if (r.ok) setTestResult(await r.json())
+  }
 
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(id)) {
-        next.delete(id);
+        next.delete(id)
       } else {
-        next.add(id);
+        next.add(id)
       }
-      return next;
-    });
-  };
+      return next
+    })
+  }
 
   const toggleSelectAll = () => {
-    if (selected.size === words.length) setSelected(new Set());
-    else setSelected(new Set(words.map((w) => w.id)));
-  };
+    if (selected.size === words.length) setSelected(new Set())
+    else setSelected(new Set(words.map((w) => w.id)))
+  }
 
-  const totalPages = Math.ceil(total / 30);
+  const totalPages = Math.ceil(total / 30)
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -4769,8 +4877,8 @@ function AdminForbiddenWordsTab() {
           <input
             value={testText}
             onChange={(e) => {
-              setTestText(e.target.value);
-              setTestResult(null);
+              setTestText(e.target.value)
+              setTestResult(null)
             }}
             placeholder="텍스트를 입력하여 금칙어 포함 여부를 검사합니다..."
             className="flex-1 px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -4885,8 +4993,8 @@ function AdminForbiddenWordsTab() {
             <select
               value={filterCat}
               onChange={(e) => {
-                setFilterCat(e.target.value);
-                setPage(1);
+                setFilterCat(e.target.value)
+                setPage(1)
               }}
               className="px-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-900 dark:text-slate-100"
             >
@@ -5024,10 +5132,10 @@ function AdminForbiddenWordsTab() {
                       <div className="flex gap-1 mt-1 sm:mt-0">
                         <button
                           onClick={() => {
-                            setEditing(w.id);
-                            setEditWord(w.word);
-                            setEditCat(w.category);
-                            setEditSev(w.severity);
+                            setEditing(w.id)
+                            setEditWord(w.word)
+                            setEditCat(w.category)
+                            setEditSev(w.severity)
                           }}
                           className="px-2 py-1 text-[10px] text-sky-700 hover:bg-sky-50 dark:hover:bg-sky-900/20 rounded transition-colors"
                         >
@@ -5072,5 +5180,5 @@ function AdminForbiddenWordsTab() {
         )}
       </div>
     </div>
-  );
+  )
 }

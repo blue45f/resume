@@ -1,16 +1,18 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
+import type { CoverLetterScoreGrade } from '@/lib/coverLetterScore'
+
 import {
   buildCoverLetterImprovementPlan,
   type CoverLetterImprovementSeverity,
-} from '@/lib/coverLetterImprovementPlan';
-import type { CoverLetterScoreGrade } from '@/lib/coverLetterScore';
-import { tx } from '@/lib/i18n';
+} from '@/lib/coverLetterImprovementPlan'
+import { tx } from '@/lib/i18n'
 
 interface Props {
-  text: string;
-  topN?: number;
-  minLength?: number;
-  className?: string;
+  text: string
+  topN?: number
+  minLength?: number
+  className?: string
 }
 
 const SEVERITY_BADGE: Record<CoverLetterImprovementSeverity, string> = {
@@ -18,7 +20,7 @@ const SEVERITY_BADGE: Record<CoverLetterImprovementSeverity, string> = {
   medium:
     'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-900/40',
   low: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-};
+}
 
 const GRADE: Record<CoverLetterScoreGrade, { cls: string }> = {
   excellent: {
@@ -33,7 +35,7 @@ const GRADE: Record<CoverLetterScoreGrade, { cls: string }> = {
   weak: {
     cls: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-900/40',
   },
-};
+}
 
 /**
  * 자소서 우선 개선 과제 패널 — buildCoverLetterScore 4축을 임팩트순으로 재가공해
@@ -46,14 +48,14 @@ export default function CoverLetterImprovementPlanPanel({
   className = '',
 }: Props) {
   const plan = useMemo(() => {
-    if (!text || text.length < minLength) return null;
-    return buildCoverLetterImprovementPlan(text, topN);
-  }, [text, topN, minLength]);
+    if (!text || text.length < minLength) return null
+    return buildCoverLetterImprovementPlan(text, topN)
+  }, [text, topN, minLength])
 
-  if (!plan) return null;
+  if (!plan) return null
 
-  const grade = GRADE[plan.grade];
-  const titleId = 'cl-improvement-plan-title';
+  const grade = GRADE[plan.grade]
+  const titleId = 'cl-improvement-plan-title'
   return (
     <section
       className={`rounded-xl border border-blue-200/70 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 p-3.5 ${className}`}
@@ -117,5 +119,5 @@ export default function CoverLetterImprovementPlanPanel({
         </p>
       )}
     </section>
-  );
+  )
 }

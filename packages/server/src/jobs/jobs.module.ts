@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
-import { JobsController } from './jobs.controller';
-import { JobsService } from './jobs.service';
-import { JobUrlParserService } from './job-url-parser.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { LlmModule } from '../llm/llm.module';
-import { NotificationsModule } from '../notifications/notifications.module';
+import { Module } from '@nestjs/common'
+
+import { LlmModule } from '../llm/llm.module'
+import { NotificationsModule } from '../notifications/notifications.module'
+import { PrismaModule } from '../prisma/prisma.module'
+
+import { JobUrlParserService } from './job-url-parser.service'
+import { JobsController } from './jobs.controller'
+import { JobsService } from './jobs.service'
 
 @Module({
   imports: [PrismaModule, LlmModule, NotificationsModule],

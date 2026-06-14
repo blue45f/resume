@@ -1,19 +1,23 @@
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ErrorRetry from '@/components/ErrorRetry';
-import EmptyState from '@/components/EmptyState';
-import type { ResumeSummary, Tag } from '@/types/resume';
-import { useTags, usePopularSkills, useResumes, usePublicGet } from '@/hooks/useResources';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import BookmarkButton from '@/components/BookmarkButton';
-import SendMessageButton from '@/components/SendMessageButton';
-import { API_URL } from '@/lib/config';
-import { timeAgo } from '@/lib/time';
-import { tx } from '@/lib/i18n';
+import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { Link, useSearchParams, useNavigate } from 'react-router-dom'
+
+import type { ResumeSummary, Tag } from '@/types/resume'
+
+import BookmarkButton from '@/components/BookmarkButton'
+import EmptyState from '@/components/EmptyState'
+import ErrorRetry from '@/components/ErrorRetry'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import { useRecentViews } from '@/domains/resumes/recent-views'
+import { useTags, usePopularSkills, useResumes, usePublicGet } from '@/hooks/useResources'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
 
 const THEME_COLORS = [
   'from-blue-500 to-sky-500',
@@ -24,7 +28,7 @@ const THEME_COLORS = [
   'from-slate-700 to-cyan-500',
   'from-amber-500 to-orange-500',
   'from-lime-500 to-emerald-500',
-];
+]
 
 const THEME_DOT_COLORS = [
   'bg-blue-500',
@@ -35,66 +39,66 @@ const THEME_DOT_COLORS = [
   'bg-teal-600',
   'bg-amber-500',
   'bg-lime-500',
-];
+]
 
 function getThemeIndex(id: string): number {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0;
-  return Math.abs(hash) % THEME_COLORS.length;
+  let hash = 0
+  for (let i = 0; i < id.length; i++) hash = ((hash << 5) - hash + id.charCodeAt(i)) | 0
+  return Math.abs(hash) % THEME_COLORS.length
 }
 
 function extractSkillNames(skills?: { category: string; items: string }[]): string[] {
-  if (!skills?.length) return [];
-  const all: string[] = [];
+  if (!skills?.length) return []
+  const all: string[] = []
   for (const s of skills) {
     const items = s.items
       .split(',')
       .map((i) => i.trim())
-      .filter(Boolean);
-    all.push(...items);
+      .filter(Boolean)
+    all.push(...items)
   }
-  return all.slice(0, 6);
+  return all.slice(0, 6)
 }
 
 interface SearchResult {
-  data: ResumeSummary[];
-  total: number;
-  page: number;
-  totalPages: number;
+  data: ResumeSummary[]
+  total: number
+  page: number
+  totalPages: number
 }
 
 interface UserProfile {
-  userId: string;
-  name: string;
-  resumes: { id: string; title: string; updatedAt: string }[];
-  skills: string[];
-  resumeCount: number;
-  isOpenToWork?: boolean;
-  openToWorkRoles?: string;
+  userId: string
+  name: string
+  resumes: { id: string; title: string; updatedAt: string }[]
+  skills: string[]
+  resumeCount: number
+  isOpenToWork?: boolean
+  openToWorkRoles?: string
 }
 
 interface CommunityPostSummary {
-  id: string;
-  title: string;
-  category: string;
-  createdAt: string;
-  likeCount?: number;
+  id: string
+  title: string
+  category: string
+  createdAt: string
+  likeCount?: number
   _count?: {
-    comments?: number;
-  };
+    comments?: number
+  }
 }
 
 interface CommunityListResponse {
-  items?: CommunityPostSummary[];
+  items?: CommunityPostSummary[]
 }
 
-const EMPTY_RESUME_SUMMARIES: ResumeSummary[] = [];
+const EMPTY_RESUME_SUMMARIES: ResumeSummary[] = []
 
 function aggregateUsers(resumes: ResumeSummary[]): UserProfile[] {
-  const map = new Map<string, UserProfile>();
+  const map = new Map<string, UserProfile>()
   for (const r of resumes) {
-    const key = r.userId || r.personalInfo?.name || r.id;
-    const name = r.personalInfo?.name || '이름 미입력';
+    const key = r.userId || r.personalInfo?.name || r.id
+    const name = r.personalInfo?.name || '이름 미입력'
     if (!map.has(key)) {
       map.set(key, {
         userId: key,
@@ -104,21 +108,21 @@ function aggregateUsers(resumes: ResumeSummary[]): UserProfile[] {
         resumeCount: 0,
         isOpenToWork: r.isOpenToWork,
         openToWorkRoles: r.openToWorkRoles,
-      });
+      })
     }
-    const user = map.get(key)!;
+    const user = map.get(key)!
     if (r.isOpenToWork) {
-      user.isOpenToWork = true;
-      user.openToWorkRoles = r.openToWorkRoles;
+      user.isOpenToWork = true
+      user.openToWorkRoles = r.openToWorkRoles
     }
-    user.resumes.push({ id: r.id, title: r.title || '제목 없음', updatedAt: r.updatedAt });
-    user.resumeCount++;
-    const skillNames = extractSkillNames(r.skills);
+    user.resumes.push({ id: r.id, title: r.title || '제목 없음', updatedAt: r.updatedAt })
+    user.resumeCount++
+    const skillNames = extractSkillNames(r.skills)
     for (const s of skillNames) {
-      if (!user.skills.includes(s)) user.skills.push(s);
+      if (!user.skills.includes(s)) user.skills.push(s)
     }
   }
-  return Array.from(map.values());
+  return Array.from(map.values())
 }
 
 const AVATAR_COLORS = [
@@ -132,57 +136,55 @@ const AVATAR_COLORS = [
   'bg-teal-500',
   'bg-sky-500',
   'bg-blue-700',
-];
+]
 
 function getAvatarColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-import { useRecentViews } from '@/features/recent-views';
-
 export default function ExplorePage() {
-  const [params, setParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { views: recentViews, clearViews } = useRecentViews();
-  const [activeTab, setActiveTab] = useState<'resumes' | 'people' | 'community'>('resumes');
+  const [params, setParams] = useSearchParams()
+  const navigate = useNavigate()
+  const { views: recentViews, clearViews } = useRecentViews()
+  const [activeTab, setActiveTab] = useState<'resumes' | 'people' | 'community'>('resumes')
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(() => {
     try {
-      return new Set(JSON.parse(localStorage.getItem('followed-users') || '[]'));
+      return new Set(JSON.parse(localStorage.getItem('followed-users') || '[]'))
     } catch {
-      return new Set();
+      return new Set()
     }
-  });
+  })
 
   useEffect(() => {
-    document.title = '공개 이력서 탐색 — 이력서공방';
+    document.title = '공개 이력서 탐색 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
-  const { data: tagsData } = useTags();
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
+  const { data: tagsData } = useTags()
   const tags: (Tag & { resumeCount: number })[] =
-    (tagsData as (Tag & { resumeCount: number })[] | undefined) ?? [];
-  const { data: popularSkillsData } = usePopularSkills();
+    (tagsData as (Tag & { resumeCount: number })[] | undefined) ?? []
+  const { data: popularSkillsData } = usePopularSkills()
   const popularSkills: { name: string; count: number }[] =
-    (popularSkillsData as { name: string; count: number }[] | undefined) ?? [];
-  const [searchInput, setSearchInput] = useState(params.get('q') || '');
-  const [sortBy, setSortBy] = useState<'recent' | 'views' | 'oldest' | 'trending'>('recent');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    (popularSkillsData as { name: string; count: number }[] | undefined) ?? []
+  const [searchInput, setSearchInput] = useState(params.get('q') || '')
+  const [sortBy, setSortBy] = useState<'recent' | 'views' | 'oldest' | 'trending'>('recent')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     try {
-      return JSON.parse(localStorage.getItem('recent-searches') || '[]');
+      return JSON.parse(localStorage.getItem('recent-searches') || '[]')
     } catch {
-      return [];
+      return []
     }
-  });
+  })
 
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [industryFilter, setIndustryFilter] = useState('all');
-  const searchWrapperRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [currentTimeMs] = useState(() => Date.now());
+  const [searchFocused, setSearchFocused] = useState(false)
+  const [industryFilter, setIndustryFilter] = useState('all')
+  const searchWrapperRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const [currentTimeMs] = useState(() => Date.now())
 
   // 직종 감지 키워드맵
   const industryKeywords = useMemo<
@@ -348,34 +350,34 @@ export default function ExplorePage() {
         ],
       },
     }),
-    [],
-  );
+    []
+  )
 
   const debouncedSearch = useCallback(
     (value: string) => {
-      clearTimeout(debounceRef.current);
+      clearTimeout(debounceRef.current)
       debounceRef.current = setTimeout(() => {
-        const next = new URLSearchParams(params);
+        const next = new URLSearchParams(params)
         if (value) {
-          next.set('q', value);
+          next.set('q', value)
         } else {
-          next.delete('q');
+          next.delete('q')
         }
-        next.delete('page');
-        setParams(next);
-      }, 300);
+        next.delete('page')
+        setParams(next)
+      }, 300)
     },
-    [params, setParams],
-  );
+    [params, setParams]
+  )
 
   useEffect(() => {
-    return () => clearTimeout(debounceRef.current);
-  }, []);
+    return () => clearTimeout(debounceRef.current)
+  }, [])
 
-  const query = params.get('q') || '';
-  const tag = params.get('tag') || '';
-  const page = parseInt(params.get('page') || '1');
-  const limit = params.get('limit') || '12';
+  const query = params.get('q') || ''
+  const tag = params.get('tag') || ''
+  const page = parseInt(params.get('page') || '1')
+  const limit = params.get('limit') || '12'
 
   const {
     data: result,
@@ -385,120 +387,120 @@ export default function ExplorePage() {
   } = useQuery<SearchResult>({
     queryKey: ['explore-public-resumes', { q: query, tag, page, sort: sortBy, limit }],
     queryFn: async () => {
-      const qs = new URLSearchParams();
-      if (query) qs.set('q', query);
-      if (tag) qs.set('tag', tag);
-      if (sortBy !== 'recent') qs.set('sort', sortBy);
-      qs.set('page', String(page));
-      qs.set('limit', limit);
-      const res = await fetch(`${API_URL}/api/resumes/public?${qs}`);
-      if (!res.ok) throw new Error('Failed to fetch public resumes');
-      return res.json();
+      const qs = new URLSearchParams()
+      if (query) qs.set('q', query)
+      if (tag) qs.set('tag', tag)
+      if (sortBy !== 'recent') qs.set('sort', sortBy)
+      qs.set('page', String(page))
+      qs.set('limit', limit)
+      const res = await httpClient(`${API_URL}/api/resumes/public?${qs}`)
+      if (!res.ok) throw new Error('Failed to fetch public resumes')
+      return res.json()
     },
     staleTime: 30_000,
-  });
-  const search = () => refetchSearch();
+  })
+  const search = () => refetchSearch()
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const next = new URLSearchParams(params);
+    e.preventDefault()
+    const next = new URLSearchParams(params)
     if (searchInput) {
-      next.set('q', searchInput);
-      const updated = [searchInput, ...recentSearches.filter((s) => s !== searchInput)].slice(0, 5);
-      setRecentSearches(updated);
-      localStorage.setItem('recent-searches', JSON.stringify(updated));
-    } else next.delete('q');
-    next.delete('page');
-    setParams(next);
-  };
+      next.set('q', searchInput)
+      const updated = [searchInput, ...recentSearches.filter((s) => s !== searchInput)].slice(0, 5)
+      setRecentSearches(updated)
+      localStorage.setItem('recent-searches', JSON.stringify(updated))
+    } else next.delete('q')
+    next.delete('page')
+    setParams(next)
+  }
 
   const toggleTag = (tagName: string) => {
-    const next = new URLSearchParams(params);
-    if (tag === tagName) next.delete('tag');
-    else next.set('tag', tagName);
-    next.delete('page');
-    setParams(next);
-  };
+    const next = new URLSearchParams(params)
+    if (tag === tagName) next.delete('tag')
+    else next.set('tag', tagName)
+    next.delete('page')
+    setParams(next)
+  }
 
   const goPage = (p: number) => {
-    const next = new URLSearchParams(params);
-    next.set('page', String(p));
-    setParams(next);
-  };
+    const next = new URLSearchParams(params)
+    next.set('page', String(p))
+    setParams(next)
+  }
 
-  const resultData = result?.data ?? EMPTY_RESUME_SUMMARIES;
-  const users = useMemo(() => aggregateUsers(resultData), [resultData]);
+  const resultData = result?.data ?? EMPTY_RESUME_SUMMARIES
+  const users = useMemo(() => aggregateUsers(resultData), [resultData])
 
   // Recommended connections: compare current user's skills against public users
-  const { data: myResumesData } = useResumes();
+  const { data: myResumesData } = useResumes()
   const mySkills: string[] = useMemo(() => {
-    const myResumes = (myResumesData as ResumeSummary[] | undefined) ?? [];
-    const skills: string[] = [];
+    const myResumes = (myResumesData as ResumeSummary[] | undefined) ?? []
+    const skills: string[] = []
     for (const r of myResumes) {
-      const names = extractSkillNames(r.skills);
+      const names = extractSkillNames(r.skills)
       for (const s of names) {
-        if (!skills.includes(s)) skills.push(s);
+        if (!skills.includes(s)) skills.push(s)
       }
     }
-    return skills;
-  }, [myResumesData]);
+    return skills
+  }, [myResumesData])
 
   const { data: communityData, isLoading: communityLoading } = usePublicGet<CommunityListResponse>(
     ['explore-community'],
     '/api/community?limit=20&page=1',
-    { enabled: activeTab === 'community', staleTime: 30_000 },
-  );
-  const communityPosts: CommunityPostSummary[] = communityData?.items ?? [];
+    { enabled: activeTab === 'community', staleTime: 30_000 }
+  )
+  const communityPosts: CommunityPostSummary[] = communityData?.items ?? []
 
   const currentUserId = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem('user') || '{}').id;
+      return JSON.parse(localStorage.getItem('user') || '{}').id
     } catch {
-      return null;
+      return null
     }
-  }, []);
+  }, [])
 
   const recommendedUsers = useMemo(() => {
-    if (mySkills.length === 0 || users.length === 0) return [];
+    if (mySkills.length === 0 || users.length === 0) return []
     return users
       .filter((u) => u.userId !== currentUserId)
       .map((u) => {
         const overlap = u.skills.filter((s) =>
-          mySkills.some((ms) => ms.toLowerCase() === s.toLowerCase()),
-        );
-        return { ...u, matchCount: overlap.length, matchedSkills: overlap };
+          mySkills.some((ms) => ms.toLowerCase() === s.toLowerCase())
+        )
+        return { ...u, matchCount: overlap.length, matchedSkills: overlap }
       })
       .filter((u) => u.matchCount > 0)
       .sort((a, b) => b.matchCount - a.matchCount)
-      .slice(0, 6);
-  }, [users, mySkills, currentUserId]);
+      .slice(0, 6)
+  }, [users, mySkills, currentUserId])
 
   // 직종 필터링 (client-side — result.data에서 스킬 텍스트 분석)
   const industryFilteredResumes = useMemo(() => {
-    if (industryFilter === 'all') return resultData;
-    const industry = industryKeywords[industryFilter];
-    if (!industry) return resultData;
+    if (industryFilter === 'all') return resultData
+    const industry = industryKeywords[industryFilter]
+    if (!industry) return resultData
     return resultData.filter((r) => {
       const skillText = (r.skills || [])
         .map((s) => `${s.category || ''} ${s.items || ''}`)
         .join(' ')
-        .toLowerCase();
-      const titleText = (r.title || '').toLowerCase();
-      const positionText = ((r.personalInfo as { title?: string })?.title || '').toLowerCase();
-      const combined = `${skillText} ${titleText} ${positionText}`;
-      return industry.keywords.some((kw) => combined.includes(kw.toLowerCase()));
-    });
-  }, [resultData, industryFilter, industryKeywords]);
+        .toLowerCase()
+      const titleText = (r.title || '').toLowerCase()
+      const positionText = ((r.personalInfo as { title?: string })?.title || '').toLowerCase()
+      const combined = `${skillText} ${titleText} ${positionText}`
+      return industry.keywords.some((kw) => combined.includes(kw.toLowerCase()))
+    })
+  }, [resultData, industryFilter, industryKeywords])
 
   const toggleFollow = (userId: string) => {
     setFollowedUsers((prev) => {
-      const next = new Set(prev);
-      if (next.has(userId)) next.delete(userId);
-      else next.add(userId);
-      localStorage.setItem('followed-users', JSON.stringify(Array.from(next)));
-      return next;
-    });
-  };
+      const next = new Set(prev)
+      if (next.has(userId)) next.delete(userId)
+      else next.add(userId)
+      localStorage.setItem('followed-users', JSON.stringify(Array.from(next)))
+      return next
+    })
+  }
 
   return (
     <>
@@ -514,7 +516,7 @@ export default function ExplorePage() {
         <p className="text-sm text-slate-500 mb-6">{tx('explore.subtitle')}</p>
 
         {(() => {
-          const u = getUser();
+          const u = getUser()
           return u && (u.userType === 'recruiter' || u.userType === 'company') ? (
             <div className="mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-center gap-3">
               <span className="text-lg">🔍</span>
@@ -527,11 +529,11 @@ export default function ExplorePage() {
                 </p>
               </div>
             </div>
-          ) : null;
+          ) : null
         })()}
 
         {(() => {
-          const u = getUser();
+          const u = getUser()
           return u && (!u?.plan || u.plan === 'free') ? (
             <div className="mb-4 p-3 bg-sky-50 dark:from-blue-900/20 dark:to-cyan-900/20 border border-blue-200 dark:border-blue-800 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-2 animate-in fade-in-0 slide-in-from-bottom-1 duration-300">
               <p className="text-sm text-blue-900 dark:text-blue-200">
@@ -545,7 +547,7 @@ export default function ExplorePage() {
                 업그레이드
               </Link>
             </div>
-          ) : null;
+          ) : null
         })()}
 
         {/* 검색바 + 최근 검색 드롭다운 */}
@@ -556,8 +558,8 @@ export default function ExplorePage() {
               role="searchbox"
               value={searchInput}
               onChange={(e) => {
-                setSearchInput(e.target.value);
-                debouncedSearch(e.target.value);
+                setSearchInput(e.target.value)
+                debouncedSearch(e.target.value)
               }}
               onFocus={() => setSearchFocused(true)}
               onBlur={() => setTimeout(() => setSearchFocused(false), 200)}
@@ -582,9 +584,9 @@ export default function ExplorePage() {
                 </span>
                 <button
                   onMouseDown={(e) => {
-                    e.preventDefault();
-                    setRecentSearches([]);
-                    localStorage.removeItem('recent-searches');
+                    e.preventDefault()
+                    setRecentSearches([])
+                    localStorage.removeItem('recent-searches')
                   }}
                   className="text-xs text-slate-500 dark:text-slate-400 hover:text-red-500 transition-colors"
                 >
@@ -598,13 +600,13 @@ export default function ExplorePage() {
                 >
                   <button
                     onMouseDown={(e) => {
-                      e.preventDefault();
-                      setSearchInput(s);
-                      const next = new URLSearchParams(params);
-                      next.set('q', s);
-                      next.delete('page');
-                      setParams(next);
-                      setSearchFocused(false);
+                      e.preventDefault()
+                      setSearchInput(s)
+                      const next = new URLSearchParams(params)
+                      next.set('q', s)
+                      next.delete('page')
+                      setParams(next)
+                      setSearchFocused(false)
                     }}
                     className="flex items-center gap-2 flex-1 text-left"
                   >
@@ -625,10 +627,10 @@ export default function ExplorePage() {
                   </button>
                   <button
                     onMouseDown={(e) => {
-                      e.preventDefault();
-                      const updated = recentSearches.filter((r) => r !== s);
-                      setRecentSearches(updated);
-                      localStorage.setItem('recent-searches', JSON.stringify(updated));
+                      e.preventDefault()
+                      const updated = recentSearches.filter((r) => r !== s)
+                      setRecentSearches(updated)
+                      localStorage.setItem('recent-searches', JSON.stringify(updated))
                     }}
                     className="p-1 text-slate-300 dark:text-slate-600 hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
                     aria-label={`"${s}" 삭제`}
@@ -856,17 +858,17 @@ export default function ExplorePage() {
               key={cat}
               onClick={() => {
                 if (cat === '전체') {
-                  const next = new URLSearchParams(params);
-                  next.delete('q');
-                  next.delete('page');
-                  setSearchInput('');
-                  setParams(next);
+                  const next = new URLSearchParams(params)
+                  next.delete('q')
+                  next.delete('page')
+                  setSearchInput('')
+                  setParams(next)
                 } else {
-                  setSearchInput(cat);
-                  const next = new URLSearchParams(params);
-                  next.set('q', cat);
-                  next.delete('page');
-                  setParams(next);
+                  setSearchInput(cat)
+                  const next = new URLSearchParams(params)
+                  next.set('q', cat)
+                  next.delete('page')
+                  setParams(next)
                 }
               }}
               className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
@@ -889,23 +891,23 @@ export default function ExplorePage() {
             <div className="flex flex-wrap gap-2">
               {popularSkills.slice(0, 15).map((skill, i) => {
                 const size =
-                  i < 3 ? 'text-sm font-medium' : i < 8 ? 'text-xs' : 'text-xs opacity-70';
+                  i < 3 ? 'text-sm font-medium' : i < 8 ? 'text-xs' : 'text-xs opacity-70'
                 return (
                   <button
                     key={skill.name}
                     onClick={() => {
-                      setSearchInput(skill.name);
-                      const next = new URLSearchParams(params);
-                      next.set('q', skill.name);
-                      next.delete('page');
-                      setParams(next);
+                      setSearchInput(skill.name)
+                      const next = new URLSearchParams(params)
+                      next.set('q', skill.name)
+                      next.delete('page')
+                      setParams(next)
                     }}
                     className={`px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors ${size}`}
                   >
                     {skill.name}
                     <span className="ml-1 text-slate-400 dark:text-slate-500">({skill.count})</span>
                   </button>
-                );
+                )
               })}
             </div>
           </div>
@@ -960,9 +962,9 @@ export default function ExplorePage() {
               </p>
               <button
                 onClick={() => {
-                  setSearchInput('');
-                  const next = new URLSearchParams();
-                  setParams(next);
+                  setSearchInput('')
+                  const next = new URLSearchParams()
+                  setParams(next)
                 }}
                 className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
               >
@@ -1001,9 +1003,9 @@ export default function ExplorePage() {
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
                   {recommendedUsers.map((user) => {
-                    const initial = user.name.charAt(0).toUpperCase();
-                    const avatarColor = getAvatarColor(user.name);
-                    const isFollowed = followedUsers.has(user.userId);
+                    const initial = user.name.charAt(0).toUpperCase()
+                    const avatarColor = getAvatarColor(user.name)
+                    const isFollowed = followedUsers.has(user.userId)
                     return (
                       <div
                         key={`rec-${user.userId}`}
@@ -1047,7 +1049,7 @@ export default function ExplorePage() {
                           {isFollowed ? '팔로잉' : '+ 연결하기'}
                         </button>
                       </div>
-                    );
+                    )
                   })}
                 </div>
               </div>
@@ -1092,9 +1094,9 @@ export default function ExplorePage() {
             ) : (
               <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
                 {users.map((user) => {
-                  const initial = user.name.charAt(0).toUpperCase();
-                  const avatarColor = getAvatarColor(user.name);
-                  const isFollowed = followedUsers.has(user.userId);
+                  const initial = user.name.charAt(0).toUpperCase()
+                  const avatarColor = getAvatarColor(user.name)
+                  const isFollowed = followedUsers.has(user.userId)
 
                   return (
                     <div
@@ -1262,7 +1264,7 @@ export default function ExplorePage() {
                         </button>
                       </div>
                     </div>
-                  );
+                  )
                 })}
               </div>
             )}
@@ -1317,22 +1319,22 @@ export default function ExplorePage() {
                       'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
                     question:
                       'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                  };
+                  }
                   const CAT_LABELS: Record<string, string> = {
                     free: '자유',
                     tips: '취업팁',
                     resume: '이력서피드백',
                     'cover-letter': '자소서',
                     question: '질문',
-                  };
-                  const diff = currentTimeMs - new Date(post.createdAt).getTime();
-                  const mins = Math.floor(diff / 60000);
+                  }
+                  const diff = currentTimeMs - new Date(post.createdAt).getTime()
+                  const mins = Math.floor(diff / 60000)
                   const timeStr =
                     mins < 60
                       ? `${mins}분 전`
                       : mins < 1440
                         ? `${Math.floor(mins / 60)}시간 전`
-                        : `${Math.floor(mins / 1440)}일 전`;
+                        : `${Math.floor(mins / 1440)}일 전`
                   return (
                     <Link
                       key={post.id}
@@ -1383,7 +1385,7 @@ export default function ExplorePage() {
                         <span className="hidden sm:block">{timeStr}</span>
                       </div>
                     </Link>
-                  );
+                  )
                 })}
               </div>
             )}
@@ -1485,9 +1487,9 @@ export default function ExplorePage() {
 
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
               {(() => {
-                const limit = parseInt(params.get('limit') || '12');
-                const start = (result.page - 1) * limit + 1;
-                const end = Math.min(result.page * limit, result.total);
+                const limit = parseInt(params.get('limit') || '12')
+                const start = (result.page - 1) * limit + 1
+                const end = Math.min(result.page * limit, result.total)
                 return (
                   <>
                     <span className="font-medium text-slate-700 dark:text-slate-300">
@@ -1495,7 +1497,7 @@ export default function ExplorePage() {
                     </span>{' '}
                     중 {start}-{end}
                   </>
-                );
+                )
               })()}
               {query && (
                 <>
@@ -1521,8 +1523,8 @@ export default function ExplorePage() {
               }
             >
               {(industryFilter !== 'all' ? industryFilteredResumes : result.data).map((resume) => {
-                const themeIdx = getThemeIndex(resume.id);
-                const skillNames = extractSkillNames(resume.skills);
+                const themeIdx = getThemeIndex(resume.id)
+                const skillNames = extractSkillNames(resume.skills)
 
                 if (viewMode === 'list') {
                   return (
@@ -1565,9 +1567,9 @@ export default function ExplorePage() {
                             <button
                               key={s}
                               onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setSearchInput(s);
+                                e.preventDefault()
+                                e.stopPropagation()
+                                setSearchInput(s)
                               }}
                               className="px-1.5 py-1 text-xs bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
                             >
@@ -1611,7 +1613,7 @@ export default function ExplorePage() {
                         <BookmarkButton resumeId={resume.id} size="sm" />
                       </div>
                     </Link>
-                  );
+                  )
                 }
 
                 // Grid view
@@ -1662,9 +1664,9 @@ export default function ExplorePage() {
                           <button
                             key={s}
                             onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSearchInput(s);
+                              e.preventDefault()
+                              e.stopPropagation()
+                              setSearchInput(s)
                             }}
                             className="px-1.5 py-1 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors cursor-pointer"
                           >
@@ -1746,7 +1748,7 @@ export default function ExplorePage() {
                       )}
                     </div>
                   </Link>
-                );
+                )
               })}
             </div>
 
@@ -1758,10 +1760,10 @@ export default function ExplorePage() {
                   <select
                     value={params.get('limit') || '12'}
                     onChange={(e) => {
-                      const next = new URLSearchParams(params);
-                      next.set('limit', e.target.value);
-                      next.set('page', '1');
-                      setParams(next);
+                      const next = new URLSearchParams(params)
+                      next.set('limit', e.target.value)
+                      next.set('page', '1')
+                      setParams(next)
                     }}
                     className="px-2 py-1 text-xs border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-300 focus:ring-2 focus:ring-blue-500"
                   >
@@ -1796,5 +1798,5 @@ export default function ExplorePage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

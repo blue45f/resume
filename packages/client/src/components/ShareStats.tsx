@@ -1,15 +1,15 @@
 interface Props {
-  viewCount?: number;
+  viewCount?: number
 }
 
 export default function ShareStats({ viewCount }: Props) {
-  const views = viewCount ?? 0;
+  const views = viewCount ?? 0
   // Estimate unique visitors as ~60% of total views (heuristic)
-  const uniqueVisitors = Math.max(1, Math.round(views * 0.6));
+  const uniqueVisitors = Math.max(1, Math.round(views * 0.6))
   // Estimate share clicks as ~8% of views
-  const shareClicks = Math.round(views * 0.08);
+  const shareClicks = Math.round(views * 0.08)
   // Estimate QR scans as ~3% of views
-  const qrScans = Math.round(views * 0.03);
+  const qrScans = Math.round(views * 0.03)
 
   const stats = [
     {
@@ -78,7 +78,7 @@ export default function ShareStats({ viewCount }: Props) {
       ),
       color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400',
     },
-  ];
+  ]
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -94,5 +94,5 @@ export default function ShareStats({ viewCount }: Props) {
         </span>
       ))}
     </div>
-  );
+  )
 }

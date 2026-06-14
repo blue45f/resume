@@ -1,16 +1,17 @@
-import { useMemo } from 'react';
-import { buildResumeActionVerbReport } from '@/lib/resumeActionVerbAnalyzer';
+import { useMemo } from 'react'
+
+import { buildResumeActionVerbReport } from '@/lib/resumeActionVerbAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeActionVerbPanel({ text }: Props) {
-  const report = useMemo(() => buildResumeActionVerbReport(text), [text]);
+  const report = useMemo(() => buildResumeActionVerbReport(text), [text])
 
-  if (report.totalHits === 0) return null;
+  if (report.totalHits === 0) return null
 
-  const fill = Math.max(0.04, Math.min(1, report.score / 100));
+  const fill = Math.max(0.04, Math.min(1, report.score / 100))
 
   return (
     <aside className={`verb-card verb-card--${report.tone}`} aria-label="이력서 실행 동사 다양도">
@@ -76,5 +77,5 @@ export default function ResumeActionVerbPanel({ text }: Props) {
         </p>
       )}
     </aside>
-  );
+  )
 }

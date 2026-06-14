@@ -1,20 +1,21 @@
-import type { Preview, Decorator } from '@storybook/react-vite';
-import { MemoryRouter } from 'react-router-dom';
-import * as RadixTooltip from '@radix-ui/react-tooltip';
-import '../src/index.css';
+import * as RadixTooltip from '@radix-ui/react-tooltip'
+import { MemoryRouter } from 'react-router-dom'
+
+import type { Preview, Decorator } from '@storybook/react-vite'
+import '../src/index.css'
 
 /**
  * locale toggle decorator — 한국어/영어/일본어. tx() 가 사용하는 localStorage 키
  * (resume-locale) 를 직접 세팅. 컴포넌트 마운트 전에 적용되도록 동기 처리.
  */
 const withLocale: Decorator = (Story, context) => {
-  const locale = context.globals.locale ?? 'ko';
+  const locale = context.globals.locale ?? 'ko'
   if (typeof window !== 'undefined') {
-    window.localStorage.setItem('resume-locale', locale);
-    document.documentElement.lang = locale === 'ja' ? 'ja' : locale === 'en' ? 'en' : 'ko';
+    window.localStorage.setItem('resume-locale', locale)
+    document.documentElement.lang = locale === 'ja' ? 'ja' : locale === 'en' ? 'en' : 'ko'
   }
-  return <Story />;
-};
+  return <Story />
+}
 
 /** Router + Tooltip provider — 다수 컴포넌트가 react-router 와 tooltip 컨텍스트를 요구. */
 const withProviders: Decorator = (Story) => (
@@ -23,7 +24,7 @@ const withProviders: Decorator = (Story) => (
       <Story />
     </RadixTooltip.Provider>
   </MemoryRouter>
-);
+)
 
 const preview: Preview = {
   parameters: {
@@ -64,6 +65,6 @@ const preview: Preview = {
     },
   },
   decorators: [withLocale, withProviders],
-};
+}
 
-export default preview;
+export default preview

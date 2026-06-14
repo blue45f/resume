@@ -5,32 +5,32 @@ export type KeywordCategory =
   | 'database' // MySQL, PostgreSQL, Redis …
   | 'tool' // Git, Docker, Kubernetes …
   | 'methodology' // Agile, CI/CD, TDD …
-  | 'domain'; // 머신러닝, 데이터 분석 …
+  | 'domain' // 머신러닝, 데이터 분석 …
 
-export type KeywordStatus = 'present' | 'missing';
+export type KeywordStatus = 'present' | 'missing'
 
 export interface KeywordHit {
-  keyword: string;
-  category: KeywordCategory;
-  categoryLabel: string;
-  status: KeywordStatus;
+  keyword: string
+  category: KeywordCategory
+  categoryLabel: string
+  status: KeywordStatus
 }
 
 export interface KeywordGapReport {
   /** All keywords detected in the JD. */
-  jdKeywords: KeywordHit[];
+  jdKeywords: KeywordHit[]
   /** Keywords found in the JD but absent from the resume. */
-  missing: KeywordHit[];
+  missing: KeywordHit[]
   /** Keywords found in both JD and resume. */
-  present: KeywordHit[];
+  present: KeywordHit[]
   /** 0-100 match score (present / jdKeywords * 100). */
-  matchScore: number;
+  matchScore: number
   /** Korean short label. */
-  label: string;
+  label: string
   /** Korean one-sentence summary. */
-  summary: string;
+  summary: string
   /** Grouped by category for display. */
-  byCategory: Record<KeywordCategory, KeywordHit[]>;
+  byCategory: Record<KeywordCategory, KeywordHit[]>
 }
 
 // ---------------------------------------------------------------------------
@@ -38,10 +38,10 @@ export interface KeywordGapReport {
 // ---------------------------------------------------------------------------
 
 interface KeywordDef {
-  keyword: string;
-  category: KeywordCategory;
+  keyword: string
+  category: KeywordCategory
   /** Patterns to match keyword in text. English: case-insensitive. Korean: exact. */
-  patterns: RegExp[];
+  patterns: RegExp[]
 }
 
 const KEYWORD_TABLE: KeywordDef[] = [
@@ -181,7 +181,7 @@ const KEYWORD_TABLE: KeywordDef[] = [
     category: 'domain',
     patterns: [/블록체인/g, /\bblockchain\b/i, /\bweb3\b/i],
   },
-];
+]
 
 const CATEGORY_LABELS: Record<KeywordCategory, string> = {
   language: '언어',
@@ -191,7 +191,7 @@ const CATEGORY_LABELS: Record<KeywordCategory, string> = {
   tool: '도구/플랫폼',
   methodology: '방법론',
   domain: '도메인',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Core functions
@@ -199,55 +199,55 @@ const CATEGORY_LABELS: Record<KeywordCategory, string> = {
 
 function matchesPatterns(text: string, patterns: RegExp[]): boolean {
   for (const p of patterns) {
-    const flags = p.flags.includes('g') ? p.flags : p.flags + 'g';
-    const re = new RegExp(p.source, flags);
-    if (re.test(text)) return true;
+    const flags = p.flags.includes('g') ? p.flags : p.flags + 'g'
+    const re = new RegExp(p.source, flags)
+    if (re.test(text)) return true
   }
-  return false;
+  return false
 }
 
 export function buildJdKeywordGapReport(jdText: string, resumeText: string): KeywordGapReport {
-  const safeJd = (jdText ?? '').trim();
-  const safeResume = (resumeText ?? '').trim();
+  const safeJd = (jdText ?? '').trim()
+  const safeResume = (resumeText ?? '').trim()
 
-  const jdKeywords: KeywordHit[] = [];
+  const jdKeywords: KeywordHit[] = []
 
   for (const def of KEYWORD_TABLE) {
-    if (!matchesPatterns(safeJd, def.patterns)) continue;
-    const inResume = safeResume ? matchesPatterns(safeResume, def.patterns) : false;
+    if (!matchesPatterns(safeJd, def.patterns)) continue
+    const inResume = safeResume ? matchesPatterns(safeResume, def.patterns) : false
     jdKeywords.push({
       keyword: def.keyword,
       category: def.category,
       categoryLabel: CATEGORY_LABELS[def.category],
       status: inResume ? 'present' : 'missing',
-    });
+    })
   }
 
-  const present = jdKeywords.filter((k) => k.status === 'present');
-  const missing = jdKeywords.filter((k) => k.status === 'missing');
-  const total = jdKeywords.length;
-  const matchScore = total === 0 ? 0 : Math.round((present.length / total) * 100);
+  const present = jdKeywords.filter((k) => k.status === 'present')
+  const missing = jdKeywords.filter((k) => k.status === 'missing')
+  const total = jdKeywords.length
+  const matchScore = total === 0 ? 0 : Math.round((present.length / total) * 100)
 
-  const byCategory = {} as Record<KeywordCategory, KeywordHit[]>;
+  const byCategory = {} as Record<KeywordCategory, KeywordHit[]>
   for (const cat of Object.keys(CATEGORY_LABELS) as KeywordCategory[]) {
-    byCategory[cat] = jdKeywords.filter((k) => k.category === cat);
+    byCategory[cat] = jdKeywords.filter((k) => k.category === cat)
   }
 
-  let label: string;
-  let summary: string;
+  let label: string
+  let summary: string
   if (total === 0) {
-    label = '키워드 없음';
-    summary = '채용공고에서 알려진 기술 키워드를 찾지 못했습니다.';
+    label = '키워드 없음'
+    summary = '채용공고에서 알려진 기술 키워드를 찾지 못했습니다.'
   } else if (matchScore >= 80) {
-    label = `키워드 일치 ${matchScore}%`;
-    summary = `JD 키워드 ${total}개 중 ${present.length}개가 이력서에 포함되어 있습니다. 매우 잘 맞습니다.`;
+    label = `키워드 일치 ${matchScore}%`
+    summary = `JD 키워드 ${total}개 중 ${present.length}개가 이력서에 포함되어 있습니다. 매우 잘 맞습니다.`
   } else if (matchScore >= 50) {
-    label = `키워드 일치 ${matchScore}%`;
-    summary = `JD 키워드 ${total}개 중 ${missing.length}개가 이력서에 없습니다. 해당 기술을 경험했다면 추가해 보세요.`;
+    label = `키워드 일치 ${matchScore}%`
+    summary = `JD 키워드 ${total}개 중 ${missing.length}개가 이력서에 없습니다. 해당 기술을 경험했다면 추가해 보세요.`
   } else {
-    label = `키워드 일치 ${matchScore}%`;
-    summary = `JD 키워드 ${total}개 중 ${missing.length}개가 이력서에 빠져 있습니다. 관련 경험을 이력서에 반영하거나 면접에서 언급하세요.`;
+    label = `키워드 일치 ${matchScore}%`
+    summary = `JD 키워드 ${total}개 중 ${missing.length}개가 이력서에 빠져 있습니다. 관련 경험을 이력서에 반영하거나 면접에서 언급하세요.`
   }
 
-  return { jdKeywords, missing, present, matchScore, label, summary, byCategory };
+  return { jdKeywords, missing, present, matchScore, label, summary, byCategory }
 }

@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
-import { extractResumeCoreMessages, type CoreMessageCategory } from '@/lib/koreanChecker';
-import { tx } from '@/lib/i18n';
+import { useMemo } from 'react'
+
+import { tx } from '@/lib/i18n'
+import { extractResumeCoreMessages, type CoreMessageCategory } from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  topN?: number;
-  minLength?: number;
-  className?: string;
+  text: string
+  topN?: number
+  minLength?: number
+  className?: string
 }
 
 // 카테고리별 배지 색 — Impeccable 팔레트(neutral + blue/cyan + 상태색 emerald/amber). purple 금지.
@@ -21,7 +22,7 @@ const CATEGORY_STYLE: Record<CoreMessageCategory, string> = {
     'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/20 dark:text-cyan-300 dark:border-cyan-900/40',
   expertise:
     'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-};
+}
 
 /**
  * 이력서 핵심 메시지 패널 — 가장 강력한 메시지를 강도순으로 보여주고, 자기소개·경력
@@ -34,13 +35,13 @@ export default function ResumeCoreMessagesPanel({
   className = '',
 }: Props) {
   const analysis = useMemo(() => {
-    if (!text || text.length < minLength) return null;
-    return extractResumeCoreMessages(text, topN);
-  }, [text, topN, minLength]);
+    if (!text || text.length < minLength) return null
+    return extractResumeCoreMessages(text, topN)
+  }, [text, topN, minLength])
 
-  if (!analysis || analysis.top.length === 0) return null;
+  if (!analysis || analysis.top.length === 0) return null
 
-  const titleId = 'core-messages-title';
+  const titleId = 'core-messages-title'
   return (
     <section className={`mt-3 ${className}`} aria-labelledby={titleId}>
       <div className="flex items-center justify-between mb-1.5">
@@ -112,7 +113,7 @@ export default function ResumeCoreMessagesPanel({
         {analysis.suggestion}
       </p>
     </section>
-  );
+  )
 }
 
 function SignalChip({ children }: { children: React.ReactNode }) {
@@ -120,5 +121,5 @@ function SignalChip({ children }: { children: React.ReactNode }) {
     <span className="px-1 rounded bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
       {children}
     </span>
-  );
+  )
 }

@@ -10,19 +10,19 @@ export type BaitType =
   | 'challenge_overcome' // 어려운 상황을 극복한 서술
   | 'unexpected_achievement' // 역할 대비 예상을 뛰어넘는 성과
   | 'initiative' // 공식 권한 없이 주도한 행동
-  | 'impact_chain'; // 한 행동이 연쇄적으로 결과를 낳은 구조
+  | 'impact_chain' // 한 행동이 연쇄적으로 결과를 낳은 구조
 
 export interface InterviewBait {
-  type: BaitType;
-  phrase: string;
-  explanation: string;
+  type: BaitType
+  phrase: string
+  explanation: string
 }
 
 export interface InterviewBaitReport {
-  baits: InterviewBait[];
-  hookScore: number; // 0-100
-  level: 'rich' | 'adequate' | 'sparse' | 'none';
-  tip: string;
+  baits: InterviewBait[]
+  hookScore: number // 0-100
+  level: 'rich' | 'adequate' | 'sparse' | 'none'
+  tip: string
 }
 
 // ---------------------------------------------------------------------------
@@ -30,10 +30,10 @@ export interface InterviewBaitReport {
 // ---------------------------------------------------------------------------
 
 interface BaitPattern {
-  re: RegExp;
-  type: BaitType;
-  explanation: string;
-  score: number;
+  re: RegExp
+  type: BaitType
+  explanation: string
+  score: number
 }
 
 const BAIT_PATTERNS: BaitPattern[] = [
@@ -150,7 +150,7 @@ const BAIT_PATTERNS: BaitPattern[] = [
     explanation: '구체적 지표 개선',
     score: 16,
   },
-];
+]
 
 const BAIT_TYPE_LABEL: Record<BaitType, string> = {
   transformation: '전환/개선',
@@ -159,35 +159,35 @@ const BAIT_TYPE_LABEL: Record<BaitType, string> = {
   unexpected_achievement: '기대 초과 성과',
   initiative: '자발적 주도',
   impact_chain: '연쇄 결과',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeInterviewBait(text: string): InterviewBaitReport {
-  const t = text ?? '';
-  const baits: InterviewBait[] = [];
+  const t = text ?? ''
+  const baits: InterviewBait[] = []
 
   for (const { re, type, explanation, score: _ } of BAIT_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      baits.push({ type, phrase: m[0].slice(0, 60), explanation });
+      baits.push({ type, phrase: m[0].slice(0, 60), explanation })
     }
   }
 
   const totalScore = BAIT_PATTERNS.filter(({ re }) => re.test(t)).reduce(
     (sum, p) => sum + p.score,
-    0,
-  );
+    0
+  )
 
-  const hookScore = Math.min(100, totalScore);
+  const hookScore = Math.min(100, totalScore)
 
-  let level: InterviewBaitReport['level'];
-  if (hookScore >= 50) level = 'rich';
-  else if (hookScore >= 25) level = 'adequate';
-  else if (hookScore >= 5) level = 'sparse';
-  else level = 'none';
+  let level: InterviewBaitReport['level']
+  if (hookScore >= 50) level = 'rich'
+  else if (hookScore >= 25) level = 'adequate'
+  else if (hookScore >= 5) level = 'sparse'
+  else level = 'none'
 
   const tip =
     level === 'rich'
@@ -196,9 +196,9 @@ export function analyzeInterviewBait(text: string): InterviewBaitReport {
         ? '이야기할 수 있는 소재가 있지만, A→B 수치 전환이나 도전 극복 스토리를 더 추가하면 더 풍성해집니다.'
         : level === 'sparse'
           ? '"이 경험에서 가장 어려웠던 점은?" 식의 질문에 답할 수 있는 구체적 스토리를 발굴하세요.'
-          : '이력서에 인상적인 스토리 소재가 거의 없습니다. 과거 프로젝트에서 기억에 남는 전환점·위기·성과를 추가하세요.';
+          : '이력서에 인상적인 스토리 소재가 거의 없습니다. 과거 프로젝트에서 기억에 남는 전환점·위기·성과를 추가하세요.'
 
-  return { baits, hookScore, level, tip };
+  return { baits, hookScore, level, tip }
 }
 
-export { BAIT_TYPE_LABEL };
+export { BAIT_TYPE_LABEL }

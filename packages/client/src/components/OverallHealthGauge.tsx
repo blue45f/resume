@@ -1,15 +1,16 @@
-import { useMemo } from 'react';
-import { calculateOverallHealth } from '@/lib/koreanChecker';
-import { tx } from '@/lib/i18n';
-import { useCountUp } from '@/hooks/useCountUp';
+import { useMemo } from 'react'
+
+import { useCountUp } from '@/hooks/useCountUp'
+import { tx } from '@/lib/i18n'
+import { calculateOverallHealth } from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  minLength?: number;
-  className?: string;
+  text: string
+  minLength?: number
+  className?: string
 }
 
-type Tier = 'excellent' | 'good' | 'fair' | 'poor';
+type Tier = 'excellent' | 'good' | 'fair' | 'poor'
 
 const TIER_META: Record<Tier, { dot: string; bar: string; ring: string; text: string }> = {
   excellent: {
@@ -36,7 +37,7 @@ const TIER_META: Record<Tier, { dot: string; bar: string; ring: string; text: st
     ring: 'ring-rose-400/60 dark:ring-rose-500/60',
     text: 'text-rose-700 dark:text-rose-300',
   },
-};
+}
 
 /**
  * 이력서·자소서 전반의 "준비도" 한눈 시각화 — 3축(문체 30%·완성도 30%·면접 40%) 가중 평균.
@@ -44,16 +45,16 @@ const TIER_META: Record<Tier, { dot: string; bar: string; ring: string; text: st
  */
 export default function OverallHealthGauge({ text, minLength = 200, className = '' }: Props) {
   const health = useMemo(() => {
-    if (!text || text.length < minLength) return null;
-    return calculateOverallHealth(text);
-  }, [text, minLength]);
+    if (!text || text.length < minLength) return null
+    return calculateOverallHealth(text)
+  }, [text, minLength])
 
   // hooks 는 조건부 return 전에 호출 (Rules of Hooks). 점수 reveal 시 0 → 값으로 count-up.
-  const animatedHealth = useCountUp(health ? health.health : 0, { durationMs: 800 });
+  const animatedHealth = useCountUp(health ? health.health : 0, { durationMs: 800 })
 
-  if (!health) return null;
-  const meta = TIER_META[health.tier];
-  const tierLabel = tx(`resumeAnalysis.health.tier.${health.tier}`);
+  if (!health) return null
+  const meta = TIER_META[health.tier]
+  const tierLabel = tx(`resumeAnalysis.health.tier.${health.tier}`)
 
   return (
     <div
@@ -103,7 +104,7 @@ export default function OverallHealthGauge({ text, minLength = 200, className = 
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 function AxisBar({
@@ -112,13 +113,13 @@ function AxisBar({
   weight,
   tier,
 }: {
-  label: string;
-  value: number;
-  weight: number;
-  tier: Tier;
+  label: string
+  value: number
+  weight: number
+  tier: Tier
 }) {
-  const meta = TIER_META[tier];
-  const pct = Math.max(0, Math.min(100, value));
+  const meta = TIER_META[tier]
+  const pct = Math.max(0, Math.min(100, value))
   return (
     <div className="flex items-center gap-2 text-[11px]">
       <span className="w-16 shrink-0 text-slate-600 dark:text-slate-400">{label}</span>
@@ -148,5 +149,5 @@ function AxisBar({
         ×{weight}%
       </span>
     </div>
-  );
+  )
 }

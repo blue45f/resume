@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { tx } from '@/lib/i18n';
-import { TERMSDESK_URLS } from '@/lib/routes';
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { tx } from '@/lib/i18n'
+import { TERMSDESK_URLS } from '@/lib/routes'
 
 const SITEMAP = [
   {
@@ -183,15 +184,15 @@ const SITEMAP = [
       },
     ],
   },
-];
+]
 
 export default function SitemapPage() {
   useEffect(() => {
-    document.title = '사이트맵 — 이력서공방';
+    document.title = '사이트맵 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   return (
     <>
@@ -230,9 +231,9 @@ export default function SitemapPage() {
               {/* Links */}
               <div className="divide-y divide-slate-100 dark:divide-slate-700">
                 {section.links.map((link) => {
-                  const isExternal = link.to.startsWith('http');
+                  const isExternal = link.to.startsWith('http')
                   const className =
-                    'flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group';
+                    'flex items-center gap-3 px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group'
                   const content = (
                     <>
                       <div className="flex-1 min-w-0">
@@ -264,7 +265,7 @@ export default function SitemapPage() {
                         />
                       </svg>
                     </>
-                  );
+                  )
                   return isExternal ? (
                     <a
                       key={link.to}
@@ -279,7 +280,7 @@ export default function SitemapPage() {
                     <Link key={link.to} to={link.to} className={className}>
                       {content}
                     </Link>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -293,5 +294,5 @@ export default function SitemapPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

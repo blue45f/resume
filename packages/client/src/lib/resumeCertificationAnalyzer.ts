@@ -7,21 +7,21 @@
  * 관련 타입: CertificationReport.
  */
 
-export type CertCategory = 'it' | 'language' | 'business' | 'engineering' | 'cloud' | 'other';
+export type CertCategory = 'it' | 'language' | 'business' | 'engineering' | 'cloud' | 'other'
 
 export interface DetectedCert {
-  name: string;
-  category: CertCategory;
-  tier: 'national' | 'global' | 'vendor';
+  name: string
+  category: CertCategory
+  tier: 'national' | 'global' | 'vendor'
 }
 
 export interface CertificationReport {
-  certs: DetectedCert[];
-  hasItCert: boolean;
-  hasLanguageCert: boolean;
-  hasCloudCert: boolean;
-  totalCount: number;
-  suggestion: string;
+  certs: DetectedCert[]
+  hasItCert: boolean
+  hasLanguageCert: boolean
+  hasCloudCert: boolean
+  totalCount: number
+  suggestion: string
 }
 
 // ---------------------------------------------------------------------------
@@ -29,10 +29,10 @@ export interface CertificationReport {
 // ---------------------------------------------------------------------------
 
 interface CertDef {
-  re: RegExp;
-  name: string;
-  category: CertCategory;
-  tier: DetectedCert['tier'];
+  re: RegExp
+  name: string
+  category: CertCategory
+  tier: DetectedCert['tier']
 }
 
 const CERT_PATTERNS: CertDef[] = [
@@ -155,7 +155,7 @@ const CERT_PATTERNS: CertDef[] = [
     category: 'engineering',
     tier: 'national',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
@@ -165,27 +165,27 @@ const CERT_PATTERNS: CertDef[] = [
  * 이력서에서 자격증·인증·어학 시험을 감지하고 보유 현황을 평가.
  */
 export function analyzeResumeCertifications(text: string): CertificationReport {
-  const t = text ?? '';
+  const t = text ?? ''
 
   const certs: DetectedCert[] = CERT_PATTERNS.filter(({ re }) => re.test(t)).map(
-    ({ name, category, tier }) => ({ name, category, tier }),
-  );
+    ({ name, category, tier }) => ({ name, category, tier })
+  )
 
-  const hasItCert = certs.some((c) => c.category === 'it');
-  const hasLanguageCert = certs.some((c) => c.category === 'language');
-  const hasCloudCert = certs.some((c) => c.category === 'cloud');
+  const hasItCert = certs.some((c) => c.category === 'it')
+  const hasLanguageCert = certs.some((c) => c.category === 'language')
+  const hasCloudCert = certs.some((c) => c.category === 'cloud')
 
-  let suggestion: string;
+  let suggestion: string
   if (certs.length === 0) {
     suggestion =
-      '자격증·인증·어학 점수가 감지되지 않았습니다. IT 직종이라면 정보처리기사, 클라우드 자격증, OPIc 등을 기재하면 경쟁력이 높아집니다.';
+      '자격증·인증·어학 점수가 감지되지 않았습니다. IT 직종이라면 정보처리기사, 클라우드 자격증, OPIc 등을 기재하면 경쟁력이 높아집니다.'
   } else if (!hasLanguageCert && certs.length < 3) {
-    suggestion = `${certs.length}개 자격증 감지됨. 외국어 점수(OPIc/TOEIC)를 추가하면 글로벌 포지션 지원 시 유리합니다.`;
+    suggestion = `${certs.length}개 자격증 감지됨. 외국어 점수(OPIc/TOEIC)를 추가하면 글로벌 포지션 지원 시 유리합니다.`
   } else if (!hasCloudCert && hasItCert) {
-    suggestion = `${certs.length}개 자격증 감지됨. 클라우드 인증(AWS/GCP/Azure)을 보유 중이라면 기재하세요.`;
+    suggestion = `${certs.length}개 자격증 감지됨. 클라우드 인증(AWS/GCP/Azure)을 보유 중이라면 기재하세요.`
   } else {
-    suggestion = `${certs.length}개 자격증/인증이 포함되어 있습니다.`;
+    suggestion = `${certs.length}개 자격증/인증이 포함되어 있습니다.`
   }
 
-  return { certs, hasItCert, hasLanguageCert, hasCloudCert, totalCount: certs.length, suggestion };
+  return { certs, hasItCert, hasLanguageCert, hasCloudCert, totalCount: certs.length, suggestion }
 }

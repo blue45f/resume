@@ -1,18 +1,18 @@
-import type { Resume } from '@/types/resume';
+import type { Resume } from '@/types/resume'
 
 interface Props {
-  resume: Resume;
-  compact?: boolean;
+  resume: Resume
+  compact?: boolean
 }
 
 interface CheckItem {
-  label: string;
-  done: boolean;
-  priority: 'high' | 'medium' | 'low';
+  label: string
+  done: boolean
+  priority: 'high' | 'medium' | 'low'
 }
 
 export default function ResumeChecklist({ resume, compact }: Props) {
-  const pi = resume.personalInfo;
+  const pi = resume.personalInfo
 
   const items: CheckItem[] = [
     { label: '이름 입력', done: !!pi.name, priority: 'high' },
@@ -31,11 +31,11 @@ export default function ResumeChecklist({ resume, compact }: Props) {
     { label: '어학 점수', done: resume.languages.length > 0, priority: 'low' },
     { label: '증명사진', done: !!pi.photo, priority: 'low' },
     { label: '웹사이트/포트폴리오', done: !!(pi.website || pi.github), priority: 'medium' },
-  ];
+  ]
 
-  const completed = items.filter((i) => i.done).length;
-  const total = items.length;
-  const percentage = Math.round((completed / total) * 100);
+  const completed = items.filter((i) => i.done).length
+  const total = items.length
+  const percentage = Math.round((completed / total) * 100)
 
   if (compact) {
     return (
@@ -50,7 +50,7 @@ export default function ResumeChecklist({ resume, compact }: Props) {
           {completed}/{total}
         </span>
       </div>
-    );
+    )
   }
 
   return (
@@ -111,5 +111,5 @@ export default function ResumeChecklist({ resume, compact }: Props) {
         ))}
       </div>
     </div>
-  );
+  )
 }

@@ -1,4 +1,4 @@
-import type { StorybookConfig } from '@storybook/react-vite';
+import type { StorybookConfig } from '@storybook/react-vite'
 
 /**
  * Storybook 10 + React 19 + Vite 8 + TailwindCSS 4 설정.
@@ -18,6 +18,6 @@ const config: StorybookConfig = {
     // 빠른 빌드를 위해 docgen 비활성. 필요 시 'react-docgen-typescript' 로 전환.
     reactDocgen: 'react-docgen',
   },
-};
+}
 
-export default config;
+export default config

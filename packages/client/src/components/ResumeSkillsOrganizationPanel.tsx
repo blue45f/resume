@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { checkResumeSkillsOrganization } from '@/lib/resumeSkillsOrganizationChecker';
+import { useMemo } from 'react'
+
+import { checkResumeSkillsOrganization } from '@/lib/resumeSkillsOrganizationChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const GRADE_LABEL: Record<string, string> = {
@@ -10,7 +11,7 @@ const GRADE_LABEL: Record<string, string> = {
   partial: '부분 정리',
   jumbled: '혼재',
   minimal: '미작성',
-};
+}
 
 const CATEGORY_LABEL: Record<string, string> = {
   language: '언어',
@@ -22,21 +23,21 @@ const CATEGORY_LABEL: Record<string, string> = {
   data_ml: '데이터/ML',
   testing: '테스트',
   tool_other: '기타',
-};
+}
 
 export default function ResumeSkillsOrganizationPanel({ text }: Props) {
-  const report = useMemo(() => checkResumeSkillsOrganization(text), [text]);
+  const report = useMemo(() => checkResumeSkillsOrganization(text), [text])
 
-  if (report.grade === 'organized' || report.grade === 'minimal') return null;
-  if (report.skillCount < 4) return null;
+  if (report.grade === 'organized' || report.grade === 'minimal') return null
+  if (report.skillCount < 4) return null
 
-  const isWarning = report.grade === 'jumbled';
+  const isWarning = report.grade === 'jumbled'
 
   // Group detected skills by category for display
-  const byCategory: Record<string, string[]> = {};
+  const byCategory: Record<string, string[]> = {}
   for (const { name, category } of report.detectedSkills) {
-    if (!byCategory[category]) byCategory[category] = [];
-    byCategory[category].push(name);
+    if (!byCategory[category]) byCategory[category] = []
+    byCategory[category].push(name)
   }
 
   return (
@@ -78,5 +79,5 @@ export default function ResumeSkillsOrganizationPanel({ text }: Props) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

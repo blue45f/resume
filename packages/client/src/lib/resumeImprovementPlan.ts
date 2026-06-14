@@ -10,24 +10,24 @@
  * 별도 분석을 재실행하지 않고 scoreInterviewability 결과만 가공한다(순수 함수).
  */
 
-import { scoreInterviewability } from './derivedScores';
+import { scoreInterviewability } from './derivedScores'
 
-export type ImprovementSeverity = 'high' | 'medium' | 'low';
+export type ImprovementSeverity = 'high' | 'medium' | 'low'
 
 export interface ImprovementItem {
-  axis: string; // 평가 축 (구체성·정량 지표 등)
-  value: number; // 현재 점수 0~100
-  impact: number; // 개선 시 종합 점수 상승 잠재폭 (= (100-value)*weight, 반올림)
-  severity: ImprovementSeverity;
-  advice: string; // 구체적·실행 가능한 개선 조언
+  axis: string // 평가 축 (구체성·정량 지표 등)
+  value: number // 현재 점수 0~100
+  impact: number // 개선 시 종합 점수 상승 잠재폭 (= (100-value)*weight, 반올림)
+  severity: ImprovementSeverity
+  advice: string // 구체적·실행 가능한 개선 조언
 }
 
 export interface ResumeImprovementPlan {
-  overall: number; // 현재 면접 적합도 0~100
-  tier: 'call-back' | 'promising' | 'needs-work' | 'below-bar';
-  items: ImprovementItem[]; // 임팩트 내림차순 (개선 여지 있는 축만)
-  topAdvice: string; // 헤드라인 한 줄
-  hasRoom: boolean; // 개선 여지가 있는가
+  overall: number // 현재 면접 적합도 0~100
+  tier: 'call-back' | 'promising' | 'needs-work' | 'below-bar'
+  items: ImprovementItem[] // 임팩트 내림차순 (개선 여지 있는 축만)
+  topAdvice: string // 헤드라인 한 줄
+  hasRoom: boolean // 개선 여지가 있는가
 }
 
 // 평가 축별 구체 조언 (scoreInterviewability breakdown 의 axis 라벨과 1:1)
@@ -40,12 +40,12 @@ const ADVICE: Record<string, string> = {
   '수상·성취': '수상·자격증·선정 등 객관적 성취를 추가해 역량을 제3자 관점에서 증명하세요.',
   '섹션 완성도':
     '비어 있는 핵심 섹션(자기소개·경력·기술·프로젝트)을 채워 한눈에 평가 가능한 이력서로 만드세요.',
-};
+}
 
 function severityOf(impact: number): ImprovementSeverity {
-  if (impact >= 10) return 'high';
-  if (impact >= 5) return 'medium';
-  return 'low';
+  if (impact >= 10) return 'high'
+  if (impact >= 5) return 'medium'
+  return 'low'
 }
 
 /**
@@ -54,33 +54,33 @@ function severityOf(impact: number): ImprovementSeverity {
  * @param topN 반환할 상위 개선 과제 수 (기본 3)
  */
 export function buildResumeImprovementPlan(text: string, topN = 3): ResumeImprovementPlan {
-  const score = scoreInterviewability(text ?? '');
+  const score = scoreInterviewability(text ?? '')
 
   const items: ImprovementItem[] = score.breakdown
     // 개선 여지가 의미 있는 축만 (이미 충분히 높은 축은 제외)
     .filter((b) => b.value < 90)
     .map((b) => {
-      const impact = Math.round((100 - b.value) * b.weight);
+      const impact = Math.round((100 - b.value) * b.weight)
       return {
         axis: b.axis,
         value: b.value,
         impact,
         severity: severityOf(impact),
         advice: ADVICE[b.axis] ?? `${b.axis} 항목을 보강하세요.`,
-      };
+      }
     })
     // 임팩트(종합 점수 상승 잠재폭) 내림차순, 동률 시 현재값 낮은 순
     .sort((a, b) => b.impact - a.impact || a.value - b.value)
-    .slice(0, topN);
+    .slice(0, topN)
 
-  const hasRoom = items.length > 0 && items[0].impact > 0;
+  const hasRoom = items.length > 0 && items[0].impact > 0
 
-  let topAdvice: string;
+  let topAdvice: string
   if (!hasRoom) {
-    topAdvice = '주요 평가 축이 모두 탄탄합니다. 세부 패널에서 미세 조정만 점검하세요.';
+    topAdvice = '주요 평가 축이 모두 탄탄합니다. 세부 패널에서 미세 조정만 점검하세요.'
   } else {
-    const top = items[0];
-    topAdvice = `가장 큰 개선 기회는 "${top.axis}"입니다 (현재 ${top.value}점, 보강 시 +${top.impact}점). ${top.advice}`;
+    const top = items[0]
+    topAdvice = `가장 큰 개선 기회는 "${top.axis}"입니다 (현재 ${top.value}점, 보강 시 +${top.impact}점). ${top.advice}`
   }
 
   return {
@@ -89,5 +89,5 @@ export function buildResumeImprovementPlan(text: string, topN = 3): ResumeImprov
     items,
     topAdvice,
     hasRoom,
-  };
+  }
 }

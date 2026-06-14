@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { analyzeJdMatch } from '@/lib/jdMatch';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { analyzeJdMatch } from '@/lib/jdMatch'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 /**
@@ -12,10 +14,10 @@ interface Props {
  * 기술·도구·프레임워크·도메인 키워드를 추출해 교집합 계산.
  */
 export default function JdMatchPanel({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [jd, setJd] = useState('');
+  const [expanded, setExpanded] = useState(false)
+  const [jd, setJd] = useState('')
 
-  const result = useMemo(() => analyzeJdMatch(jd, resume), [jd, resume]);
+  const result = useMemo(() => analyzeJdMatch(jd, resume), [jd, resume])
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -158,5 +160,5 @@ export default function JdMatchPanel({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

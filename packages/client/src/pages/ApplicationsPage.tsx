@@ -1,50 +1,52 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ErrorRetry from '@/components/ErrorRetry';
-import JobUrlInput from '@/components/JobUrlInput';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import { toast } from '@/components/Toast';
-import EmptyState from '@/components/EmptyState';
-import AppCommentSection from '@/components/AppCommentSection';
-import ApplicationTimeline from '@/components/ApplicationTimeline';
-import InterviewReview from '@/components/InterviewReview';
-import { useQueryClient } from '@tanstack/react-query';
-import { createApplication, updateApplication, deleteApplication } from '@/lib/api';
-import { buildApplicationActivityQueue } from '@/lib/applicationActivityQueue';
-import { buildApplicationConcentrationRisks } from '@/lib/applicationConcentrationRisk';
-import { buildCompanyResearchBrief } from '@/lib/applicationCompanyResearch';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { useForm } from 'react-hook-form'
+import { useSearchParams } from 'react-router-dom'
+
+import type { JobApplication } from '@/lib/api'
+import type { ResumeSummary } from '@/types/resume'
+
+import AppCommentSection from '@/components/AppCommentSection'
+import ApplicationTimeline from '@/components/ApplicationTimeline'
+import EmptyState from '@/components/EmptyState'
+import ErrorRetry from '@/components/ErrorRetry'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import InterviewReview from '@/components/InterviewReview'
+import JobUrlInput from '@/components/JobUrlInput'
+import MyPlatformApplications from '@/components/MyPlatformApplications'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
+import { useApplications, useResumes } from '@/hooks/useResources'
+import { createApplication, updateApplication, deleteApplication } from '@/lib/api'
+import { buildApplicationActivityQueue } from '@/lib/applicationActivityQueue'
 import {
   buildStageCommunicationTemplates,
   type ApplicationCommunicationTemplate,
-} from '@/lib/applicationCommunication';
-import { buildApplicationCsv, getApplicationCsvFileName } from '@/lib/applicationExport';
+} from '@/lib/applicationCommunication'
+import { buildCompanyResearchBrief } from '@/lib/applicationCompanyResearch'
+import { buildApplicationConcentrationRisks } from '@/lib/applicationConcentrationRisk'
+import { buildApplicationCsv, getApplicationCsvFileName } from '@/lib/applicationExport'
 import {
   buildApplicationPacketSnapshot,
   getApplicationPacketSnapshotFileName,
-} from '@/lib/applicationPacketSnapshot';
-import { scoreApplicationReadiness } from '@/lib/applicationReadinessScore';
-import { buildApplicationSourceInsights } from '@/lib/applicationSourceInsights';
-import { buildApplicationStageGuidance } from '@/lib/applicationStageGuidance';
-import { buildApplicationWeeklyPlan } from '@/lib/applicationWeeklyPlan';
-import { useApplications, useResumes } from '@/hooks/useResources';
-import type { JobApplication } from '@/lib/api';
-import MyPlatformApplications from '@/components/MyPlatformApplications';
-import type { ResumeSummary } from '@/types/resume';
-import { applicationSchema, type ApplicationFormValues } from '@/shared/lib/schemas';
-import { tx } from '@/lib/i18n';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+} from '@/lib/applicationPacketSnapshot'
+import { scoreApplicationReadiness } from '@/lib/applicationReadinessScore'
+import { buildApplicationSourceInsights } from '@/lib/applicationSourceInsights'
+import { buildApplicationStageGuidance } from '@/lib/applicationStageGuidance'
+import { buildApplicationWeeklyPlan } from '@/lib/applicationWeeklyPlan'
+import { tx } from '@/lib/i18n'
+import { applicationSchema, type ApplicationFormValues } from '@/shared/lib/schemas'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface StatusDef {
-  value: string;
-  key: string;
-  color: string;
+  value: string
+  key: string
+  color: string
 }
 
-type CalendarApplication = JobApplication & { _isInterview?: boolean };
+type CalendarApplication = JobApplication & { _isInterview?: boolean }
 const STATUS_DEFS: StatusDef[] = [
   {
     value: 'applied',
@@ -76,15 +78,15 @@ const STATUS_DEFS: StatusDef[] = [
     key: 'applications.status.withdrawn',
     color: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
   },
-];
-const getSTATUSES = () => STATUS_DEFS.map((s) => ({ ...s, label: tx(s.key) }));
+]
+const getSTATUSES = () => STATUS_DEFS.map((s) => ({ ...s, label: tx(s.key) }))
 
 interface KanbanCol {
-  value: string;
-  key: string;
-  headerColor: string;
-  nextStatus?: string;
-  prevStatus?: string;
+  value: string
+  key: string
+  headerColor: string
+  nextStatus?: string
+  prevStatus?: string
 }
 const KANBAN_DEFS: KanbanCol[] = [
   {
@@ -114,36 +116,36 @@ const KANBAN_DEFS: KanbanCol[] = [
     prevStatus: 'interview',
   },
   { value: 'rejected', key: 'applications.status.rejected', headerColor: 'bg-red-500' },
-];
-const getKANBAN_COLUMNS = () => KANBAN_DEFS.map((c) => ({ ...c, label: tx(c.key) }));
+]
+const getKANBAN_COLUMNS = () => KANBAN_DEFS.map((c) => ({ ...c, label: tx(c.key) }))
 
 const PRIORITY_CONFIG_BASE: Record<string, { key: string; color: string; icon: string }> = {
   high: { key: 'priority.high', color: 'text-red-500', icon: '★' },
   medium: { key: 'priority.medium', color: 'text-amber-500', icon: '☆' },
   low: { key: 'priority.low', color: 'text-slate-400', icon: '○' },
-};
+}
 const getPRIORITY_CONFIG = (): Record<string, { label: string; color: string; icon: string }> => {
-  const out: Record<string, { label: string; color: string; icon: string }> = {};
+  const out: Record<string, { label: string; color: string; icon: string }> = {}
   for (const [k, v] of Object.entries(PRIORITY_CONFIG_BASE)) {
-    out[k] = { label: tx(v.key), color: v.color, icon: v.icon };
+    out[k] = { label: tx(v.key), color: v.color, icon: v.icon }
   }
-  return out;
-};
+  return out
+}
 
-const getMONTHS = () => Array.from({ length: 12 }, (_, i) => tx(`datetime.months.${i + 1}`));
+const getMONTHS = () => Array.from({ length: 12 }, (_, i) => tx(`datetime.months.${i + 1}`))
 const getDAYS = () =>
-  ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((k) => tx(`datetime.days.${k}`));
+  ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].map((k) => tx(`datetime.days.${k}`))
 
 function daysSince(dateStr?: string): number {
-  if (!dateStr) return 0;
-  const diff = Date.now() - new Date(dateStr).getTime();
-  return Math.max(0, Math.floor(diff / 86400000));
+  if (!dateStr) return 0
+  const diff = Date.now() - new Date(dateStr).getTime()
+  return Math.max(0, Math.floor(diff / 86400000))
 }
 
 function daysUntil(dateStr?: string): number | null {
-  if (!dateStr) return null;
-  const diff = new Date(dateStr).getTime() - Date.now();
-  return Math.ceil(diff / 86400000);
+  if (!dateStr) return null
+  const diff = new Date(dateStr).getTime() - Date.now()
+  return Math.ceil(diff / 86400000)
 }
 
 const DEFAULT_FORM: ApplicationFormValues = {
@@ -159,21 +161,21 @@ const DEFAULT_FORM: ApplicationFormValues = {
   priority: 'medium',
   interviewDate: '',
   deadline: '',
-};
+}
 
 export default function ApplicationsPage() {
-  const queryClient = useQueryClient();
-  const [params] = useSearchParams();
-  const initialCompany = params.get('company') ?? '';
-  const initialPosition = params.get('position') ?? '';
-  const { data: appsData, isLoading: loading, error: queryError } = useApplications();
-  const apps = useMemo(() => appsData ?? [], [appsData]);
-  const error = !!queryError;
+  const queryClient = useQueryClient()
+  const [params] = useSearchParams()
+  const initialCompany = params.get('company') ?? ''
+  const initialPosition = params.get('position') ?? ''
+  const { data: appsData, isLoading: loading, error: queryError } = useApplications()
+  const apps = useMemo(() => appsData ?? [], [appsData])
+  const error = !!queryError
   const setApps = (updater: JobApplication[] | ((prev: JobApplication[]) => JobApplication[])) => {
-    const next = typeof updater === 'function' ? updater(apps) : updater;
-    queryClient.setQueryData(['applications'], next);
-  };
-  const [showForm, setShowForm] = useState(() => Boolean(initialCompany || initialPosition));
+    const next = typeof updater === 'function' ? updater(apps) : updater
+    queryClient.setQueryData(['applications'], next)
+  }
+  const [showForm, setShowForm] = useState(() => Boolean(initialCompany || initialPosition))
   const appForm = useForm<ApplicationFormValues>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
@@ -181,86 +183,86 @@ export default function ApplicationsPage() {
       company: initialCompany,
       position: initialPosition,
     },
-  });
-  const [filter, setFilter] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  })
+  const [filter, setFilter] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<
     'recent' | 'oldest' | 'company' | 'status' | 'applied' | 'deadline'
-  >('recent');
-  const [yearFilter, setYearFilter] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar' | 'analytics'>('list');
-  const { data: resumesData } = useResumes();
-  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
-  const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set());
-  const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  >('recent')
+  const [yearFilter, setYearFilter] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'list' | 'kanban' | 'calendar' | 'analytics'>('list')
+  const { data: resumesData } = useResumes()
+  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? []
+  const [dismissedReminders, setDismissedReminders] = useState<Set<string>>(new Set())
+  const [priorityFilter, setPriorityFilter] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [calMonth, setCalMonth] = useState(() => {
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth() };
-  });
-  const formRef = useRef<HTMLFormElement>(null);
-  const confirm = useConfirm();
+    const now = new Date()
+    return { year: now.getFullYear(), month: now.getMonth() }
+  })
+  const formRef = useRef<HTMLFormElement>(null)
+  const confirm = useConfirm()
 
   const load = () => {
-    queryClient.invalidateQueries({ queryKey: ['applications'] });
-  };
+    queryClient.invalidateQueries({ queryKey: ['applications'] })
+  }
 
   useEffect(() => {
-    document.title = '지원 관리 — 이력서공방';
+    document.title = '지원 관리 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const onSubmitApp = async (data: ApplicationFormValues) => {
     try {
-      await createApplication({ ...data, appliedDate: new Date().toISOString().slice(0, 10) });
-      toast('지원 내역이 추가되었습니다', 'success');
-      setShowForm(false);
-      appForm.reset(DEFAULT_FORM);
-      load();
+      await createApplication({ ...data, appliedDate: new Date().toISOString().slice(0, 10) })
+      toast('지원 내역이 추가되었습니다', 'success')
+      setShowForm(false)
+      appForm.reset(DEFAULT_FORM)
+      load()
     } catch {
-      toast('추가에 실패했습니다', 'error');
+      toast('추가에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleStatusChange = async (id: string, status: string) => {
-    const prevStatus = apps.find((a) => a.id === id)?.status;
-    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)));
+    const prevStatus = apps.find((a) => a.id === id)?.status
+    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, status } : a)))
     try {
-      await updateApplication(id, { status });
+      await updateApplication(id, { status })
       // 합격/오퍼 전환 시 축하 + 후기 작성 유도
       if (status === 'offer' && prevStatus !== 'offer') {
-        const app = apps.find((a) => a.id === id);
+        const app = apps.find((a) => a.id === id)
         const successTitle = encodeURIComponent(
-          `🎉 ${app?.company ?? ''} ${app?.position ?? ''} 합격 후기`,
-        );
-        toast(`🎉 축하합니다! 합격 경험을 커뮤니티에 나눠보시겠어요?`, 'success');
+          `🎉 ${app?.company ?? ''} ${app?.position ?? ''} 합격 후기`
+        )
+        toast(`🎉 축하합니다! 합격 경험을 커뮤니티에 나눠보시겠어요?`, 'success')
         setTimeout(async () => {
           const share = await confirm({
             title:
               '합격 후기를 커뮤니티에 작성하면 다른 분들에게 큰 도움이 됩니다. 지금 작성하시겠어요?',
             confirmText: '작성하기',
-          });
+          })
           if (share) {
-            window.location.href = `/community/write?category=interview&title=${successTitle}`;
+            window.location.href = `/community/write?category=interview&title=${successTitle}`
           }
-        }, 800);
+        }, 800)
       }
     } catch {
-      load();
-      toast('상태 변경에 실패했습니다', 'error');
+      load()
+      toast('상태 변경에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handlePriorityChange = async (id: string, priority: string) => {
-    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, priority } : a)));
+    setApps((prev) => prev.map((a) => (a.id === id ? { ...a, priority } : a)))
     try {
-      await updateApplication(id, { priority });
+      await updateApplication(id, { priority })
     } catch {
-      load();
+      load()
     }
-  };
+  }
 
   const handleDelete = async (id: string) => {
     if (
@@ -270,22 +272,22 @@ export default function ApplicationsPage() {
         confirmText: '삭제',
       }))
     )
-      return;
+      return
     try {
-      await deleteApplication(id);
-      toast('삭제되었습니다', 'success');
-      load();
+      await deleteApplication(id)
+      toast('삭제되었습니다', 'success')
+      load()
     } catch {
-      toast('삭제에 실패했습니다', 'error');
+      toast('삭제에 실패했습니다', 'error')
     }
-  };
+  }
 
   // 연도 목록 추출
   const years = [
     ...new Set(apps.map((a) => (a.appliedDate || a.createdAt)?.slice(0, 4)).filter(Boolean)),
   ]
     .sort()
-    .reverse();
+    .reverse()
 
   const filtered = apps
     .filter((a) => !filter || a.status === filter)
@@ -295,115 +297,115 @@ export default function ApplicationsPage() {
       (a) =>
         !searchQuery ||
         a.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.position.toLowerCase().includes(searchQuery.toLowerCase()),
+        a.position.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .sort((a, b) => {
-      if (sortBy === 'company') return a.company.localeCompare(b.company, 'ko');
+      if (sortBy === 'company') return a.company.localeCompare(b.company, 'ko')
       if (sortBy === 'deadline') {
-        const da = a.deadline || '9999-12-31';
-        const db = b.deadline || '9999-12-31';
-        return da.localeCompare(db);
+        const da = a.deadline || '9999-12-31'
+        const db = b.deadline || '9999-12-31'
+        return da.localeCompare(db)
       }
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    })
 
   const handleExportCsv = () => {
     if (filtered.length === 0) {
-      toast('내보낼 지원 내역이 없습니다', 'error');
-      return;
+      toast('내보낼 지원 내역이 없습니다', 'error')
+      return
     }
 
-    const csv = buildApplicationCsv(filtered);
-    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
+    const csv = buildApplicationCsv(filtered)
+    const blob = new Blob([`\ufeff${csv}`], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
 
-    anchor.href = url;
-    anchor.download = getApplicationCsvFileName(filtered.length, apps.length);
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
+    anchor.href = url
+    anchor.download = getApplicationCsvFileName(filtered.length, apps.length)
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
 
-    toast(`${filtered.length}건의 지원 내역을 CSV로 내보냈습니다`, 'success');
-  };
+    toast(`${filtered.length}건의 지원 내역을 CSV로 내보냈습니다`, 'success')
+  }
 
   const handleCopyCommunicationTemplate = async (template: ApplicationCommunicationTemplate) => {
     try {
-      await navigator.clipboard.writeText(template.body);
-      toast(`${template.label} 템플릿을 복사했습니다`, 'success');
+      await navigator.clipboard.writeText(template.body)
+      toast(`${template.label} 템플릿을 복사했습니다`, 'success')
     } catch {
-      toast('클립보드 복사에 실패했습니다', 'error');
+      toast('클립보드 복사에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleDownloadPacketSnapshot = (application: JobApplication) => {
-    const markdown = buildApplicationPacketSnapshot(application);
-    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
+    const markdown = buildApplicationPacketSnapshot(application)
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
 
-    anchor.href = url;
-    anchor.download = getApplicationPacketSnapshotFileName(application);
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    URL.revokeObjectURL(url);
+    anchor.href = url
+    anchor.download = getApplicationPacketSnapshotFileName(application)
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
 
-    toast('지원 패킷 요약을 내려받았습니다', 'success');
-  };
+    toast('지원 패킷 요약을 내려받았습니다', 'success')
+  }
 
-  const sourceInsights = useMemo(() => buildApplicationSourceInsights(filtered), [filtered]);
-  const activityQueue = useMemo(() => buildApplicationActivityQueue(apps, { limit: 4 }), [apps]);
-  const weeklyPlan = useMemo(() => buildApplicationWeeklyPlan(apps), [apps]);
-  const concentrationRisks = useMemo(() => buildApplicationConcentrationRisks(apps), [apps]);
+  const sourceInsights = useMemo(() => buildApplicationSourceInsights(filtered), [filtered])
+  const activityQueue = useMemo(() => buildApplicationActivityQueue(apps, { limit: 4 }), [apps])
+  const weeklyPlan = useMemo(() => buildApplicationWeeklyPlan(apps), [apps])
+  const concentrationRisks = useMemo(() => buildApplicationConcentrationRisks(apps), [apps])
 
   const stats = getSTATUSES().map((s) => ({
     ...s,
     count: apps.filter((a) => a.status === s.value).length,
-  }));
+  }))
 
   // Kanban: group filtered apps by status
-  const kanbanGroups: Record<string, JobApplication[]> = {};
+  const kanbanGroups: Record<string, JobApplication[]> = {}
   for (const col of KANBAN_DEFS) {
-    kanbanGroups[col.value] = filtered.filter((a) => a.status === col.value);
+    kanbanGroups[col.value] = filtered.filter((a) => a.status === col.value)
   }
   kanbanGroups['rejected'] = [
     ...(kanbanGroups['rejected'] || []),
     ...filtered.filter((a) => a.status === 'withdrawn'),
-  ];
+  ]
 
   // Success rate
-  const offerCount = apps.filter((a) => a.status === 'offer').length;
-  const decidedCount = apps.filter((a) => ['offer', 'rejected'].includes(a.status)).length;
-  const successRate = decidedCount > 0 ? Math.round((offerCount / decidedCount) * 100) : 0;
+  const offerCount = apps.filter((a) => a.status === 'offer').length
+  const decidedCount = apps.filter((a) => ['offer', 'rejected'].includes(a.status)).length
+  const successRate = decidedCount > 0 ? Math.round((offerCount / decidedCount) * 100) : 0
 
   // Calendar data
   const calendarData = useMemo(() => {
-    const { year, month } = calMonth;
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const appsByDate: Record<string, CalendarApplication[]> = {};
+    const { year, month } = calMonth
+    const firstDay = new Date(year, month, 1).getDay()
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+    const appsByDate: Record<string, CalendarApplication[]> = {}
     filtered.forEach((app) => {
-      const date = (app.appliedDate || app.createdAt)?.slice(0, 10);
+      const date = (app.appliedDate || app.createdAt)?.slice(0, 10)
       if (date) {
-        if (!appsByDate[date]) appsByDate[date] = [];
-        appsByDate[date].push(app);
+        if (!appsByDate[date]) appsByDate[date] = []
+        appsByDate[date].push(app)
       }
-      const interviewDate = app.interviewDate;
+      const interviewDate = app.interviewDate
       if (interviewDate && interviewDate !== date) {
-        if (!appsByDate[interviewDate]) appsByDate[interviewDate] = [];
-        appsByDate[interviewDate].push({ ...app, _isInterview: true });
+        if (!appsByDate[interviewDate]) appsByDate[interviewDate] = []
+        appsByDate[interviewDate].push({ ...app, _isInterview: true })
       }
-    });
-    return { year, month, firstDay, daysInMonth, appsByDate };
-  }, [filtered, calMonth]);
+    })
+    return { year, month, firstDay, daysInMonth, appsByDate }
+  }, [filtered, calMonth])
 
   // Interview reminders
   const interviewApps = useMemo(
     () => apps.filter((a) => a.status === 'interview' && !dismissedReminders.has(a.id)),
-    [apps, dismissedReminders],
-  );
+    [apps, dismissedReminders]
+  )
 
   // Upcoming deadlines
   const upcomingDeadlines = useMemo(
@@ -414,11 +416,11 @@ export default function ApplicationsPage() {
             a.deadline &&
             daysUntil(a.deadline) !== null &&
             daysUntil(a.deadline)! <= 7 &&
-            daysUntil(a.deadline)! >= 0,
+            daysUntil(a.deadline)! >= 0
         )
         .sort((a, b) => (a.deadline || '').localeCompare(b.deadline || '')),
-    [apps],
-  );
+    [apps]
+  )
 
   return (
     <>
@@ -453,7 +455,7 @@ export default function ApplicationsPage() {
               </div>
             ))}
             {upcomingDeadlines.slice(0, 2).map((app) => {
-              const d = daysUntil(app.deadline);
+              const d = daysUntil(app.deadline)
               return (
                 <div
                   key={`dl-${app.id}`}
@@ -465,7 +467,7 @@ export default function ApplicationsPage() {
                     {app.deadline})
                   </span>
                 </div>
-              );
+              )
             })}
           </div>
         )}
@@ -679,12 +681,12 @@ export default function ApplicationsPage() {
             </button>
             <button
               onClick={() => {
-                setShowForm(!showForm);
+                setShowForm(!showForm)
                 if (!showForm)
                   setTimeout(
                     () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-                    50,
-                  );
+                    50
+                  )
               }}
               className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 flex items-center gap-2"
             >
@@ -878,12 +880,11 @@ export default function ApplicationsPage() {
               <JobUrlInput
                 hint={tx('jobUrl.hintApplications')}
                 onParsed={(p) => {
-                  if (p.company) appForm.setValue('company', p.company, { shouldValidate: true });
-                  if (p.position)
-                    appForm.setValue('position', p.position, { shouldValidate: true });
-                  if (p.url) appForm.setValue('url', p.url);
-                  if (p.location) appForm.setValue('location', p.location);
-                  if (p.salary) appForm.setValue('salary', p.salary);
+                  if (p.company) appForm.setValue('company', p.company, { shouldValidate: true })
+                  if (p.position) appForm.setValue('position', p.position, { shouldValidate: true })
+                  if (p.url) appForm.setValue('url', p.url)
+                  if (p.location) appForm.setValue('location', p.location)
+                  if (p.salary) appForm.setValue('salary', p.salary)
                   const notes = [
                     p.experienceLevel && `경력: ${p.experienceLevel}`,
                     p.employmentType && `고용형태: ${p.employmentType}`,
@@ -891,8 +892,8 @@ export default function ApplicationsPage() {
                     p.description && `\n${p.description}`,
                   ]
                     .filter(Boolean)
-                    .join('\n');
-                  if (notes.trim()) appForm.setValue('notes', notes.trim().slice(0, 2000));
+                    .join('\n')
+                  if (notes.trim()) appForm.setValue('notes', notes.trim().slice(0, 2000))
                 }}
               />
             </div>
@@ -900,10 +901,14 @@ export default function ApplicationsPage() {
             {/* Required fields */}
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div className="relative">
-                <label className="block text-xs text-slate-500 mb-1">
+                <label
+                  htmlFor="applicationspage-field-1"
+                  className="block text-xs text-slate-500 mb-1"
+                >
                   회사명 <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="applicationspage-field-1"
                   {...appForm.register('company')}
                   placeholder="예: 카카오"
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -915,10 +920,14 @@ export default function ApplicationsPage() {
                 )}
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">
+                <label
+                  htmlFor="applicationspage-field-2"
+                  className="block text-xs text-slate-500 mb-1"
+                >
                   포지션 <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="applicationspage-field-2"
                   {...appForm.register('position')}
                   placeholder="예: 백엔드 개발자"
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -934,32 +943,56 @@ export default function ApplicationsPage() {
             {/* Optional fields */}
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">공고 URL</label>
+                <label
+                  htmlFor="applicationspage-field-3"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  공고 URL
+                </label>
                 <input
+                  id="applicationspage-field-3"
                   {...appForm.register('url')}
                   placeholder="https://..."
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">근무지</label>
+                <label
+                  htmlFor="applicationspage-field-4"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  근무지
+                </label>
                 <input
+                  id="applicationspage-field-4"
                   {...appForm.register('location')}
                   placeholder="예: 서울 강남구"
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">연봉</label>
+                <label
+                  htmlFor="applicationspage-field-5"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  연봉
+                </label>
                 <input
+                  id="applicationspage-field-5"
                   {...appForm.register('salary')}
                   placeholder="예: 5,000만원"
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">지원 이력서</label>
+                <label
+                  htmlFor="applicationspage-field-6"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  지원 이력서
+                </label>
                 <select
+                  id="applicationspage-field-6"
                   {...appForm.register('resumeId')}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -972,16 +1005,28 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">지원 마감일</label>
+                <label
+                  htmlFor="applicationspage-field-7"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  지원 마감일
+                </label>
                 <input
+                  id="applicationspage-field-7"
                   type="date"
                   {...appForm.register('deadline')}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">면접 예정일</label>
+                <label
+                  htmlFor="applicationspage-field-8"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  면접 예정일
+                </label>
                 <input
+                  id="applicationspage-field-8"
                   type="date"
                   {...appForm.register('interviewDate')}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -991,8 +1036,14 @@ export default function ApplicationsPage() {
 
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">상태</label>
+                <label
+                  htmlFor="applicationspage-field-9"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  상태
+                </label>
                 <select
+                  id="applicationspage-field-9"
                   {...appForm.register('status')}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -1004,8 +1055,14 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">우선순위</label>
+                <label
+                  htmlFor="applicationspage-field-10"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  우선순위
+                </label>
                 <select
+                  id="applicationspage-field-10"
                   {...appForm.register('priority')}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -1015,8 +1072,14 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">공개 여부</label>
+                <label
+                  htmlFor="applicationspage-field-11"
+                  className="block text-xs text-slate-500 mb-1"
+                >
+                  공개 여부
+                </label>
                 <select
+                  id="applicationspage-field-11"
                   {...appForm.register('visibility')}
                   className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -1027,8 +1090,14 @@ export default function ApplicationsPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-xs text-slate-500 mb-1">메모</label>
+              <label
+                htmlFor="applicationspage-field-12"
+                className="block text-xs text-slate-500 mb-1"
+              >
+                메모
+              </label>
               <textarea
+                id="applicationspage-field-12"
                 {...appForm.register('notes')}
                 placeholder="면접 준비 사항, 특이사항 등..."
                 rows={3}
@@ -1069,7 +1138,7 @@ export default function ApplicationsPage() {
           /* Kanban Board */
           <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
             {getKANBAN_COLUMNS().map((col) => {
-              const colApps = kanbanGroups[col.value] || [];
+              const colApps = kanbanGroups[col.value] || []
               return (
                 <div key={col.value} className="flex-shrink-0 w-64 sm:w-72">
                   <div
@@ -1087,10 +1156,10 @@ export default function ApplicationsPage() {
                       </div>
                     )}
                     {colApps.map((app) => {
-                      const days = daysSince(app.appliedDate || app.createdAt);
-                      const colDef = getKANBAN_COLUMNS().find((c) => c.value === col.value);
-                      const priority = app.priority;
-                      const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null;
+                      const days = daysSince(app.appliedDate || app.createdAt)
+                      const colDef = getKANBAN_COLUMNS().find((c) => c.value === col.value)
+                      const priority = app.priority
+                      const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null
                       return (
                         <div
                           key={app.id}
@@ -1165,11 +1234,11 @@ export default function ApplicationsPage() {
                             )}
                           </div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
         ) : viewMode === 'calendar' ? (
@@ -1180,8 +1249,8 @@ export default function ApplicationsPage() {
               <button
                 onClick={() =>
                   setCalMonth((m) => {
-                    const d = new Date(m.year, m.month - 1, 1);
-                    return { year: d.getFullYear(), month: d.getMonth() };
+                    const d = new Date(m.year, m.month - 1, 1)
+                    return { year: d.getFullYear(), month: d.getMonth() }
                   })
                 }
                 className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
@@ -1202,8 +1271,8 @@ export default function ApplicationsPage() {
               <button
                 onClick={() =>
                   setCalMonth((m) => {
-                    const d = new Date(m.year, m.month + 1, 1);
-                    return { year: d.getFullYear(), month: d.getMonth() };
+                    const d = new Date(m.year, m.month + 1, 1)
+                    return { year: d.getFullYear(), month: d.getMonth() }
                   })
                 }
                 className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
@@ -1241,11 +1310,11 @@ export default function ApplicationsPage() {
               ))}
               {/* Day cells */}
               {Array.from({ length: calendarData.daysInMonth }).map((_, dayIdx) => {
-                const day = dayIdx + 1;
-                const dateStr = `${calendarData.year}-${String(calendarData.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayApps = calendarData.appsByDate[dateStr] || [];
-                const isToday = dateStr === new Date().toISOString().slice(0, 10);
-                const col = (calendarData.firstDay + dayIdx) % 7;
+                const day = dayIdx + 1
+                const dateStr = `${calendarData.year}-${String(calendarData.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                const dayApps = calendarData.appsByDate[dateStr] || []
+                const isToday = dateStr === new Date().toISOString().slice(0, 10)
+                const col = (calendarData.firstDay + dayIdx) % 7
                 return (
                   <div
                     key={day}
@@ -1258,7 +1327,7 @@ export default function ApplicationsPage() {
                     </div>
                     <div className="space-y-0.5">
                       {dayApps.slice(0, 3).map((app, i) => {
-                        const isInterview = app._isInterview;
+                        const isInterview = app._isInterview
                         return (
                           <div
                             key={`${app.id}-${i}`}
@@ -1268,7 +1337,7 @@ export default function ApplicationsPage() {
                             {isInterview ? '📋 ' : ''}
                             {app.company}
                           </div>
-                        );
+                        )
                       })}
                       {dayApps.length > 3 && (
                         <div className="text-[9px] text-slate-400 pl-1">
@@ -1277,7 +1346,7 @@ export default function ApplicationsPage() {
                       )}
                     </div>
                   </div>
-                );
+                )
               })}
             </div>
             {/* Calendar legend */}
@@ -1322,7 +1391,7 @@ export default function ApplicationsPage() {
                         key: 'screening',
                         color: 'bg-sky-500',
                         total: apps.filter((a) =>
-                          ['screening', 'interview', 'offer'].includes(a.status),
+                          ['screening', 'interview', 'offer'].includes(a.status)
                         ).length,
                       },
                       {
@@ -1338,9 +1407,9 @@ export default function ApplicationsPage() {
                         total: apps.filter((a) => a.status === 'offer').length,
                       },
                     ].map((stage, i, arr) => {
-                      const base = i === 0 ? apps.length : arr[i - 1].total;
-                      const pct = base > 0 ? Math.round((stage.total / base) * 100) : 0;
-                      const widthPct = apps.length > 0 ? (stage.total / apps.length) * 100 : 0;
+                      const base = i === 0 ? apps.length : arr[i - 1].total
+                      const pct = base > 0 ? Math.round((stage.total / base) * 100) : 0
+                      const widthPct = apps.length > 0 ? (stage.total / apps.length) * 100 : 0
                       return (
                         <div key={stage.key} className="flex items-center gap-3">
                           <div className="w-20 text-xs text-right text-slate-500 dark:text-slate-400 flex-shrink-0">
@@ -1369,7 +1438,7 @@ export default function ApplicationsPage() {
                             </span>
                           )}
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 </div>
@@ -1390,8 +1459,8 @@ export default function ApplicationsPage() {
                   </header>
                   <ol className="analytics-source-list">
                     {sourceInsights.sources.slice(0, 5).map((source, idx) => {
-                      const max = sourceInsights.sources[0]?.count || 1;
-                      const fill = Math.max((source.count / max) * 100, 6);
+                      const max = sourceInsights.sources[0]?.count || 1
+                      const fill = Math.max((source.count / max) * 100, 6)
                       return (
                         <li key={source.label} className="analytics-source">
                           <span className="analytics-source__rank">{idx + 1}</span>
@@ -1427,7 +1496,7 @@ export default function ApplicationsPage() {
                             </span>
                           </div>
                         </li>
-                      );
+                      )
                     })}
                   </ol>
                 </section>
@@ -1474,15 +1543,15 @@ export default function ApplicationsPage() {
                 </section>
 
                 {(() => {
-                  const monthlyMap: Record<string, number> = {};
+                  const monthlyMap: Record<string, number> = {}
                   apps.forEach((a) => {
-                    const m = (a.appliedDate || a.createdAt || '').slice(0, 7);
-                    if (m) monthlyMap[m] = (monthlyMap[m] || 0) + 1;
-                  });
-                  const months = Object.keys(monthlyMap).sort().slice(-6);
-                  if (months.length < 2) return null;
-                  const max = Math.max(...months.map((m) => monthlyMap[m]));
-                  const total = months.reduce((sum, m) => sum + monthlyMap[m], 0);
+                    const m = (a.appliedDate || a.createdAt || '').slice(0, 7)
+                    if (m) monthlyMap[m] = (monthlyMap[m] || 0) + 1
+                  })
+                  const months = Object.keys(monthlyMap).sort().slice(-6)
+                  if (months.length < 2) return null
+                  const max = Math.max(...months.map((m) => monthlyMap[m]))
+                  const total = months.reduce((sum, m) => sum + monthlyMap[m], 0)
                   return (
                     <section className="analytics-card">
                       <header className="analytics-card__head">
@@ -1500,9 +1569,9 @@ export default function ApplicationsPage() {
                         aria-label={`${months.length}개월 지원 추이`}
                       >
                         {months.map((m) => {
-                          const count = monthlyMap[m];
-                          const heightPct = max > 0 ? (count / max) * 100 : 0;
-                          const [, mo] = m.split('-');
+                          const count = monthlyMap[m]
+                          const heightPct = max > 0 ? (count / max) * 100 : 0
+                          const [, mo] = m.split('-')
                           return (
                             <div key={m} className="analytics-trend__col">
                               <span className="analytics-trend__count">{count}</span>
@@ -1516,11 +1585,11 @@ export default function ApplicationsPage() {
                               </div>
                               <span className="analytics-trend__label">{parseInt(mo, 10)}월</span>
                             </div>
-                          );
+                          )
                         })}
                       </div>
                     </section>
-                  );
+                  )
                 })()}
 
                 <div className="analytics-pair">
@@ -1533,14 +1602,14 @@ export default function ApplicationsPage() {
                     </header>
                     <ol className="analytics-rank">
                       {(() => {
-                        const companyCounts: Record<string, number> = {};
+                        const companyCounts: Record<string, number> = {}
                         apps.forEach((a) => {
-                          companyCounts[a.company] = (companyCounts[a.company] || 0) + 1;
-                        });
+                          companyCounts[a.company] = (companyCounts[a.company] || 0) + 1
+                        })
                         const entries = Object.entries(companyCounts)
                           .sort((a, b) => b[1] - a[1])
-                          .slice(0, 5);
-                        const max = entries[0]?.[1] || 1;
+                          .slice(0, 5)
+                        const max = entries[0]?.[1] || 1
                         return entries.map(([company, count], i) => (
                           <li key={company} className="analytics-rank__row">
                             <span className="analytics-rank__index">{i + 1}</span>
@@ -1556,7 +1625,7 @@ export default function ApplicationsPage() {
                             </div>
                             <span className="analytics-rank__count">{count}회</span>
                           </li>
-                        ));
+                        ))
                       })()}
                     </ol>
                   </section>
@@ -1571,7 +1640,7 @@ export default function ApplicationsPage() {
                       {stats
                         .filter((s) => s.count > 0)
                         .map((s) => {
-                          const fill = apps.length > 0 ? s.count / apps.length : 0;
+                          const fill = apps.length > 0 ? s.count / apps.length : 0
                           return (
                             <li
                               key={s.value}
@@ -1588,7 +1657,7 @@ export default function ApplicationsPage() {
                               </div>
                               <span className="analytics-distribution__count">{s.count}</span>
                             </li>
-                          );
+                          )
                         })}
                     </ul>
                   </section>
@@ -1600,17 +1669,17 @@ export default function ApplicationsPage() {
           /* List View */
           <div className="space-y-3">
             {filtered.map((app) => {
-              const all = getSTATUSES();
-              const statusInfo = all.find((s) => s.value === app.status) || all[0];
-              const priority = app.priority;
-              const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null;
-              const deadline = app.deadline;
-              const deadlineDays = deadline ? daysUntil(deadline) : null;
-              const isExpanded = expandedId === app.id;
-              const communicationTemplates = buildStageCommunicationTemplates(app);
-              const readiness = scoreApplicationReadiness(app);
-              const stageGuidance = buildApplicationStageGuidance(app);
-              const companyResearch = buildCompanyResearchBrief(app);
+              const all = getSTATUSES()
+              const statusInfo = all.find((s) => s.value === app.status) || all[0]
+              const priority = app.priority
+              const pCfg = priority ? getPRIORITY_CONFIG()[priority] : null
+              const deadline = app.deadline
+              const deadlineDays = deadline ? daysUntil(deadline) : null
+              const isExpanded = expandedId === app.id
+              const communicationTemplates = buildStageCommunicationTemplates(app)
+              const readiness = scoreApplicationReadiness(app)
+              const stageGuidance = buildApplicationStageGuidance(app)
+              const companyResearch = buildCompanyResearchBrief(app)
 
               return (
                 <div
@@ -1630,8 +1699,8 @@ export default function ApplicationsPage() {
                                     ? 'medium'
                                     : priority === 'medium'
                                       ? 'low'
-                                      : 'high';
-                                handlePriorityChange(app.id, next);
+                                      : 'high'
+                                handlePriorityChange(app.id, next)
                               }}
                               className={`text-lg shrink-0 leading-none ${pCfg.color} hover:scale-125 transition-transform`}
                               title={`우선순위: ${pCfg.label}`}
@@ -1936,12 +2005,12 @@ export default function ApplicationsPage() {
                     </div>
                   )}
                 </div>
-              );
+              )
             })}
           </div>
         )}
       </main>
       <Footer />
     </>
-  );
+  )
 }

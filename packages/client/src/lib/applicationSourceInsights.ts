@@ -1,23 +1,23 @@
-import type { JobApplication } from './api';
+import type { JobApplication } from './api'
 
 export interface ApplicationSourceInsight {
-  label: string;
-  count: number;
-  responseCount: number;
-  offerCount: number;
-  staleCount: number;
-  conversionRate: number;
-  offerRate: number;
+  label: string
+  count: number
+  responseCount: number
+  offerCount: number
+  staleCount: number
+  conversionRate: number
+  offerRate: number
 }
 
 export interface ApplicationSourceInsightSummary {
-  sources: ApplicationSourceInsight[];
-  bestSource: ApplicationSourceInsight | null;
-  riskSource: ApplicationSourceInsight | null;
-  summary: string;
+  sources: ApplicationSourceInsight[]
+  bestSource: ApplicationSourceInsight | null
+  riskSource: ApplicationSourceInsight | null
+  summary: string
 }
 
-const DAY_MS = 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000
 const RESPONSE_STATUSES = new Set([
   'interview',
   'interviewing',
@@ -25,7 +25,7 @@ const RESPONSE_STATUSES = new Set([
   'onsite',
   'final',
   'offer',
-]);
+])
 const ACTIVE_STATUSES = new Set([
   'applied',
   'screening',
@@ -34,7 +34,7 @@ const ACTIVE_STATUSES = new Set([
   'technical',
   'onsite',
   'final',
-]);
+])
 
 const SOURCE_LABELS: Array<[RegExp, string]> = [
   [/linkedin\.com$/i, 'LinkedIn'],
@@ -47,48 +47,48 @@ const SOURCE_LABELS: Array<[RegExp, string]> = [
   [/greenhouse\.io$/i, 'Greenhouse'],
   [/lever\.co$/i, 'Lever'],
   [/workdayjobs\.com$/i, 'Workday'],
-];
+]
 
-const normalizeStatus = (status: string) => status.trim().toLowerCase();
+const normalizeStatus = (status: string) => status.trim().toLowerCase()
 
 const getHost = (url?: string | null) => {
-  if (!url?.trim()) return '';
+  if (!url?.trim()) return ''
   try {
-    return new URL(url).hostname.replace(/^www\./, '').toLowerCase();
+    return new URL(url).hostname.replace(/^www\./, '').toLowerCase()
   } catch {
-    return '';
+    return ''
   }
-};
+}
 
 const daysSince = (date?: string, now = new Date()) => {
-  if (!date) return Number.POSITIVE_INFINITY;
-  const time = new Date(date).getTime();
-  if (!Number.isFinite(time)) return Number.POSITIVE_INFINITY;
-  return Math.floor((now.getTime() - time) / DAY_MS);
-};
+  if (!date) return Number.POSITIVE_INFINITY
+  const time = new Date(date).getTime()
+  if (!Number.isFinite(time)) return Number.POSITIVE_INFINITY
+  return Math.floor((now.getTime() - time) / DAY_MS)
+}
 
 export const getApplicationSourceLabel = (application: Pick<JobApplication, 'url'>) => {
-  const host = getHost(application.url);
-  if (!host) return '직접 입력';
+  const host = getHost(application.url)
+  if (!host) return '직접 입력'
 
-  const known = SOURCE_LABELS.find(([pattern]) => pattern.test(host));
-  if (known) return known[1];
+  const known = SOURCE_LABELS.find(([pattern]) => pattern.test(host))
+  if (known) return known[1]
 
   return host
     .split('.')
     .slice(-2, -1)[0]
     .replace(/[-_]+/g, ' ')
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}
 
 export const buildApplicationSourceInsights = (
   applications: JobApplication[],
-  now = new Date(),
+  now = new Date()
 ): ApplicationSourceInsightSummary => {
-  const sourceMap = new Map<string, ApplicationSourceInsight>();
+  const sourceMap = new Map<string, ApplicationSourceInsight>()
 
   for (const application of applications) {
-    const label = getApplicationSourceLabel(application);
+    const label = getApplicationSourceLabel(application)
     const existing =
       sourceMap.get(label) ??
       ({
@@ -99,17 +99,17 @@ export const buildApplicationSourceInsights = (
         staleCount: 0,
         conversionRate: 0,
         offerRate: 0,
-      } satisfies ApplicationSourceInsight);
-    const status = normalizeStatus(application.status);
+      } satisfies ApplicationSourceInsight)
+    const status = normalizeStatus(application.status)
 
-    existing.count += 1;
-    if (RESPONSE_STATUSES.has(status)) existing.responseCount += 1;
-    if (status === 'offer') existing.offerCount += 1;
+    existing.count += 1
+    if (RESPONSE_STATUSES.has(status)) existing.responseCount += 1
+    if (status === 'offer') existing.offerCount += 1
     if (ACTIVE_STATUSES.has(status) && daysSince(application.updatedAt, now) >= 14) {
-      existing.staleCount += 1;
+      existing.staleCount += 1
     }
 
-    sourceMap.set(label, existing);
+    sourceMap.set(label, existing)
   }
 
   const sources = [...sourceMap.values()]
@@ -121,28 +121,28 @@ export const buildApplicationSourceInsights = (
     }))
     .sort(
       (a, b) =>
-        b.count - a.count || b.conversionRate - a.conversionRate || a.label.localeCompare(b.label),
-    );
+        b.count - a.count || b.conversionRate - a.conversionRate || a.label.localeCompare(b.label)
+    )
 
   const bestSource =
     [...sources]
       .filter((source) => source.responseCount > 0)
-      .sort((a, b) => b.conversionRate - a.conversionRate || b.count - a.count)[0] ?? null;
+      .sort((a, b) => b.conversionRate - a.conversionRate || b.count - a.count)[0] ?? null
   const riskSource =
     [...sources]
       .filter((source) => source.staleCount > 0)
-      .sort((a, b) => b.staleCount - a.staleCount || b.count - a.count)[0] ?? null;
+      .sort((a, b) => b.staleCount - a.staleCount || b.count - a.count)[0] ?? null
 
   const summary = riskSource
     ? `${riskSource.label} 채널에 멈춘 지원 ${riskSource.staleCount}건이 있습니다.`
     : bestSource
       ? `${bestSource.label} 채널의 면접·오퍼 전환이 가장 좋습니다.`
-      : '채널별 성과를 보려면 공고 URL을 함께 기록하세요.';
+      : '채널별 성과를 보려면 공고 URL을 함께 기록하세요.'
 
   return {
     sources,
     bestSource,
     riskSource,
     summary,
-  };
-};
+  }
+}

@@ -1,18 +1,20 @@
-import { forwardRef, memo } from 'react';
-import type { CSSProperties } from 'react';
-import type { Resume, Skill as SkillType, SectionId } from '@/types/resume';
-import { DEFAULT_SECTION_ORDER } from '@/types/resume';
-import SafeHtml from '@/components/SafeHtml';
-import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes';
-import { t } from '@/lib/i18n';
+import { forwardRef, memo } from 'react'
 
-type AccentStyle = CSSProperties & { '--resume-accent'?: string };
+import type { Resume, Skill as SkillType, SectionId } from '@/types/resume'
+import type { CSSProperties } from 'react'
+
+import SafeHtml from '@/components/SafeHtml'
+import { t } from '@/lib/i18n'
+import { resumeThemes, type ResumeTheme } from '@/lib/resumeThemes'
+import { DEFAULT_SECTION_ORDER } from '@/types/resume'
+
+type AccentStyle = CSSProperties & { '--resume-accent'?: string }
 
 interface Props {
-  resume: Resume;
-  themeId?: string;
-  customAccentHex?: string; // e.g. "#6366f1"
-  customFont?: string; // e.g. "'Noto Sans KR', sans-serif"
+  resume: Resume
+  themeId?: string
+  customAccentHex?: string // e.g. "#6366f1"
+  customFont?: string // e.g. "'Noto Sans KR', sans-serif"
 }
 
 const MONTH_NAMES_EN = [
@@ -28,27 +30,27 @@ const MONTH_NAMES_EN = [
   'Oct',
   'Nov',
   'Dec',
-];
-const ENGLISH_THEMES = new Set(['executive', 'corporate', 'portfolio']);
+]
+const ENGLISH_THEMES = new Set(['executive', 'corporate', 'portfolio'])
 
 function formatDate(date: string, locale: 'ko' | 'en' = 'ko'): string {
-  if (!date) return '';
-  const parts = date.split('-');
-  const year = parts[0];
-  const month = parts.length >= 2 ? parts[1] : '';
+  if (!date) return ''
+  const parts = date.split('-')
+  const year = parts[0]
+  const month = parts.length >= 2 ? parts[1] : ''
 
   if (locale === 'en') {
     if (month) {
-      const monthIdx = parseInt(month, 10) - 1;
-      const monthName = MONTH_NAMES_EN[monthIdx] || month;
-      return `${monthName} ${year}`;
+      const monthIdx = parseInt(month, 10) - 1
+      const monthName = MONTH_NAMES_EN[monthIdx] || month
+      return `${monthName} ${year}`
     }
-    return year;
+    return year
   }
 
   // Korean format: 2024.03
-  if (month) return `${year}.${month}`;
-  return year;
+  if (month) return `${year}.${month}`
+  return year
 }
 
 /** Format a date range with proper locale-aware "현재"/"Present" handling */
@@ -56,25 +58,25 @@ function formatDateRange(
   startDate: string,
   endDate: string,
   current: boolean | undefined,
-  locale: 'ko' | 'en' = 'ko',
+  locale: 'ko' | 'en' = 'ko'
 ): string {
-  const start = formatDate(startDate, locale);
-  if (!start) return '';
+  const start = formatDate(startDate, locale)
+  if (!start) return ''
 
   if (current) {
-    const presentLabel = locale === 'en' ? 'Present' : '현재';
-    return `${start} — ${presentLabel}`;
+    const presentLabel = locale === 'en' ? 'Present' : '현재'
+    return `${start} — ${presentLabel}`
   }
 
   if (endDate) {
-    return `${start} — ${formatDate(endDate, locale)}`;
+    return `${start} — ${formatDate(endDate, locale)}`
   }
 
-  return start;
+  return start
 }
 
 function getDateLocale(themeId: string): 'ko' | 'en' {
-  return ENGLISH_THEMES.has(themeId) ? 'en' : 'ko';
+  return ENGLISH_THEMES.has(themeId) ? 'en' : 'ko'
 }
 
 /* ------------------------------------------------------------------ */
@@ -85,37 +87,37 @@ function ThemeSeparator({ themeId }: { themeId: string }) {
     case 'classic':
     case 'corporate':
     case 'academic':
-      return <hr className="border-t border-slate-300 my-5" />;
+      return <hr className="border-t border-slate-300 my-5" />
     case 'modern':
     case 'dark':
-      return <div className="border-l-4 border-blue-400 my-5 ml-1" style={{ height: 2 }} />;
+      return <div className="border-l-4 border-blue-400 my-5 ml-1" style={{ height: 2 }} />
     case 'minimal':
     case 'pastel':
-      return <div className="my-8" />;
+      return <div className="my-8" />
     case 'creative':
     case 'startup':
       return (
         <div className="h-1 my-6 rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-sky-300 opacity-60" />
-      );
+      )
     case 'tech':
       return (
         <div className="my-5 font-mono text-[10px] text-slate-500 dark:text-slate-400 tracking-widest text-center select-none">
           /* ─────────────────────────────── */
         </div>
-      );
+      )
     case 'elegant':
       return (
         <div className="my-6 text-center text-amber-400 tracking-[1em] text-xs select-none">
           &bull; &bull; &bull;
         </div>
-      );
+      )
     case 'newspaper':
       return (
         <div className="my-5">
           <div className="border-t-[3px] border-slate-900" />
           <div className="border-t border-slate-400 mt-[2px]" />
         </div>
-      );
+      )
     case 'executive':
       return (
         <div className="my-7 flex items-center gap-4">
@@ -123,15 +125,15 @@ function ThemeSeparator({ themeId }: { themeId: string }) {
           <span className="text-slate-300 text-xs select-none">&loz;</span>
           <div className="flex-1 border-t border-slate-300" />
         </div>
-      );
+      )
     case 'portfolio':
       return (
         <div className="h-1.5 my-7 rounded-full bg-gradient-to-r from-blue-500 via-sky-500 to-cyan-500 opacity-50" />
-      );
+      )
     case 'professional':
-      return <div className="border-t-2 border-slate-200 my-6" />;
+      return <div className="border-t-2 border-slate-200 my-6" />
     default:
-      return <hr className="border-t border-slate-200 my-5" />;
+      return <hr className="border-t border-slate-200 my-5" />
   }
 }
 
@@ -143,9 +145,9 @@ function SkillsDisplay({
   themeId,
   accentColor,
 }: {
-  skills: SkillType[];
-  themeId: string;
-  accentColor: string;
+  skills: SkillType[]
+  themeId: string
+  accentColor: string
 }) {
   // Comma-separated text
   if (['classic', 'professional', 'corporate', 'academic'].includes(themeId)) {
@@ -158,7 +160,7 @@ function SkillsDisplay({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   // Pill badges
@@ -168,8 +170,8 @@ function SkillsDisplay({
       indigo: 'bg-sky-100 text-sky-700 border-sky-200',
       slate: 'bg-sky-100 text-sky-700 border-sky-200',
       purple: 'bg-cyan-100 text-cyan-700 border-cyan-200',
-    };
-    const pillColor = colorMap[accentColor] || colorMap.blue;
+    }
+    const pillColor = colorMap[accentColor] || colorMap.blue
     return (
       <div className="space-y-3">
         {skills.map((skill) => (
@@ -190,7 +192,7 @@ function SkillsDisplay({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   // Inline code blocks
@@ -216,7 +218,7 @@ function SkillsDisplay({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   // Colored cards with level bar
@@ -227,7 +229,7 @@ function SkillsDisplay({
       'from-orange-400 to-red-500',
       'from-green-400 to-emerald-500',
       'from-blue-500 to-sky-400',
-    ];
+    ]
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {skills.map((skill, si) => (
@@ -249,7 +251,7 @@ function SkillsDisplay({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   // Bullet list with serif (elegant, executive)
@@ -279,7 +281,7 @@ function SkillsDisplay({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   // Newspaper: dense two-column
@@ -293,7 +295,7 @@ function SkillsDisplay({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   // Minimal: spaced text
@@ -309,7 +311,7 @@ function SkillsDisplay({
           </div>
         ))}
       </div>
-    );
+    )
   }
 
   // Default fallback
@@ -324,7 +326,7 @@ function SkillsDisplay({
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -335,9 +337,9 @@ function TechTags({
   color = 'slate',
   themeId,
 }: {
-  text: string;
-  color?: 'slate' | 'blue';
-  themeId?: string;
+  text: string
+  color?: 'slate' | 'blue'
+  themeId?: string
 }) {
   if (themeId === 'tech') {
     return (
@@ -351,9 +353,9 @@ function TechTags({
           </span>
         ))}
       </div>
-    );
+    )
   }
-  const bg = color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500';
+  const bg = color === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-500'
   return (
     <div className="flex flex-wrap gap-1 mt-1.5">
       {text.split(',').map((tag, i) => (
@@ -362,7 +364,7 @@ function TechTags({
         </span>
       ))}
     </div>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -374,13 +376,13 @@ function Section({
   theme,
   isFirst,
 }: {
-  title: string;
-  children: React.ReactNode;
-  theme: ResumeTheme;
-  isFirst?: boolean;
+  title: string
+  children: React.ReactNode
+  theme: ResumeTheme
+  isFirst?: boolean
 }) {
   const defaultStyle =
-    'text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3';
+    'text-sm font-bold text-slate-800 uppercase tracking-widest border-b border-slate-300 pb-1.5 mb-3'
   return (
     <>
       {!isFirst && <ThemeSeparator themeId={theme.id} />}
@@ -389,7 +391,7 @@ function Section({
         {children}
       </section>
     </>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -403,7 +405,7 @@ function ContactInfo({ pi, theme }: { pi: Resume['personalInfo']; theme: ResumeT
     'creative',
     'dark',
     'portfolio',
-  ].includes(theme.id);
+  ].includes(theme.id)
   return (
     <div className="space-y-1 text-sm">
       <div
@@ -465,7 +467,7 @@ function ContactInfo({ pi, theme }: { pi: Resume['personalInfo']; theme: ResumeT
         </div>
       )}
     </div>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -512,14 +514,14 @@ function ExperienceBlock({ exp, themeId }: { exp: Resume['experiences'][0]; them
       )}
       {exp.techStack && <TechTags text={exp.techStack} themeId={themeId} />}
     </div>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
 /*  Education block (reusable)                                         */
 /* ------------------------------------------------------------------ */
 function EducationBlock({ edu, themeId }: { edu: Resume['educations'][0]; themeId: string }) {
-  const locale = getDateLocale(themeId);
+  const locale = getDateLocale(themeId)
   return (
     <div className="resume-item">
       <div className="flex flex-wrap justify-between items-baseline gap-2">
@@ -545,7 +547,7 @@ function EducationBlock({ edu, themeId }: { edu: Resume['educations'][0]; themeI
         <SafeHtml html={edu.description} className="text-sm text-slate-600 mt-1" />
       )}
     </div>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -556,12 +558,12 @@ function RemainingContent({
   theme,
   sectionIndex,
 }: {
-  resume: Resume;
-  theme: ResumeTheme;
-  sectionIndex: number;
+  resume: Resume
+  theme: ResumeTheme
+  sectionIndex: number
 }) {
-  const { certifications, languages, awards, activities } = resume;
-  let idx = sectionIndex;
+  const { certifications, languages, awards, activities } = resume
+  let idx = sectionIndex
 
   return (
     <>
@@ -585,7 +587,7 @@ function RemainingContent({
                       cert.issueDate,
                       cert.expiryDate,
                       undefined,
-                      getDateLocale(theme.id),
+                      getDateLocale(theme.id)
                     )}
                   </span>
                 </div>
@@ -665,7 +667,7 @@ function RemainingContent({
                       act.startDate,
                       act.endDate,
                       undefined,
-                      getDateLocale(theme.id),
+                      getDateLocale(theme.id)
                     )}
                   </span>
                 </div>
@@ -678,7 +680,7 @@ function RemainingContent({
         </Section>
       )}
     </>
-  );
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -706,7 +708,7 @@ function ProjectBlock({ proj, themeId }: { proj: Resume['projects'][0]; themeId:
       {proj.techStack && <TechTags text={proj.techStack} color="blue" themeId={themeId} />}
       {proj.link && <p className="text-xs text-blue-600 mt-1 break-all">{proj.link}</p>}
     </div>
-  );
+  )
 }
 
 /* ================================================================== */
@@ -714,9 +716,9 @@ function ProjectBlock({ proj, themeId }: { proj: Resume['projects'][0]; themeId:
 /* ================================================================== */
 const ResumePreview = forwardRef<HTMLDivElement, Props>(
   ({ resume, themeId, customAccentHex, customFont }, ref) => {
-    const theme = resumeThemes.find((t) => t.id === themeId) || resumeThemes[0];
-    const { personalInfo: pi, experiences, educations, skills, projects } = resume;
-    const hasPhoto = !!pi.photo;
+    const theme = resumeThemes.find((t) => t.id === themeId) || resumeThemes[0]
+    const { personalInfo: pi, experiences, educations, skills, projects } = resume
+    const hasPhoto = !!pi.photo
     const isDarkHeader = [
       'professional',
       'startup',
@@ -724,15 +726,15 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
       'creative',
       'dark',
       'portfolio',
-    ].includes(theme.id);
+    ].includes(theme.id)
 
     /* Count leading content sections for separator logic */
-    let sectionCount = 0;
-    if (pi.summary) sectionCount++;
-    if (experiences.length) sectionCount++;
-    if (educations.length) sectionCount++;
-    if (skills.length) sectionCount++;
-    if (projects.length) sectionCount++;
+    let sectionCount = 0
+    if (pi.summary) sectionCount++
+    if (experiences.length) sectionCount++
+    if (educations.length) sectionCount++
+    if (skills.length) sectionCount++
+    if (projects.length) sectionCount++
 
     /* ---- Default header content ---- */
     const headerContent = (
@@ -757,17 +759,17 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
           </div>
         </div>
       </div>
-    );
+    )
 
     /* ---- Section order & visibility ---- */
     const sectionOrder = resume.sectionOrder?.length
       ? resume.sectionOrder
-      : [...DEFAULT_SECTION_ORDER];
-    const hiddenSections = new Set(resume.hiddenSections || []);
+      : [...DEFAULT_SECTION_ORDER]
+    const hiddenSections = new Set(resume.hiddenSections || [])
 
     /** Render a single section by ID */
     function renderSection(sectionId: SectionId, isFirst: boolean) {
-      if (hiddenSections.has(sectionId)) return null;
+      if (hiddenSections.has(sectionId)) return null
       switch (sectionId) {
         case 'experience':
           return experiences.length > 0 ? (
@@ -783,7 +785,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                 ))}
               </div>
             </Section>
-          ) : null;
+          ) : null
         case 'education':
           return educations.length > 0 ? (
             <Section key="education" title={t('resume.education')} theme={theme} isFirst={isFirst}>
@@ -793,13 +795,13 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                 ))}
               </div>
             </Section>
-          ) : null;
+          ) : null
         case 'skills':
           return skills.length > 0 ? (
             <Section key="skills" title={t('resume.skills')} theme={theme} isFirst={isFirst}>
               <SkillsDisplay skills={skills} themeId={theme.id} accentColor={theme.accentColor} />
             </Section>
-          ) : null;
+          ) : null
         case 'projects':
           return projects.length > 0 ? (
             <Section key="projects" title={t('resume.projects')} theme={theme} isFirst={isFirst}>
@@ -809,7 +811,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                 ))}
               </div>
             </Section>
-          ) : null;
+          ) : null
         case 'certifications':
           return resume.certifications.length > 0 ? (
             <Section
@@ -836,7 +838,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                           cert.issueDate,
                           cert.expiryDate,
                           undefined,
-                          getDateLocale(theme.id),
+                          getDateLocale(theme.id)
                         )}
                       </span>
                     </div>
@@ -847,7 +849,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                 ))}
               </div>
             </Section>
-          ) : null;
+          ) : null
         case 'languages':
           return resume.languages.length > 0 ? (
             <Section key="languages" title={t('resume.languages')} theme={theme} isFirst={isFirst}>
@@ -872,7 +874,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                 ))}
               </div>
             </Section>
-          ) : null;
+          ) : null
         case 'awards':
           return resume.awards.length > 0 ? (
             <Section key="awards" title={t('resume.awards')} theme={theme} isFirst={isFirst}>
@@ -899,7 +901,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                 ))}
               </div>
             </Section>
-          ) : null;
+          ) : null
         case 'activities':
           return resume.activities.length > 0 ? (
             <Section
@@ -926,7 +928,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                           act.startDate,
                           act.endDate,
                           undefined,
-                          getDateLocale(theme.id),
+                          getDateLocale(theme.id)
                         )}
                       </span>
                     </div>
@@ -937,9 +939,9 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                 ))}
               </div>
             </Section>
-          ) : null;
+          ) : null
         default:
-          return null;
+          return null
       }
     }
 
@@ -955,11 +957,11 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
           </Section>
         )}
         {sectionOrder.map((sectionId, idx) => {
-          const isFirst = !pi.summary && idx === 0;
-          return renderSection(sectionId, isFirst);
+          const isFirst = !pi.summary && idx === 0
+          return renderSection(sectionId, isFirst)
         })}
       </>
-    );
+    )
 
     /* ================================================================ */
     /*  THEME-SPECIFIC LAYOUTS                                           */
@@ -1103,7 +1105,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             </div>
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- MINIMAL: Extra-wide margins, lots of white space ---- */
@@ -1151,7 +1153,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
                             exp.startDate,
                             exp.endDate,
                             exp.current,
-                            getDateLocale(theme.id),
+                            getDateLocale(theme.id)
                           )}
                         </span>
                       </div>
@@ -1197,7 +1199,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             <RemainingContent resume={resume} theme={theme} sectionIndex={sectionCount} />
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- CREATIVE: Rounded cards for each section ---- */
@@ -1344,7 +1346,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             )}
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- TECH: Terminal-style layout ---- */
@@ -1451,7 +1453,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             <RemainingContent resume={resume} theme={theme} sectionIndex={sectionCount} />
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- ELEGANT: Centered headers, ornamental dividers ---- */
@@ -1533,7 +1535,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             <RemainingContent resume={resume} theme={theme} sectionIndex={sectionCount} />
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- NEWSPAPER: Two-column layout ---- */
@@ -1688,7 +1690,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             )}
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- EXECUTIVE: Large serif headings, generous spacing ---- */
@@ -1759,7 +1761,7 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             <RemainingContent resume={resume} theme={theme} sectionIndex={sectionCount} />
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- PORTFOLIO: Large visual header, grid skills, project cards ---- */
@@ -1864,14 +1866,14 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
             <RemainingContent resume={resume} theme={theme} sectionIndex={sectionCount} />
           </div>
         </div>
-      );
+      )
     }
 
     /* ---- DEFAULT: Classic / Professional / all other themes ---- */
     const wrapperStyle: AccentStyle = {
       fontFamily: customFont || theme.fontFamily,
       ...(customAccentHex ? { '--resume-accent': customAccentHex } : {}),
-    };
+    }
 
     return (
       <div
@@ -1899,10 +1901,10 @@ const ResumePreview = forwardRef<HTMLDivElement, Props>(
         <header className={theme.headerStyle}>{headerContent}</header>
         {standardContent}
       </div>
-    );
-  },
-);
+    )
+  }
+)
 
-ResumePreview.displayName = 'ResumePreview';
+ResumePreview.displayName = 'ResumePreview'
 
-export default memo(ResumePreview);
+export default memo(ResumePreview)

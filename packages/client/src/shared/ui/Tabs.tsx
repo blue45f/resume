@@ -1,23 +1,23 @@
-import { useState, useRef, type ReactNode, type KeyboardEvent, useId } from 'react';
+import { useState, useRef, type ReactNode, type KeyboardEvent, useId } from 'react'
 
 export interface TabItem {
-  id: string;
-  label: string;
-  count?: number;
-  icon?: ReactNode;
-  content: ReactNode;
+  id: string
+  label: string
+  count?: number
+  icon?: ReactNode
+  content: ReactNode
 }
 
 interface TabsProps {
-  items: TabItem[];
-  defaultTab?: string;
-  value?: string;
-  onChange?: (id: string) => void;
+  items: TabItem[]
+  defaultTab?: string
+  value?: string
+  onChange?: (id: string) => void
   /** Optional class appended to the tablist container */
-  className?: string;
+  className?: string
   /** Optional class appended to each panel wrapper */
-  panelClassName?: string;
-  ariaLabel?: string;
+  panelClassName?: string
+  ariaLabel?: string
 }
 
 /**
@@ -34,33 +34,33 @@ export default function Tabs({
   panelClassName = '',
   ariaLabel = 'Tabs',
 }: TabsProps) {
-  const [internal, setInternal] = useState(() => defaultTab ?? items[0]?.id ?? '');
-  const active = value ?? internal;
-  const uid = useId();
-  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [internal, setInternal] = useState(() => defaultTab ?? items[0]?.id ?? '')
+  const active = value ?? internal
+  const uid = useId()
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   const activate = (id: string) => {
-    if (value === undefined) setInternal(id);
-    onChange?.(id);
-  };
+    if (value === undefined) setInternal(id)
+    onChange?.(id)
+  }
 
   const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Home' && e.key !== 'End')
-      return;
-    e.preventDefault();
-    const last = items.length - 1;
-    let next = index;
-    if (e.key === 'ArrowLeft') next = index === 0 ? last : index - 1;
-    else if (e.key === 'ArrowRight') next = index === last ? 0 : index + 1;
-    else if (e.key === 'Home') next = 0;
-    else if (e.key === 'End') next = last;
-    const nextId = items[next]?.id;
-    if (!nextId) return;
-    activate(nextId);
-    tabRefs.current[nextId]?.focus();
-  };
+      return
+    e.preventDefault()
+    const last = items.length - 1
+    let next = index
+    if (e.key === 'ArrowLeft') next = index === 0 ? last : index - 1
+    else if (e.key === 'ArrowRight') next = index === last ? 0 : index + 1
+    else if (e.key === 'Home') next = 0
+    else if (e.key === 'End') next = last
+    const nextId = items[next]?.id
+    if (!nextId) return
+    activate(nextId)
+    tabRefs.current[nextId]?.focus()
+  }
 
-  const activeItem = items.find((i) => i.id === active) ?? items[0];
+  const activeItem = items.find((i) => i.id === active) ?? items[0]
 
   return (
     <div className="w-full">
@@ -70,12 +70,12 @@ export default function Tabs({
         className={`flex gap-1 border-b border-[var(--color-border-subtle)] ${className}`}
       >
         {items.map((tab, index) => {
-          const isActive = tab.id === active;
+          const isActive = tab.id === active
           return (
             <button
               key={tab.id}
               ref={(el) => {
-                tabRefs.current[tab.id] = el;
+                tabRefs.current[tab.id] = el
               }}
               role="tab"
               type="button"
@@ -113,7 +113,7 @@ export default function Tabs({
                 />
               )}
             </button>
-          );
+          )
         })}
       </div>
 
@@ -128,5 +128,5 @@ export default function Tabs({
         </div>
       )}
     </div>
-  );
+  )
 }

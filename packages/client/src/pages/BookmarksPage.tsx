@@ -1,38 +1,39 @@
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { removeBookmark } from '@/lib/api';
-import { toast } from '@/components/Toast';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import { timeAgo } from '@/lib/time';
-import { useBookmarks } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import { ErrorState } from '@/shared/ui/ErrorState';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
+import { useBookmarks } from '@/hooks/useResources'
+import { removeBookmark } from '@/lib/api'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
+import { ErrorState } from '@/shared/ui/ErrorState'
 
 export default function BookmarksPage() {
-  const queryClient = useQueryClient();
-  const { data: bookmarks = [], isLoading: loading, isError, refetch } = useBookmarks();
+  const queryClient = useQueryClient()
+  const { data: bookmarks = [], isLoading: loading, isError, refetch } = useBookmarks()
 
   const removeMutation = useMutation({
     mutationFn: (resumeId: string) => removeBookmark(resumeId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
-      toast('북마크가 해제되었습니다', 'success');
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] })
+      toast('북마크가 해제되었습니다', 'success')
     },
     onError: () => toast('해제에 실패했습니다', 'error'),
-  });
+  })
 
   useEffect(() => {
-    document.title = '북마크 — 이력서공방';
+    document.title = '북마크 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
-  const handleRemove = (resumeId: string) => removeMutation.mutate(resumeId);
+  const handleRemove = (resumeId: string) => removeMutation.mutate(resumeId)
 
   return (
     <>
@@ -133,5 +134,5 @@ export default function BookmarksPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

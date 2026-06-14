@@ -8,17 +8,17 @@
  * - 압축: 5MB 초과 / 큰 해상도 → maxWidthOrHeight 1920 + quality 0.85 정도로 축소
  */
 
-const MAX_DIM = 1920;
-const COMPRESSION_THRESHOLD_BYTES = 1.5 * 1024 * 1024; // 1.5MB 초과만 압축
+const MAX_DIM = 1920
+const COMPRESSION_THRESHOLD_BYTES = 1.5 * 1024 * 1024 // 1.5MB 초과만 압축
 
 function toJpegFileName(fileName: string): string {
   if (/\.(heic|heif)$/i.test(fileName)) {
-    return fileName.replace(/\.(heic|heif)$/i, '.jpg');
+    return fileName.replace(/\.(heic|heif)$/i, '.jpg')
   }
   if (/\.[a-z0-9]+$/i.test(fileName)) {
-    return fileName.replace(/\.[a-z0-9]+$/i, '.jpg');
+    return fileName.replace(/\.[a-z0-9]+$/i, '.jpg')
   }
-  return `${fileName}.jpg`;
+  return `${fileName}.jpg`
 }
 
 /** HEIC 파일 → JPEG. 다른 포맷은 그대로 반환. */
@@ -27,38 +27,38 @@ async function convertHeicIfNeeded(file: File): Promise<File> {
     file.type === 'image/heic' ||
     file.type === 'image/heif' ||
     file.name.toLowerCase().endsWith('.heic') ||
-    file.name.toLowerCase().endsWith('.heif');
-  if (!isHeic) return file;
+    file.name.toLowerCase().endsWith('.heif')
+  if (!isHeic) return file
 
   // heic2any 는 ESM-only 무거운 라이브러리 — 동적 로드
-  const heic2any = (await import('heic2any')).default;
-  const blob = (await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 })) as Blob;
-  const newName = toJpegFileName(file.name);
-  return new File([blob], newName, { type: 'image/jpeg' });
+  const heic2any = (await import('heic2any')).default
+  const blob = (await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 })) as Blob
+  const newName = toJpegFileName(file.name)
+  return new File([blob], newName, { type: 'image/jpeg' })
 }
 
 export interface ImageProcessOptions {
   /** 최대 가로/세로 px (기본 1920) */
-  maxDim?: number;
+  maxDim?: number
   /** 압축 목표 MB (기본 1.5) */
-  maxSizeMB?: number;
+  maxSizeMB?: number
   /** 이 바이트 미만이면 압축 생략 (기본 1.5MB). 0 이면 항상 리사이즈/압축. */
-  thresholdBytes?: number;
+  thresholdBytes?: number
 }
 
 /** 큰 이미지 압축 — threshold 미만이면 그대로 반환 (threshold 0 은 항상 압축). */
 async function compressIfLarge(file: File, opts: ImageProcessOptions = {}): Promise<File> {
-  const threshold = opts.thresholdBytes ?? COMPRESSION_THRESHOLD_BYTES;
-  if (file.size < threshold) return file;
-  const imageCompression = (await import('browser-image-compression')).default;
+  const threshold = opts.thresholdBytes ?? COMPRESSION_THRESHOLD_BYTES
+  if (file.size < threshold) return file
+  const imageCompression = (await import('browser-image-compression')).default
   const compressed = await imageCompression(file, {
     maxSizeMB: opts.maxSizeMB ?? 1.5,
     maxWidthOrHeight: opts.maxDim ?? MAX_DIM,
     useWebWorker: true,
     fileType: file.type === 'image/png' ? 'image/png' : 'image/jpeg',
-  });
+  })
   // imageCompression 반환은 Blob — File 로 wrap
-  return new File([compressed], file.name, { type: compressed.type || file.type });
+  return new File([compressed], file.name, { type: compressed.type || file.type })
 }
 
 /**
@@ -70,16 +70,16 @@ async function compressIfLarge(file: File, opts: ImageProcessOptions = {}): Prom
  */
 export async function processImageForUpload(
   file: File,
-  options?: ImageProcessOptions,
+  options?: ImageProcessOptions
 ): Promise<File> {
   try {
-    const converted = await convertHeicIfNeeded(file);
-    const compressed = await compressIfLarge(converted, options);
-    return compressed;
+    const converted = await convertHeicIfNeeded(file)
+    const compressed = await compressIfLarge(converted, options)
+    return compressed
   } catch (err) {
     if (import.meta.env.DEV) {
-      console.warn('[imageProcess] 처리 실패, 원본 사용:', err);
+      console.warn('[imageProcess] 처리 실패, 원본 사용:', err)
     }
-    return file;
+    return file
   }
 }

@@ -1,24 +1,25 @@
-import { useState } from 'react';
-import Dialog from '@/shared/ui/Dialog';
-import { toast } from '@/components/Toast';
-import { requestCoffeeChat } from '@/lib/api';
+import { useState } from 'react'
+
+import { toast } from '@/components/Toast'
+import { requestCoffeeChat } from '@/lib/api'
+import Dialog from '@/shared/ui/Dialog'
 
 interface Props {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  hostId: string;
-  hostName: string;
-  defaultTopic?: string;
-  onSent?: () => void;
+  open: boolean
+  onOpenChange: (v: boolean) => void
+  hostId: string
+  hostName: string
+  defaultTopic?: string
+  onSent?: () => void
 }
 
 const MODALITIES: { value: 'video' | 'voice' | 'chat'; label: string; icon: string }[] = [
   { value: 'video', label: '화상', icon: '📹' },
   { value: 'voice', label: '음성', icon: '🎙️' },
   { value: 'chat', label: '텍스트', icon: '💬' },
-];
+]
 
-const DURATIONS = [15, 30, 60];
+const DURATIONS = [15, 30, 60]
 
 /** 자주 쓰는 주제 7개 (server COFFEE_CHAT_TOPICS 미러) */
 const TOPIC_PRESETS = [
@@ -29,7 +30,7 @@ const TOPIC_PRESETS = [
   { key: 'role_intro', label: '직무 소개', icon: '💼' },
   { key: 'salary_nego', label: '연봉 협의', icon: '💰' },
   { key: 'general', label: '자유 주제', icon: '☕' },
-];
+]
 
 export default function CoffeeChatRequestDialog({
   open,
@@ -39,19 +40,19 @@ export default function CoffeeChatRequestDialog({
   defaultTopic,
   onSent,
 }: Props) {
-  const [topic, setTopic] = useState(defaultTopic || '');
-  const [message, setMessage] = useState('');
-  const [modality, setModality] = useState<'video' | 'voice' | 'chat'>('video');
-  const [durationMin, setDurationMin] = useState(30);
-  const [scheduledAt, setScheduledAt] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [topic, setTopic] = useState(defaultTopic || '')
+  const [message, setMessage] = useState('')
+  const [modality, setModality] = useState<'video' | 'voice' | 'chat'>('video')
+  const [durationMin, setDurationMin] = useState(30)
+  const [scheduledAt, setScheduledAt] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async () => {
     if (!message.trim()) {
-      toast('메시지를 입력해주세요', 'error');
-      return;
+      toast('메시지를 입력해주세요', 'error')
+      return
     }
-    setSubmitting(true);
+    setSubmitting(true)
     try {
       await requestCoffeeChat({
         hostId,
@@ -60,18 +61,18 @@ export default function CoffeeChatRequestDialog({
         modality,
         durationMin,
         scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
-      });
-      toast(`${hostName}님에게 커피챗을 신청했습니다`, 'success');
-      onSent?.();
-      onOpenChange(false);
-      setMessage('');
-      setTopic('');
+      })
+      toast(`${hostName}님에게 커피챗을 신청했습니다`, 'success')
+      onSent?.()
+      onOpenChange(false)
+      setMessage('')
+      setTopic('')
     } catch (err) {
-      toast(err instanceof Error ? err.message : '신청에 실패했습니다', 'error');
+      toast(err instanceof Error ? err.message : '신청에 실패했습니다', 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <Dialog
@@ -83,13 +84,16 @@ export default function CoffeeChatRequestDialog({
     >
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label
+            htmlFor="coffeechat-topic"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+          >
             주제 (선택)
           </label>
           {/* preset chips — 빠른 선택 */}
           <div className="flex flex-wrap gap-1.5 mb-2">
             {TOPIC_PRESETS.map((p) => {
-              const active = topic === p.label;
+              const active = topic === p.label
               return (
                 <button
                   key={p.key}
@@ -103,10 +107,11 @@ export default function CoffeeChatRequestDialog({
                 >
                   {p.icon} {p.label}
                 </button>
-              );
+              )
             })}
           </div>
           <input
+            id="coffeechat-topic"
             type="text"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
@@ -117,10 +122,14 @@ export default function CoffeeChatRequestDialog({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <label
+            htmlFor="coffeechatrequestdialog-field-1"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+          >
             메시지 <span className="text-red-500">*</span>
           </label>
           <textarea
+            id="coffeechatrequestdialog-field-1"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             maxLength={1000}
@@ -134,10 +143,17 @@ export default function CoffeeChatRequestDialog({
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+          <span
+            id="coffeechat-modality-label"
+            className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+          >
             소통 방식
-          </label>
-          <div className="grid grid-cols-3 gap-2">
+          </span>
+          <div
+            role="group"
+            aria-labelledby="coffeechat-modality-label"
+            className="grid grid-cols-3 gap-2"
+          >
             {MODALITIES.map((m) => (
               <button
                 key={m.value}
@@ -157,10 +173,13 @@ export default function CoffeeChatRequestDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <span
+              id="coffeechat-duration-label"
+              className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
               시간
-            </label>
-            <div className="flex gap-1">
+            </span>
+            <div role="group" aria-labelledby="coffeechat-duration-label" className="flex gap-1">
               {DURATIONS.map((d) => (
                 <button
                   key={d}
@@ -178,10 +197,14 @@ export default function CoffeeChatRequestDialog({
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+            <label
+              htmlFor="coffeechatrequestdialog-field-2"
+              className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+            >
               희망 일시 (선택)
             </label>
             <input
+              id="coffeechatrequestdialog-field-2"
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
@@ -210,5 +233,5 @@ export default function CoffeeChatRequestDialog({
         </div>
       </div>
     </Dialog>
-  );
+  )
 }

@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import { ROUTES } from '@/lib/routes';
-import { API_URL } from '@/lib/config';
-import { formatDate } from '@/lib/time';
+import { useEffect, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import Header from '@/components/Header'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
 
 type VerifyState =
   | { phase: 'verifying' }
   | { phase: 'success'; planName?: string; currentPeriodEnd?: string }
-  | { phase: 'failed'; reason?: string };
+  | { phase: 'failed'; reason?: string }
 
 /**
  * P1-5 — 서버 verify 신뢰원에서 결제 성공/실패 판정.
@@ -16,18 +18,18 @@ type VerifyState =
  * 마운트 시 GET /billing/me/verify-recent 호출 → 서버가 최근 10분 내 succeeded payment 확인.
  */
 export default function PaymentResultPage() {
-  const [params] = useSearchParams();
+  const [params] = useSearchParams()
   const [initial] = useState(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     const state: VerifyState = params.has('fail')
       ? { phase: 'failed', reason: 'pg_cancelled' }
       : token
         ? { phase: 'verifying' }
-        : { phase: 'failed', reason: 'unauthenticated' };
-    return { token, state };
-  });
-  const token = initial.token;
-  const [state, setState] = useState<VerifyState>(initial.state);
+        : { phase: 'failed', reason: 'unauthenticated' }
+    return { token, state }
+  })
+  const token = initial.token
+  const [state, setState] = useState<VerifyState>(initial.state)
 
   useEffect(() => {
     document.title =
@@ -35,47 +37,47 @@ export default function PaymentResultPage() {
         ? '결제 완료 — 이력서공방'
         : state.phase === 'failed'
           ? '결제 실패 — 이력서공방'
-          : '결제 확인 중 — 이력서공방';
+          : '결제 확인 중 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [state.phase]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [state.phase])
 
   useEffect(() => {
-    if (state.phase !== 'verifying') return;
-    const ctrl = new AbortController();
-    if (!token) return;
-    (async () => {
+    if (state.phase !== 'verifying') return
+    const ctrl = new AbortController()
+    if (!token) return
+    ;(async () => {
       try {
-        const res = await fetch(`${API_URL}/api/billing/me/verify-recent`, {
+        const res = await httpClient(`${API_URL}/api/billing/me/verify-recent`, {
           headers: { Authorization: `Bearer ${token}` },
           signal: ctrl.signal,
-        });
+        })
         if (!res.ok) {
-          setState({ phase: 'failed', reason: `http_${res.status}` });
-          return;
+          setState({ phase: 'failed', reason: `http_${res.status}` })
+          return
         }
-        const data = await res.json();
+        const data = await res.json()
         if (data.verified) {
           setState({
             phase: 'success',
             planName: data.planName,
             currentPeriodEnd: data.currentPeriodEnd,
-          });
+          })
         } else {
-          setState({ phase: 'failed', reason: data.reason || 'unknown' });
+          setState({ phase: 'failed', reason: data.reason || 'unknown' })
         }
       } catch (e) {
-        if ((e as Error).name === 'AbortError') return;
-        setState({ phase: 'failed', reason: 'network' });
+        if ((e as Error).name === 'AbortError') return
+        setState({ phase: 'failed', reason: 'network' })
       }
-    })();
-    return () => ctrl.abort();
-  }, [state.phase, token]);
+    })()
+    return () => ctrl.abort()
+  }, [state.phase, token])
 
-  const planLabel = state.phase === 'success' ? state.planName || '프로' : '';
+  const planLabel = state.phase === 'success' ? state.planName || '프로' : ''
   const expiresLabel =
-    state.phase === 'success' && state.currentPeriodEnd ? formatDate(state.currentPeriodEnd) : '';
+    state.phase === 'success' && state.currentPeriodEnd ? formatDate(state.currentPeriodEnd) : ''
 
   return (
     <>
@@ -186,5 +188,5 @@ export default function PaymentResultPage() {
         </div>
       </main>
     </>
-  );
+  )
 }

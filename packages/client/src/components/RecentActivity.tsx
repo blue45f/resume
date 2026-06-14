@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo, type ReactElement } from 'react';
-import { Link } from 'react-router-dom';
-import { timeAgo } from '@/lib/time';
-import { API_URL } from '@/lib/config';
+import { useState, useEffect, useMemo, type ReactElement } from 'react'
+import { Link } from 'react-router-dom'
+
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { timeAgo } from '@/lib/time'
 
 interface Activity {
-  id: string;
+  id: string
   type:
     | 'version'
     | 'transform'
@@ -14,62 +16,62 @@ interface Activity {
     | 'comment'
     | 'follow'
     | 'social_comment'
-    | 'scout';
-  resumeId: string;
-  resumeTitle?: string;
-  description: string;
-  createdAt: string;
-  actorName?: string;
-  isSocial?: boolean;
+    | 'scout'
+  resumeId: string
+  resumeTitle?: string
+  description: string
+  createdAt: string
+  actorName?: string
+  isSocial?: boolean
 }
 
 interface DashboardActivityItem {
-  id?: string;
-  resumeId: string;
-  resumeTitle?: string;
-  versionNumber?: number;
-  createdAt: string;
+  id?: string
+  resumeId: string
+  resumeTitle?: string
+  versionNumber?: number
+  createdAt: string
 }
 
 interface DashboardActivityResponse {
-  recentVersions?: DashboardActivityItem[];
-  recentViews?: DashboardActivityItem[];
-  recentShares?: DashboardActivityItem[];
+  recentVersions?: DashboardActivityItem[]
+  recentViews?: DashboardActivityItem[]
+  recentShares?: DashboardActivityItem[]
 }
 
 interface SocialActivityItem {
-  id?: string;
-  name?: string;
-  senderName?: string;
-  companyName?: string;
-  resumeId?: string;
-  createdAt?: string;
+  id?: string
+  name?: string
+  senderName?: string
+  companyName?: string
+  resumeId?: string
+  createdAt?: string
 }
 
 interface ResumeCommentSource {
-  id: string;
-  title?: string;
+  id: string
+  title?: string
 }
 
 interface ResumeCommentItem {
-  id: string;
-  userId?: string;
-  userName?: string;
-  name?: string;
-  createdAt?: string;
+  id: string
+  userId?: string
+  userName?: string
+  name?: string
+  createdAt?: string
 }
 
 function getCurrentUserId(): string | undefined {
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem('user') || '{}');
+    const parsed: unknown = JSON.parse(localStorage.getItem('user') || '{}')
     if (typeof parsed === 'object' && parsed !== null && 'id' in parsed) {
-      const id = (parsed as { id?: unknown }).id;
-      return typeof id === 'string' ? id : undefined;
+      const id = (parsed as { id?: unknown }).id
+      return typeof id === 'string' ? id : undefined
     }
   } catch {
-    return undefined;
+    return undefined
   }
-  return undefined;
+  return undefined
 }
 
 const ACTIVITY_ICONS: Record<string, ReactElement> = {
@@ -169,7 +171,7 @@ const ACTIVITY_ICONS: Record<string, ReactElement> = {
       />
     </svg>
   ),
-};
+}
 
 const AVATAR_COLORS = [
   'bg-blue-500',
@@ -180,44 +182,44 @@ const AVATAR_COLORS = [
   'bg-blue-600',
   'bg-amber-500',
   'bg-teal-500',
-];
+]
 
 function getAvatarBg(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0;
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = ((hash << 5) - hash + name.charCodeAt(i)) | 0
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
 function getDateGroup(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr);
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
-  const weekStart = new Date(todayStart.getTime() - todayStart.getDay() * 86400000);
+  const now = new Date()
+  const date = new Date(dateStr)
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000)
+  const weekStart = new Date(todayStart.getTime() - todayStart.getDay() * 86400000)
 
-  if (date >= todayStart) return '오늘';
-  if (date >= yesterdayStart) return '어제';
-  if (date >= weekStart) return '이번 주';
-  return '이전';
+  if (date >= todayStart) return '오늘'
+  if (date >= yesterdayStart) return '어제'
+  if (date >= weekStart) return '이번 주'
+  return '이전'
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 5
 
 export default function RecentActivity() {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [expanded, setExpanded] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [expanded, setExpanded] = useState(false)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    fetch(`${API_URL}/api/resumes/dashboard/analytics`, {
+    const token = localStorage.getItem('token')
+    if (!token) return
+    httpClient(`${API_URL}/api/resumes/dashboard/analytics`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: DashboardActivityResponse | null) => {
-        if (!data) return;
-        const acts: Activity[] = [];
+        if (!data) return
+        const acts: Activity[] = []
         // Convert recent versions to activities
         for (const v of data.recentVersions || []) {
           acts.push({
@@ -226,7 +228,7 @@ export default function RecentActivity() {
             resumeId: v.resumeId,
             description: `버전 ${v.versionNumber} 저장됨`,
             createdAt: v.createdAt,
-          });
+          })
         }
         // Convert recent views if available
         for (const v of data.recentViews || []) {
@@ -237,7 +239,7 @@ export default function RecentActivity() {
             resumeTitle: v.resumeTitle,
             description: v.resumeTitle ? `"${v.resumeTitle}" 조회됨` : '이력서 조회됨',
             createdAt: v.createdAt,
-          });
+          })
         }
         // Convert recent shares if available
         for (const s of data.recentShares || []) {
@@ -247,13 +249,13 @@ export default function RecentActivity() {
             resumeId: s.resumeId,
             description: s.resumeTitle ? `"${s.resumeTitle}" 공유됨` : '이력서 공유됨',
             createdAt: s.createdAt,
-          });
+          })
         }
         // Sort by date desc
-        acts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        setActivities(acts);
+        acts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        setActivities(acts)
       })
-      .catch(() => {});
+      .catch(() => {})
 
     // Fetch social activities (followers, comments, scouts)
     const socialEndpoints = [
@@ -268,13 +270,13 @@ export default function RecentActivity() {
         msgFn: (item: SocialActivityItem) =>
           `${item.senderName || item.companyName || '기업'}님이 스카우트를 보냈습니다`,
       },
-    ];
+    ]
 
     for (const ep of socialEndpoints) {
-      fetch(ep.url, { headers: { Authorization: `Bearer ${token}` } })
+      httpClient(ep.url, { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => (r.ok ? r.json() : []))
         .then((items: unknown) => {
-          if (!Array.isArray(items) || items.length === 0) return;
+          if (!Array.isArray(items) || items.length === 0) return
           const socialActs: Activity[] = (items as SocialActivityItem[])
             .slice(0, 5)
             .map((item, i) => ({
@@ -285,26 +287,24 @@ export default function RecentActivity() {
               createdAt: item.createdAt || new Date().toISOString(),
               actorName: item.name || item.senderName || item.companyName || '사용자',
               isSocial: true,
-            }));
+            }))
           setActivities((prev) => {
-            const merged = [...prev, ...socialActs];
-            merged.sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-            );
-            return merged;
-          });
+            const merged = [...prev, ...socialActs]
+            merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            return merged
+          })
         })
-        .catch(() => {});
+        .catch(() => {})
     }
 
     // Fetch recent comments on user's resumes
-    const currentUserId = getCurrentUserId();
-    fetch(`${API_URL}/api/resumes`, { headers: { Authorization: `Bearer ${token}` } })
+    const currentUserId = getCurrentUserId()
+    httpClient(`${API_URL}/api/resumes`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => (r.ok ? r.json() : []))
       .then((resumes: unknown) => {
-        if (!Array.isArray(resumes)) return;
+        if (!Array.isArray(resumes)) return
         const commentPromises = (resumes as ResumeCommentSource[]).slice(0, 5).map((resume) =>
-          fetch(`${API_URL}/api/resumes/${resume.id}/comments`, {
+          httpClient(`${API_URL}/api/resumes/${resume.id}/comments`, {
             headers: { Authorization: `Bearer ${token}` },
           })
             .then((r) => (r.ok ? r.json() : []))
@@ -321,49 +321,47 @@ export default function RecentActivity() {
                   createdAt: c.createdAt || new Date().toISOString(),
                   actorName: c.userName || c.name || '사용자',
                   isSocial: true,
-                })),
+                }))
             )
-            .catch(() => [] as Activity[]),
-        );
+            .catch(() => [] as Activity[])
+        )
         Promise.all(commentPromises).then((results) => {
-          const allComments = results.flat();
-          if (allComments.length === 0) return;
+          const allComments = results.flat()
+          if (allComments.length === 0) return
           setActivities((prev) => {
-            const merged = [...prev, ...allComments];
-            merged.sort(
-              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-            );
-            return merged;
-          });
-        });
+            const merged = [...prev, ...allComments]
+            merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            return merged
+          })
+        })
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
   // Group activities by date
   const grouped = useMemo(() => {
-    const visible = activities.slice(0, visibleCount);
-    const groups: { label: string; items: Activity[] }[] = [];
-    const groupOrder = ['오늘', '어제', '이번 주', '이전'];
+    const visible = activities.slice(0, visibleCount)
+    const groups: { label: string; items: Activity[] }[] = []
+    const groupOrder = ['오늘', '어제', '이번 주', '이전']
 
     for (const act of visible) {
-      const label = getDateGroup(act.createdAt);
-      let group = groups.find((g) => g.label === label);
+      const label = getDateGroup(act.createdAt)
+      let group = groups.find((g) => g.label === label)
       if (!group) {
-        group = { label, items: [] };
-        groups.push(group);
+        group = { label, items: [] }
+        groups.push(group)
       }
-      group.items.push(act);
+      group.items.push(act)
     }
 
     // Sort groups in correct order
-    groups.sort((a, b) => groupOrder.indexOf(a.label) - groupOrder.indexOf(b.label));
-    return groups;
-  }, [activities, visibleCount]);
+    groups.sort((a, b) => groupOrder.indexOf(a.label) - groupOrder.indexOf(b.label))
+    return groups
+  }, [activities, visibleCount])
 
-  if (activities.length === 0) return null;
+  if (activities.length === 0) return null
 
-  const hasMore = visibleCount < activities.length;
+  const hasMore = visibleCount < activities.length
 
   return (
     <div className="mb-6">
@@ -394,8 +392,8 @@ export default function RecentActivity() {
               <div className="space-y-1.5">
                 {group.items.map((act) => {
                   const isSocial =
-                    act.isSocial || ['follow', 'social_comment', 'scout'].includes(act.type);
-                  const linkTo = act.resumeId ? `/resumes/${act.resumeId}/preview` : '/explore';
+                    act.isSocial || ['follow', 'social_comment', 'scout'].includes(act.type)
+                  const linkTo = act.resumeId ? `/resumes/${act.resumeId}/preview` : '/explore'
 
                   return (
                     <Link
@@ -433,7 +431,7 @@ export default function RecentActivity() {
                         {timeAgo(act.createdAt)}
                       </span>
                     </Link>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -449,5 +447,5 @@ export default function RecentActivity() {
         </div>
       )}
     </div>
-  );
+  )
 }

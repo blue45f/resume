@@ -1,17 +1,19 @@
-import { useState, useMemo, type ReactElement } from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { Resume } from '@/types/resume';
-import { calculateCompleteness } from '@/lib/completeness';
-import { ROUTES, withQuery } from '@/lib/routes';
+import { useState, useMemo, type ReactElement } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import type { Resume } from '@/types/resume'
+
+import { calculateCompleteness } from '@/lib/completeness'
+import { ROUTES, withQuery } from '@/lib/routes'
 
 interface WizardStep {
-  key: string;
-  label: string;
-  tab: string;
-  icon: ReactElement;
-  checkComplete: (resume: Resume) => boolean;
-  getMissing: (resume: Resume) => string[];
-  whyMatters: string;
+  key: string
+  label: string
+  tab: string
+  icon: ReactElement
+  checkComplete: (resume: Resume) => boolean
+  getMissing: (resume: Resume) => string[]
+  whyMatters: string
 }
 
 const STEPS: WizardStep[] = [
@@ -30,25 +32,20 @@ const STEPS: WizardStep[] = [
       </svg>
     ),
     checkComplete: (r) => {
-      const pi = r.personalInfo;
-      return !!(
-        pi.name &&
-        pi.email &&
-        pi.summary &&
-        pi.summary.replace(/<[^>]*>/g, '').length > 30
-      );
+      const pi = r.personalInfo
+      return !!(pi.name && pi.email && pi.summary && pi.summary.replace(/<[^>]*>/g, '').length > 30)
     },
     getMissing: (r) => {
-      const missing: string[] = [];
-      const pi = r.personalInfo;
-      if (!pi.name) missing.push('이름');
-      if (!pi.email) missing.push('이메일');
-      if (!pi.phone) missing.push('연락처');
+      const missing: string[] = []
+      const pi = r.personalInfo
+      if (!pi.name) missing.push('이름')
+      if (!pi.email) missing.push('이메일')
+      if (!pi.phone) missing.push('연락처')
       if (!pi.summary || pi.summary.replace(/<[^>]*>/g, '').length <= 30)
-        missing.push('자기소개 (30자 이상)');
-      if (!pi.photo) missing.push('프로필 사진');
-      if (!pi.website && !pi.github) missing.push('웹사이트 또는 GitHub');
-      return missing;
+        missing.push('자기소개 (30자 이상)')
+      if (!pi.photo) missing.push('프로필 사진')
+      if (!pi.website && !pi.github) missing.push('웹사이트 또는 GitHub')
+      return missing
     },
     whyMatters:
       '인적사항은 첫인상을 결정합니다. 채용담당자가 가장 먼저 확인하는 영역이며, 완성된 인적사항은 신뢰감을 줍니다.',
@@ -71,15 +68,15 @@ const STEPS: WizardStep[] = [
       r.experiences.length >= 1 &&
       r.experiences.some((e) => e.description && e.description.length > 30),
     getMissing: (r) => {
-      const missing: string[] = [];
-      if (r.experiences.length === 0) missing.push('경력 사항 1개 이상');
+      const missing: string[] = []
+      if (r.experiences.length === 0) missing.push('경력 사항 1개 이상')
       else {
         if (!r.experiences.some((e) => e.description && e.description.length > 30))
-          missing.push('업무 내용 상세 기술');
-        if (!r.experiences.some((e) => e.techStack)) missing.push('사용 기술 스택');
-        if (!r.experiences.some((e) => e.achievements)) missing.push('주요 성과');
+          missing.push('업무 내용 상세 기술')
+        if (!r.experiences.some((e) => e.techStack)) missing.push('사용 기술 스택')
+        if (!r.experiences.some((e) => e.achievements)) missing.push('주요 성과')
       }
-      return missing;
+      return missing
     },
     whyMatters:
       '경력은 이력서에서 가장 높은 비중을 차지합니다. 구체적인 성과와 기술을 포함하면 서류 통과율이 크게 올라갑니다.',
@@ -102,13 +99,13 @@ const STEPS: WizardStep[] = [
     ),
     checkComplete: (r) => r.educations.length >= 1 && !!r.educations[0]?.degree,
     getMissing: (r) => {
-      const missing: string[] = [];
-      if (r.educations.length === 0) missing.push('학력 정보');
+      const missing: string[] = []
+      if (r.educations.length === 0) missing.push('학력 정보')
       else {
-        if (!r.educations[0]?.degree) missing.push('학위');
-        if (!r.educations[0]?.field) missing.push('전공');
+        if (!r.educations[0]?.degree) missing.push('학위')
+        if (!r.educations[0]?.field) missing.push('전공')
       }
-      return missing;
+      return missing
     },
     whyMatters:
       '학력 정보는 특히 신입이나 경력 전환 시 중요합니다. ATS(자동서류심사)에서도 학력은 핵심 필터링 항목입니다.',
@@ -130,14 +127,14 @@ const STEPS: WizardStep[] = [
     checkComplete: (r) =>
       r.skills.length >= 2 && r.skills.some((s) => s.items && s.items.split(',').length >= 3),
     getMissing: (r) => {
-      const missing: string[] = [];
-      if (r.skills.length === 0) missing.push('기술 카테고리 1개 이상');
+      const missing: string[] = []
+      if (r.skills.length === 0) missing.push('기술 카테고리 1개 이상')
       else {
-        if (r.skills.length < 2) missing.push('기술 카테고리 추가 (2개 이상 권장)');
+        if (r.skills.length < 2) missing.push('기술 카테고리 추가 (2개 이상 권장)')
         if (!r.skills.some((s) => s.items && s.items.split(',').length >= 3))
-          missing.push('각 카테고리에 3개 이상 기술');
+          missing.push('각 카테고리에 3개 이상 기술')
       }
-      return missing;
+      return missing
     },
     whyMatters:
       '기술 스택은 JD(채용공고) 매칭의 핵심입니다. 명확하게 정리된 기술 목록은 채용담당자의 눈에 바로 들어옵니다.',
@@ -159,33 +156,33 @@ const STEPS: WizardStep[] = [
     checkComplete: (r) =>
       r.projects.length >= 1 && r.projects.some((p) => p.description && p.description.length > 30),
     getMissing: (r) => {
-      const missing: string[] = [];
-      if (r.projects.length === 0) missing.push('프로젝트 1개 이상');
+      const missing: string[] = []
+      if (r.projects.length === 0) missing.push('프로젝트 1개 이상')
       else {
         if (!r.projects.some((p) => p.description && p.description.length > 30))
-          missing.push('프로젝트 상세 설명');
-        if (!r.projects.some((p) => p.techStack)) missing.push('사용 기술 스택');
-        if (!r.projects.some((p) => p.link)) missing.push('프로젝트 링크');
+          missing.push('프로젝트 상세 설명')
+        if (!r.projects.some((p) => p.techStack)) missing.push('사용 기술 스택')
+        if (!r.projects.some((p) => p.link)) missing.push('프로젝트 링크')
       }
-      return missing;
+      return missing
     },
     whyMatters:
       '프로젝트는 실무 역량을 보여주는 가장 좋은 방법입니다. 포트폴리오와 함께 지원하면 면접 확률이 40% 이상 높아집니다.',
   },
-];
+]
 
 interface ProfileWizardProps {
-  resume: Resume;
-  resumeId: string;
-  onDismiss?: () => void;
+  resume: Resume
+  resumeId: string
+  onDismiss?: () => void
 }
 
 export default function ProfileWizard({ resume, resumeId, onDismiss }: ProfileWizardProps) {
-  const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [dismissed, setDismissed] = useState(false);
+  const navigate = useNavigate()
+  const [currentStep, setCurrentStep] = useState(0)
+  const [dismissed, setDismissed] = useState(false)
 
-  const completeness = useMemo(() => calculateCompleteness(resume), [resume]);
+  const completeness = useMemo(() => calculateCompleteness(resume), [resume])
 
   const stepStatuses = useMemo(
     () =>
@@ -194,40 +191,40 @@ export default function ProfileWizard({ resume, resumeId, onDismiss }: ProfileWi
         complete: step.checkComplete(resume),
         missing: step.getMissing(resume),
       })),
-    [resume],
-  );
+    [resume]
+  )
 
-  const completedCount = stepStatuses.filter((s) => s.complete).length;
-  const progressPercent = Math.round((completedCount / STEPS.length) * 100);
+  const completedCount = stepStatuses.filter((s) => s.complete).length
+  const progressPercent = Math.round((completedCount / STEPS.length) * 100)
 
   // Don't show if completeness >= 50% or dismissed
-  if (completeness.percentage >= 50 || dismissed) return null;
+  if (completeness.percentage >= 50 || dismissed) return null
 
-  const current = stepStatuses[currentStep];
+  const current = stepStatuses[currentStep]
 
   const handleNavigateToEdit = (tab: string) => {
-    navigate(withQuery(ROUTES.resume.edit(resumeId), { tab }));
-  };
+    navigate(withQuery(ROUTES.resume.edit(resumeId), { tab }))
+  }
 
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(currentStep + 1)
     }
-  };
+  }
 
   const handleSkip = () => {
     if (currentStep < STEPS.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(currentStep + 1)
     } else {
-      setDismissed(true);
-      onDismiss?.();
+      setDismissed(true)
+      onDismiss?.()
     }
-  };
+  }
 
   const handleDismiss = () => {
-    setDismissed(true);
-    onDismiss?.();
-  };
+    setDismissed(true)
+    onDismiss?.()
+  }
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-6 animate-fade-in-up">
@@ -398,5 +395,5 @@ export default function ProfileWizard({ resume, resumeId, onDismiss }: ProfileWi
         </div>
       </div>
     </div>
-  );
+  )
 }

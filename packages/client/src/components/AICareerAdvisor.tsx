@@ -1,15 +1,18 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { API_URL } from '@/lib/config';
-import type { Resume } from '@/types/resume';
+import { useState, useRef, useEffect, useCallback } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: number
 }
 
 const QUICK_QUESTIONS = [
@@ -29,14 +32,14 @@ const QUICK_QUESTIONS = [
     label: '커리어 방향',
     question: '현재 경력을 기반으로 가장 유망한 커리어 방향을 추천해주세요.',
   },
-];
+]
 
 function summarizeResume(resume: Resume): string {
-  const skills = resume.skills.map((s) => `${s.category}: ${s.items}`).join('; ');
-  const expYears = resume.experiences.length;
-  const lastExp = resume.experiences[0];
-  const education = resume.educations.map((e) => `${e.school} ${e.degree} ${e.field}`).join(', ');
-  const certs = resume.certifications.map((c) => c.name).join(', ');
+  const skills = resume.skills.map((s) => `${s.category}: ${s.items}`).join('; ')
+  const expYears = resume.experiences.length
+  const lastExp = resume.experiences[0]
+  const education = resume.educations.map((e) => `${e.school} ${e.degree} ${e.field}`).join(', ')
+  const certs = resume.certifications.map((c) => c.name).join(', ')
 
   return [
     `경력: ${expYears}년차`,
@@ -46,62 +49,60 @@ function summarizeResume(resume: Resume): string {
     certs ? `자격증: ${certs}` : null,
   ]
     .filter(Boolean)
-    .join('\n');
+    .join('\n')
 }
 
 function generateLocalResponse(question: string, resume: Resume): string {
-  const skills = resume.skills.flatMap((s) =>
-    s.items.split(',').map((i) => i.trim().toLowerCase()),
-  );
-  const expYears = resume.experiences.length;
-  const certCount = resume.certifications.length;
-  const q = question.toLowerCase();
+  const skills = resume.skills.flatMap((s) => s.items.split(',').map((i) => i.trim().toLowerCase()))
+  const expYears = resume.experiences.length
+  const certCount = resume.certifications.length
+  const q = question.toLowerCase()
 
   if (q.includes('연봉') || q.includes('salary') || q.includes('돈')) {
-    const tips: string[] = [];
-    tips.push(`현재 ${expYears}년차 프로필을 기준으로 분석합니다.`);
+    const tips: string[] = []
+    tips.push(`현재 ${expYears}년차 프로필을 기준으로 분석합니다.`)
     if (skills.length < 5) {
       tips.push(
-        '기술 스택이 다소 부족합니다. 클라우드(AWS, GCP), 컨테이너(Docker, K8s) 등 시장 수요가 높은 기술을 추가하면 연봉 협상에 큰 도움이 됩니다.',
-      );
+        '기술 스택이 다소 부족합니다. 클라우드(AWS, GCP), 컨테이너(Docker, K8s) 등 시장 수요가 높은 기술을 추가하면 연봉 협상에 큰 도움이 됩니다.'
+      )
     } else {
       tips.push(
-        `${skills.length}개의 기술을 보유하고 있어 양호합니다. 이 중 시장 프리미엄이 높은 기술(AI/ML, 클라우드)에 집중하면 연봉 상승에 유리합니다.`,
-      );
+        `${skills.length}개의 기술을 보유하고 있어 양호합니다. 이 중 시장 프리미엄이 높은 기술(AI/ML, 클라우드)에 집중하면 연봉 상승에 유리합니다.`
+      )
     }
     if (certCount === 0) {
       tips.push(
-        '자격증이 없습니다. AWS SAA, CKA 등 업계 인정 자격증은 연봉 협상에서 5-10% 프리미엄을 기대할 수 있습니다.',
-      );
+        '자격증이 없습니다. AWS SAA, CKA 등 업계 인정 자격증은 연봉 협상에서 5-10% 프리미엄을 기대할 수 있습니다.'
+      )
     }
     tips.push(
-      '이직 시에는 현재 연봉의 15-20% 인상을 목표로 하되, 시장 데이터를 기반으로 논리적 근거를 제시하세요.',
-    );
-    return tips.join('\n\n');
+      '이직 시에는 현재 연봉의 15-20% 인상을 목표로 하되, 시장 데이터를 기반으로 논리적 근거를 제시하세요.'
+    )
+    return tips.join('\n\n')
   }
 
   if (q.includes('이직') || q.includes('시기') || q.includes('이동')) {
-    const tips: string[] = [];
+    const tips: string[] = []
     tips.push(
-      '일반적으로 IT 업계에서는 상반기(3-4월)와 하반기(9-10월)가 가장 채용이 활발한 시기입니다.',
-    );
+      '일반적으로 IT 업계에서는 상반기(3-4월)와 하반기(9-10월)가 가장 채용이 활발한 시기입니다.'
+    )
     if (expYears >= 3) {
       tips.push(
-        `${expYears}년차 경력이면 시니어 포지션으로의 이직을 고려할 수 있습니다. 현재 포지션에서의 성과를 정량화하여 이력서에 추가하세요.`,
-      );
+        `${expYears}년차 경력이면 시니어 포지션으로의 이직을 고려할 수 있습니다. 현재 포지션에서의 성과를 정량화하여 이력서에 추가하세요.`
+      )
     } else {
       tips.push(
-        '아직 경력이 짧은 편이므로, 현재 회사에서 핵심 프로젝트 경험을 쌓은 후 이직하는 것이 유리합니다. 최소 2년 이상의 경력을 권장합니다.',
-      );
+        '아직 경력이 짧은 편이므로, 현재 회사에서 핵심 프로젝트 경험을 쌓은 후 이직하는 것이 유리합니다. 최소 2년 이상의 경력을 권장합니다.'
+      )
     }
     tips.push(
-      '이직 전 LinkedIn 프로필과 이력서를 업데이트하고, 포트폴리오를 정리하세요. 기술 면접 준비도 최소 1-2개월 전부터 시작하는 것이 좋습니다.',
-    );
-    return tips.join('\n\n');
+      '이직 전 LinkedIn 프로필과 이력서를 업데이트하고, 포트폴리오를 정리하세요. 기술 면접 준비도 최소 1-2개월 전부터 시작하는 것이 좋습니다.'
+    )
+    return tips.join('\n\n')
   }
 
   if (q.includes('스킬') || q.includes('기술') || q.includes('배우')) {
-    const tips: string[] = [];
+    const tips: string[] = []
     const highDemand = [
       'typescript',
       'kubernetes',
@@ -111,114 +112,117 @@ function generateLocalResponse(question: string, resume: Resume): string {
       'terraform',
       'react',
       'go',
-    ];
-    const missing = highDemand.filter((s) => !skills.includes(s));
+    ]
+    const missing = highDemand.filter((s) => !skills.includes(s))
 
     if (missing.length > 0) {
-      tips.push(`현재 보유하지 않은 수요 높은 기술: ${missing.slice(0, 4).join(', ')}`);
+      tips.push(`현재 보유하지 않은 수요 높은 기술: ${missing.slice(0, 4).join(', ')}`)
       tips.push(
-        `특히 ${missing[0]}은(는) 현재 시장에서 가장 수요가 높은 기술 중 하나입니다. 우선적으로 학습을 추천합니다.`,
-      );
+        `특히 ${missing[0]}은(는) 현재 시장에서 가장 수요가 높은 기술 중 하나입니다. 우선적으로 학습을 추천합니다.`
+      )
     } else {
       tips.push(
-        '주요 수요 기술을 대부분 보유하고 있습니다! 심화 학습이나 관련 자격증 취득을 고려해보세요.',
-      );
+        '주요 수요 기술을 대부분 보유하고 있습니다! 심화 학습이나 관련 자격증 취득을 고려해보세요.'
+      )
     }
     tips.push(
-      '2026년 기준으로 AI/ML 관련 기술(LLM, RAG, MLOps)과 클라우드 네이티브 기술이 가장 빠르게 성장하는 분야입니다.',
-    );
-    return tips.join('\n\n');
+      '2026년 기준으로 AI/ML 관련 기술(LLM, RAG, MLOps)과 클라우드 네이티브 기술이 가장 빠르게 성장하는 분야입니다.'
+    )
+    return tips.join('\n\n')
   }
 
   if (q.includes('커리어') || q.includes('방향') || q.includes('진로') || q.includes('추천')) {
-    const tips: string[] = [];
+    const tips: string[] = []
     if (skills.some((s) => ['react', 'typescript', 'javascript', 'vue'].includes(s))) {
       tips.push(
-        '프론트엔드 기술을 보유하고 있으므로, 시니어 프론트엔드 -> 프론트엔드 리드 -> Engineering Manager 경로를 추천합니다.',
-      );
+        '프론트엔드 기술을 보유하고 있으므로, 시니어 프론트엔드 -> 프론트엔드 리드 -> Engineering Manager 경로를 추천합니다.'
+      )
       tips.push(
-        '풀스택으로의 전환도 좋은 선택입니다. Node.js/NestJS 백엔드와 인프라 경험을 쌓으면 기회가 넓어집니다.',
-      );
+        '풀스택으로의 전환도 좋은 선택입니다. Node.js/NestJS 백엔드와 인프라 경험을 쌓으면 기회가 넓어집니다.'
+      )
     } else if (skills.some((s) => ['python', 'java', 'node.js', 'spring'].includes(s))) {
-      tips.push('백엔드 기술을 기반으로 시니어 백엔드 -> 테크 리드 -> 아키텍트 경로가 적합합니다.');
+      tips.push('백엔드 기술을 기반으로 시니어 백엔드 -> 테크 리드 -> 아키텍트 경로가 적합합니다.')
       tips.push(
-        '데이터 엔지니어링이나 DevOps/SRE 방향으로의 확장도 고려해보세요. 시장 수요와 연봉이 모두 높은 분야입니다.',
-      );
+        '데이터 엔지니어링이나 DevOps/SRE 방향으로의 확장도 고려해보세요. 시장 수요와 연봉이 모두 높은 분야입니다.'
+      )
     } else {
       tips.push(
-        `${expYears}년차 경력을 기반으로, 본인의 강점 분야에 집중하면서 시니어 레벨로의 성장을 목표로 하세요.`,
-      );
+        `${expYears}년차 경력을 기반으로, 본인의 강점 분야에 집중하면서 시니어 레벨로의 성장을 목표로 하세요.`
+      )
     }
     tips.push(
-      '어떤 경로를 선택하든 리더십 경험(팀 리딩, 멘토링, 코드 리뷰)이 다음 단계로의 핵심 역량이 됩니다.',
-    );
-    return tips.join('\n\n');
+      '어떤 경로를 선택하든 리더십 경험(팀 리딩, 멘토링, 코드 리뷰)이 다음 단계로의 핵심 역량이 됩니다.'
+    )
+    return tips.join('\n\n')
   }
 
   // Generic response
-  return `${expYears}년차 프로필을 분석한 결과, ${skills.length}개의 기술 스택${certCount > 0 ? `과 ${certCount}개의 자격증` : ''}을 보유하고 있습니다.\n\n구체적인 질문을 해주시면 더 정확한 조언을 드릴 수 있습니다. 예를 들어 연봉 협상, 이직 시기, 학습 추천, 커리어 방향 등을 물어보세요.`;
+  return `${expYears}년차 프로필을 분석한 결과, ${skills.length}개의 기술 스택${certCount > 0 ? `과 ${certCount}개의 자격증` : ''}을 보유하고 있습니다.\n\n구체적인 질문을 해주시면 더 정확한 조언을 드릴 수 있습니다. 예를 들어 연봉 협상, 이직 시기, 학습 추천, 커리어 방향 등을 물어보세요.`
 }
 
 export default function AICareerAdvisor({ resume }: Props) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+      inputRef.current.focus()
     }
-  }, [isOpen]);
+  }, [isOpen])
 
   const sendMessage = useCallback(
     async (question: string) => {
-      if (!question.trim() || isLoading) return;
+      if (!question.trim() || isLoading) return
 
       const userMsg: ChatMessage = {
         role: 'user',
         content: question.trim(),
         timestamp: Date.now(),
-      };
-      setMessages((prev) => [...prev, userMsg]);
-      setInput('');
-      setIsLoading(true);
+      }
+      setMessages((prev) => [...prev, userMsg])
+      setInput('')
+      setIsLoading(true)
 
       try {
         // Try server-side AI first
-        const resumeSummary = summarizeResume(resume);
-        const res = await fetch(`${API_URL}/api/resumes/${resume.id}/transform/inline-assist`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            text: `[이력서 요약]\n${resumeSummary}\n\n[질문]\n${question}`,
-            type: 'career-advice',
-          }),
-        });
+        const resumeSummary = summarizeResume(resume)
+        const res = await httpClient(
+          `${API_URL}/api/resumes/${resume.id}/transform/inline-assist`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              text: `[이력서 요약]\n${resumeSummary}\n\n[질문]\n${question}`,
+              type: 'career-advice',
+            }),
+          }
+        )
 
         if (res.ok) {
-          const data = await res.json();
+          const data = await res.json()
           const assistantMsg: ChatMessage = {
             role: 'assistant',
             content: data.improved || data.text || generateLocalResponse(question, resume),
             timestamp: Date.now(),
-          };
-          setMessages((prev) => [...prev, assistantMsg]);
+          }
+          setMessages((prev) => [...prev, assistantMsg])
         } else {
           // Fallback to local response
           const assistantMsg: ChatMessage = {
             role: 'assistant',
             content: generateLocalResponse(question, resume),
             timestamp: Date.now(),
-          };
-          setMessages((prev) => [...prev, assistantMsg]);
+          }
+          setMessages((prev) => [...prev, assistantMsg])
         }
       } catch {
         // Fallback to local response on network error
@@ -226,14 +230,14 @@ export default function AICareerAdvisor({ resume }: Props) {
           role: 'assistant',
           content: generateLocalResponse(question, resume),
           timestamp: Date.now(),
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
+        }
+        setMessages((prev) => [...prev, assistantMsg])
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
     },
-    [resume, isLoading],
-  );
+    [resume, isLoading]
+  )
 
   return (
     <>
@@ -398,8 +402,8 @@ export default function AICareerAdvisor({ resume }: Props) {
           <div className="px-3 py-2 border-t border-slate-200 dark:border-slate-700 shrink-0">
             <form
               onSubmit={(e) => {
-                e.preventDefault();
-                sendMessage(input);
+                e.preventDefault()
+                sendMessage(input)
               }}
               className="flex gap-2"
             >
@@ -431,5 +435,5 @@ export default function AICareerAdvisor({ resume }: Props) {
         </div>
       )}
     </>
-  );
+  )
 }

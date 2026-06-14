@@ -1,62 +1,64 @@
-import { useState, useEffect, useRef } from 'react';
-import type { Tag } from '@/types/resume';
-import { fetchTags, addTagToResume, removeTagFromResume, createTag } from '@/lib/api';
+import { useState, useEffect, useRef } from 'react'
+
+import type { Tag } from '@/types/resume'
+
+import { fetchTags, addTagToResume, removeTagFromResume, createTag } from '@/lib/api'
 
 interface Props {
-  resumeId: string;
-  currentTags: Tag[];
-  onUpdate: () => void;
+  resumeId: string
+  currentTags: Tag[]
+  onUpdate: () => void
 }
 
 export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) {
-  const [allTags, setAllTags] = useState<(Tag & { resumeCount: number })[]>([]);
-  const [open, setOpen] = useState(false);
-  const [newTagName, setNewTagName] = useState('');
-  const [creating, setCreating] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [allTags, setAllTags] = useState<(Tag & { resumeCount: number })[]>([])
+  const [open, setOpen] = useState(false)
+  const [newTagName, setNewTagName] = useState('')
+  const [creating, setCreating] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (open)
       fetchTags()
         .then(setAllTags)
-        .catch(() => {});
-  }, [open]);
+        .catch(() => {})
+  }, [open])
 
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
-  const currentIds = new Set(currentTags.map((t) => t.id));
+  const currentIds = new Set(currentTags.map((t) => t.id))
 
   const handleToggle = async (tagId: string) => {
     if (currentIds.has(tagId)) {
-      await removeTagFromResume(tagId, resumeId);
+      await removeTagFromResume(tagId, resumeId)
     } else {
-      await addTagToResume(tagId, resumeId);
+      await addTagToResume(tagId, resumeId)
     }
-    onUpdate();
-  };
+    onUpdate()
+  }
 
   const handleCreateAndAdd = async () => {
-    if (!newTagName.trim()) return;
-    setCreating(true);
+    if (!newTagName.trim()) return
+    setCreating(true)
     try {
-      const tag = await createTag({ name: newTagName.trim() });
-      await addTagToResume(tag.id, resumeId);
-      setNewTagName('');
-      onUpdate();
-      fetchTags().then(setAllTags);
+      const tag = await createTag({ name: newTagName.trim() })
+      await addTagToResume(tag.id, resumeId)
+      setNewTagName('')
+      onUpdate()
+      fetchTags().then(setAllTags)
     } catch {
       // tag might already exist
     } finally {
-      setCreating(false);
+      setCreating(false)
     }
-  };
+  }
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -151,5 +153,5 @@ export default function TagSelector({ resumeId, currentTags, onUpdate }: Props) 
         </div>
       )}
     </div>
-  );
+  )
 }

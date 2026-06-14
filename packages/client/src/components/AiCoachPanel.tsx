@@ -1,29 +1,32 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import FeatureGate from '@/components/FeatureGate';
-import { toast } from '@/components/Toast';
-import { API_URL } from '@/lib/config';
-import type { Resume } from '@/types/resume';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
-type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
+import type { Resume } from '@/types/resume'
 
-type Severity = 'info' | 'warning' | 'critical';
-type Category = 'completeness' | 'keywords' | 'ats' | 'readability';
+import FeatureGate from '@/components/FeatureGate'
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+
+type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>
+
+type Severity = 'info' | 'warning' | 'critical'
+type Category = 'completeness' | 'keywords' | 'ats' | 'readability'
 
 interface CoachTip {
-  id: string;
-  category: Category;
-  severity: Severity;
-  title: string;
-  description: string;
-  fix?: string; // auto-fix value
-  fixAction?: () => void;
+  id: string
+  category: Category
+  severity: Severity
+  title: string
+  description: string
+  fix?: string // auto-fix value
+  fixAction?: () => void
 }
 
 interface SectionScore {
-  section: string;
-  label: string;
-  score: number;
+  section: string
+  label: string
+  score: number
 }
 
 const CATEGORY_META: Record<Category, { label: string; icon: string }> = {
@@ -37,7 +40,7 @@ const CATEGORY_META: Record<Category, { label: string; icon: string }> = {
     label: '가독성',
     icon: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z',
   },
-};
+}
 
 const SEVERITY_STYLES: Record<
   Severity,
@@ -61,16 +64,16 @@ const SEVERITY_STYLES: Record<
     text: 'text-red-700 dark:text-red-300',
     badge: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
   },
-};
+}
 
 function stripHtml(html: string): string {
-  return (html || '').replace(/<[^>]*>/g, '').trim();
+  return (html || '').replace(/<[^>]*>/g, '').trim()
 }
 
 /** Compute local tips without hitting the LLM - fast and free */
 function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
-  const tips: CoachTip[] = [];
-  const pi = data.personalInfo;
+  const tips: CoachTip[] = []
+  const pi = data.personalInfo
 
   // --- Completeness ---
   if (!pi.name) {
@@ -80,7 +83,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'critical',
       title: '이름 미입력',
       description: '이름은 이력서의 필수 항목입니다.',
-    });
+    })
   }
   if (!pi.email) {
     tips.push({
@@ -89,7 +92,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'critical',
       title: '이메일 미입력',
       description: '채용 담당자가 연락할 수 있도록 이메일을 입력하세요.',
-    });
+    })
   }
   if (!pi.phone) {
     tips.push({
@@ -98,7 +101,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'warning',
       title: '전화번호 미입력',
       description: '전화번호를 입력하면 면접 연락을 빠르게 받을 수 있습니다.',
-    });
+    })
   }
   if (!stripHtml(pi.summary)) {
     tips.push({
@@ -107,7 +110,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'warning',
       title: '자기소개 미작성',
       description: '자기소개는 첫인상을 결정합니다. 3~5문장으로 핵심 역량을 요약하세요.',
-    });
+    })
   } else if (stripHtml(pi.summary).length < 50) {
     tips.push({
       id: 'c-summary-short',
@@ -115,7 +118,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'info',
       title: '자기소개가 짧습니다',
       description: '50자 이상으로 작성하면 더 효과적입니다. 핵심 기술과 경력 목표를 포함하세요.',
-    });
+    })
   }
   if (data.experiences.length === 0) {
     tips.push({
@@ -124,7 +127,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'warning',
       title: '경력 미입력',
       description: '경력사항을 추가하면 이력서 완성도가 높아집니다.',
-    });
+    })
   }
   if (data.skills.length === 0) {
     tips.push({
@@ -133,7 +136,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'warning',
       title: '기술 스택 미입력',
       description: 'ATS 시스템이 키워드를 인식하려면 기술을 반드시 입력해야 합니다.',
-    });
+    })
   }
   if (data.educations.length === 0) {
     tips.push({
@@ -142,7 +145,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'info',
       title: '학력 미입력',
       description: '학력 정보를 추가하면 이력서가 더 완성도 있어집니다.',
-    });
+    })
   }
   if (!pi.github && !pi.website) {
     tips.push({
@@ -151,13 +154,13 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'info',
       title: '포트폴리오 링크 없음',
       description: 'GitHub이나 개인 웹사이트를 추가하면 기술력을 어필할 수 있습니다.',
-    });
+    })
   }
 
   // --- Experience-specific tips ---
   if (activeTab === 'experience') {
     data.experiences.forEach((exp, i) => {
-      const desc = stripHtml(exp.description);
+      const desc = stripHtml(exp.description)
       if (desc.length > 0 && desc.length < 50) {
         tips.push({
           id: `exp-short-${i}`,
@@ -166,7 +169,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
           title: `경력 ${i + 1}: 업무 내용이 짧습니다`,
           description:
             '이 경력에 대해 더 자세히 작성해보세요. STAR 기법(상황-과제-행동-결과)으로 작성하면 더 효과적입니다.',
-        });
+        })
       }
       if (!exp.achievements || stripHtml(exp.achievements).length === 0) {
         tips.push({
@@ -176,7 +179,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
           title: `경력 ${i + 1}: 성과 미작성`,
           description:
             '정량적 성과(예: "매출 30% 증가", "응답 시간 50% 단축")를 추가하면 설득력이 높아집니다.',
-        });
+        })
       }
       if (!exp.techStack) {
         tips.push({
@@ -185,7 +188,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
           severity: 'info',
           title: `경력 ${i + 1}: 기술 스택 미입력`,
           description: 'ATS 시스템이 기술 키워드를 스캔합니다. 사용한 기술을 명시하세요.',
-        });
+        })
       }
       if (desc && !/\d/.test(desc)) {
         tips.push({
@@ -194,9 +197,9 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
           severity: 'info',
           title: `경력 ${i + 1}: 숫자가 없습니다`,
           description: '업무 내용에 수치(인원, 기간, 성과)를 추가하면 구체성이 높아집니다.',
-        });
+        })
       }
-    });
+    })
   }
 
   // --- Skills-specific ---
@@ -205,7 +208,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       const items = skill.items
         .split(',')
         .map((s) => s.trim())
-        .filter(Boolean);
+        .filter(Boolean)
       if (items.length === 1) {
         tips.push({
           id: `skill-single-${i}`,
@@ -213,9 +216,9 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
           severity: 'info',
           title: `기술 ${i + 1}: 항목이 1개뿐입니다`,
           description: '관련 기술을 함께 나열하면 역량을 더 잘 보여줄 수 있습니다.',
-        });
+        })
       }
-    });
+    })
   }
 
   // --- ATS tips ---
@@ -223,7 +226,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
     pi.summary,
     ...data.experiences.map((e) => e.description),
     ...data.skills.map((s) => s.items),
-  ].join(' ');
+  ].join(' ')
   if (pi.summary && /<img|<table|<iframe/i.test(pi.summary)) {
     tips.push({
       id: 'ats-html',
@@ -231,7 +234,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'critical',
       title: 'ATS 비호환 콘텐츠',
       description: '이미지나 표는 ATS가 인식하지 못합니다. 텍스트 기반으로 작성하세요.',
-    });
+    })
   }
   if (allText.length > 0 && !/[a-zA-Z]/.test(allText) && data.skills.length > 0) {
     tips.push({
@@ -240,7 +243,7 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'info',
       title: '영문 키워드 부재',
       description: '글로벌 ATS는 영문 기술명을 인식합니다. "리액트" 대신 "React"도 병기하세요.',
-    });
+    })
   }
 
   // --- Readability ---
@@ -251,103 +254,103 @@ function computeLocalTips(data: ResumeData, activeTab: string): CoachTip[] {
       severity: 'info',
       title: '자기소개가 길어요',
       description: '300자 내외가 적당합니다. 핵심만 간결하게 정리하세요.',
-    });
+    })
   }
 
-  return tips;
+  return tips
 }
 
 /** Compute section scores (0-100) purely locally */
 function computeSectionScores(data: ResumeData): SectionScore[] {
-  const scores: SectionScore[] = [];
-  const pi = data.personalInfo;
+  const scores: SectionScore[] = []
+  const pi = data.personalInfo
 
   // Personal
-  let s = 0;
-  if (pi.name) s += 25;
-  if (pi.email) s += 20;
-  if (pi.phone) s += 15;
-  if (stripHtml(pi.summary).length >= 50) s += 25;
-  else if (stripHtml(pi.summary).length > 0) s += 10;
-  if (pi.github || pi.website) s += 15;
-  scores.push({ section: 'personal', label: '인적사항', score: Math.min(s, 100) });
+  let s = 0
+  if (pi.name) s += 25
+  if (pi.email) s += 20
+  if (pi.phone) s += 15
+  if (stripHtml(pi.summary).length >= 50) s += 25
+  else if (stripHtml(pi.summary).length > 0) s += 10
+  if (pi.github || pi.website) s += 15
+  scores.push({ section: 'personal', label: '인적사항', score: Math.min(s, 100) })
 
   // Experience
   if (data.experiences.length > 0) {
     const expScores = data.experiences.map((exp) => {
-      let es = 0;
-      if (exp.company) es += 15;
-      if (exp.position) es += 15;
-      if (exp.startDate) es += 10;
-      if (stripHtml(exp.description).length >= 50) es += 25;
-      else if (stripHtml(exp.description).length > 0) es += 10;
-      if (stripHtml(exp.achievements || '').length > 0) es += 20;
-      if (exp.techStack) es += 15;
-      return Math.min(es, 100);
-    });
+      let es = 0
+      if (exp.company) es += 15
+      if (exp.position) es += 15
+      if (exp.startDate) es += 10
+      if (stripHtml(exp.description).length >= 50) es += 25
+      else if (stripHtml(exp.description).length > 0) es += 10
+      if (stripHtml(exp.achievements || '').length > 0) es += 20
+      if (exp.techStack) es += 15
+      return Math.min(es, 100)
+    })
     scores.push({
       section: 'experience',
       label: '경력',
       score: Math.round(expScores.reduce((a, b) => a + b, 0) / expScores.length),
-    });
+    })
   } else {
-    scores.push({ section: 'experience', label: '경력', score: 0 });
+    scores.push({ section: 'experience', label: '경력', score: 0 })
   }
 
   // Skills
   if (data.skills.length > 0) {
-    const filled = data.skills.filter((s) => s.items.trim().length > 0).length;
+    const filled = data.skills.filter((s) => s.items.trim().length > 0).length
     scores.push({
       section: 'skills',
       label: '기술',
       score: Math.round((filled / data.skills.length) * 100),
-    });
+    })
   } else {
-    scores.push({ section: 'skills', label: '기술', score: 0 });
+    scores.push({ section: 'skills', label: '기술', score: 0 })
   }
 
   // Education
   if (data.educations.length > 0) {
     const eduScores = data.educations.map((edu) => {
-      let es = 0;
-      if (edu.school) es += 30;
-      if (edu.degree) es += 25;
-      if (edu.field) es += 25;
-      if (edu.startDate || edu.endDate) es += 20;
-      return Math.min(es, 100);
-    });
+      let es = 0
+      if (edu.school) es += 30
+      if (edu.degree) es += 25
+      if (edu.field) es += 25
+      if (edu.startDate || edu.endDate) es += 20
+      return Math.min(es, 100)
+    })
     scores.push({
       section: 'education',
       label: '학력',
       score: Math.round(eduScores.reduce((a, b) => a + b, 0) / eduScores.length),
-    });
+    })
   } else {
-    scores.push({ section: 'education', label: '학력', score: 0 });
+    scores.push({ section: 'education', label: '학력', score: 0 })
   }
 
   // Projects
   if (data.projects.length > 0) {
     const projScores = data.projects.map((p) => {
-      let ps = 0;
-      if (p.name) ps += 25;
-      if (p.role) ps += 20;
-      if (stripHtml(p.description).length >= 30) ps += 30;
-      if (p.techStack) ps += 15;
-      if (p.link) ps += 10;
-      return Math.min(ps, 100);
-    });
+      let ps = 0
+      if (p.name) ps += 25
+      if (p.role) ps += 20
+      if (stripHtml(p.description).length >= 30) ps += 30
+      if (p.techStack) ps += 15
+      if (p.link) ps += 10
+      return Math.min(ps, 100)
+    })
     scores.push({
       section: 'projects',
       label: '프로젝트',
       score: Math.round(projScores.reduce((a, b) => a + b, 0) / projScores.length),
-    });
+    })
   }
 
-  return scores;
+  return scores
 }
 
 function ScoreBar({ score }: { score: number }) {
-  const color = score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500';
+  const color = score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500'
   return (
     <div className="flex items-center gap-2">
       <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -360,58 +363,58 @@ function ScoreBar({ score }: { score: number }) {
         {score}
       </span>
     </div>
-  );
+  )
 }
 
 interface Props {
-  resumeId?: string;
-  data: ResumeData;
-  activeTab: string;
-  onApplyFix?: (section: string, field: string, value: string) => void;
+  resumeId?: string
+  data: ResumeData
+  activeTab: string
+  onApplyFix?: (section: string, field: string, value: string) => void
 }
 
 export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
-  const [open, setOpen] = useState(false);
-  const [tips, setTips] = useState<CoachTip[]>([]);
-  const [scores, setScores] = useState<SectionScore[]>([]);
-  const [aiTips, setAiTips] = useState<CoachTip[]>([]);
-  const [loadingAi, setLoadingAi] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [open, setOpen] = useState(false)
+  const [tips, setTips] = useState<CoachTip[]>([])
+  const [scores, setScores] = useState<SectionScore[]>([])
+  const [aiTips, setAiTips] = useState<CoachTip[]>([])
+  const [loadingAi, setLoadingAi] = useState(false)
+  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Recompute local tips on data/tab change (debounced)
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
-      setTips(computeLocalTips(data, activeTab));
-      setScores(computeSectionScores(data));
-    }, 300);
+      setTips(computeLocalTips(data, activeTab))
+      setScores(computeSectionScores(data))
+    }, 300)
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [data, activeTab]);
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [data, activeTab])
 
   const overallScore =
-    scores.length > 0 ? Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length) : 0;
+    scores.length > 0 ? Math.round(scores.reduce((sum, s) => sum + s.score, 0) / scores.length) : 0
 
   const fetchAiCoaching = useCallback(async () => {
     if (!resumeId) {
-      toast('이력서를 먼저 저장해주세요.', 'warning');
-      return;
+      toast('이력서를 먼저 저장해주세요.', 'warning')
+      return
     }
-    setLoadingAi(true);
+    setLoadingAi(true)
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
 
       // Defensive — Resume 의 sub-fields 가 일시적으로 undefined 인 경우(첫 로드,
       // 부분 응답) 에도 throw 되지 않도록 optional chaining + fallback.
-      const pi = data?.personalInfo;
-      const skills = data?.skills ?? [];
-      const experiences = data?.experiences ?? [];
-      const educations = data?.educations ?? [];
-      const projects = data?.projects ?? [];
+      const pi = data?.personalInfo
+      const skills = data?.skills ?? []
+      const experiences = data?.experiences ?? []
+      const educations = data?.educations ?? []
+      const projects = data?.projects ?? []
 
       const prompt = `다음 이력서를 분석하고 JSON 배열로 개선 팁을 제공하세요. 각 팁은 {"category": "completeness"|"keywords"|"ats"|"readability", "severity": "info"|"warning"|"critical", "title": "한줄 제목", "description": "구체적 개선 방법"} 형식입니다. 최대 5개만 반환하세요. JSON 배열만 반환하고 다른 텍스트는 포함하지 마세요.
 
@@ -426,52 +429,52 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
           .substring(0, 200) || '미입력'
       }
 - 학력 수: ${educations.length}개
-- 프로젝트 수: ${projects.length}개`;
+- 프로젝트 수: ${projects.length}개`
 
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ templateType: 'custom', jobDescription: prompt }),
-      });
+      })
       if (!res.ok) {
-        const errText = await res.text().catch(() => '');
-        if (import.meta.env.DEV) console.warn('[AiCoachPanel]', res.status, errText);
-        throw new Error(`AI 분석 실패 (${res.status})`);
+        const errText = await res.text().catch(() => '')
+        if (import.meta.env.DEV) console.warn('[AiCoachPanel]', res.status, errText)
+        throw new Error(`AI 분석 실패 (${res.status})`)
       }
-      const result = await res.json();
-      const text = result.text || '';
+      const result = await res.json()
+      const text = result.text || ''
       // Parse JSON array from response
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      const jsonMatch = text.match(/\[[\s\S]*\]/)
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]) as Array<{
-          category: Category;
-          severity: Severity;
-          title: string;
-          description: string;
-        }>;
-        setAiTips(parsed.map((t, i) => ({ ...t, id: `ai-${i}` })));
+          category: Category
+          severity: Severity
+          title: string
+          description: string
+        }>
+        setAiTips(parsed.map((t, i) => ({ ...t, id: `ai-${i}` })))
       } else if (import.meta.env.DEV) {
-        console.warn('[AiCoachPanel] LLM 응답에 JSON 배열 없음:', text.slice(0, 200));
+        console.warn('[AiCoachPanel] LLM 응답에 JSON 배열 없음:', text.slice(0, 200))
       }
     } catch (err) {
-      if (import.meta.env.DEV) console.warn('[AiCoachPanel] error:', err);
+      if (import.meta.env.DEV) console.warn('[AiCoachPanel] error:', err)
       toast(
         err instanceof Error && err.message.includes('실패')
           ? err.message
           : 'AI 코칭을 불러올 수 없습니다.',
-        'error',
-      );
+        'error'
+      )
     } finally {
-      setLoadingAi(false);
+      setLoadingAi(false)
     }
-  }, [resumeId, data]);
+  }, [resumeId, data])
 
-  const allTips = [...tips, ...aiTips];
+  const allTips = [...tips, ...aiTips]
   const filteredTips =
-    activeCategory === 'all' ? allTips : allTips.filter((t) => t.category === activeCategory);
+    activeCategory === 'all' ? allTips : allTips.filter((t) => t.category === activeCategory)
 
-  const criticalCount = allTips.filter((t) => t.severity === 'critical').length;
-  const warningCount = allTips.filter((t) => t.severity === 'warning').length;
+  const criticalCount = allTips.filter((t) => t.severity === 'critical').length
+  const warningCount = allTips.filter((t) => t.severity === 'warning').length
 
   return (
     <FeatureGate feature="aiCoaching" fallback={null}>
@@ -611,7 +614,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                   전체 ({allTips.length})
                 </button>
                 {(Object.keys(CATEGORY_META) as Category[]).map((cat) => {
-                  const count = allTips.filter((t) => t.category === cat).length;
+                  const count = allTips.filter((t) => t.category === cat).length
                   return (
                     <button
                       key={cat}
@@ -624,7 +627,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                     >
                       {CATEGORY_META[cat].label} ({count})
                     </button>
-                  );
+                  )
                 })}
               </div>
 
@@ -653,8 +656,8 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                   </div>
                 )}
                 {filteredTips.map((tip) => {
-                  const style = SEVERITY_STYLES[tip.severity];
-                  const catMeta = CATEGORY_META[tip.category];
+                  const style = SEVERITY_STYLES[tip.severity]
+                  const catMeta = CATEGORY_META[tip.category]
                   return (
                     <div
                       key={tip.id}
@@ -699,7 +702,7 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
                         </div>
                       </div>
                     </div>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -757,5 +760,5 @@ export default function AiCoachPanel({ resumeId, data, activeTab }: Props) {
         </RadixDialog.Portal>
       </RadixDialog.Root>
     </FeatureGate>
-  );
+  )
 }

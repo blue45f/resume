@@ -1,14 +1,14 @@
-import type { Resume } from '@/types/resume';
+import type { Resume } from '@/types/resume'
 
 export interface JdMatchResult {
   /** 이력서에 이미 있는 키워드 */
-  matched: string[];
+  matched: string[]
   /** JD 에 있지만 이력서엔 없는 키워드 */
-  missing: string[];
+  missing: string[]
   /** 매칭률 0-100 */
-  matchRate: number;
+  matchRate: number
   /** 추출된 총 JD 키워드 수 */
-  totalKeywords: number;
+  totalKeywords: number
 }
 
 /**
@@ -17,34 +17,34 @@ export interface JdMatchResult {
  */
 export function analyzeJdMatch(jdText: string, resume: Resume): JdMatchResult {
   if (!jdText.trim()) {
-    return { matched: [], missing: [], matchRate: 0, totalKeywords: 0 };
+    return { matched: [], missing: [], matchRate: 0, totalKeywords: 0 }
   }
 
-  const jdKeywords = extractKeywords(jdText);
-  const resumeText = collectResumeText(resume).toLowerCase();
+  const jdKeywords = extractKeywords(jdText)
+  const resumeText = collectResumeText(resume).toLowerCase()
 
-  const matched: string[] = [];
-  const missing: string[] = [];
-  const seen = new Set<string>();
+  const matched: string[] = []
+  const missing: string[] = []
+  const seen = new Set<string>()
 
   for (const kw of jdKeywords) {
-    const lower = kw.toLowerCase();
-    if (seen.has(lower)) continue;
-    seen.add(lower);
+    const lower = kw.toLowerCase()
+    if (seen.has(lower)) continue
+    seen.add(lower)
 
-    if (containsKeyword(resumeText, lower)) matched.push(kw);
-    else missing.push(kw);
+    if (containsKeyword(resumeText, lower)) matched.push(kw)
+    else missing.push(kw)
   }
 
-  const total = matched.length + missing.length;
-  const matchRate = total > 0 ? Math.round((matched.length / total) * 100) : 0;
+  const total = matched.length + missing.length
+  const matchRate = total > 0 ? Math.round((matched.length / total) * 100) : 0
 
   return {
     matched: matched.sort((a, b) => a.localeCompare(b)),
     missing: missing.sort((a, b) => a.localeCompare(b)),
     matchRate,
     totalKeywords: total,
-  };
+  }
 }
 
 /**
@@ -255,7 +255,7 @@ const TECH_KEYWORDS = [
   'Monorepo',
   'MVC',
   'MVVM',
-];
+]
 
 /** 한국 직무·도메인 키워드 */
 const KO_DOMAIN_KEYWORDS = [
@@ -302,23 +302,23 @@ const KO_DOMAIN_KEYWORDS = [
   'A/B 테스트',
   '실험',
   '데이터분석',
-];
+]
 
-const ALL_KEYWORDS = [...TECH_KEYWORDS, ...KO_DOMAIN_KEYWORDS];
+const ALL_KEYWORDS = [...TECH_KEYWORDS, ...KO_DOMAIN_KEYWORDS]
 
 function extractKeywords(jdText: string): string[] {
-  const text = jdText;
-  const found = new Set<string>();
+  const text = jdText
+  const found = new Set<string>()
 
   // 화이트리스트 매칭 — 대소문자 무관, 단어 경계
   for (const kw of ALL_KEYWORDS) {
-    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const re = new RegExp(`(?:^|[^A-Za-z0-9가-힣])${escaped}(?:$|[^A-Za-z0-9가-힣])`, 'i');
-    if (re.test(text)) found.add(kw);
+    const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const re = new RegExp(`(?:^|[^A-Za-z0-9가-힣])${escaped}(?:$|[^A-Za-z0-9가-힣])`, 'i')
+    if (re.test(text)) found.add(kw)
   }
 
   // 추가: 대문자로 시작하는 2-20자 Pascal/CamelCase 단어 (Brand/Product 이름 감지)
-  const camelMatches = text.match(/\b[A-Z][A-Za-z0-9]{1,19}\b/g) || [];
+  const camelMatches = text.match(/\b[A-Z][A-Za-z0-9]{1,19}\b/g) || []
   const common = new Set([
     'The',
     'And',
@@ -344,33 +344,33 @@ function extractKeywords(jdText: string): string[] {
     'Description',
     'Company',
     'Business',
-  ]);
+  ])
   for (const m of camelMatches) {
     if (!common.has(m) && m.length >= 3 && m.length <= 20) {
       // 이미 화이트리스트에 대소문자 다르게 있으면 스킵
-      const alreadyIn = Array.from(found).some((f) => f.toLowerCase() === m.toLowerCase());
-      if (!alreadyIn) found.add(m);
+      const alreadyIn = Array.from(found).some((f) => f.toLowerCase() === m.toLowerCase())
+      if (!alreadyIn) found.add(m)
     }
   }
 
-  return Array.from(found);
+  return Array.from(found)
 }
 
 function containsKeyword(haystack: string, keyword: string): boolean {
-  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`(?:^|[^A-Za-z0-9가-힣])${escaped}(?:$|[^A-Za-z0-9가-힣])`, 'i');
-  return re.test(haystack);
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`(?:^|[^A-Za-z0-9가-힣])${escaped}(?:$|[^A-Za-z0-9가-힣])`, 'i')
+  return re.test(haystack)
 }
 
 function collectResumeText(resume: Resume): string {
-  const parts: string[] = [];
-  if (resume.personalInfo.summary) parts.push(resume.personalInfo.summary);
+  const parts: string[] = []
+  if (resume.personalInfo.summary) parts.push(resume.personalInfo.summary)
   for (const e of resume.experiences) {
-    parts.push(e.position || '', e.description || '', e.achievements || '', e.techStack || '');
+    parts.push(e.position || '', e.description || '', e.achievements || '', e.techStack || '')
   }
-  for (const s of resume.skills) parts.push(s.items);
+  for (const s of resume.skills) parts.push(s.items)
   for (const p of resume.projects) {
-    parts.push(p.name || '', p.description || '', p.techStack || '');
+    parts.push(p.name || '', p.description || '', p.techStack || '')
   }
-  return parts.join(' ');
+  return parts.join(' ')
 }

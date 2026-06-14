@@ -1,61 +1,63 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Navigation, Pagination, A11y, Keyboard } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
-import { API_URL } from '@/lib/config';
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Autoplay, Navigation, Pagination, A11y, Keyboard } from 'swiper/modules'
+import { Swiper, SwiperSlide } from 'swiper/react'
+
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Banner {
-  id: string;
-  title: string;
-  subtitle: string;
-  imageUrl: string;
-  linkUrl: string;
-  bgColor: string;
+  id: string
+  title: string
+  subtitle: string
+  imageUrl: string
+  linkUrl: string
+  bgColor: string
 }
 
 export default function BannerSlider() {
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const navigate = useNavigate();
+  const [banners, setBanners] = useState<Banner[]>([])
+  const navigate = useNavigate()
 
   useEffect(() => {
-    fetch(`${API_URL}/api/banners/active`)
+    httpClient(`${API_URL}/api/banners/active`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => setBanners(Array.isArray(data) ? data : []))
       .catch((err) => {
-        console.warn('[BannerSlider] Failed to fetch banners:', err);
-      });
-  }, []);
+        console.warn('[BannerSlider] Failed to fetch banners:', err)
+      })
+  }, [])
 
-  if (!banners.length) return null;
+  if (!banners.length) return null
 
   const getSlideStyle = (banner: Banner): React.CSSProperties => {
     const isCss = (v: string) =>
-      v.startsWith('linear-gradient') || v.startsWith('#') || v.startsWith('rgb');
-    const bg = isCss(banner.bgColor) ? banner.bgColor : 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+      v.startsWith('linear-gradient') || v.startsWith('#') || v.startsWith('rgb')
+    const bg = isCss(banner.bgColor) ? banner.bgColor : 'linear-gradient(135deg, #2563eb, #1d4ed8)'
     const safeUrl =
       banner.imageUrl && /^https?:\/\//.test(banner.imageUrl)
         ? banner.imageUrl.replace(/["\\]/g, '')
-        : '';
+        : ''
     return safeUrl
       ? {
           backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url("${safeUrl}")`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }
-      : { background: bg };
-  };
+      : { background: bg }
+  }
 
   const handleClick = (banner: Banner) => {
-    if (!banner.linkUrl) return;
+    if (!banner.linkUrl) return
     if (banner.linkUrl.startsWith('http')) {
-      window.open(banner.linkUrl, '_blank');
+      window.open(banner.linkUrl, '_blank')
     } else {
-      navigate(banner.linkUrl);
+      navigate(banner.linkUrl)
     }
-  };
+  }
 
   return (
     <div className="relative rounded-2xl mb-8 shadow-lg overflow-hidden banner-swiper-root">
@@ -87,8 +89,8 @@ export default function BannerSlider() {
               tabIndex={banner.linkUrl ? 0 : -1}
               onKeyDown={(e) => {
                 if (banner.linkUrl && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault();
-                  handleClick(banner);
+                  e.preventDefault()
+                  handleClick(banner)
                 }
               }}
             >
@@ -133,5 +135,5 @@ export default function BannerSlider() {
         ))}
       </Swiper>
     </div>
-  );
+  )
 }

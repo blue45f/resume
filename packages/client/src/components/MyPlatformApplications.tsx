@@ -1,19 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { fetchMyJobApplications, withdrawJobApplication } from '@/lib/api';
-import { formatDate } from '@/lib/time';
-import { toast } from '@/components/Toast';
-import { usePrompt } from '@/shared/ui/PromptProvider';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import { toast } from '@/components/Toast'
+import { fetchMyJobApplications, withdrawJobApplication } from '@/lib/api'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { formatDate } from '@/lib/time'
+import { usePrompt } from '@/shared/ui/PromptProvider'
 
 interface PlatformApp {
-  id: string;
-  jobId: string;
-  job: { id: string; position: string; company: string; location: string; status: string };
-  stage: string;
-  resumeId: string | null;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  jobId: string
+  job: { id: string; position: string; company: string; location: string; status: string }
+  stage: string
+  resumeId: string | null
+  createdAt: string
+  updatedAt: string
 }
 
 const STAGE_META: Record<string, { label: string; color: string; icon: string }> = {
@@ -47,29 +48,29 @@ const STAGE_META: Record<string, { label: string; color: string; icon: string }>
     color: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
     icon: '—',
   },
-};
+}
 
 /**
  * 플랫폼 내부 공고에 직접 지원한 application + recruiter 가 설정한 stage 표시.
  * 빈 데이터면 자동 hide. ApplicationsPage 상단에 inline.
  */
 export default function MyPlatformApplications() {
-  const [apps, setApps] = useState<PlatformApp[]>([]);
-  const [loading, setLoading] = useState(true);
-  const prompt = usePrompt();
+  const [apps, setApps] = useState<PlatformApp[]>([])
+  const [loading, setLoading] = useState(true)
+  const prompt = usePrompt()
 
   const refresh = () => {
     fetchMyJobApplications()
       .then((rows) => setApps(rows || []))
-      .catch(() => setApps([]));
-  };
+      .catch(() => setApps([]))
+  }
 
   useEffect(() => {
     fetchMyJobApplications()
       .then((rows) => setApps(rows || []))
       .catch(() => setApps([]))
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => setLoading(false))
+  }, [])
 
   const withdraw = async (a: PlatformApp) => {
     const reason = await prompt({
@@ -77,18 +78,18 @@ export default function MyPlatformApplications() {
       description: `[${a.job.position}] 철회 이유를 알려주시면 다음 매칭에 도움이 됩니다 (선택, 200자).`,
       label: '철회 이유',
       confirmText: '철회',
-    });
-    if (reason === null) return; // 취소
+    })
+    if (reason === null) return // 취소
     try {
-      await withdrawJobApplication(a.id, reason || undefined);
-      toast('지원이 철회되었습니다', 'success');
-      refresh();
+      await withdrawJobApplication(a.id, reason || undefined)
+      toast('지원이 철회되었습니다', 'success')
+      refresh()
     } catch (err) {
-      toast(getErrorMessage(err, '철회에 실패했습니다'), 'error');
+      toast(getErrorMessage(err, '철회에 실패했습니다'), 'error')
     }
-  };
+  }
 
-  if (loading || apps.length === 0) return null;
+  if (loading || apps.length === 0) return null
 
   return (
     <section className="imp-card p-4 mb-5" aria-label="플랫폼 공고 지원 현황">
@@ -106,7 +107,7 @@ export default function MyPlatformApplications() {
       </div>
       <ul className="space-y-2">
         {apps.slice(0, 8).map((a) => {
-          const meta = STAGE_META[a.stage] || STAGE_META.interested;
+          const meta = STAGE_META[a.stage] || STAGE_META.interested
           return (
             <li key={a.id} className="flex items-stretch gap-2">
               <Link
@@ -144,12 +145,12 @@ export default function MyPlatformApplications() {
                 </button>
               )}
             </li>
-          );
+          )
         })}
       </ul>
       {apps.length > 8 && (
         <p className="mt-2 text-[11px] text-slate-500 text-center">+{apps.length - 8}개 더</p>
       )}
     </section>
-  );
+  )
 }

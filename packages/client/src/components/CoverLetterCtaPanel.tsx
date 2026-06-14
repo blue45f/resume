@@ -1,37 +1,39 @@
-import { useMemo } from 'react';
-import { detectCoverLetterCta } from '@/lib/coverLetterCtaDetector';
-import type { CtaStrength } from '@/lib/coverLetterCtaDetector';
+import { useMemo } from 'react'
+
+import type { CtaStrength } from '@/lib/coverLetterCtaDetector'
+
+import { detectCoverLetterCta } from '@/lib/coverLetterCtaDetector'
 
 export default function CoverLetterCtaPanel({ text }: { text: string }) {
-  const report = useMemo(() => detectCoverLetterCta(text), [text]);
+  const report = useMemo(() => detectCoverLetterCta(text), [text])
 
-  if (text.trim().length < 50) return null;
-  if (report.strength === 'strong') return null;
+  if (text.trim().length < 50) return null
+  if (report.strength === 'strong') return null
 
   const STRENGTH_COLOR: Record<CtaStrength, string> = {
     strong: '',
     present: 'border-sky-200 bg-sky-50',
     weak: 'border-amber-200 bg-amber-50',
     absent: 'border-rose-200 bg-rose-50',
-  };
+  }
   const STRENGTH_TEXT: Record<CtaStrength, string> = {
     strong: '',
     present: 'text-sky-800',
     weak: 'text-amber-800',
     absent: 'text-rose-800',
-  };
+  }
   const BADGE_COLOR: Record<CtaStrength, string> = {
     strong: '',
     present: 'bg-sky-100 text-sky-700',
     weak: 'bg-amber-100 text-amber-700',
     absent: 'bg-rose-100 text-rose-700',
-  };
+  }
   const STRENGTH_LABEL: Record<CtaStrength, string> = {
     strong: '강한 CTA',
     present: 'CTA 있음',
     weak: '소극적',
     absent: '없음',
-  };
+  }
 
   return (
     <aside
@@ -69,5 +71,5 @@ export default function CoverLetterCtaPanel({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }

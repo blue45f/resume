@@ -1,55 +1,57 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { API_URL } from '@/lib/config';
-import { ROUTES } from '@/lib/routes';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
 
 interface TrendItem {
-  position: string;
-  company: string;
-  salary: string;
-  skills: string;
+  position: string
+  company: string
+  salary: string
+  skills: string
 }
 
 interface JobTrendResponseItem {
-  position?: string;
-  company?: string;
-  salary?: string;
-  skills?: string;
+  position?: string
+  company?: string
+  salary?: string
+  skills?: string
 }
 
 export default function HiringTrends() {
-  const [jobs, setJobs] = useState<TrendItem[]>([]);
+  const [jobs, setJobs] = useState<TrendItem[]>([])
 
   useEffect(() => {
-    fetch(`${API_URL}/api/jobs?limit=5`)
+    httpClient(`${API_URL}/api/jobs?limit=5`)
       .then((r) => (r.ok ? r.json() : []))
       .then((data: unknown) => {
-        const items = Array.isArray(data) ? (data as JobTrendResponseItem[]) : [];
+        const items = Array.isArray(data) ? (data as JobTrendResponseItem[]) : []
         setJobs(
           items.slice(0, 5).map((j) => ({
             position: j.position ?? '',
             company: j.company ?? '',
             salary: j.salary ?? '',
             skills: j.skills ?? '',
-          })),
-        );
+          }))
+        )
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
-  if (jobs.length === 0) return null;
+  if (jobs.length === 0) return null
 
   // Extract trending skills
-  const skillCounts: Record<string, number> = {};
+  const skillCounts: Record<string, number> = {}
   jobs.forEach((j) => {
     j.skills?.split(',').forEach((s) => {
-      const key = s.trim().toLowerCase();
-      if (key) skillCounts[key] = (skillCounts[key] || 0) + 1;
-    });
-  });
+      const key = s.trim().toLowerCase()
+      if (key) skillCounts[key] = (skillCounts[key] || 0) + 1
+    })
+  })
   const trendingSkills = Object.entries(skillCounts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8);
+    .slice(0, 8)
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-4 no-print">
@@ -99,5 +101,5 @@ export default function HiringTrends() {
         </div>
       </div>
     </div>
-  );
+  )
 }

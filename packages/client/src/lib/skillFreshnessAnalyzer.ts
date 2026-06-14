@@ -7,21 +7,21 @@
  * 관련 타입: SkillFreshnessReport.
  */
 
-export type SkillAge = 'legacy' | 'aging' | 'current';
+export type SkillAge = 'legacy' | 'aging' | 'current'
 
 export interface SkillFreshnessItem {
-  skill: string;
-  age: SkillAge;
-  note: string;
-  modernAlternative?: string;
+  skill: string
+  age: SkillAge
+  note: string
+  modernAlternative?: string
 }
 
 export interface SkillFreshnessReport {
-  legacySkills: SkillFreshnessItem[];
-  agingSkills: SkillFreshnessItem[];
-  legacyCount: number;
-  agingCount: number;
-  suggestion: string;
+  legacySkills: SkillFreshnessItem[]
+  agingSkills: SkillFreshnessItem[]
+  legacyCount: number
+  agingCount: number
+  suggestion: string
 }
 
 // ---------------------------------------------------------------------------
@@ -29,11 +29,11 @@ export interface SkillFreshnessReport {
 // ---------------------------------------------------------------------------
 
 interface LegacyDef {
-  re: RegExp;
-  skill: string;
-  age: SkillAge;
-  note: string;
-  modernAlternative?: string;
+  re: RegExp
+  skill: string
+  age: SkillAge
+  note: string
+  modernAlternative?: string
 }
 
 const LEGACY_SKILLS: LegacyDef[] = [
@@ -159,7 +159,7 @@ const LEGACY_SKILLS: LegacyDef[] = [
     note: 'PHP 5는 EOL. PHP 8.x 사용 권장',
     modernAlternative: 'PHP 8.x, Laravel',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
@@ -169,7 +169,7 @@ const LEGACY_SKILLS: LegacyDef[] = [
  * 이력서 텍스트에서 구식 기술 스택을 감지하고 현대 대안을 제안.
  */
 export function analyzeSkillFreshness(text: string): SkillFreshnessReport {
-  const t = text ?? '';
+  const t = text ?? ''
 
   const hits: SkillFreshnessItem[] = LEGACY_SKILLS.filter(({ re }) => re.test(t)).map(
     ({ skill, age, note, modernAlternative }) => ({
@@ -177,23 +177,23 @@ export function analyzeSkillFreshness(text: string): SkillFreshnessReport {
       age,
       note,
       modernAlternative,
-    }),
-  );
+    })
+  )
 
-  const legacySkills = hits.filter((h) => h.age === 'legacy');
-  const agingSkills = hits.filter((h) => h.age === 'aging');
+  const legacySkills = hits.filter((h) => h.age === 'legacy')
+  const agingSkills = hits.filter((h) => h.age === 'aging')
 
-  let suggestion: string;
+  let suggestion: string
   if (legacySkills.length >= 2) {
-    suggestion = `EOL 기술 ${legacySkills.length}개가 감지되었습니다. 현대 기술로 대체하거나 사용 기간을 명시하세요.`;
+    suggestion = `EOL 기술 ${legacySkills.length}개가 감지되었습니다. 현대 기술로 대체하거나 사용 기간을 명시하세요.`
   } else if (legacySkills.length === 1) {
-    suggestion = `"${legacySkills[0].skill}"은 EOL 기술입니다. 현재도 사용 중이라면 컨텍스트를 명시하세요.`;
+    suggestion = `"${legacySkills[0].skill}"은 EOL 기술입니다. 현재도 사용 중이라면 컨텍스트를 명시하세요.`
   } else if (agingSkills.length >= 2) {
-    suggestion = `사용 빈도가 낮아지는 기술이 ${agingSkills.length}개 있습니다. 현대 대안도 함께 기재하면 좋습니다.`;
+    suggestion = `사용 빈도가 낮아지는 기술이 ${agingSkills.length}개 있습니다. 현대 대안도 함께 기재하면 좋습니다.`
   } else if (agingSkills.length === 1) {
-    suggestion = `"${agingSkills[0].skill}"은 사용 빈도가 낮아지는 추세입니다. 대안 기술도 기재를 고려하세요.`;
+    suggestion = `"${agingSkills[0].skill}"은 사용 빈도가 낮아지는 추세입니다. 대안 기술도 기재를 고려하세요.`
   } else {
-    suggestion = '구식 기술 스택이 감지되지 않았습니다.';
+    suggestion = '구식 기술 스택이 감지되지 않았습니다.'
   }
 
   return {
@@ -202,5 +202,5 @@ export function analyzeSkillFreshness(text: string): SkillFreshnessReport {
     legacyCount: legacySkills.length,
     agingCount: agingSkills.length,
     suggestion,
-  };
+  }
 }

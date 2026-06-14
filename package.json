@@ -7,6 +7,7 @@
     "node": ">=24.16.0",
     "pnpm": ">=11.0.0"
   },
+  "prettier": "@heejun/prettier-config",
   "scripts": {
     "dev": "concurrently -n client,server -c blue,green \"pnpm dev:client\" \"pnpm dev:server\"",
     "dev:client": "cd packages/client && vite",
@@ -47,8 +48,7 @@
     "prisma:reset": "cd packages/server && prisma migrate reset",
     "typecheck": "pnpm prisma:generate && tsc -b --noEmit",
     "prepare": "husky || true",
-    "lint:fsd": "steiger packages/client/src",
-    "validate:architecture": "node scripts/validate-architecture.mjs && pnpm run lint:fsd"
+    "validate:architecture": "node scripts/validate-architecture.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
@@ -95,6 +95,7 @@
     "helmet": "^8.2.0",
     "i18next": "^26.3.1",
     "i18next-browser-languagedetector": "^8.2.1",
+    "ky": "^2.0.2",
     "mammoth": "1.12.0",
     "multer": "^2.1.1",
     "nestjs-zod": "^5.4.0",
@@ -120,7 +121,8 @@
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
     "@eslint/js": "^10.0.1",
-    "@feature-sliced/steiger-plugin": "^0.5.8",
+    "@heejun/eslint-config": "^5.0.0",
+    "@heejun/prettier-config": "^3.0.0",
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.1.0",
     "@nestjs/testing": "^11.1.24",
@@ -144,6 +146,7 @@
     "@vitest/ui": "^4.1.8",
     "concurrently": "^10.0.1",
     "eslint": "^10.4.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-react-compiler": "19.1.0-rc.2",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
@@ -155,7 +158,6 @@
     "msw": "^2.14.6",
     "prettier": "^3.8.3",
     "prisma": "^7.8.0",
-    "steiger": "^0.5.12",
     "supertest": "^7.2.2",
     "tailwindcss": "^4.3.0",
     "ts-jest": "^29.4.11",
@@ -173,7 +175,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --max-warnings=0 --fix",
+      "eslint --max-warnings=0 --no-warn-ignored --fix",
       "prettier --write"
     ],
     "*.{json,md,css}": [

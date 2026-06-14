@@ -1,19 +1,21 @@
-import { useState, memo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { getUser } from '@/lib/auth';
-import { API_URL } from '@/lib/config';
-import { toast } from '@/components/Toast';
-import Dialog from '@/shared/ui/Dialog';
-import { messageSchema, type MessageFormValues } from '@/shared/lib/schemas';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, memo } from 'react'
+import { useForm } from 'react-hook-form'
+
+import { toast } from '@/components/Toast'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { messageSchema, type MessageFormValues } from '@/shared/lib/schemas'
+import Dialog from '@/shared/ui/Dialog'
 
 interface Props {
-  targetUserId?: string;
-  targetUserName?: string;
-  userId?: string;
-  userName?: string;
-  variant?: 'icon' | 'button' | 'mini';
-  className?: string;
+  targetUserId?: string
+  targetUserName?: string
+  userId?: string
+  userName?: string
+  variant?: 'icon' | 'button' | 'mini'
+  className?: string
 }
 
 export default memo(function SendMessageButton({
@@ -24,11 +26,11 @@ export default memo(function SendMessageButton({
   variant = 'icon',
   className = '',
 }: Props) {
-  const me = getUser();
-  const [open, setOpen] = useState(false);
+  const me = getUser()
+  const [open, setOpen] = useState(false)
 
-  const recipientId = targetUserId || userId || '';
-  const recipientName = targetUserName || userName || '사용자';
+  const recipientId = targetUserId || userId || ''
+  const recipientName = targetUserName || userName || '사용자'
 
   const {
     register,
@@ -39,41 +41,41 @@ export default memo(function SendMessageButton({
   } = useForm<MessageFormValues>({
     resolver: zodResolver(messageSchema),
     defaultValues: { content: '' },
-  });
+  })
 
-  const text = watch('content') ?? '';
+  const text = watch('content') ?? ''
 
-  if (!me || !recipientId || me.id === recipientId) return null;
+  if (!me || !recipientId || me.id === recipientId) return null
 
   const onSubmit = async (data: MessageFormValues) => {
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/social/messages/${recipientId}`, {
+      const token = localStorage.getItem('token')
+      const res = await httpClient(`${API_URL}/api/social/messages/${recipientId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ content: data.content.trim() }),
-      });
+      })
       if (res.ok) {
-        toast(`${recipientName}에게 쪽지를 보냈습니다`, 'success');
-        reset();
-        setOpen(false);
+        toast(`${recipientName}에게 쪽지를 보냈습니다`, 'success')
+        reset()
+        setOpen(false)
       } else {
-        const body = await res.json().catch(() => ({}));
-        toast(body.message || '전송에 실패했습니다', 'error');
+        const body = await res.json().catch(() => ({}))
+        toast(body.message || '전송에 실패했습니다', 'error')
       }
     } catch {
-      toast('전송에 실패했습니다', 'error');
+      toast('전송에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setOpen(true);
-  };
+    e.stopPropagation()
+    e.preventDefault()
+    setOpen(true)
+  }
 
   const dialog = (
     <Dialog
@@ -87,8 +89,8 @@ export default memo(function SendMessageButton({
           {...register('content')}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && text.trim()) {
-              e.preventDefault();
-              handleSubmit(onSubmit)();
+              e.preventDefault()
+              handleSubmit(onSubmit)()
             }
           }}
           placeholder="메시지를 입력하세요..."
@@ -110,7 +112,7 @@ export default memo(function SendMessageButton({
         </div>
       </form>
     </Dialog>
-  );
+  )
 
   if (variant === 'mini') {
     return (
@@ -132,7 +134,7 @@ export default memo(function SendMessageButton({
         </button>
         {dialog}
       </>
-    );
+    )
   }
 
   if (variant === 'button') {
@@ -155,7 +157,7 @@ export default memo(function SendMessageButton({
         </button>
         {dialog}
       </>
-    );
+    )
   }
 
   return (
@@ -177,5 +179,5 @@ export default memo(function SendMessageButton({
       </button>
       {dialog}
     </>
-  );
-});
+  )
+})

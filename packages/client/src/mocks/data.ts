@@ -1,7 +1,7 @@
-import type { Resume, Template, Tag } from '@/types/resume';
+import type { Resume, Template, Tag } from '@/types/resume'
 
 function id() {
-  return crypto.randomUUID();
+  return crypto.randomUUID()
 }
 
 export const db = {
@@ -138,11 +138,11 @@ export const db = {
   ] as (Template & { createdAt: string; updatedAt: string })[],
 
   versions: [] as {
-    id: string;
-    resumeId: string;
-    versionNumber: number;
-    description: string;
-    createdAt: string;
-    snapshot: string;
+    id: string
+    resumeId: string
+    versionNumber: number
+    description: string
+    createdAt: string
+    snapshot: string
   }[],
-};
+}

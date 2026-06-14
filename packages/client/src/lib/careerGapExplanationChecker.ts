@@ -10,15 +10,15 @@ export type GapExplanationType =
   | 'side_project' // 사이드 프로젝트/오픈소스
   | 'startup' // 창업 준비
   | 'job_search' // 구직 활동
-  | 'explained_other'; // 기타 설명
+  | 'explained_other' // 기타 설명
 
 export interface GapExplanationReport {
-  hasUnexplainedGap: boolean;
-  explanationTypes: GapExplanationType[];
-  unexplainedCount: number;
-  totalGapSignals: number;
-  suggestion: string;
-  tips: string[];
+  hasUnexplainedGap: boolean
+  explanationTypes: GapExplanationType[]
+  unexplainedCount: number
+  totalGapSignals: number
+  suggestion: string
+  tips: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -63,7 +63,7 @@ const EXPLANATION_PATTERNS: Array<{ re: RegExp; type: GapExplanationType }> = [
   // Generic explanation (better than nothing)
   { re: /공백\s*기간\s*(?:동안|에)/, type: 'explained_other' },
   { re: /(?:자기\s*계발|역량\s*강화)\s*(?:집중|전념)/, type: 'explained_other' },
-];
+]
 
 // Check if there's at least one "gap period" mention in the text at all
 const GAP_PERIOD_MARKERS: RegExp[] = [
@@ -71,56 +71,54 @@ const GAP_PERIOD_MARKERS: RegExp[] = [
   /공백\s*기간\s*\d+/,
   /경력\s*(?:단절|공백)/,
   /\d{4}[.\-년]\s*\d{1,2}[.\-월]?\s*[~\-~]\s*\d{4}[.\-년]/,
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function checkCareerGapExplanations(text: string): GapExplanationReport {
-  const t = text ?? '';
-  const foundTypes = new Set<GapExplanationType>();
+  const t = text ?? ''
+  const foundTypes = new Set<GapExplanationType>()
 
   for (const { re, type } of EXPLANATION_PATTERNS) {
-    if (re.test(t)) foundTypes.add(type);
+    if (re.test(t)) foundTypes.add(type)
   }
 
-  const explanationTypes = Array.from(foundTypes);
-  const totalGapSignals = explanationTypes.length;
+  const explanationTypes = Array.from(foundTypes)
+  const totalGapSignals = explanationTypes.length
 
   // Check if there's a date gap pattern at all (suggests gap might exist)
-  const hasDatePattern = GAP_PERIOD_MARKERS.some((re) => re.test(t));
+  const hasDatePattern = GAP_PERIOD_MARKERS.some((re) => re.test(t))
 
   // Heuristic for unexplained gap count:
   // If text has date patterns suggesting career history but no explanation types,
   // infer potential unexplained gaps.
-  const hasUnexplainedGap = hasDatePattern && totalGapSignals === 0;
-  const unexplainedCount = hasUnexplainedGap ? 1 : 0;
+  const hasUnexplainedGap = hasDatePattern && totalGapSignals === 0
+  const unexplainedCount = hasUnexplainedGap ? 1 : 0
 
-  let suggestion: string;
-  const tips: string[] = [];
+  let suggestion: string
+  const tips: string[] = []
 
   if (totalGapSignals === 0 && !hasDatePattern) {
-    suggestion = '이력서에서 공백 기간 패턴을 감지하지 못했습니다.';
+    suggestion = '이력서에서 공백 기간 패턴을 감지하지 못했습니다.'
   } else if (totalGapSignals === 0) {
-    suggestion = '공백 기간에 대한 설명이 없습니다. 이력서 또는 면접 답변으로 준비가 필요합니다.';
-    tips.push('군복무, 어학연수, 육아휴직 등 정당한 이유는 이력서에 명시하세요.');
+    suggestion = '공백 기간에 대한 설명이 없습니다. 이력서 또는 면접 답변으로 준비가 필요합니다.'
+    tips.push('군복무, 어학연수, 육아휴직 등 정당한 이유는 이력서에 명시하세요.')
     tips.push(
-      '공백 기간을 자기계발(자격증, 오픈소스, 사이드 프로젝트)로 활용했다면 반드시 기재하세요.',
-    );
+      '공백 기간을 자기계발(자격증, 오픈소스, 사이드 프로젝트)로 활용했다면 반드시 기재하세요.'
+    )
     tips.push(
-      '이력서에 쓰지 않더라도 면접에서 "공백 기간에 무엇을 했나요?"에 대한 답변을 미리 준비하세요.',
-    );
+      '이력서에 쓰지 않더라도 면접에서 "공백 기간에 무엇을 했나요?"에 대한 답변을 미리 준비하세요.'
+    )
   } else if (foundTypes.has('military')) {
-    suggestion = '군복무가 명시되어 있습니다. 공백 이유가 자연스럽게 설명됩니다.';
-    tips.push(
-      '군복무 기간 중 습득한 기술(리더십, 유지보수 경험 등)을 간략히 추가하면 더 좋습니다.',
-    );
+    suggestion = '군복무가 명시되어 있습니다. 공백 이유가 자연스럽게 설명됩니다.'
+    tips.push('군복무 기간 중 습득한 기술(리더십, 유지보수 경험 등)을 간략히 추가하면 더 좋습니다.')
   } else if (foundTypes.has('study')) {
-    suggestion = '학습/연수 기간이 명시되어 있습니다. 공백 활용이 잘 드러납니다.';
-    tips.push('어학 연수 결과(OPIc, TOEIC 점수 상승)나 취득한 자격증을 함께 명시하세요.');
+    suggestion = '학습/연수 기간이 명시되어 있습니다. 공백 활용이 잘 드러납니다.'
+    tips.push('어학 연수 결과(OPIc, TOEIC 점수 상승)나 취득한 자격증을 함께 명시하세요.')
   } else {
-    suggestion = `${totalGapSignals}개의 공백 설명이 감지됩니다. 잘 정리되어 있습니다.`;
+    suggestion = `${totalGapSignals}개의 공백 설명이 감지됩니다. 잘 정리되어 있습니다.`
   }
 
   return {
@@ -130,5 +128,5 @@ export function checkCareerGapExplanations(text: string): GapExplanationReport {
     totalGapSignals,
     suggestion,
     tips,
-  };
+  }
 }

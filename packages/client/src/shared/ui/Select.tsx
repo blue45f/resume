@@ -12,8 +12,9 @@
  *     ]}
  *   />
  */
-import * as RadixSelect from '@radix-ui/react-select';
-import type { ReactNode } from 'react';
+import * as RadixSelect from '@radix-ui/react-select'
+
+import type { ReactNode } from 'react'
 
 function ChevronDown({ size = 16, strokeWidth = 2 }: { size?: number; strokeWidth?: number }) {
   return (
@@ -30,7 +31,7 @@ function ChevronDown({ size = 16, strokeWidth = 2 }: { size?: number; strokeWidt
     >
       <polyline points="6 9 12 15 18 9" />
     </svg>
-  );
+  )
 }
 
 function Check({ size = 14, strokeWidth = 2.5 }: { size?: number; strokeWidth?: number }) {
@@ -48,23 +49,23 @@ function Check({ size = 14, strokeWidth = 2.5 }: { size?: number; strokeWidth?: 
     >
       <polyline points="20 6 9 17 4 12" />
     </svg>
-  );
+  )
 }
 
 export interface SelectOption {
-  value: string;
-  label: string;
-  icon?: ReactNode;
+  value: string
+  label: string
+  icon?: ReactNode
 }
 
 interface SelectProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: SelectOption[];
-  placeholder?: string;
-  disabled?: boolean;
-  className?: string;
-  ariaLabel?: string;
+  value: string
+  onChange: (value: string) => void
+  options: SelectOption[]
+  placeholder?: string
+  disabled?: boolean
+  className?: string
+  ariaLabel?: string
 }
 
 export default function Select({
@@ -76,7 +77,7 @@ export default function Select({
   className = '',
   ariaLabel,
 }: SelectProps) {
-  const selected = options.find((o) => o.value === value);
+  const selected = options.find((o) => o.value === value)
 
   return (
     <RadixSelect.Root value={value} onValueChange={onChange} disabled={disabled}>
@@ -155,5 +156,5 @@ export default function Select({
         </RadixSelect.Content>
       </RadixSelect.Portal>
     </RadixSelect.Root>
-  );
+  )
 }

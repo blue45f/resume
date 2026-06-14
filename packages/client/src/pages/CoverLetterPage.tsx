@@ -1,53 +1,54 @@
-import { useDeferredValue, useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import FeatureGate from '@/components/FeatureGate';
-import JobUrlInput from '@/components/JobUrlInput';
-import { toast } from '@/components/Toast';
-import type { ResumeSummary } from '@/types/resume';
-import { API_URL } from '@/lib/config';
-import { RelatedJobsWidget } from '@/features/interview-prep';
-import { tx } from '@/lib/i18n';
-import { formatDate } from '@/lib/time';
-import { useResumes } from '@/hooks/useResources';
-import KoreanQualityBadge from '@/components/KoreanQualityBadge';
-import KeywordCloud from '@/components/KeywordCloud';
-import InterviewQuestionsPanel from '@/components/InterviewQuestionsPanel';
-import SectionInsightsPanel from '@/components/SectionInsightsPanel';
-import OverallHealthGauge from '@/components/OverallHealthGauge';
-import QuotableHighlights from '@/components/QuotableHighlights';
-import CareerGapPanel from '@/components/CareerGapPanel';
-import CoverLetterClichePanel from '@/components/CoverLetterClichePanel';
-import CoverLetterStructurePanel from '@/components/CoverLetterStructurePanel';
-import CoverLetterTonePanel from '@/components/CoverLetterTonePanel';
-import CoverLetterReadabilityPanel from '@/components/CoverLetterReadabilityPanel';
-import CoverLetterJdAlignmentPanel from '@/components/CoverLetterJdAlignmentPanel';
-import CoverLetterInformalPanel from '@/components/CoverLetterInformalPanel';
-import CoverLetterParagraphPanel from '@/components/CoverLetterParagraphPanel';
-import CoverLetterConfidencePanel from '@/components/CoverLetterConfidencePanel';
-import CoverLetterOpeningPanel from '@/components/CoverLetterOpeningPanel';
-import CoverLetterMotivationPanel from '@/components/CoverLetterMotivationPanel';
-import CoverLetterAspirationPanel from '@/components/CoverLetterAspirationPanel';
-import CoverLetterEndingMonotonyPanel from '@/components/CoverLetterEndingMonotonyPanel';
-import CoverLetterCompanyKnowledgePanel from '@/components/CoverLetterCompanyKnowledgePanel';
-import CoverLetterOpeningHookPanel from '@/components/CoverLetterOpeningHookPanel';
-import CoverLetterStarPatternPanel from '@/components/CoverLetterStarPatternPanel';
-import CoverLetterLengthBalancePanel from '@/components/CoverLetterLengthBalancePanel';
-import CoverLetterFirstPersonPanel from '@/components/CoverLetterFirstPersonPanel';
-import CoverLetterCtaPanel from '@/components/CoverLetterCtaPanel';
-import CoverLetterNegativeFramingPanel from '@/components/CoverLetterNegativeFramingPanel';
-import CoverLetterCoveragePanel from '@/components/CoverLetterCoveragePanel';
-import CoverLetterFlowStrip from '@/components/CoverLetterFlowStrip';
-import CoverLetterScoreRing from '@/components/CoverLetterScoreRing';
-import CoverLetterJdResonancePanel from '@/components/CoverLetterJdResonancePanel';
-import CoverLetterImprovementPlanPanel from '@/components/CoverLetterImprovementPlanPanel';
-import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
-import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useDeferredValue, useState, useEffect, useCallback } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { useSearchParams } from 'react-router-dom'
+import { z } from 'zod'
+
+import type { ResumeSummary } from '@/types/resume'
+
+import CareerGapPanel from '@/components/CareerGapPanel'
+import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection'
+import CoverLetterAspirationPanel from '@/components/CoverLetterAspirationPanel'
+import CoverLetterClichePanel from '@/components/CoverLetterClichePanel'
+import CoverLetterCompanyKnowledgePanel from '@/components/CoverLetterCompanyKnowledgePanel'
+import CoverLetterConfidencePanel from '@/components/CoverLetterConfidencePanel'
+import CoverLetterCoveragePanel from '@/components/CoverLetterCoveragePanel'
+import CoverLetterCtaPanel from '@/components/CoverLetterCtaPanel'
+import CoverLetterEndingMonotonyPanel from '@/components/CoverLetterEndingMonotonyPanel'
+import CoverLetterFirstPersonPanel from '@/components/CoverLetterFirstPersonPanel'
+import CoverLetterFlowStrip from '@/components/CoverLetterFlowStrip'
+import CoverLetterImprovementPlanPanel from '@/components/CoverLetterImprovementPlanPanel'
+import CoverLetterInformalPanel from '@/components/CoverLetterInformalPanel'
+import CoverLetterJdAlignmentPanel from '@/components/CoverLetterJdAlignmentPanel'
+import CoverLetterJdResonancePanel from '@/components/CoverLetterJdResonancePanel'
+import CoverLetterLengthBalancePanel from '@/components/CoverLetterLengthBalancePanel'
+import CoverLetterMotivationPanel from '@/components/CoverLetterMotivationPanel'
+import CoverLetterNegativeFramingPanel from '@/components/CoverLetterNegativeFramingPanel'
+import CoverLetterOpeningHookPanel from '@/components/CoverLetterOpeningHookPanel'
+import CoverLetterOpeningPanel from '@/components/CoverLetterOpeningPanel'
+import CoverLetterParagraphPanel from '@/components/CoverLetterParagraphPanel'
+import CoverLetterReadabilityPanel from '@/components/CoverLetterReadabilityPanel'
+import CoverLetterScoreRing from '@/components/CoverLetterScoreRing'
+import CoverLetterStarPatternPanel from '@/components/CoverLetterStarPatternPanel'
+import CoverLetterStructurePanel from '@/components/CoverLetterStructurePanel'
+import CoverLetterTonePanel from '@/components/CoverLetterTonePanel'
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner'
+import FeatureGate from '@/components/FeatureGate'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import InterviewQuestionsPanel from '@/components/InterviewQuestionsPanel'
+import JobUrlInput from '@/components/JobUrlInput'
+import KeywordCloud from '@/components/KeywordCloud'
+import KoreanQualityBadge from '@/components/KoreanQualityBadge'
+import OverallHealthGauge from '@/components/OverallHealthGauge'
+import QuotableHighlights from '@/components/QuotableHighlights'
+import SectionInsightsPanel from '@/components/SectionInsightsPanel'
+import { toast } from '@/components/Toast'
+import { RelatedJobsWidget } from '@/domains/interview/interview-prep'
+import { useResumes } from '@/hooks/useResources'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { tx } from '@/lib/i18n'
 import {
   computeJDMatch,
   detectSkillMentions,
@@ -57,9 +58,11 @@ import {
   generateResumeTldr,
   detectUnquantifiedClaims,
   scoreInterviewability,
-} from '@/lib/koreanChecker';
+} from '@/lib/koreanChecker'
+import { httpClient } from '@/lib/ky'
+import { formatDate } from '@/lib/time'
 
-type PageMode = 'generate' | 'feedback';
+type PageMode = 'generate' | 'feedback'
 
 const generateSchema = z.object({
   company: z
@@ -74,9 +77,9 @@ const generateSchema = z.object({
     .string()
     .min(10, '채용 공고는 최소 10자 이상이어야 합니다')
     .max(10000, '채용 공고는 최대 10,000자까지 입력 가능합니다'),
-});
+})
 
-type GenerateFormValues = z.infer<typeof generateSchema>;
+type GenerateFormValues = z.infer<typeof generateSchema>
 
 const feedbackSchema = z.object({
   content: z
@@ -88,21 +91,21 @@ const feedbackSchema = z.object({
     .max(3000, '채용 공고는 최대 3,000자까지 입력 가능합니다')
     .optional()
     .or(z.literal('')),
-});
+})
 
-type FeedbackFormValues = z.infer<typeof feedbackSchema>;
+type FeedbackFormValues = z.infer<typeof feedbackSchema>
 
 const TONES = [
   { value: 'formal' as const, label: '격식체', desc: '공식적·전문적' },
   { value: 'friendly' as const, label: '친근체', desc: '따뜻·열정적' },
   { value: 'confident' as const, label: '자신감체', desc: '당당·확신' },
-];
+]
 
 const TONE_KOREAN: Record<(typeof TONES)[number]['value'], string> = {
   formal: '격식체',
   friendly: '친근체',
   confident: '자신감체',
-};
+}
 
 const SECTIONS = [
   {
@@ -130,19 +133,19 @@ const SECTIONS = [
     label: '직무 관련 경험',
     placeholder: '직무와 관련된 경험·프로젝트·성과를 서술해 주세요.',
   },
-];
+]
 
 interface FeedbackResult {
-  totalScore: number;
-  categories: { label: string; score: number; max: number; comment: string }[];
-  keywords: { found: string[]; missing: string[] };
-  suggestions: string[];
-  strengths: string[];
-  charCount: number;
+  totalScore: number
+  categories: { label: string; score: number; max: number; comment: string }[]
+  keywords: { found: string[]; missing: string[] }
+  suggestions: string[]
+  strengths: string[]
+  charCount: number
 }
 
 function analyzeCoverLetter(text: string, jobDesc: string): FeedbackResult {
-  const charCount = text.replace(/\s/g, '').length;
+  const charCount = text.replace(/\s/g, '').length
 
   // Length score (권장: 800~1500자)
   const lengthScore =
@@ -154,7 +157,7 @@ function analyzeCoverLetter(text: string, jobDesc: string): FeedbackResult {
           ? 16
           : charCount < 200
             ? 4
-            : 10;
+            : 10
 
   // Keyword matching
   const jdWords = jobDesc
@@ -181,51 +184,50 @@ function analyzeCoverLetter(text: string, jobDesc: string): FeedbackResult {
           '있는',
           '하여',
           '에서',
-        ].includes(w),
-    );
+        ].includes(w)
+    )
 
-  const uniqueJdWords = [...new Set(jdWords)].slice(0, 30);
-  const textLower = text.toLowerCase();
-  const foundKeywords = uniqueJdWords.filter((w) => textLower.includes(w)).slice(0, 15);
-  const missingKeywords = uniqueJdWords.filter((w) => !textLower.includes(w)).slice(0, 8);
-  const keywordScore = Math.round((foundKeywords.length / Math.max(uniqueJdWords.length, 1)) * 25);
+  const uniqueJdWords = [...new Set(jdWords)].slice(0, 30)
+  const textLower = text.toLowerCase()
+  const foundKeywords = uniqueJdWords.filter((w) => textLower.includes(w)).slice(0, 15)
+  const missingKeywords = uniqueJdWords.filter((w) => !textLower.includes(w)).slice(0, 8)
+  const keywordScore = Math.round((foundKeywords.length / Math.max(uniqueJdWords.length, 1)) * 25)
 
   // Structure score (check for key elements)
-  const hasSpecific = /\d+|%|배|증가|달성|성과|결과/.test(text);
-  const hasParagraphs = text.split('\n').filter((l) => l.trim().length > 20).length >= 3;
-  const hasFirstPerson = /저는|제가|나는|내가|저의/.test(text);
-  const structScore = (hasSpecific ? 10 : 0) + (hasParagraphs ? 7 : 0) + (hasFirstPerson ? 3 : 0);
+  const hasSpecific = /\d+|%|배|증가|달성|성과|결과/.test(text)
+  const hasParagraphs = text.split('\n').filter((l) => l.trim().length > 20).length >= 3
+  const hasFirstPerson = /저는|제가|나는|내가|저의/.test(text)
+  const structScore = (hasSpecific ? 10 : 0) + (hasParagraphs ? 7 : 0) + (hasFirstPerson ? 3 : 0)
 
   // Tone/professionalism
-  const hasSlang = /ㅎㅎ|ㅋㅋ|ㅠㅠ|ㄷㄷ|!!|~~/.test(text);
-  const toneScore = hasSlang ? 10 : 20;
+  const hasSlang = /ㅎㅎ|ㅋㅋ|ㅠㅠ|ㄷㄷ|!!|~~/.test(text)
+  const toneScore = hasSlang ? 10 : 20
 
-  const totalScore = Math.min(100, lengthScore + keywordScore + structScore + toneScore);
+  const totalScore = Math.min(100, lengthScore + keywordScore + structScore + toneScore)
 
   // Suggestions
-  const suggestions: string[] = [];
-  if (charCount < 800)
-    suggestions.push('자기소개서가 너무 짧습니다. 800자 이상 작성을 권장합니다.');
+  const suggestions: string[] = []
+  if (charCount < 800) suggestions.push('자기소개서가 너무 짧습니다. 800자 이상 작성을 권장합니다.')
   if (charCount > 2000)
-    suggestions.push('일부 회사는 글자 수 제한이 있습니다. 핵심만 담아 간결하게 줄이세요.');
+    suggestions.push('일부 회사는 글자 수 제한이 있습니다. 핵심만 담아 간결하게 줄이세요.')
   if (!hasSpecific)
-    suggestions.push('구체적인 수치(%, 배수, 기간 등)를 사용하면 신뢰도가 높아집니다.');
-  if (!hasParagraphs) suggestions.push('내용을 여러 문단으로 나눠 가독성을 높이세요.');
-  if (hasSlang) suggestions.push('비공식적 표현(ㅎㅎ, !! 등)은 공식 서류에 적합하지 않습니다.');
+    suggestions.push('구체적인 수치(%, 배수, 기간 등)를 사용하면 신뢰도가 높아집니다.')
+  if (!hasParagraphs) suggestions.push('내용을 여러 문단으로 나눠 가독성을 높이세요.')
+  if (hasSlang) suggestions.push('비공식적 표현(ㅎㅎ, !! 등)은 공식 서류에 적합하지 않습니다.')
   if (missingKeywords.length > 5)
     suggestions.push(
-      `채용 공고의 주요 키워드가 빠져 있습니다: ${missingKeywords.slice(0, 4).join(', ')} 등`,
-    );
+      `채용 공고의 주요 키워드가 빠져 있습니다: ${missingKeywords.slice(0, 4).join(', ')} 등`
+    )
   if (keywordScore < 10)
-    suggestions.push('채용 공고의 직무 요건과 더 직접적으로 연결된 내용을 추가하세요.');
+    suggestions.push('채용 공고의 직무 요건과 더 직접적으로 연결된 내용을 추가하세요.')
 
   // Strengths
-  const strengths: string[] = [];
-  if (lengthScore >= 16) strengths.push('적절한 분량을 유지하고 있습니다.');
-  if (hasSpecific) strengths.push('구체적인 수치와 성과를 포함하고 있습니다.');
-  if (keywordScore >= 15) strengths.push('채용 공고의 핵심 키워드를 잘 반영하고 있습니다.');
-  if (!hasSlang) strengths.push('전문적이고 격식 있는 어투를 사용하고 있습니다.');
-  if (hasParagraphs) strengths.push('내용이 구조적으로 잘 정리되어 있습니다.');
+  const strengths: string[] = []
+  if (lengthScore >= 16) strengths.push('적절한 분량을 유지하고 있습니다.')
+  if (hasSpecific) strengths.push('구체적인 수치와 성과를 포함하고 있습니다.')
+  if (keywordScore >= 15) strengths.push('채용 공고의 핵심 키워드를 잘 반영하고 있습니다.')
+  if (!hasSlang) strengths.push('전문적이고 격식 있는 어투를 사용하고 있습니다.')
+  if (hasParagraphs) strengths.push('내용이 구조적으로 잘 정리되어 있습니다.')
 
   return {
     totalScore,
@@ -260,15 +262,15 @@ function analyzeCoverLetter(text: string, jobDesc: string): FeedbackResult {
     suggestions,
     strengths,
     charCount,
-  };
+  }
 }
 
 function ScoreMeter({ score }: { score: number }) {
   const color =
-    score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : score >= 40 ? '#f59e0b' : '#ef4444';
-  const r = 45;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (score / 100) * circ;
+    score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : score >= 40 ? '#f59e0b' : '#ef4444'
+  const r = 45
+  const circ = 2 * Math.PI * r
+  const offset = circ - (score / 100) * circ
 
   return (
     <div className="relative w-28 h-28 mx-auto">
@@ -292,29 +294,29 @@ function ScoreMeter({ score }: { score: number }) {
         <span className="text-xs text-slate-500 dark:text-slate-400">/ 100</span>
       </div>
     </div>
-  );
+  )
 }
 
 export default function CoverLetterPage() {
-  const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState<PageMode>('generate');
-  const { data: resumesData } = useResumes();
-  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
+  const [searchParams] = useSearchParams()
+  const [mode, setMode] = useState<PageMode>('generate')
+  const { data: resumesData } = useResumes()
+  const resumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? []
   // Support ?resumeId=xxx from PreviewPage "자소서" button
-  const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '');
-  const [tone, setTone] = useState<'formal' | 'friendly' | 'confident'>('formal');
-  const [result, setResult] = useState('');
-  const [error, setError] = useState('');
-  const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
-  const [analyzingFeedback, setAnalyzingFeedback] = useState(false);
+  const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '')
+  const [tone, setTone] = useState<'formal' | 'friendly' | 'confident'>('formal')
+  const [result, setResult] = useState('')
+  const [error, setError] = useState('')
+  const [feedback, setFeedback] = useState<FeedbackResult | null>(null)
+  const [analyzingFeedback, setAnalyzingFeedback] = useState(false)
 
   // Feedback mode
-  const [feedbackResult, setFeedbackResult] = useState<FeedbackResult | null>(null);
+  const [feedbackResult, setFeedbackResult] = useState<FeedbackResult | null>(null)
 
   // Section mode
-  const [usesSections, setUsesSections] = useState(false);
-  const [sections, setSections] = useState<Record<string, string>>({});
-  const [sectionLimits, setSectionLimits] = useState<Record<string, number>>({});
+  const [usesSections, setUsesSections] = useState(false)
+  const [sections, setSections] = useState<Record<string, string>>({})
+  const [sectionLimits, setSectionLimits] = useState<Record<string, number>>({})
 
   // Generate form
   const {
@@ -331,9 +333,9 @@ export default function CoverLetterPage() {
       position: searchParams.get('position') || '',
       jobDescription: '',
     },
-  });
-  const companyName = useWatch({ control: generateControl, name: 'company' });
-  const position = useWatch({ control: generateControl, name: 'position' });
+  })
+  const companyName = useWatch({ control: generateControl, name: 'company' })
+  const position = useWatch({ control: generateControl, name: 'position' })
 
   // Feedback form
   const {
@@ -345,75 +347,75 @@ export default function CoverLetterPage() {
     resolver: zodResolver(feedbackSchema),
     mode: 'onBlur',
     defaultValues: { content: '', jobDescription: '' },
-  });
-  const feedbackText = useWatch({ control: feedbackControl, name: 'content' });
-  const feedbackJd = useWatch({ control: feedbackControl, name: 'jobDescription' });
+  })
+  const feedbackText = useWatch({ control: feedbackControl, name: 'content' })
+  const feedbackJd = useWatch({ control: feedbackControl, name: 'jobDescription' })
   // 타이핑 레이턴시 보호 — 10+ 분석기 패널을 유휴 시간에 재렌더.
-  const deferredFeedbackText = useDeferredValue(feedbackText || '');
+  const deferredFeedbackText = useDeferredValue(feedbackText || '')
 
   useEffect(() => {
-    document.title = '자기소개서 — 이력서공방';
+    document.title = '자기소개서 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const onGenerateSubmit = useCallback(
     async (values: GenerateFormValues) => {
       if (!selectedResumeId) {
-        toast('이력서를 선택해주세요', 'error');
-        return;
+        toast('이력서를 선택해주세요', 'error')
+        return
       }
 
-      setResult('');
-      setError('');
-      setFeedback(null);
+      setResult('')
+      setError('')
+      setFeedback(null)
       try {
-        const token = localStorage.getItem('token');
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const token = localStorage.getItem('token')
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+        if (token) headers['Authorization'] = `Bearer ${token}`
 
         const sectionContent = usesSections
           ? Object.entries(sections)
               .map(([id, text]) => {
-                const s = SECTIONS.find((sec) => sec.id === id);
-                return s && text.trim() ? `[${s.label}]\n${text}` : '';
+                const s = SECTIONS.find((sec) => sec.id === id)
+                return s && text.trim() ? `[${s.label}]\n${text}` : ''
               })
               .filter(Boolean)
               .join('\n\n')
-          : '';
+          : ''
 
-        const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform`, {
+        const res = await httpClient(`${API_URL}/api/resumes/${selectedResumeId}/transform`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
             templateType: 'cover-letter',
             jobDescription: `[회사: ${values.company}] [포지션: ${values.position}] [어조: ${TONE_KOREAN[tone]}]${sectionContent ? `\n\n[작성된 항목]\n${sectionContent}` : ''}\n\n${values.jobDescription}`,
           }),
-        });
+        })
 
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || '생성에 실패했습니다');
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.message || '생성에 실패했습니다')
         }
-        const data = await res.json();
-        const generatedText = data.text || data.data?.text || JSON.stringify(data);
-        setResult(generatedText);
-        toast('자기소개서가 생성되었습니다', 'success');
+        const data = await res.json()
+        const generatedText = data.text || data.data?.text || JSON.stringify(data)
+        setResult(generatedText)
+        toast('자기소개서가 생성되었습니다', 'success')
 
         // Auto-analyze feedback
         setTimeout(() => {
-          setAnalyzingFeedback(true);
+          setAnalyzingFeedback(true)
           setTimeout(() => {
-            setFeedback(analyzeCoverLetter(generatedText, values.jobDescription));
-            setAnalyzingFeedback(false);
-          }, 800);
-        }, 300);
+            setFeedback(analyzeCoverLetter(generatedText, values.jobDescription))
+            setAnalyzingFeedback(false)
+          }, 800)
+        }, 300)
 
         // Auto-save
-        const saveToken = localStorage.getItem('token');
+        const saveToken = localStorage.getItem('token')
         if (saveToken) {
-          fetch(`${API_URL}/api/cover-letters`, {
+          httpClient(`${API_URL}/api/cover-letters`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${saveToken}` },
             body: JSON.stringify({
@@ -424,27 +426,27 @@ export default function CoverLetterPage() {
               jobDescription: values.jobDescription,
               content: generatedText,
             }),
-          }).catch(() => {});
+          }).catch(() => {})
         }
       } catch (e: unknown) {
-        const msg = getErrorMessage(e, '생성에 실패했습니다');
-        setError(msg);
-        toast(msg, 'error');
+        const msg = getErrorMessage(e, '생성에 실패했습니다')
+        setError(msg)
+        toast(msg, 'error')
       }
     },
-    [selectedResumeId, tone, usesSections, sections],
-  );
+    [selectedResumeId, tone, usesSections, sections]
+  )
 
   const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast('클립보드에 복사되었습니다', 'success');
-  };
+    navigator.clipboard.writeText(text)
+    toast('클립보드에 복사되었습니다', 'success')
+  }
 
   const handleDownloadPdf = (text: string) => {
-    const printWindow = window.open('', '_blank');
+    const printWindow = window.open('', '_blank')
     if (!printWindow) {
-      toast('팝업이 차단되었습니다', 'error');
-      return;
+      toast('팝업이 차단되었습니다', 'error')
+      return
     }
     printWindow.document
       .write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>자기소개서 - ${companyName || '미지정'}</title><style>
@@ -456,19 +458,19 @@ export default function CoverLetterPage() {
       <h1>${companyName ? companyName + ' — ' : ''}${position || '자기소개서'}</h1>
       <div class="meta">${TONE_KOREAN[tone]} | ${formatDate(new Date())}</div>
       <div class="content">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-    </body></html>`);
-    printWindow.document.close();
+    </body></html>`)
+    printWindow.document.close()
     setTimeout(() => {
-      printWindow.print();
-    }, 300);
-  };
+      printWindow.print()
+    }, 300)
+  }
 
   const onFeedbackSubmit = (values: FeedbackFormValues) => {
-    setFeedbackResult(analyzeCoverLetter(values.content, values.jobDescription || ''));
-  };
+    setFeedbackResult(analyzeCoverLetter(values.content, values.jobDescription || ''))
+  }
 
-  const charCount = result ? result.replace(/\s/g, '').length : 0;
-  const wordCount = result ? result.replace(/\s+/g, ' ').trim().length : 0;
+  const charCount = result ? result.replace(/\s/g, '').length : 0
+  const wordCount = result ? result.replace(/\s+/g, ' ').trim().length : 0
 
   return (
     <>
@@ -516,9 +518,9 @@ export default function CoverLetterPage() {
                 <JobUrlInput
                   hint={tx('jobUrl.hintCoverLetter')}
                   onParsed={(p) => {
-                    if (p.company) setValueGenerate('company', p.company, { shouldValidate: true });
+                    if (p.company) setValueGenerate('company', p.company, { shouldValidate: true })
                     if (p.position)
-                      setValueGenerate('position', p.position, { shouldValidate: true });
+                      setValueGenerate('position', p.position, { shouldValidate: true })
                     const jd = [
                       p.description,
                       p.skills.length > 0 ? `\n\n[요구 기술]\n${p.skills.join(', ')}` : '',
@@ -526,18 +528,22 @@ export default function CoverLetterPage() {
                       p.location ? `\n[근무지]\n${p.location}` : '',
                     ]
                       .filter(Boolean)
-                      .join('');
+                      .join('')
                     if (jd.trim())
-                      setValueGenerate('jobDescription', jd.trim(), { shouldValidate: true });
+                      setValueGenerate('jobDescription', jd.trim(), { shouldValidate: true })
                   }}
                 />
 
                 {/* Resume */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                  <label
+                    htmlFor="coverletterpage-field-1"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+                  >
                     이력서 선택 <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="coverletterpage-field-1"
                     value={selectedResumeId}
                     onChange={(e) => setSelectedResumeId(e.target.value)}
                     className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -554,10 +560,14 @@ export default function CoverLetterPage() {
                 {/* Company & Position */}
                 <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    <label
+                      htmlFor="coverletterpage-field-2"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+                    >
                       회사명 <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="coverletterpage-field-2"
                       {...registerGenerate('company')}
                       placeholder="예: 카카오"
                       className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.company ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
@@ -567,10 +577,14 @@ export default function CoverLetterPage() {
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    <label
+                      htmlFor="coverletterpage-field-3"
+                      className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+                    >
                       포지션 <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="coverletterpage-field-3"
                       {...registerGenerate('position')}
                       placeholder="예: 마케터"
                       className={`w-full px-3 py-2.5 border rounded-xl text-sm dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 ${generateErrors.position ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
@@ -583,10 +597,17 @@ export default function CoverLetterPage() {
 
                 {/* Tone */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                  <span
+                    id="coverletter-tone-label"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+                  >
                     어조
-                  </label>
-                  <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  </span>
+                  <div
+                    role="radiogroup"
+                    aria-labelledby="coverletter-tone-label"
+                    className="stagger-children grid grid-cols-2 sm:grid-cols-3 gap-2"
+                  >
                     {TONES.map((t) => (
                       <label
                         key={t.value}
@@ -598,6 +619,7 @@ export default function CoverLetterPage() {
                           value={t.value}
                           checked={tone === t.value}
                           onChange={() => setTone(t.value)}
+                          aria-label={t.label}
                           className="sr-only"
                         />
                         <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
@@ -630,10 +652,10 @@ export default function CoverLetterPage() {
                 {usesSections && (
                   <div className="space-y-3 animate-fade-in-up">
                     {SECTIONS.map((sec) => {
-                      const limit = sectionLimits[sec.id];
-                      const text = sections[sec.id] || '';
-                      const chars = text.replace(/\s/g, '').length;
-                      const isOver = limit && chars > limit;
+                      const limit = sectionLimits[sec.id]
+                      const text = sections[sec.id] || ''
+                      const chars = text.replace(/\s/g, '').length
+                      const isOver = limit && chars > limit
                       return (
                         <div
                           key={sec.id}
@@ -673,17 +695,21 @@ export default function CoverLetterPage() {
                             className={`w-full text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-lg border focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none px-3 py-2 ${isOver ? 'border-red-400' : 'border-slate-200 dark:border-slate-600'}`}
                           />
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 )}
 
                 {/* Job description */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                  <label
+                    htmlFor="coverletterpage-field-4"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+                  >
                     채용 공고 <span className="text-red-500">*</span>
                   </label>
                   <textarea
+                    id="coverletterpage-field-4"
                     {...registerGenerate('jobDescription')}
                     placeholder="채용 공고 내용을 붙여넣으세요..."
                     rows={8}
@@ -733,9 +759,9 @@ export default function CoverLetterPage() {
                 {/* Result area */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
                       생성 결과
-                    </label>
+                    </span>
                     {result && (
                       <span className="text-xs text-slate-500 dark:text-slate-400">
                         {charCount.toLocaleString()}자 (공백 포함 {wordCount.toLocaleString()}자)
@@ -899,7 +925,10 @@ export default function CoverLetterPage() {
                 noValidate
               >
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                  <label
+                    htmlFor="coverletter-feedback-content"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+                  >
                     자기소개서 붙여넣기 <span className="text-red-500">*</span>
                   </label>
                   <KoreanQualityBadge
@@ -911,6 +940,7 @@ export default function CoverLetterPage() {
                     {(feedbackText || '').replace(/\s/g, '').length}자 (공백 제외)
                   </div>
                   <textarea
+                    id="coverletter-feedback-content"
                     {...registerFeedback('content')}
                     placeholder="분석할 자기소개서를 여기에 붙여넣으세요..."
                     rows={14}
@@ -981,13 +1011,17 @@ export default function CoverLetterPage() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                  <label
+                    htmlFor="coverletterpage-field-5"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+                  >
                     채용 공고{' '}
                     <span className="text-slate-400 font-normal">
                       (선택, 있으면 키워드 매칭 분석)
                     </span>
                   </label>
                   <textarea
+                    id="coverletterpage-field-5"
                     {...registerFeedback('jobDescription')}
                     placeholder="채용 공고를 붙여넣으면 키워드 적합성을 분석합니다..."
                     rows={6}
@@ -1049,7 +1083,7 @@ export default function CoverLetterPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 function FeedbackPanel({ result }: { result: FeedbackResult }) {
@@ -1060,7 +1094,7 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
         ? 'text-blue-600'
         : result.totalScore >= 40
           ? 'text-amber-600'
-          : 'text-red-500';
+          : 'text-red-500'
 
   return (
     <div className="space-y-5">
@@ -1084,7 +1118,7 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
       {/* Category scores */}
       <div className="space-y-2">
         {result.categories.map((cat) => {
-          const pct = (cat.score / cat.max) * 100;
+          const pct = (cat.score / cat.max) * 100
           return (
             <div key={cat.label} className="flex items-center gap-2">
               <span className="text-xs text-slate-600 dark:text-slate-400 w-20 shrink-0">
@@ -1103,7 +1137,7 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
                 {cat.comment}
               </span>
             </div>
-          );
+          )
         })}
       </div>
 
@@ -1186,14 +1220,14 @@ function FeedbackPanel({ result }: { result: FeedbackResult }) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // KoreanQualityBadge 는 @/components/KoreanQualityBadge 로 추출되어 공용화됨.
 
 function TldrHeadline({ text }: { text: string }) {
-  if (text.length < 300) return null;
-  const tldr = generateResumeTldr(text);
+  if (text.length < 300) return null
+  const tldr = generateResumeTldr(text)
   return (
     <div className="mb-3 p-2.5 rounded-lg bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-300 mb-1">
@@ -1203,14 +1237,14 @@ function TldrHeadline({ text }: { text: string }) {
         {tldr.summary}
       </p>
     </div>
-  );
+  )
 }
 
 function AnalysisSummaryBar({ text }: { text: string }) {
-  if (text.length < 200) return null;
-  const full = analyzeEverything(text);
-  const summary = summarizeAnalysis(full);
-  const interview = scoreInterviewability(text);
+  if (text.length < 200) return null
+  const full = analyzeEverything(text)
+  const summary = summarizeAnalysis(full)
+  const interview = scoreInterviewability(text)
   const tierColor =
     interview.tier === 'call-back'
       ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200'
@@ -1218,7 +1252,7 @@ function AnalysisSummaryBar({ text }: { text: string }) {
         ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200'
         : interview.tier === 'needs-work'
           ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200'
-          : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200';
+          : 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-200'
   const tierLabel =
     interview.tier === 'call-back'
       ? '콜백 유력'
@@ -1226,8 +1260,8 @@ function AnalysisSummaryBar({ text }: { text: string }) {
         ? '유망'
         : interview.tier === 'needs-work'
           ? '보완 필요'
-          : '미달';
-  if (summary.topFlags.length === 0) return null;
+          : '미달'
+  if (summary.topFlags.length === 0) return null
   return (
     <div className="mt-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40">
       <div className="flex items-baseline justify-between mb-2 gap-2">
@@ -1267,13 +1301,13 @@ function AnalysisSummaryBar({ text }: { text: string }) {
         ))}
       </ul>
     </div>
-  );
+  )
 }
 
 function UnquantifiedClaimsPanel({ text }: { text: string }) {
-  if (text.length < 200) return null;
-  const claims = detectUnquantifiedClaims(text);
-  if (claims.length === 0) return null;
+  if (text.length < 200) return null
+  const claims = detectUnquantifiedClaims(text)
+  if (claims.length === 0) return null
   return (
     <div className="mt-3 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/60 dark:bg-amber-900/15">
       <div className="flex items-baseline justify-between mb-1.5">
@@ -1293,24 +1327,24 @@ function UnquantifiedClaimsPanel({ text }: { text: string }) {
         ))}
       </ul>
     </div>
-  );
+  )
 }
 
 function OpenerSuggestionsPanel({ text }: { text: string }) {
-  if (text.length < 200) return null;
-  const openers = recommendCoverLetterOpeners(text);
+  if (text.length < 200) return null
+  const openers = recommendCoverLetterOpeners(text)
   const copyToClipboard = async (t: string) => {
     try {
-      await navigator.clipboard.writeText(t);
+      await navigator.clipboard.writeText(t)
     } catch {
       // ignore
     }
-  };
+  }
   const styleLabel: Record<(typeof openers)[number]['style'], string> = {
     achievement: '성과형',
     passion: '열정형',
     pragmatic: '실용형',
-  };
+  }
   return (
     <div className="mt-3">
       <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -1339,12 +1373,12 @@ function OpenerSuggestionsPanel({ text }: { text: string }) {
         ))}
       </ul>
     </div>
-  );
+  )
 }
 
 function SkillMentionsBar({ text }: { text: string }) {
-  const skills = detectSkillMentions(text, 10);
-  if (skills.length === 0) return null;
+  const skills = detectSkillMentions(text, 10)
+  if (skills.length === 0) return null
   return (
     <div className="mt-3">
       <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">
@@ -1363,17 +1397,17 @@ function SkillMentionsBar({ text }: { text: string }) {
         ))}
       </div>
     </div>
-  );
+  )
 }
 
 function JDMatchBadge({ resumeText, jdText }: { resumeText: string; jdText: string }) {
-  const match = computeJDMatch(resumeText, jdText, 25);
+  const match = computeJDMatch(resumeText, jdText, 25)
   const tone =
     match.score >= 75
       ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-200'
       : match.score >= 50
         ? 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-200'
-        : 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200';
+        : 'bg-amber-50 border-amber-200 text-amber-800 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-200'
   return (
     <div className={`mt-2 p-3 rounded-lg border text-[12px] leading-relaxed ${tone}`}>
       <div className="flex items-baseline justify-between mb-1.5">
@@ -1419,5 +1453,5 @@ function JDMatchBadge({ resumeText, jdText }: { resumeText: string; jdText: stri
         </div>
       )}
     </div>
-  );
+  )
 }

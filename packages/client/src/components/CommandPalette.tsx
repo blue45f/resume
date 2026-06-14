@@ -1,18 +1,19 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { ROUTES } from '@/lib/routes';
-import { getUser } from '@/lib/auth';
-import { setTheme, getTheme } from '@/lib/theme';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { getUser } from '@/lib/auth'
+import { ROUTES } from '@/lib/routes'
+import { setTheme, getTheme } from '@/lib/theme'
 
 interface Command {
-  id: string;
-  label: string;
-  hint?: string;
-  keywords: string;
-  icon: string;
-  run: () => void;
-  section: '탐색' | '액션' | '설정' | '관리자';
+  id: string
+  label: string
+  hint?: string
+  keywords: string
+  icon: string
+  run: () => void
+  section: '탐색' | '액션' | '설정' | '관리자'
 }
 
 /**
@@ -21,39 +22,39 @@ interface Command {
  * 국내 경쟁 이력서 서비스에 없는 파워유저 기능.
  */
 export default function CommandPalette() {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const [activeIndex, setActiveIndex] = useState(0);
-  const navigate = useNavigate();
-  const listRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [activeIndex, setActiveIndex] = useState(0)
+  const navigate = useNavigate()
+  const listRef = useRef<HTMLDivElement>(null)
 
   // 전역 단축키 등록
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k';
+      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
       if (isCmdK) {
-        e.preventDefault();
-        setOpen((v) => !v);
+        e.preventDefault()
+        setOpen((v) => !v)
       }
-      if (e.key === 'Escape' && open) setOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+      if (e.key === 'Escape' && open) setOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
 
   const close = useCallback(() => {
-    setOpen(false);
-    setQuery('');
-    setActiveIndex(0);
-  }, []);
+    setOpen(false)
+    setQuery('')
+    setActiveIndex(0)
+  }, [])
 
   const commands = useMemo<Command[]>(() => {
-    const user = getUser();
-    const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+    const user = getUser()
+    const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
     const run = (path: string) => () => {
-      navigate(path);
-      close();
-    };
+      navigate(path)
+      close()
+    }
 
     const base: Command[] = [
       {
@@ -171,12 +172,12 @@ export default function CommandPalette() {
         keywords: '테마 다크 라이트 theme dark light mode',
         icon: getTheme() === 'dark' ? '☀️' : '🌙',
         run: () => {
-          setTheme(getTheme() === 'dark' ? 'light' : 'dark');
-          close();
+          setTheme(getTheme() === 'dark' ? 'light' : 'dark')
+          close()
         },
         section: '설정',
       },
-    ];
+    ]
 
     if (isAdmin) {
       base.push({
@@ -186,49 +187,49 @@ export default function CommandPalette() {
         icon: '🛡️',
         run: run(ROUTES.admin.root),
         section: '관리자',
-      });
+      })
     }
 
-    return base;
-  }, [navigate, close]);
+    return base
+  }, [navigate, close])
 
   // 검색 필터링
   const filtered = useMemo(() => {
-    if (!query.trim()) return commands;
-    const q = query.toLowerCase();
+    if (!query.trim()) return commands
+    const q = query.toLowerCase()
     return commands.filter(
       (c) =>
         c.label.toLowerCase().includes(q) ||
         c.keywords.toLowerCase().includes(q) ||
-        (c.hint || '').toLowerCase().includes(q),
-    );
-  }, [query, commands]);
+        (c.hint || '').toLowerCase().includes(q)
+    )
+  }, [query, commands])
 
   // 섹션별 그룹
   const grouped = useMemo(() => {
-    const sections = new Map<string, Command[]>();
+    const sections = new Map<string, Command[]>()
     for (const c of filtered) {
-      const arr = sections.get(c.section) || [];
-      arr.push(c);
-      sections.set(c.section, arr);
+      const arr = sections.get(c.section) || []
+      arr.push(c)
+      sections.set(c.section, arr)
     }
-    return Array.from(sections.entries());
-  }, [filtered]);
+    return Array.from(sections.entries())
+  }, [filtered])
 
-  const boundedActiveIndex = Math.min(activeIndex, Math.max(0, filtered.length - 1));
+  const boundedActiveIndex = Math.min(activeIndex, Math.max(0, filtered.length - 1))
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex((i) => Math.min(filtered.length - 1, i + 1));
+      e.preventDefault()
+      setActiveIndex((i) => Math.min(filtered.length - 1, i + 1))
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex((i) => Math.max(0, i - 1));
+      e.preventDefault()
+      setActiveIndex((i) => Math.max(0, i - 1))
     } else if (e.key === 'Enter') {
-      e.preventDefault();
-      filtered[boundedActiveIndex]?.run();
+      e.preventDefault()
+      filtered[boundedActiveIndex]?.run()
     }
-  };
+  }
 
   return (
     <RadixDialog.Root open={open} onOpenChange={setOpen}>
@@ -275,8 +276,8 @@ export default function CommandPalette() {
               autoFocus
               value={query}
               onChange={(e) => {
-                setQuery(e.target.value);
-                setActiveIndex(0);
+                setQuery(e.target.value)
+                setActiveIndex(0)
               }}
               aria-label="명령 검색"
               placeholder="어디로 갈까요? 무엇을 할까요?"
@@ -300,8 +301,8 @@ export default function CommandPalette() {
                     {section}
                   </div>
                   {items.map((cmd) => {
-                    const idx = filtered.indexOf(cmd);
-                    const active = idx === boundedActiveIndex;
+                    const idx = filtered.indexOf(cmd)
+                    const active = idx === boundedActiveIndex
                     return (
                       <button
                         key={cmd.id}
@@ -330,7 +331,7 @@ export default function CommandPalette() {
                           </kbd>
                         )}
                       </button>
-                    );
+                    )
                   })}
                 </div>
               ))
@@ -354,5 +355,5 @@ export default function CommandPalette() {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

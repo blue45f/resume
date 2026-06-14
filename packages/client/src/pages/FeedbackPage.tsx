@@ -1,25 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { FormSkeleton } from '@/components/Skeleton';
-import { toast } from '@/components/Toast';
-import { getUser } from '@/lib/auth';
-import { timeAgo } from '@/lib/time';
-import { t } from '@/lib/i18n';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, useEffect } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { z } from 'zod'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { FormSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
+import { getUser } from '@/lib/auth'
+import { t } from '@/lib/i18n'
+import { timeAgo } from '@/lib/time'
 
 interface FeedbackItem {
-  id: string;
-  type: 'bug' | 'feature' | 'opinion' | 'question';
-  title: string;
-  content: string;
-  status: 'open' | 'in-progress' | 'resolved' | 'closed';
-  votes: number;
-  authorName: string;
-  createdAt: string;
-  replies: number;
+  id: string
+  type: 'bug' | 'feature' | 'opinion' | 'question'
+  title: string
+  content: string
+  status: 'open' | 'in-progress' | 'resolved' | 'closed'
+  votes: number
+  authorName: string
+  createdAt: string
+  replies: number
 }
 
 const TYPE_CONFIG = {
@@ -43,7 +44,7 @@ const TYPE_CONFIG = {
     color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
     icon: '❓',
   },
-};
+}
 
 const STATUS_CONFIG = {
   open: {
@@ -62,7 +63,7 @@ const STATUS_CONFIG = {
     label: '종료',
     color: 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500',
   },
-};
+}
 
 const feedbackSchema = z.object({
   type: z.enum(['bug', 'feature', 'opinion', 'question']),
@@ -74,25 +75,25 @@ const feedbackSchema = z.object({
     .string()
     .min(10, '내용은 최소 10자 이상이어야 합니다')
     .max(2000, '내용은 최대 2000자까지 입력 가능합니다'),
-});
+})
 
-type FeedbackFormValues = z.infer<typeof feedbackSchema>;
+type FeedbackFormValues = z.infer<typeof feedbackSchema>
 
 const loadFeedbackItems = (): FeedbackItem[] => {
   try {
-    const stored = JSON.parse(localStorage.getItem('feedback-items') || '[]');
-    return Array.isArray(stored) ? (stored as FeedbackItem[]) : [];
+    const stored = JSON.parse(localStorage.getItem('feedback-items') || '[]')
+    return Array.isArray(stored) ? (stored as FeedbackItem[]) : []
   } catch {
-    return [];
+    return []
   }
-};
+}
 
 export default function FeedbackPage() {
-  const [items, setItems] = useState<FeedbackItem[]>(loadFeedbackItems);
-  const loading = false;
-  const [showForm, setShowForm] = useState(false);
-  const [filterType, setFilterType] = useState<string>('all');
-  const user = getUser();
+  const [items, setItems] = useState<FeedbackItem[]>(loadFeedbackItems)
+  const loading = false
+  const [showForm, setShowForm] = useState(false)
+  const [filterType, setFilterType] = useState<string>('all')
+  const user = getUser()
 
   const {
     register,
@@ -108,16 +109,16 @@ export default function FeedbackPage() {
       title: '',
       content: '',
     },
-  });
+  })
 
-  const formType = useWatch({ control, name: 'type' });
+  const formType = useWatch({ control, name: 'type' })
 
   useEffect(() => {
-    document.title = '피드백 — 이력서공방';
+    document.title = '피드백 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const onSubmit = async (data: FeedbackFormValues) => {
     try {
@@ -131,27 +132,27 @@ export default function FeedbackPage() {
         authorName: user?.name || '익명',
         createdAt: new Date().toISOString(),
         replies: 0,
-      };
-      const updated = [newItem, ...items];
-      localStorage.setItem('feedback-items', JSON.stringify(updated));
-      setItems(updated);
-      reset();
-      setShowForm(false);
-      toast('피드백이 등록되었습니다', 'success');
+      }
+      const updated = [newItem, ...items]
+      localStorage.setItem('feedback-items', JSON.stringify(updated))
+      setItems(updated)
+      reset()
+      setShowForm(false)
+      toast('피드백이 등록되었습니다', 'success')
     } catch {
-      toast('피드백 등록에 실패했습니다', 'error');
+      toast('피드백 등록에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleVote = (id: string) => {
     const updated = items.map((item) =>
-      item.id === id ? { ...item, votes: item.votes + 1 } : item,
-    );
-    localStorage.setItem('feedback-items', JSON.stringify(updated));
-    setItems(updated);
-  };
+      item.id === id ? { ...item, votes: item.votes + 1 } : item
+    )
+    localStorage.setItem('feedback-items', JSON.stringify(updated))
+    setItems(updated)
+  }
 
-  const filtered = filterType === 'all' ? items : items.filter((i) => i.type === filterType);
+  const filtered = filterType === 'all' ? items : items.filter((i) => i.type === filterType)
 
   return (
     <>
@@ -236,8 +237,8 @@ export default function FeedbackPage() {
               <button
                 type="button"
                 onClick={() => {
-                  reset();
-                  setShowForm(false);
+                  reset()
+                  setShowForm(false)
                 }}
                 className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
@@ -294,8 +295,8 @@ export default function FeedbackPage() {
         ) : (
           <div className="space-y-3">
             {filtered.map((item) => {
-              const typeCfg = TYPE_CONFIG[item.type];
-              const statusCfg = STATUS_CONFIG[item.status];
+              const typeCfg = TYPE_CONFIG[item.type]
+              const statusCfg = STATUS_CONFIG[item.status]
               return (
                 <div key={item.id} className="card-hover imp-card p-4">
                   <div className="flex items-start gap-3">
@@ -345,12 +346,12 @@ export default function FeedbackPage() {
                     </div>
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
         )}
       </main>
       <Footer />
     </>
-  );
+  )
 }

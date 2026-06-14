@@ -1,29 +1,30 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import {
   fetchMyJobApplications,
   fetchInterviewScoreHistory,
   fetchCoffeeChats,
   fetchNotifications,
-} from '@/lib/api';
+} from '@/lib/api'
 
 interface Recap {
-  applications: number; // 이번 주 신규 지원
-  pendingApplications: number; // 진행 중 (interested/contacted/interview)
-  interviewAvg: number | null; // 이번 주 분석 평균 점수
-  interviewCount: number;
-  coffeeChats: number; // 이번 주 신규 커피챗 (sent + received pending)
-  unreadNotifs: number;
-  loaded: boolean;
+  applications: number // 이번 주 신규 지원
+  pendingApplications: number // 진행 중 (interested/contacted/interview)
+  interviewAvg: number | null // 이번 주 분석 평균 점수
+  interviewCount: number
+  coffeeChats: number // 이번 주 신규 커피챗 (sent + received pending)
+  unreadNotifs: number
+  loaded: boolean
 }
 
 const startOfWeek = () => {
-  const d = new Date();
-  const day = d.getDay() || 7;
-  d.setDate(d.getDate() - day + 1); // 월요일 시작
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
+  const d = new Date()
+  const day = d.getDay() || 7
+  d.setDate(d.getDate() - day + 1) // 월요일 시작
+  d.setHours(0, 0, 0, 0)
+  return d
+}
 
 /**
  * 주간 활동 요약 — Wanted Connect / LinkedIn weekly digest 패턴.
@@ -38,38 +39,38 @@ export default function WeeklyRecapCard() {
     coffeeChats: 0,
     unreadNotifs: 0,
     loaded: false,
-  });
+  })
 
   useEffect(() => {
-    const monday = startOfWeek();
+    const monday = startOfWeek()
     Promise.allSettled([
       fetchMyJobApplications(),
       fetchInterviewScoreHistory(),
       fetchCoffeeChats('all'),
       fetchNotifications(),
     ]).then(([apps, scores, chats, notifs]) => {
-      const a = apps.status === 'fulfilled' ? apps.value : [];
-      const s = scores.status === 'fulfilled' ? scores.value : [];
-      const c = chats.status === 'fulfilled' ? chats.value : [];
-      const n = notifs.status === 'fulfilled' ? notifs.value : [];
+      const a = apps.status === 'fulfilled' ? apps.value : []
+      const s = scores.status === 'fulfilled' ? scores.value : []
+      const c = chats.status === 'fulfilled' ? chats.value : []
+      const n = notifs.status === 'fulfilled' ? notifs.value : []
 
-      const thisWeekApps = a.filter((app) => new Date(app.createdAt) >= monday);
+      const thisWeekApps = a.filter((app) => new Date(app.createdAt) >= monday)
       const pending = a.filter((app) =>
-        ['interested', 'contacted', 'interview'].includes(app.stage),
-      );
-      const thisWeekScores = s.filter((p) => new Date(p.createdAt) >= monday);
+        ['interested', 'contacted', 'interview'].includes(app.stage)
+      )
+      const thisWeekScores = s.filter((p) => new Date(p.createdAt) >= monday)
       const avg =
         thisWeekScores.length > 0
           ? Math.round(
-              thisWeekScores.reduce((sum, p) => sum + p.analysisScore, 0) / thisWeekScores.length,
+              thisWeekScores.reduce((sum, p) => sum + p.analysisScore, 0) / thisWeekScores.length
             )
-          : null;
+          : null
       const thisWeekChats = c.filter(
         (ch) =>
           new Date(ch.createdAt) >= monday &&
-          ['pending', 'accepted', 'completed'].includes(ch.status),
-      );
-      const unread = n.filter((nt) => !nt.read).length;
+          ['pending', 'accepted', 'completed'].includes(ch.status)
+      )
+      const unread = n.filter((nt) => !nt.read).length
 
       setRecap({
         applications: thisWeekApps.length,
@@ -79,11 +80,11 @@ export default function WeeklyRecapCard() {
         coffeeChats: thisWeekChats.length,
         unreadNotifs: unread,
         loaded: true,
-      });
-    });
-  }, []);
+      })
+    })
+  }, [])
 
-  if (!recap.loaded) return null;
+  if (!recap.loaded) return null
 
   // 데이터 모두 0 — 신규 사용자 / 비활성 → hide
   const totalActivity =
@@ -91,8 +92,8 @@ export default function WeeklyRecapCard() {
     recap.pendingApplications +
     recap.interviewCount +
     recap.coffeeChats +
-    recap.unreadNotifs;
-  if (totalActivity === 0) return null;
+    recap.unreadNotifs
+  if (totalActivity === 0) return null
 
   const cards = [
     {
@@ -123,9 +124,9 @@ export default function WeeklyRecapCard() {
       show: recap.unreadNotifs > 0,
       sub: '',
     },
-  ].filter((c) => c.show);
+  ].filter((c) => c.show)
 
-  if (cards.length === 0) return null;
+  if (cards.length === 0) return null
 
   return (
     <section aria-label="이번 주 활동" className="weekly-recap">
@@ -145,5 +146,5 @@ export default function WeeklyRecapCard() {
         ))}
       </div>
     </section>
-  );
+  )
 }

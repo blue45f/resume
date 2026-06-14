@@ -14,9 +14,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false  # Neon PostgreSQL URL
+        sync: false # Neon PostgreSQL URL
       - key: PORT
-        value: "3001"
+        value: '3001'
       - key: API_URL
         value: https://resume-api-464016453534.asia-northeast3.run.app
       - key: FRONTEND_URL
@@ -24,7 +24,7 @@ services:
       - key: ALLOWED_ORIGINS
         value: https://resume-gongbang.vercel.app
       - key: JWT_SECRET
-        sync: false  # 안전한 랜덤 문자열 (32자 이상)
+        sync: false # 안전한 랜덤 문자열 (32자 이상)
       # OAuth - GitHub
       - key: GITHUB_CLIENT_ID
         sync: false

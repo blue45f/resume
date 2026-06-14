@@ -7,14 +7,14 @@
  * Example:
  *   cn('btn', isActive && 'btn--active', disabled ? 'opacity-50' : null)
  */
-export type ClassValue = string | number | false | null | undefined;
+export type ClassValue = string | number | false | null | undefined
 
 export function cn(...classes: ClassValue[]): string {
-  let out = '';
+  let out = ''
   for (const c of classes) {
-    if (!c) continue;
-    if (out) out += ' ';
-    out += c;
+    if (!c) continue
+    if (out) out += ' '
+    out += c
   }
-  return out;
+  return out
 }

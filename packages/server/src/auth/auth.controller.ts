@@ -14,18 +14,21 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
-import { Response } from 'express';
-import { AuthService } from './auth.service';
-import { Public } from './auth.guard';
-import { AdminGuard } from '../common/guards/admin.guard';
-import { RegisterDto, LoginDto, ChangePasswordDto, UpdateProfileDto } from './dto/auth.dto';
-import { getErrorMessage } from '../common/error.utils';
-import { requireRequestUserId } from '../common/request.types';
-import type { AuthenticatedRequest } from '../common/request.types';
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
+import { Throttle } from '@nestjs/throttler'
+import { Response } from 'express'
+
+import { getErrorMessage } from '../common/error.utils'
+import { AdminGuard } from '../common/guards/admin.guard'
+import { requireRequestUserId } from '../common/request.types'
+
+import { Public } from './auth.guard'
+import { AuthService } from './auth.service'
+import { RegisterDto, LoginDto, ChangePasswordDto, UpdateProfileDto } from './dto/auth.dto'
+
+import type { AuthenticatedRequest } from '../common/request.types'
 
 @ApiTags('auth')
 @Controller('auth')
@@ -36,7 +39,7 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: '사용 가능한 소셜 로그인 프로바이더' })
   getProviders() {
-    return this.authService.getAvailableProviders();
+    return this.authService.getAvailableProviders()
   }
 
   // ---- Google ----
@@ -44,8 +47,8 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Google 로그인 리다이렉트' })
   googleLogin(@Res() res: Response) {
-    const state = this.authService.generateOAuthState();
-    res.redirect(this.authService.getGoogleAuthUrl(state));
+    const state = this.authService.generateOAuthState()
+    res.redirect(this.authService.getGoogleAuthUrl(state))
   }
 
   @Get('google/callback')
@@ -53,38 +56,38 @@ export class AuthController {
   async googleCallback(
     @Query('code') code: string,
     @Query('state') state: string,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     try {
       if (!code || !this.authService.validateOAuthState(state)) {
-        throw new Error('Invalid OAuth state or missing code');
+        throw new Error('Invalid OAuth state or missing code')
       }
 
       // Check if this is a link request (state contains userId)
-      const linkUserId = this.authService.extractLinkUserId(state);
+      const linkUserId = this.authService.extractLinkUserId(state)
       if (linkUserId) {
-        const profile = await this.authService.getGoogleProfile(code);
+        const profile = await this.authService.getGoogleProfile(code)
         await this.authService.linkSocialAccount(
           linkUserId,
           'google',
           profile.providerId,
-          profile.avatar,
-        );
-        res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=google`);
-        return;
+          profile.avatar
+        )
+        res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=google`)
+        return
       }
 
-      const token = await this.authService.handleGoogleCallback(code);
+      const token = await this.authService.handleGoogleCallback(code)
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
-      });
-      res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
+      })
+      res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`)
     } catch {
-      res.redirect(`${this.authService.getFrontendUrl()}/login?error=google_failed`);
+      res.redirect(`${this.authService.getFrontendUrl()}/login?error=google_failed`)
     }
   }
 
@@ -93,8 +96,8 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'GitHub 로그인 리다이렉트' })
   githubLogin(@Res() res: Response) {
-    const state = this.authService.generateOAuthState();
-    res.redirect(this.authService.getGithubAuthUrl(state));
+    const state = this.authService.generateOAuthState()
+    res.redirect(this.authService.getGithubAuthUrl(state))
   }
 
   @Get('github/callback')
@@ -102,37 +105,37 @@ export class AuthController {
   async githubCallback(
     @Query('code') code: string,
     @Query('state') state: string,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     try {
       if (!code || !this.authService.validateOAuthState(state)) {
-        throw new Error('Invalid OAuth state or missing code');
+        throw new Error('Invalid OAuth state or missing code')
       }
 
-      const linkUserId = this.authService.extractLinkUserId(state);
+      const linkUserId = this.authService.extractLinkUserId(state)
       if (linkUserId) {
-        const profile = await this.authService.getGithubProfile(code);
+        const profile = await this.authService.getGithubProfile(code)
         await this.authService.linkSocialAccount(
           linkUserId,
           'github',
           profile.providerId,
-          profile.avatar,
-        );
-        res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=github`);
-        return;
+          profile.avatar
+        )
+        res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=github`)
+        return
       }
 
-      const token = await this.authService.handleGithubCallback(code);
+      const token = await this.authService.handleGithubCallback(code)
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
-      });
-      res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
+      })
+      res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`)
     } catch {
-      res.redirect(`${this.authService.getFrontendUrl()}/login?error=github_failed`);
+      res.redirect(`${this.authService.getFrontendUrl()}/login?error=github_failed`)
     }
   }
 
@@ -141,8 +144,8 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: 'Kakao 로그인 리다이렉트' })
   kakaoLogin(@Res() res: Response) {
-    const state = this.authService.generateOAuthState();
-    res.redirect(this.authService.getKakaoAuthUrl(state));
+    const state = this.authService.generateOAuthState()
+    res.redirect(this.authService.getKakaoAuthUrl(state))
   }
 
   @Get('kakao/callback')
@@ -150,41 +153,41 @@ export class AuthController {
   async kakaoCallback(
     @Query('code') code: string,
     @Query('state') state: string,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     try {
       // Kakao는 state 미전달 가능 → state 없으면 스킵
-      if (!code) throw new Error('Missing authorization code');
+      if (!code) throw new Error('Missing authorization code')
       if (state && !this.authService.validateOAuthState(state)) {
-        throw new Error('Invalid OAuth state');
+        throw new Error('Invalid OAuth state')
       }
 
       if (state) {
-        const linkUserId = this.authService.extractLinkUserId(state);
+        const linkUserId = this.authService.extractLinkUserId(state)
         if (linkUserId) {
-          const profile = await this.authService.getKakaoProfile(code);
+          const profile = await this.authService.getKakaoProfile(code)
           await this.authService.linkSocialAccount(
             linkUserId,
             'kakao',
             profile.providerId,
-            profile.avatar,
-          );
-          res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=kakao`);
-          return;
+            profile.avatar
+          )
+          res.redirect(`${this.authService.getFrontendUrl()}/settings?linked=kakao`)
+          return
         }
       }
 
-      const token = await this.authService.handleKakaoCallback(code);
+      const token = await this.authService.handleKakaoCallback(code)
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
-      });
-      res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`);
+      })
+      res.redirect(`${this.authService.getFrontendUrl()}/auth/callback?token=${token}`)
     } catch {
-      res.redirect(`${this.authService.getFrontendUrl()}/login?error=kakao_failed`);
+      res.redirect(`${this.authService.getFrontendUrl()}/login?error=kakao_failed`)
     }
   }
 
@@ -205,18 +208,18 @@ export class AuthController {
         dto.companyName,
         dto.companyTitle,
         dto.marketingOptIn,
-        dto.llmOptIn,
-      );
+        dto.llmOptIn
+      )
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
-      });
-      res.json({ token });
+      })
+      res.json({ token })
     } catch (e: unknown) {
-      res.status(401).json({ message: getErrorMessage(e, '회원가입에 실패했습니다') });
+      res.status(401).json({ message: getErrorMessage(e, '회원가입에 실패했습니다') })
     }
   }
 
@@ -228,17 +231,17 @@ export class AuthController {
   @ApiResponse({ status: 401, description: '이메일 또는 비밀번호 불일치' })
   async login(@Body() dto: LoginDto, @Res() res: Response) {
     try {
-      const token = await this.authService.login(dto.email, dto.password);
+      const token = await this.authService.login(dto.email, dto.password)
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
-      });
-      res.json({ token });
+      })
+      res.json({ token })
     } catch (e: unknown) {
-      res.status(401).json({ message: getErrorMessage(e, '로그인에 실패했습니다') });
+      res.status(401).json({ message: getErrorMessage(e, '로그인에 실패했습니다') })
     }
   }
 
@@ -247,8 +250,8 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: '로그아웃 (쿠키 삭제)' })
   logout(@Res() res: Response) {
-    res.clearCookie('token', { path: '/' });
-    res.json({ success: true });
+    res.clearCookie('token', { path: '/' })
+    res.json({ success: true })
   }
 
   // ---- 비밀번호 변경 ----
@@ -259,17 +262,17 @@ export class AuthController {
   async changePassword(
     @Body() dto: ChangePasswordDto,
     @Req() req: AuthenticatedRequest,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ message: '로그인이 필요합니다' });
-        return;
+        res.status(401).json({ message: '로그인이 필요합니다' })
+        return
       }
-      await this.authService.changePassword(req.user.id, dto.currentPassword, dto.newPassword);
-      res.json({ success: true, message: '비밀번호가 변경되었습니다' });
+      await this.authService.changePassword(req.user.id, dto.currentPassword, dto.newPassword)
+      res.json({ success: true, message: '비밀번호가 변경되었습니다' })
     } catch (e: unknown) {
-      res.status(401).json({ message: getErrorMessage(e, '비밀번호 변경에 실패했습니다') });
+      res.status(401).json({ message: getErrorMessage(e, '비밀번호 변경에 실패했습니다') })
     }
   }
 
@@ -281,14 +284,14 @@ export class AuthController {
   async deleteAccount(@Req() req: AuthenticatedRequest, @Res() res: Response) {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ message: '로그인이 필요합니다' });
-        return;
+        res.status(401).json({ message: '로그인이 필요합니다' })
+        return
       }
-      await this.authService.deleteAccount(req.user.id);
-      res.clearCookie('token', { path: '/' });
-      res.json({ success: true, message: '계정이 삭제되었습니다' });
+      await this.authService.deleteAccount(req.user.id)
+      res.clearCookie('token', { path: '/' })
+      res.json({ success: true, message: '계정이 삭제되었습니다' })
     } catch (e: unknown) {
-      res.status(400).json({ message: getErrorMessage(e, '계정 삭제에 실패했습니다') });
+      res.status(400).json({ message: getErrorMessage(e, '계정 삭제에 실패했습니다') })
     }
   }
 
@@ -296,8 +299,8 @@ export class AuthController {
   @Get('linked-accounts')
   @ApiOperation({ summary: '연결된 소셜 계정 정보' })
   getLinkedAccounts(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return null;
-    return this.authService.getLinkedAccounts(req.user.id);
+    if (!req.user?.id) return null
+    return this.authService.getLinkedAccounts(req.user.id)
   }
 
   @Get('link/:provider')
@@ -305,26 +308,26 @@ export class AuthController {
   linkSocial(
     @Param('provider') provider: string,
     @Req() req: AuthenticatedRequest,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     if (!req.user?.id) {
-      res.redirect(`${this.authService.getFrontendUrl()}/login`);
-      return;
+      res.redirect(`${this.authService.getFrontendUrl()}/login`)
+      return
     }
     // userId 를 HMAC 서명에 바인딩한 링크 전용 state (위조 userId 로 계정 탈취 방지)
-    const state = this.authService.generateLinkOAuthState(req.user.id);
+    const state = this.authService.generateLinkOAuthState(req.user.id)
     switch (provider) {
       case 'google':
-        res.redirect(this.authService.getGoogleAuthUrl(state));
-        break;
+        res.redirect(this.authService.getGoogleAuthUrl(state))
+        break
       case 'github':
-        res.redirect(this.authService.getGithubAuthUrl(state));
-        break;
+        res.redirect(this.authService.getGithubAuthUrl(state))
+        break
       case 'kakao':
-        res.redirect(this.authService.getKakaoAuthUrl(state));
-        break;
+        res.redirect(this.authService.getKakaoAuthUrl(state))
+        break
       default:
-        res.status(400).json({ message: '지원하지 않는 프로바이더입니다' });
+        res.status(400).json({ message: '지원하지 않는 프로바이더입니다' })
     }
   }
 
@@ -333,15 +336,15 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: '공개 포트폴리오 페이지용 사용자 프로필 조회 (username)' })
   getUserPortfolio(@Param('username') username: string) {
-    return this.authService.getPublicPortfolio(username);
+    return this.authService.getPublicPortfolio(username)
   }
 
   @Get('users/search')
   @Throttle({ short: { limit: 30, ttl: 60000 } })
   @ApiOperation({ summary: '사용자 검색 (이력서 공유 등 ≤10건, name/username/email prefix)' })
   searchUsers(@Req() req: AuthenticatedRequest, @Query('q') q?: string) {
-    if (!req.user?.id) return [];
-    return this.authService.searchUsers(req.user.id, q || '');
+    if (!req.user?.id) return []
+    return this.authService.searchUsers(req.user.id, q || '')
   }
 
   // ---- 내 정보 ----
@@ -350,31 +353,31 @@ export class AuthController {
   @ApiResponse({ status: 200, description: '프로필 정보 반환 (passwordHash 미포함)' })
   @ApiResponse({ status: 401, description: '인증 필요' })
   getProfile(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) return null;
-    return this.authService.getProfile(req.user.id);
+    if (!req.user?.id) return null
+    return this.authService.getProfile(req.user.id)
   }
 
   @Post('avatar')
   @ApiOperation({ summary: '프로필 이미지 업로드 (Cloudinary, 최대 5MB)' })
   @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
   async uploadAvatar(@UploadedFile() file: Express.Multer.File, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
-    if (!file) throw new BadRequestException('파일이 필요합니다');
-    return this.authService.uploadAvatar(req.user.id, file);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다')
+    if (!file) throw new BadRequestException('파일이 필요합니다')
+    return this.authService.uploadAvatar(req.user.id, file)
   }
 
   @Patch('avatar/preset')
   @ApiOperation({ summary: '프로필 preset 아바타 선택 (URL 직접 지정)' })
   async setPresetAvatar(@Body('avatar') avatar: string, @Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
-    return this.authService.setPresetAvatar(req.user.id, avatar);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다')
+    return this.authService.setPresetAvatar(req.user.id, avatar)
   }
 
   @Delete('avatar')
   @ApiOperation({ summary: '프로필 이미지 삭제 (이니셜 fallback 으로 복귀)' })
   async deleteAvatar(@Req() req: AuthenticatedRequest) {
-    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다');
-    return this.authService.deleteAvatar(req.user.id);
+    if (!req.user?.id) throw new UnauthorizedException('로그인이 필요합니다')
+    return this.authService.deleteAvatar(req.user.id)
   }
 
   @Patch('profile')
@@ -385,17 +388,17 @@ export class AuthController {
   async updateProfile(
     @Body() body: UpdateProfileDto,
     @Req() req: AuthenticatedRequest,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     try {
       if (!req.user?.id) {
-        res.status(401).json({ message: '로그인이 필요합니다' });
-        return;
+        res.status(401).json({ message: '로그인이 필요합니다' })
+        return
       }
-      const updated = await this.authService.updateProfile(req.user.id, body);
-      res.json(updated);
+      const updated = await this.authService.updateProfile(req.user.id, body)
+      res.json(updated)
     } catch (e: unknown) {
-      res.status(400).json({ message: getErrorMessage(e, '프로필 수정에 실패했습니다') });
+      res.status(400).json({ message: getErrorMessage(e, '프로필 수정에 실패했습니다') })
     }
   }
 
@@ -404,8 +407,8 @@ export class AuthController {
   @Get('admin/users')
   @ApiOperation({ summary: '전체 사용자 목록 (관리자)' })
   async getAllUsers(@Req() req: AuthenticatedRequest, @Query('search') search?: string) {
-    if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') return [];
-    return this.authService.getAllUsers(search);
+    if (req.user?.role !== 'admin' && req.user?.role !== 'superadmin') return []
+    return this.authService.getAllUsers(search)
   }
 
   @Post('admin/users/:userId/role')
@@ -414,13 +417,13 @@ export class AuthController {
     @Param('userId') userId: string,
     @Body('role') role: string,
     @Req() req: AuthenticatedRequest,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     try {
-      const result = await this.authService.setUserRole(requireRequestUserId(req), userId, role);
-      res.json(result);
+      const result = await this.authService.setUserRole(requireRequestUserId(req), userId, role)
+      res.json(result)
     } catch (e: unknown) {
-      res.status(403).json({ message: getErrorMessage(e, '권한이 없습니다') });
+      res.status(403).json({ message: getErrorMessage(e, '권한이 없습니다') })
     }
   }
 
@@ -431,13 +434,13 @@ export class AuthController {
     @Param('userId') userId: string,
     @Body('role') role: string,
     @Req() req: AuthenticatedRequest,
-    @Res() res: Response,
+    @Res() res: Response
   ) {
     try {
-      const result = await this.authService.setUserRole(requireRequestUserId(req), userId, role);
-      res.json(result);
+      const result = await this.authService.setUserRole(requireRequestUserId(req), userId, role)
+      res.json(result)
     } catch (e: unknown) {
-      res.status(403).json({ message: getErrorMessage(e, '권한이 없습니다') });
+      res.status(403).json({ message: getErrorMessage(e, '권한이 없습니다') })
     }
   }
 
@@ -445,21 +448,21 @@ export class AuthController {
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: '[관리자] 사용자 계정 정지' })
   async suspendUser(@Param('userId') userId: string) {
-    return this.authService.setSuspended(userId, true);
+    return this.authService.setSuspended(userId, true)
   }
 
   @Patch('admin/users/:userId/resume')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: '[관리자] 사용자 계정 정지 해제' })
   async resumeUser(@Param('userId') userId: string) {
-    return this.authService.setSuspended(userId, false);
+    return this.authService.setSuspended(userId, false)
   }
 
   @Delete('admin/users/:userId')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: '[관리자] 사용자 탈퇴 처리' })
   async adminDeleteUser(@Param('userId') userId: string) {
-    await this.authService.adminDeleteUser(userId);
-    return { success: true };
+    await this.authService.adminDeleteUser(userId)
+    return { success: true }
   }
 }

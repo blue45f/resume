@@ -1,17 +1,19 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { handleAuthCallback } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { API_URL } from '@/lib/config';
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
-type UserType = 'personal' | 'recruiter' | 'company';
+import { handleAuthCallback } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
+
+type UserType = 'personal' | 'recruiter' | 'company'
 
 const USER_TYPES: {
-  value: UserType;
-  label: string;
-  desc: string;
-  icon: string;
-  features: string[];
+  value: UserType
+  label: string
+  desc: string
+  icon: string
+  features: string[]
 }[] = [
   {
     value: 'personal',
@@ -49,57 +51,57 @@ const USER_TYPES: {
       '채용공고 대량 등록',
     ],
   },
-];
+]
 
 export default function AuthCallbackPage() {
-  const navigate = useNavigate();
-  const [params] = useSearchParams();
-  const token = params.get('token');
-  const [error, setError] = useState(token ? '' : '인증 토큰이 없습니다');
-  const [showTypeSelect, setShowTypeSelect] = useState(false);
-  const [selectedType, setSelectedType] = useState<UserType>('personal');
-  const [saving, setSaving] = useState(false);
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const token = params.get('token')
+  const [error, setError] = useState(token ? '' : '인증 토큰이 없습니다')
+  const [showTypeSelect, setShowTypeSelect] = useState(false)
+  const [selectedType, setSelectedType] = useState<UserType>('personal')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) return
 
     handleAuthCallback(token)
       .then((user) => {
-        const created = new Date(user.createdAt || 0);
-        const isNew = Date.now() - created.getTime() < 60_000;
+        const created = new Date(user.createdAt || 0)
+        const isNew = Date.now() - created.getTime() < 60_000
         if (isNew && user.userType === 'personal') {
-          setShowTypeSelect(true);
+          setShowTypeSelect(true)
         } else {
-          navigate(ROUTES.home);
+          navigate(ROUTES.home)
         }
       })
       .catch(() => {
-        setError('인증에 실패했습니다');
-        setTimeout(() => navigate(ROUTES.login), 2000);
-      });
-  }, [token, navigate]);
+        setError('인증에 실패했습니다')
+        setTimeout(() => navigate(ROUTES.login), 2000)
+      })
+  }, [token, navigate])
 
   const handleSelectType = async () => {
-    setSaving(true);
+    setSaving(true)
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token')
       if (token && selectedType !== 'personal') {
-        await fetch(`${API_URL}/api/auth/profile`, {
+        await httpClient(`${API_URL}/api/auth/profile`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ userType: selectedType }),
-        });
-        const me = await fetch(`${API_URL}/api/auth/me`, {
+        })
+        const me = await httpClient(`${API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
-        });
+        })
         if (me.ok) {
-          const user = await me.json();
-          localStorage.setItem('user', JSON.stringify(user));
+          const user = await me.json()
+          localStorage.setItem('user', JSON.stringify(user))
         }
       }
     } catch {}
-    navigate(ROUTES.home);
-  };
+    navigate(ROUTES.home)
+  }
 
   if (showTypeSelect) {
     return (
@@ -190,7 +192,7 @@ export default function AuthCallbackPage() {
           </p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -212,5 +214,5 @@ export default function AuthCallbackPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

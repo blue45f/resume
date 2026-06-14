@@ -22,26 +22,26 @@ const WEAK_TO_STRONG: Record<string, string[]> = {
   겪었: ['경험했', '돌파했', '학습했'],
   진행: ['주도', '기획·실행', '추진'],
   노력: ['실행', '달성', '추진'],
-};
+}
 
 export interface VerbReplacementSuggestion {
-  weak: string;
-  index: number;
-  alternatives: string[];
+  weak: string
+  index: number
+  alternatives: string[]
 }
 
 export function suggestVerbReplacements(text: string): VerbReplacementSuggestion[] {
-  const t = text ?? '';
-  const results: VerbReplacementSuggestion[] = [];
+  const t = text ?? ''
+  const results: VerbReplacementSuggestion[] = []
   for (const [weak, alts] of Object.entries(WEAK_TO_STRONG)) {
-    const re = new RegExp(weak, 'g');
-    let m: RegExpExecArray | null;
+    const re = new RegExp(weak, 'g')
+    let m: RegExpExecArray | null
     while ((m = re.exec(t))) {
-      results.push({ weak, index: m.index, alternatives: alts });
+      results.push({ weak, index: m.index, alternatives: alts })
     }
   }
-  results.sort((a, b) => a.index - b.index);
-  return results.slice(0, 40);
+  results.sort((a, b) => a.index - b.index)
+  return results.slice(0, 40)
 }
 
 /**
@@ -61,23 +61,23 @@ const SYNONYM_MAP: Record<string, string[]> = {
   개선: ['업그레이드', '고도화', '최적화', '향상'],
   능력: ['역량', '스킬', '전문성', '숙련'],
   노력: ['실행', '추진', '몰입', '집중'],
-};
+}
 
 export interface SynonymSuggestion {
-  word: string;
-  alternatives: string[];
+  word: string
+  alternatives: string[]
 }
 
 export function suggestSynonyms(word: string): SynonymSuggestion {
-  const w = (word ?? '').trim();
-  const alt = SYNONYM_MAP[w];
-  return { word: w, alternatives: alt ?? [] };
+  const w = (word ?? '').trim()
+  const alt = SYNONYM_MAP[w]
+  return { word: w, alternatives: alt ?? [] }
 }
 
 export interface OveruseWithSynonyms {
-  word: string;
-  count: number;
-  alternatives: string[];
+  word: string
+  count: number
+  alternatives: string[]
 }
 
 /**
@@ -85,16 +85,16 @@ export interface OveruseWithSynonyms {
  * analyzeRedundancy 와 연동해 "반복 단어 + 대안 제안" 한 번에 보여주기.
  */
 export function suggestSynonymsForOveruse(text: string, minCount = 3): OveruseWithSynonyms[] {
-  const t = text ?? '';
-  const results: OveruseWithSynonyms[] = [];
+  const t = text ?? ''
+  const results: OveruseWithSynonyms[] = []
   for (const [word, alternatives] of Object.entries(SYNONYM_MAP)) {
-    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const re = new RegExp(escaped, 'g');
-    const matches = t.match(re);
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const re = new RegExp(escaped, 'g')
+    const matches = t.match(re)
     if (matches && matches.length >= minCount) {
-      results.push({ word, count: matches.length, alternatives });
+      results.push({ word, count: matches.length, alternatives })
     }
   }
-  results.sort((a, b) => b.count - a.count);
-  return results.slice(0, 10);
+  results.sort((a, b) => b.count - a.count)
+  return results.slice(0, 10)
 }

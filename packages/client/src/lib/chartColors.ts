@@ -18,13 +18,13 @@ export const CHART_COLORS = [
   '#10b981', // emerald-500
   '#f59e0b', // amber-500
   '#f43f5e', // rose-500
-] as const;
+] as const
 
-export type ChartColorIndex = 0 | 1 | 2 | 3 | 4;
+export type ChartColorIndex = 0 | 1 | 2 | 3 | 4
 
 /** Cycle through colors for arbitrary-length data sets */
 export function pickChartColor(i: number): string {
-  return CHART_COLORS[((i % CHART_COLORS.length) + CHART_COLORS.length) % CHART_COLORS.length];
+  return CHART_COLORS[((i % CHART_COLORS.length) + CHART_COLORS.length) % CHART_COLORS.length]
 }
 
 /** Semantic accessors for status-based charts */
@@ -34,4 +34,4 @@ export const CHART_SEMANTIC = {
   success: CHART_COLORS[2],
   warning: CHART_COLORS[3],
   danger: CHART_COLORS[4],
-} as const;
+} as const

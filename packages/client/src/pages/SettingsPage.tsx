@@ -1,36 +1,38 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import * as RadixAlertDialog from '@radix-ui/react-alert-dialog';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import AvatarEditor from '@/components/AvatarEditor';
-import { FieldError, fieldAria } from '@/shared/ui/FieldError';
-import { toast } from '@/components/Toast';
-import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import ProfileBadges from '@/components/ProfileBadges';
-import { getPlan } from '@/lib/plans';
-import { getTheme, setTheme } from '@/lib/theme';
-import { API_URL } from '@/lib/config';
-import { tx } from '@/lib/i18n';
-import { formatDate } from '@/lib/time';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as RadixAlertDialog from '@radix-ui/react-alert-dialog'
+import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { useNavigate, Link } from 'react-router-dom'
+import { z } from 'zod'
+
+import AvatarEditor from '@/components/AvatarEditor'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import ProfileBadges from '@/components/ProfileBadges'
+import { toast } from '@/components/Toast'
+import { useDashboard, useUsage } from '@/hooks/useResources'
 import {
   changePassword as apiChangePassword,
   deleteAccount as apiDeleteAccount,
   updateProfile as apiUpdateProfile,
-} from '@/lib/api';
-import { useDashboard, useUsage } from '@/hooks/useResources';
-import { getErrorMessage } from '@/lib/errorMessage';
+} from '@/lib/api'
+import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
+import { getPlan } from '@/lib/plans'
+import { ROUTES } from '@/lib/routes'
+import { getTheme, setTheme } from '@/lib/theme'
+import { formatDate } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
+import { FieldError, fieldAria } from '@/shared/ui/FieldError'
 
 /* ── Zod 스키마 ───────────────────────────────── */
 const nameSchema = z.object({
   name: z.string().trim().min(1, '이름을 입력해주세요').max(50, '이름은 50자 이하여야 합니다'),
-});
-type NameFormData = z.infer<typeof nameSchema>;
+})
+type NameFormData = z.infer<typeof nameSchema>
 
 const usernameSchema = z.object({
   username: z
@@ -39,8 +41,8 @@ const usernameSchema = z.object({
     .min(3, '3자 이상 입력해주세요')
     .max(20, '20자 이하여야 합니다')
     .regex(/^[a-z0-9_-]+$/, '영문 소문자, 숫자, -, _ 만 사용 가능합니다'),
-});
-type UsernameFormData = z.infer<typeof usernameSchema>;
+})
+type UsernameFormData = z.infer<typeof usernameSchema>
 
 const passwordSchema = z
   .object({
@@ -55,46 +57,46 @@ const passwordSchema = z
   .refine((data) => data.currentPassword !== data.newPassword, {
     message: '새 비밀번호는 현재 비밀번호와 달라야 합니다',
     path: ['newPassword'],
-  });
-type PasswordFormData = z.infer<typeof passwordSchema>;
+  })
+type PasswordFormData = z.infer<typeof passwordSchema>
 
 interface DashboardRecentVersion {
-  versionNumber?: number;
-  createdAt: string;
+  versionNumber?: number
+  createdAt: string
 }
 
 interface DashboardResumeActivity {
-  title?: string;
-  viewCount?: number;
-  updatedAt: string;
+  title?: string
+  viewCount?: number
+  updatedAt: string
 }
 
 interface DashboardActivityData {
-  recentVersions?: DashboardRecentVersion[];
-  resumes?: DashboardResumeActivity[];
+  recentVersions?: DashboardRecentVersion[]
+  resumes?: DashboardResumeActivity[]
 }
 
 interface RecentActivity {
-  type: 'edit' | 'resume';
-  desc: string;
-  date: string;
+  type: 'edit' | 'resume'
+  desc: string
+  date: string
 }
 
-type NotificationPreferenceKey = 'email' | 'scout' | 'comment';
+type NotificationPreferenceKey = 'email' | 'scout' | 'comment'
 
-type NotificationPreferences = Record<NotificationPreferenceKey, boolean>;
+type NotificationPreferences = Record<NotificationPreferenceKey, boolean>
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   email: true,
   scout: true,
   comment: true,
-};
+}
 
 function readNotificationPreferences(): NotificationPreferences {
   try {
-    const parsed = JSON.parse(localStorage.getItem('notification-prefs') || 'null') as unknown;
-    if (!parsed || typeof parsed !== 'object') return DEFAULT_NOTIFICATION_PREFERENCES;
-    const saved = parsed as Partial<Record<NotificationPreferenceKey, unknown>>;
+    const parsed = JSON.parse(localStorage.getItem('notification-prefs') || 'null') as unknown
+    if (!parsed || typeof parsed !== 'object') return DEFAULT_NOTIFICATION_PREFERENCES
+    const saved = parsed as Partial<Record<NotificationPreferenceKey, unknown>>
     return {
       email:
         typeof saved.email === 'boolean' ? saved.email : DEFAULT_NOTIFICATION_PREFERENCES.email,
@@ -104,42 +106,42 @@ function readNotificationPreferences(): NotificationPreferences {
         typeof saved.comment === 'boolean'
           ? saved.comment
           : DEFAULT_NOTIFICATION_PREFERENCES.comment,
-    };
+    }
   } catch {
-    return DEFAULT_NOTIFICATION_PREFERENCES;
+    return DEFAULT_NOTIFICATION_PREFERENCES
   }
 }
 
 /* ── 최근 활동 ───────────────────────────────────── */
 function RecentActivityList() {
-  const { data: dashData } = useDashboard();
+  const { data: dashData } = useDashboard()
 
   const activities: RecentActivity[] = (() => {
-    const dashboard = dashData as DashboardActivityData | undefined;
-    if (!dashboard) return [];
-    const acts: RecentActivity[] = [];
+    const dashboard = dashData as DashboardActivityData | undefined
+    if (!dashboard) return []
+    const acts: RecentActivity[] = []
     for (const v of dashboard.recentVersions || []) {
       acts.push({
         type: 'edit',
         desc: `이력서 버전 ${v.versionNumber} 저장`,
         date: v.createdAt,
-      });
+      })
     }
     for (const r of dashboard.resumes?.slice(0, 3) || []) {
       acts.push({
         type: 'resume',
         desc: `"${r.title}" 조회 ${r.viewCount}회`,
         date: r.updatedAt,
-      });
+      })
     }
-    acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return acts.slice(0, 8);
-  })();
+    acts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    return acts.slice(0, 8)
+  })()
 
   if (activities.length === 0)
-    return <p className="text-sm text-slate-400 text-center py-4">최근 활동이 없습니다</p>;
+    return <p className="text-sm text-slate-400 text-center py-4">최근 활동이 없습니다</p>
 
-  const icons: Record<string, string> = { edit: '✏️', resume: '📄', transform: '🤖' };
+  const icons: Record<string, string> = { edit: '✏️', resume: '📄', transform: '🤖' }
 
   return (
     <div className="space-y-2">
@@ -158,18 +160,18 @@ function RecentActivityList() {
         </div>
       ))}
     </div>
-  );
+  )
 }
 
 /* ── 콜랩서블 섹션 ───────────────────────────────── */
 interface SectionProps {
-  id: string;
-  icon: string;
-  title: string;
-  open: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-  danger?: boolean;
+  id: string
+  icon: string
+  title: string
+  open: boolean
+  onToggle: () => void
+  children: React.ReactNode
+  danger?: boolean
 }
 
 function CollapsibleSection({
@@ -182,7 +184,7 @@ function CollapsibleSection({
   danger,
   hidden,
 }: SectionProps & { hidden?: boolean }) {
-  if (hidden) return null;
+  if (hidden) return null
 
   return (
     <section
@@ -227,7 +229,7 @@ function CollapsibleSection({
         </div>
       </div>
     </section>
-  );
+  )
 }
 
 /* ── 빠른 탐색 ───────────────────────────────────── */
@@ -247,220 +249,220 @@ const NAV_ITEMS = [
   { id: 'sec-theme', label: '테마', keywords: '테마 다크 라이트 모드 색상 dark light' },
   { id: 'sec-data', label: '데이터', keywords: '데이터 내보내기 다운로드 백업 export' },
   { id: 'sec-danger', label: '삭제', keywords: '계정 삭제 탈퇴 회원탈퇴 계정삭제' },
-];
+]
 
 /* ══════════════════════════════════════════════════ */
 export default function SettingsPage() {
-  const navigate = useNavigate();
-  const user = getUser();
-  const confirm = useConfirm();
+  const navigate = useNavigate()
+  const user = getUser()
+  const confirm = useConfirm()
 
   /* ── 상태 ── */
   const [openSections, setOpenSections] = useState<Set<string>>(
-    new Set(['sec-profile', 'sec-usertype', 'sec-subscription']),
-  );
-  const [editingName, setEditingName] = useState(false);
-  const [editingUsername, setEditingUsername] = useState(false);
+    new Set(['sec-profile', 'sec-usertype', 'sec-subscription'])
+  )
+  const [editingName, setEditingName] = useState(false)
+  const [editingUsername, setEditingUsername] = useState(false)
 
   /* ── RHF: 이름 ── */
   const nameForm = useForm<NameFormData>({
     resolver: zodResolver(nameSchema),
     defaultValues: { name: user?.name || '' },
-  });
+  })
 
   /* ── RHF: 사용자명 ── */
   const usernameForm = useForm<UsernameFormData>({
     resolver: zodResolver(usernameSchema),
     defaultValues: { username: user?.username || '' },
-  });
+  })
 
   /* ── RHF: 비밀번호 ── */
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
     defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
-  });
+  })
 
-  const { data: usageData } = useUsage();
+  const { data: usageData } = useUsage()
   const usage: { feature: string; count: number }[] =
-    (usageData as { feature: string; count: number }[] | undefined) ?? [];
-  const [userType, setUserType] = useState(user?.userType || 'personal');
-  const [switchingType, setSwitchingType] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState(getTheme());
-  const [isOpenToWork, setIsOpenToWork] = useState(user?.isOpenToWork || false);
-  const [openToWorkRoles, setOpenToWorkRoles] = useState(user?.openToWorkRoles || '');
-  const [savingOpenToWork, setSavingOpenToWork] = useState(false);
+    (usageData as { feature: string; count: number }[] | undefined) ?? []
+  const [userType, setUserType] = useState(user?.userType || 'personal')
+  const [switchingType, setSwitchingType] = useState(false)
+  const [currentTheme, setCurrentTheme] = useState(getTheme())
+  const [isOpenToWork, setIsOpenToWork] = useState(user?.isOpenToWork || false)
+  const [openToWorkRoles, setOpenToWorkRoles] = useState(user?.openToWorkRoles || '')
+  const [savingOpenToWork, setSavingOpenToWork] = useState(false)
 
   const [notifications, setNotifications] = useState<NotificationPreferences>(
-    readNotificationPreferences,
-  );
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [settingsSearch, setSettingsSearch] = useState('');
+    readNotificationPreferences
+  )
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [settingsSearch, setSettingsSearch] = useState('')
 
   /* ── 초기화 ── */
   useEffect(() => {
-    if (!user) navigate(ROUTES.login);
-  }, [user, navigate]);
+    if (!user) navigate(ROUTES.login)
+  }, [user, navigate])
 
   useEffect(() => {
-    document.title = '설정 — 이력서공방';
+    document.title = '설정 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   /* ── 헬퍼 ── */
   const toggleSection = (id: string) => {
     setOpenSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const isSectionVisible = (id: string) => {
-    if (!settingsSearch.trim()) return true;
-    const q = settingsSearch.toLowerCase();
-    const item = NAV_ITEMS.find((n) => n.id === id);
+    if (!settingsSearch.trim()) return true
+    const q = settingsSearch.toLowerCase()
+    const item = NAV_ITEMS.find((n) => n.id === id)
     return item
       ? item.label.toLowerCase().includes(q) || item.keywords.toLowerCase().includes(q)
-      : true;
-  };
+      : true
+  }
 
   const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
+    const el = document.getElementById(id)
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
       // 닫혀 있으면 열기
-      if (!openSections.has(id)) toggleSection(id);
+      if (!openSections.has(id)) toggleSection(id)
     }
-  };
+  }
 
   /* ── 핸들러 ── */
   const onSaveName = nameForm.handleSubmit(async (values) => {
     try {
-      const token = getToken();
-      const res = await fetch(`${API_URL}/api/auth/profile`, {
+      const token = getToken()
+      const res = await httpClient(`${API_URL}/api/auth/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ name: values.name.trim() }),
-      });
-      if (!res.ok) throw new Error();
-      const updated = await res.json();
-      if (token) setAuth(token, updated);
-      setEditingName(false);
-      toast('이름이 변경되었습니다', 'success');
+      })
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      if (token) setAuth(token, updated)
+      setEditingName(false)
+      toast('이름이 변경되었습니다', 'success')
     } catch {
-      toast('이름 변경에 실패했습니다', 'error');
+      toast('이름 변경에 실패했습니다', 'error')
     }
-  });
+  })
 
   const onSaveUsername = usernameForm.handleSubmit(async (values) => {
-    const cleaned = values.username.trim().toLowerCase();
+    const cleaned = values.username.trim().toLowerCase()
     try {
-      const token = getToken();
-      const res = await fetch(`${API_URL}/api/auth/profile`, {
+      const token = getToken()
+      const res = await httpClient(`${API_URL}/api/auth/profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ username: cleaned }),
-      });
+      })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || '사용자명 변경에 실패했습니다');
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.message || '사용자명 변경에 실패했습니다')
       }
-      const updated = await res.json();
-      if (token) setAuth(token, updated);
-      usernameForm.reset({ username: cleaned });
-      setEditingUsername(false);
-      toast('포트폴리오 URL이 설정되었습니다', 'success');
+      const updated = await res.json()
+      if (token) setAuth(token, updated)
+      usernameForm.reset({ username: cleaned })
+      setEditingUsername(false)
+      toast('포트폴리오 URL이 설정되었습니다', 'success')
     } catch (err: unknown) {
       usernameForm.setError('username', {
         message: getErrorMessage(err, '사용자명 변경에 실패했습니다'),
-      });
+      })
     }
-  });
+  })
 
   const onChangePassword = passwordForm.handleSubmit(async (values) => {
     try {
-      await apiChangePassword(values.currentPassword, values.newPassword);
-      toast('비밀번호가 변경되었습니다', 'success');
-      passwordForm.reset();
+      await apiChangePassword(values.currentPassword, values.newPassword)
+      toast('비밀번호가 변경되었습니다', 'success')
+      passwordForm.reset()
     } catch (err: unknown) {
-      toast(getErrorMessage(err, '비밀번호 변경에 실패했습니다'), 'error');
+      toast(getErrorMessage(err, '비밀번호 변경에 실패했습니다'), 'error')
     }
-  });
+  })
 
   const handleDeleteAccount = async () => {
     try {
-      await apiDeleteAccount();
-      clearAuth();
-      toast('계정이 삭제되었습니다', 'info');
-      navigate(ROUTES.home);
-      window.location.reload();
+      await apiDeleteAccount()
+      clearAuth()
+      toast('계정이 삭제되었습니다', 'info')
+      navigate(ROUTES.home)
+      window.location.reload()
     } catch (err: unknown) {
-      toast(getErrorMessage(err, '계정 삭제에 실패했습니다'), 'error');
+      toast(getErrorMessage(err, '계정 삭제에 실패했습니다'), 'error')
     }
-  };
+  }
 
   const handleNotificationToggle = (key: NotificationPreferenceKey) => {
-    const updated = { ...notifications, [key]: !notifications[key] };
-    setNotifications(updated);
-    localStorage.setItem('notification-prefs', JSON.stringify(updated));
+    const updated = { ...notifications, [key]: !notifications[key] }
+    setNotifications(updated)
+    localStorage.setItem('notification-prefs', JSON.stringify(updated))
     if (getToken()) {
       const profilePatch: Parameters<typeof apiUpdateProfile>[0] &
-        Partial<NotificationPreferences> = updated;
-      apiUpdateProfile(profilePatch).catch(() => {});
+        Partial<NotificationPreferences> = updated
+      apiUpdateProfile(profilePatch).catch(() => {})
     }
-    toast('알림 설정이 저장되었습니다', 'success');
-  };
+    toast('알림 설정이 저장되었습니다', 'success')
+  }
 
   const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
-    setTheme(theme);
-    setCurrentTheme(theme);
+    setTheme(theme)
+    setCurrentTheme(theme)
     toast(
       `${theme === 'light' ? '라이트' : theme === 'dark' ? '다크' : '시스템'} 테마가 적용되었습니다`,
-      'success',
-    );
-  };
+      'success'
+    )
+  }
 
   const handleExportData = async () => {
     try {
-      const { fetchResumes, fetchApplications } = await import('@/lib/api');
-      const [resumes, apps] = await Promise.all([fetchResumes(), fetchApplications()]);
+      const { fetchResumes, fetchApplications } = await import('@/lib/api')
+      const [resumes, apps] = await Promise.all([fetchResumes(), fetchApplications()])
       const data = {
         exportDate: new Date().toISOString(),
         user: { name: user?.name, email: user?.email },
         resumes,
         applications: apps,
         notificationPreferences: notifications,
-      };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `이력서공방_데이터_${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast('데이터가 다운로드되었습니다', 'success');
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `이력서공방_데이터_${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast('데이터가 다운로드되었습니다', 'success')
     } catch {
-      toast('다운로드에 실패했습니다', 'error');
+      toast('다운로드에 실패했습니다', 'error')
     }
-  };
+  }
 
-  if (!user) return null;
+  if (!user) return null
 
   const inputClass =
-    'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500';
+    'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
   const isDark =
     currentTheme === 'dark' ||
-    (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
 
   return (
     <>
@@ -478,7 +480,7 @@ export default function SettingsPage() {
           <button
             onClick={() =>
               setOpenSections((prev) =>
-                prev.size > 0 ? new Set() : new Set(NAV_ITEMS.map((n) => n.id)),
+                prev.size > 0 ? new Set() : new Set(NAV_ITEMS.map((n) => n.id))
               )
             }
             className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
@@ -506,13 +508,13 @@ export default function SettingsPage() {
             type="text"
             value={settingsSearch}
             onChange={(e) => {
-              setSettingsSearch(e.target.value);
+              setSettingsSearch(e.target.value)
               if (e.target.value.trim()) {
-                const q = e.target.value.toLowerCase();
+                const q = e.target.value.toLowerCase()
                 const matching = NAV_ITEMS.filter(
-                  (n) => n.label.toLowerCase().includes(q) || n.keywords.toLowerCase().includes(q),
-                );
-                setOpenSections(new Set(matching.map((n) => n.id)));
+                  (n) => n.label.toLowerCase().includes(q) || n.keywords.toLowerCase().includes(q)
+                )
+                setOpenSections(new Set(matching.map((n) => n.id)))
               }
             }}
             placeholder="설정 검색... (예: 비밀번호, 테마, 알림)"
@@ -539,9 +541,9 @@ export default function SettingsPage() {
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
           {NAV_ITEMS.filter((n) => n.id !== 'sec-password' || user.provider === 'local')
             .filter((n) => {
-              if (!settingsSearch.trim()) return true;
-              const q = settingsSearch.toLowerCase();
-              return n.label.toLowerCase().includes(q) || n.keywords.toLowerCase().includes(q);
+              if (!settingsSearch.trim()) return true
+              const q = settingsSearch.toLowerCase()
+              return n.label.toLowerCase().includes(q) || n.keywords.toLowerCase().includes(q)
             })
             .map((item) => (
               <button
@@ -572,9 +574,9 @@ export default function SettingsPage() {
               fallbackInitial={(user.name || user.email || '?')[0].toUpperCase()}
               onChange={(newAvatar) => {
                 // user state 업데이트 (auth.ts saveUser 통해 localStorage 동기화)
-                const updated = { ...user, avatar: newAvatar };
-                localStorage.setItem('user', JSON.stringify(updated));
-                window.location.reload();
+                const updated = { ...user, avatar: newAvatar }
+                localStorage.setItem('user', JSON.stringify(updated))
+                window.location.reload()
               }}
             />
           </div>
@@ -591,8 +593,8 @@ export default function SettingsPage() {
                       {...fieldAria('settings-name', nameForm.formState.errors.name)}
                       onKeyDown={(e) => {
                         if (e.key === 'Escape') {
-                          setEditingName(false);
-                          nameForm.reset({ name: user.name || '' });
+                          setEditingName(false)
+                          nameForm.reset({ name: user.name || '' })
                         }
                       }}
                       className="flex-1 px-3 py-1.5 border border-sky-400 rounded-lg text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
@@ -608,8 +610,8 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        setEditingName(false);
-                        nameForm.reset({ name: user.name || '' });
+                        setEditingName(false)
+                        nameForm.reset({ name: user.name || '' })
                       }}
                       className="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded-lg"
                     >
@@ -654,8 +656,8 @@ export default function SettingsPage() {
                   {!editingUsername && (
                     <button
                       onClick={() => {
-                        setEditingUsername(true);
-                        usernameForm.reset({ username: user?.username || '' });
+                        setEditingUsername(true)
+                        usernameForm.reset({ username: user?.username || '' })
                       }}
                       className="text-xs text-sky-700 dark:text-sky-400 hover:underline"
                     >
@@ -673,14 +675,14 @@ export default function SettingsPage() {
                         type="text"
                         {...usernameForm.register('username', {
                           onChange: (e) => {
-                            e.target.value = e.target.value.toLowerCase();
+                            e.target.value = e.target.value.toLowerCase()
                           },
                         })}
                         {...fieldAria('settings-username', usernameForm.formState.errors.username)}
                         onKeyDown={(e) => {
                           if (e.key === 'Escape') {
-                            setEditingUsername(false);
-                            usernameForm.clearErrors();
+                            setEditingUsername(false)
+                            usernameForm.clearErrors()
                           }
                         }}
                         placeholder="my-username"
@@ -697,8 +699,8 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => {
-                          setEditingUsername(false);
-                          usernameForm.clearErrors();
+                          setEditingUsername(false)
+                          usernameForm.clearErrors()
                         }}
                         className="px-2 py-1 text-xs text-slate-500 hover:text-slate-700"
                       >
@@ -829,19 +831,19 @@ export default function SettingsPage() {
                 },
               ] as const
             ).map((opt) => {
-              const isActive = userType === opt.value;
+              const isActive = userType === opt.value
               return (
                 <button
                   key={opt.value}
                   onClick={async () => {
-                    if (isActive || switchingType) return;
+                    if (isActive || switchingType) return
                     if (opt.value === 'coach') {
-                      window.location.href = '/coach/profile';
-                      return;
+                      window.location.href = '/coach/profile'
+                      return
                     }
                     if (opt.value === 'company' && !user?.companyName) {
-                      toast('기업 전환은 회사명을 먼저 입력해주세요', 'info');
-                      return;
+                      toast('기업 전환은 회사명을 먼저 입력해주세요', 'info')
+                      return
                     }
                     // recruiter/company 전환 시 개인정보 보호 경고
                     if (opt.value === 'recruiter' || opt.value === 'company') {
@@ -853,29 +855,29 @@ export default function SettingsPage() {
                           '그래도 계속 전환하시겠습니까?',
                         danger: true,
                         confirmText: '계속',
-                      });
-                      if (!warn) return;
+                      })
+                      if (!warn) return
                     }
-                    setSwitchingType(true);
+                    setSwitchingType(true)
                     try {
-                      const token = getToken();
-                      const res = await fetch(`${API_URL}/api/auth/profile`, {
+                      const token = getToken()
+                      const res = await httpClient(`${API_URL}/api/auth/profile`, {
                         method: 'PATCH',
                         headers: {
                           'Content-Type': 'application/json',
                           ...(token ? { Authorization: `Bearer ${token}` } : {}),
                         },
                         body: JSON.stringify({ userType: opt.value }),
-                      });
-                      if (!res.ok) throw new Error();
-                      const updated = await res.json();
-                      if (token) setAuth(token, updated);
-                      setUserType(opt.value);
-                      toast(`${opt.label} 모드로 전환되었습니다`, 'success');
+                      })
+                      if (!res.ok) throw new Error()
+                      const updated = await res.json()
+                      if (token) setAuth(token, updated)
+                      setUserType(opt.value)
+                      toast(`${opt.label} 모드로 전환되었습니다`, 'success')
                     } catch {
-                      toast('모드 전환에 실패했습니다', 'error');
+                      toast('모드 전환에 실패했습니다', 'error')
                     } finally {
-                      setSwitchingType(false);
+                      setSwitchingType(false)
                     }
                   }}
                   disabled={switchingType}
@@ -906,7 +908,7 @@ export default function SettingsPage() {
                     </p>
                   )}
                 </button>
-              );
+              )
             })}
           </div>
         </CollapsibleSection>
@@ -954,10 +956,14 @@ export default function SettingsPage() {
 
               {isOpenToWork && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5">
+                  <label
+                    htmlFor="settingspage-field-1"
+                    className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1.5"
+                  >
                     희망 직무 (쉼표로 구분)
                   </label>
                   <input
+                    id="settingspage-field-1"
                     type="text"
                     value={openToWorkRoles}
                     onChange={(e) => setOpenToWorkRoles(e.target.value)}
@@ -969,30 +975,30 @@ export default function SettingsPage() {
 
               <button
                 onClick={async () => {
-                  setSavingOpenToWork(true);
+                  setSavingOpenToWork(true)
                   try {
-                    const token = getToken();
-                    const res = await fetch(`${API_URL}/api/auth/profile`, {
+                    const token = getToken()
+                    const res = await httpClient(`${API_URL}/api/auth/profile`, {
                       method: 'PATCH',
                       headers: {
                         'Content-Type': 'application/json',
                         ...(token ? { Authorization: `Bearer ${token}` } : {}),
                       },
                       body: JSON.stringify({ isOpenToWork, openToWorkRoles }),
-                    });
-                    if (!res.ok) throw new Error();
-                    const updated = await res.json();
-                    if (token) setAuth(token, { ...user, ...updated });
+                    })
+                    if (!res.ok) throw new Error()
+                    const updated = await res.json()
+                    if (token) setAuth(token, { ...user, ...updated })
                     toast(
                       isOpenToWork
                         ? '구직 중 상태로 설정되었습니다'
                         : '구직 중 상태가 해제되었습니다',
-                      'success',
-                    );
+                      'success'
+                    )
                   } catch {
-                    toast('저장에 실패했습니다', 'error');
+                    toast('저장에 실패했습니다', 'error')
                   } finally {
-                    setSavingOpenToWork(false);
+                    setSavingOpenToWork(false)
                   }
                 }}
                 disabled={savingOpenToWork}
@@ -1044,11 +1050,10 @@ export default function SettingsPage() {
                   cover_letter: '자소서',
                   translation: '번역',
                   ai_coaching: 'AI 코칭',
-                };
-                const plan = getPlan(user?.plan || 'free');
-                const limit =
-                  u.feature === 'ai_transform' ? plan.features.aiTransformsPerMonth : -1;
-                const pct = limit > 0 ? Math.min(100, (u.count / limit) * 100) : 0;
+                }
+                const plan = getPlan(user?.plan || 'free')
+                const limit = u.feature === 'ai_transform' ? plan.features.aiTransformsPerMonth : -1
+                const pct = limit > 0 ? Math.min(100, (u.count / limit) * 100) : 0
                 return (
                   <div key={u.feature}>
                     <div className="flex justify-between text-xs mb-1">
@@ -1069,7 +1074,7 @@ export default function SettingsPage() {
                       </div>
                     )}
                   </div>
-                );
+                )
               })}
             </div>
           )}
@@ -1142,7 +1147,7 @@ export default function SettingsPage() {
               { id: 'github', name: 'GitHub', color: 'border-slate-200 hover:border-slate-400' },
               { id: 'kakao', name: 'Kakao', color: 'border-slate-200 hover:border-yellow-300' },
             ].map((p) => {
-              const isLinked = user.provider === p.id;
+              const isLinked = user.provider === p.id
               return (
                 <div
                   key={p.id}
@@ -1167,7 +1172,7 @@ export default function SettingsPage() {
                     </a>
                   )}
                 </div>
-              );
+              )
             })}
           </div>
         </CollapsibleSection>
@@ -1188,7 +1193,7 @@ export default function SettingsPage() {
                   {...passwordForm.register('currentPassword')}
                   {...fieldAria(
                     'settings-currentPassword',
-                    passwordForm.formState.errors.currentPassword,
+                    passwordForm.formState.errors.currentPassword
                   )}
                   placeholder="현재 비밀번호"
                   className={inputClass}
@@ -1217,7 +1222,7 @@ export default function SettingsPage() {
                   {...passwordForm.register('confirmPassword')}
                   {...fieldAria(
                     'settings-confirmPassword',
-                    passwordForm.formState.errors.confirmPassword,
+                    passwordForm.formState.errors.confirmPassword
                   )}
                   placeholder="새 비밀번호 확인"
                   className={inputClass}
@@ -1435,8 +1440,8 @@ export default function SettingsPage() {
         open={deleteConfirmOpen}
         onOpenChange={(o) => {
           if (!o) {
-            setDeleteConfirmOpen(false);
-            setDeleteConfirmText('');
+            setDeleteConfirmOpen(false)
+            setDeleteConfirmText('')
           }
         }}
       >
@@ -1492,8 +1497,8 @@ export default function SettingsPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => {
-                  setDeleteConfirmOpen(false);
-                  setDeleteConfirmText('');
+                  setDeleteConfirmOpen(false)
+                  setDeleteConfirmText('')
                 }}
                 className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
               >
@@ -1502,11 +1507,11 @@ export default function SettingsPage() {
               <button
                 onClick={() => {
                   if (deleteConfirmText === '삭제') {
-                    setDeleteConfirmOpen(false);
-                    setDeleteConfirmText('');
-                    handleDeleteAccount();
+                    setDeleteConfirmOpen(false)
+                    setDeleteConfirmText('')
+                    handleDeleteAccount()
                   } else {
-                    toast('"삭제"를 정확히 입력해주세요', 'error');
+                    toast('"삭제"를 정확히 입력해주세요', 'error')
                   }
                 }}
                 disabled={deleteConfirmText !== '삭제'}
@@ -1519,5 +1524,5 @@ export default function SettingsPage() {
         </RadixAlertDialog.Portal>
       </RadixAlertDialog.Root>
     </>
-  );
+  )
 }

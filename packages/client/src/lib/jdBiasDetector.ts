@@ -1,33 +1,33 @@
-export type JdBiasCategory = 'age' | 'gender' | 'region' | 'education' | 'physical' | 'family';
+export type JdBiasCategory = 'age' | 'gender' | 'region' | 'education' | 'physical' | 'family'
 
-export type JdBiasSeverity = 'high' | 'medium' | 'low';
+export type JdBiasSeverity = 'high' | 'medium' | 'low'
 
 export interface JdBiasFinding {
-  category: JdBiasCategory;
-  severity: JdBiasSeverity;
-  excerpt: string;
-  detail: string;
-  suggestion: string;
+  category: JdBiasCategory
+  severity: JdBiasSeverity
+  excerpt: string
+  detail: string
+  suggestion: string
 }
 
-export type JdBiasTone = 'good' | 'neutral' | 'warning' | 'danger';
+export type JdBiasTone = 'good' | 'neutral' | 'warning' | 'danger'
 
 export interface JdBiasReport {
-  findings: JdBiasFinding[];
-  totalCount: number;
-  highCount: number;
-  tone: JdBiasTone;
-  label: string;
-  summary: string;
+  findings: JdBiasFinding[]
+  totalCount: number
+  highCount: number
+  tone: JdBiasTone
+  label: string
+  summary: string
 }
 
 interface BiasRule {
-  category: JdBiasCategory;
-  severity: JdBiasSeverity;
+  category: JdBiasCategory
+  severity: JdBiasSeverity
   /** Regex (multi-line, global, case-insensitive). */
-  pattern: RegExp;
-  detail: string;
-  suggestion: string;
+  pattern: RegExp
+  detail: string
+  suggestion: string
 }
 
 const RULES: BiasRule[] = [
@@ -159,7 +159,7 @@ const RULES: BiasRule[] = [
     detail: '자녀 유무를 채용 요건으로 다는 것은 차별입니다.',
     suggestion: '자녀 관련 요건을 삭제하세요.',
   },
-];
+]
 
 const CATEGORY_LABELS: Record<JdBiasCategory, string> = {
   age: '연령',
@@ -168,62 +168,62 @@ const CATEGORY_LABELS: Record<JdBiasCategory, string> = {
   education: '학력·학벌',
   physical: '외모·신체',
   family: '가족·결혼',
-};
+}
 
-const CONTEXT_RADIUS = 18;
+const CONTEXT_RADIUS = 18
 
 function makeExcerpt(text: string, match: RegExpExecArray): string {
-  const start = Math.max(0, match.index - CONTEXT_RADIUS);
-  const end = Math.min(text.length, match.index + match[0].length + CONTEXT_RADIUS);
-  const prefix = start > 0 ? '…' : '';
-  const suffix = end < text.length ? '…' : '';
-  return `${prefix}${text.slice(start, end).trim()}${suffix}`;
+  const start = Math.max(0, match.index - CONTEXT_RADIUS)
+  const end = Math.min(text.length, match.index + match[0].length + CONTEXT_RADIUS)
+  const prefix = start > 0 ? '…' : ''
+  const suffix = end < text.length ? '…' : ''
+  return `${prefix}${text.slice(start, end).trim()}${suffix}`
 }
 
 export function detectJdBias(text: string): JdBiasFinding[] {
-  const findings: JdBiasFinding[] = [];
-  const safe = (text ?? '').trim();
-  if (!safe) return findings;
+  const findings: JdBiasFinding[] = []
+  const safe = (text ?? '').trim()
+  if (!safe) return findings
 
-  const seen = new Set<string>();
+  const seen = new Set<string>()
   for (const rule of RULES) {
-    const re = new RegExp(rule.pattern.source, rule.pattern.flags);
-    let match: RegExpExecArray | null;
+    const re = new RegExp(rule.pattern.source, rule.pattern.flags)
+    let match: RegExpExecArray | null
     while ((match = re.exec(safe)) !== null) {
       if (match[0].length === 0) {
-        re.lastIndex += 1;
-        continue;
+        re.lastIndex += 1
+        continue
       }
-      const key = `${rule.category}:${rule.severity}:${match.index}:${match[0]}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
+      const key = `${rule.category}:${rule.severity}:${match.index}:${match[0]}`
+      if (seen.has(key)) continue
+      seen.add(key)
       findings.push({
         category: rule.category,
         severity: rule.severity,
         excerpt: makeExcerpt(safe, match),
         detail: rule.detail,
         suggestion: rule.suggestion,
-      });
+      })
     }
   }
 
-  const severityRank: Record<JdBiasSeverity, number> = { high: 0, medium: 1, low: 2 };
-  findings.sort((a, b) => severityRank[a.severity] - severityRank[b.severity]);
+  const severityRank: Record<JdBiasSeverity, number> = { high: 0, medium: 1, low: 2 }
+  findings.sort((a, b) => severityRank[a.severity] - severityRank[b.severity])
 
-  return findings;
+  return findings
 }
 
 function categoryLabelList(findings: JdBiasFinding[]): string {
-  const set = new Set<string>();
-  for (const f of findings) set.add(CATEGORY_LABELS[f.category]);
-  return Array.from(set).join('·');
+  const set = new Set<string>()
+  for (const f of findings) set.add(CATEGORY_LABELS[f.category])
+  return Array.from(set).join('·')
 }
 
 export function buildJdBiasReport(text: string): JdBiasReport {
-  const findings = detectJdBias(text);
-  const total = findings.length;
-  const high = findings.filter((f) => f.severity === 'high').length;
-  const mid = findings.filter((f) => f.severity === 'medium').length;
+  const findings = detectJdBias(text)
+  const total = findings.length
+  const high = findings.filter((f) => f.severity === 'high').length
+  const mid = findings.filter((f) => f.severity === 'medium').length
 
   if (total === 0) {
     return {
@@ -233,24 +233,24 @@ export function buildJdBiasReport(text: string): JdBiasReport {
       tone: 'good',
       label: '편향 신호 없음',
       summary: '연령·성별·지역·학력·외모·가족 관련 차별 신호를 찾지 못했습니다.',
-    };
+    }
   }
 
-  const tone: JdBiasTone = high > 0 ? 'danger' : mid > 0 ? 'warning' : 'neutral';
+  const tone: JdBiasTone = high > 0 ? 'danger' : mid > 0 ? 'warning' : 'neutral'
   const label =
     tone === 'danger'
       ? `심각 ${high}건 · 총 ${total}건`
       : tone === 'warning'
         ? `주의 ${mid}건 · 총 ${total}건`
-        : `참고 ${total}건`;
+        : `참고 ${total}건`
   const summary =
     tone === 'danger'
       ? `법적 위반 소지가 있는 표현 ${high}건이 발견되었습니다 (${categoryLabelList(findings)}). 지원 전에 채용 담당자와 확인하거나, 회사의 다른 공고도 점검해보세요.`
       : tone === 'warning'
         ? `차별 신호로 해석될 수 있는 표현 ${mid}건이 보입니다 (${categoryLabelList(findings)}). 회사의 채용 문화를 함께 살펴볼 가치가 있습니다.`
-        : `참고할 만한 표현 ${total}건 (${categoryLabelList(findings)}).`;
+        : `참고할 만한 표현 ${total}건 (${categoryLabelList(findings)}).`
 
-  return { findings, totalCount: total, highCount: high, tone, label, summary };
+  return { findings, totalCount: total, highCount: high, tone, label, summary }
 }
 
-export const __JD_BIAS_CATEGORIES__ = CATEGORY_LABELS;
+export const __JD_BIAS_CATEGORIES__ = CATEGORY_LABELS

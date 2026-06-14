@@ -2,30 +2,30 @@
 // 서버가 user.plan 에 free/pro/enterprise 를 쓰므로 클라도 동일 vocab 을 써야 게이팅이 풀린다.
 // features 모델(게이팅 키)은 클라 고유 — FeatureGate 가 의존하므로 유지.
 // 가격(월/연): pro 9900/99000, enterprise 49000/490000 (서버 priceMonthlyKRW/priceYearlyKRW).
-export type PlanId = 'free' | 'pro' | 'enterprise';
+export type PlanId = 'free' | 'pro' | 'enterprise'
 
 export interface PlanConfig {
-  id: PlanId;
-  name: string;
-  price: number; // monthly KRW
-  yearlyPrice: number;
+  id: PlanId
+  name: string
+  price: number // monthly KRW
+  yearlyPrice: number
   features: {
-    maxResumes: number;
-    aiTransformsPerMonth: number;
-    themes: number;
-    exportFormats: string[];
-    atsCheck: boolean;
-    aiCoaching: boolean;
-    coverLetter: boolean;
-    translation: boolean;
-    jobTracker: boolean;
-    prioritySupport: boolean;
-    scoutMessages: number; // 리크루터 스카우트 월 발송 수
-    jobPosts: number; // 채용 공고 등록 수
-  };
-  badge: string;
-  popular?: boolean;
-  description: string;
+    maxResumes: number
+    aiTransformsPerMonth: number
+    themes: number
+    exportFormats: string[]
+    atsCheck: boolean
+    aiCoaching: boolean
+    coverLetter: boolean
+    translation: boolean
+    jobTracker: boolean
+    prioritySupport: boolean
+    scoutMessages: number // 리크루터 스카우트 월 발송 수
+    jobPosts: number // 채용 공고 등록 수
+  }
+  badge: string
+  popular?: boolean
+  description: string
 }
 
 export const PLANS: PlanConfig[] = [
@@ -96,7 +96,7 @@ export const PLANS: PlanConfig[] = [
     },
     badge: '💎',
   },
-];
+]
 
 // 리쿠르터 표시용 카탈로그. ID 는 게이팅을 위해 서버 vocab(free/pro/enterprise)과 일치시키되,
 // 가격(19900/49900)은 시커와 다른 리쿠르터 전용 값으로 유지한다. 단 서버 billing 은 단일
@@ -170,43 +170,43 @@ export const RECRUITER_PLANS: PlanConfig[] = [
     },
     badge: '💎',
   },
-];
+]
 
 export function getPlansForUserType(userType?: string): PlanConfig[] {
-  if (userType === 'recruiter' || userType === 'company') return RECRUITER_PLANS;
-  return PLANS;
+  if (userType === 'recruiter' || userType === 'company') return RECRUITER_PLANS
+  return PLANS
 }
 
 export function getPlan(planId: string): PlanConfig {
-  return PLANS.find((p) => p.id === planId) || PLANS[0];
+  return PLANS.find((p) => p.id === planId) || PLANS[0]
 }
 
 // 유료화 비활성화 여부를 런타임에 확인 (system-config/public API 응답 캐시)
-let _monetizationEnabled: boolean | null = null;
+let _monetizationEnabled: boolean | null = null
 export function setMonetizationEnabled(v: boolean) {
-  _monetizationEnabled = v;
+  _monetizationEnabled = v
 }
 export function isMonetizationEnabled(): boolean {
-  return _monetizationEnabled !== false;
+  return _monetizationEnabled !== false
 }
 
 export function canAccess(
   userPlan: string,
   feature: keyof PlanConfig['features'],
-  userRole?: string,
+  userRole?: string
 ): boolean {
   // 유료화 OFF → 모든 사용자 모든 기능 접근 가능
-  if (_monetizationEnabled === false) return true;
+  if (_monetizationEnabled === false) return true
   // admin/superadmin은 모든 기능 사용 가능
-  if (userRole === 'admin' || userRole === 'superadmin') return true;
-  const plan = getPlan(userPlan);
-  const value = plan.features[feature];
-  if (typeof value === 'boolean') return value;
-  if (typeof value === 'number') return value !== 0;
-  return true;
+  if (userRole === 'admin' || userRole === 'superadmin') return true
+  const plan = getPlan(userPlan)
+  const value = plan.features[feature]
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value !== 0
+  return true
 }
 
 export function formatPrice(price: number): string {
-  if (price === 0) return '무료';
-  return `₩${price.toLocaleString()}`;
+  if (price === 0) return '무료'
+  return `₩${price.toLocaleString()}`
 }

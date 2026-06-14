@@ -1,10 +1,10 @@
-import { useRef, useState } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useRef, useState } from 'react'
 
 interface Props {
-  url: string;
-  title: string;
-  onClose: () => void;
+  url: string
+  title: string
+  onClose: () => void
 }
 
 /**
@@ -13,46 +13,46 @@ interface Props {
  * 기능: 다운로드 / URL 복사 / SNS 공유 (Twitter, LinkedIn, Email).
  */
 export default function QrCodeModal({ url, title, onClose }: Props) {
-  const [copied, setCopied] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const qrRef = useRef<HTMLImageElement>(null);
+  const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const qrRef = useRef<HTMLImageElement>(null)
 
   // Monochrome QR using sapphire color for foreground — matches Impeccable system.
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
-    url,
-  )}&bgcolor=ffffff&color=0c4a6e&margin=2`;
+    url
+  )}&bgcolor=ffffff&color=0c4a6e&margin=2`
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const handleDownloadQr = async () => {
-    setDownloading(true);
+    setDownloading(true)
     try {
-      const response = await fetch(qrImageUrl);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `qr-${title.replace(/[^a-zA-Z0-9가-힣]/g, '_').slice(0, 30)}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(blobUrl);
+      const response = await fetch(qrImageUrl)
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = `qr-${title.replace(/[^a-zA-Z0-9가-힣]/g, '_').slice(0, 30)}.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(blobUrl)
     } catch {
-      window.open(qrImageUrl, '_blank');
+      window.open(qrImageUrl, '_blank')
     } finally {
-      setDownloading(false);
+      setDownloading(false)
     }
-  };
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -188,5 +188,5 @@ export default function QrCodeModal({ url, title, onClose }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

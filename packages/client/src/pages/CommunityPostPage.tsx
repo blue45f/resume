@@ -1,20 +1,22 @@
-import { API_URL } from '@/lib/config';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { toast } from '@/components/Toast';
-import ReportButton from '@/components/ReportButton';
-import SendMessageButton from '@/components/SendMessageButton';
-import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import { communityCommentSchema, type CommunityCommentFormValues } from '@/shared/lib/schemas';
-import { formatDate } from '@/lib/time';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import ReportButton from '@/components/ReportButton'
+import SendMessageButton from '@/components/SendMessageButton'
+import { toast } from '@/components/Toast'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
+import { communityCommentSchema, type CommunityCommentFormValues } from '@/shared/lib/schemas'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 const CATEGORY_INFO: Record<string, { label: string; icon: string; color: string }> = {
   notice: {
@@ -47,86 +49,86 @@ const CATEGORY_INFO: Record<string, { label: string; icon: string; color: string
     icon: '❓',
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   },
-};
+}
 
 interface Comment {
-  id: string;
-  content: string;
-  authorName?: string;
-  userId?: string;
-  parentId?: string | null;
-  createdAt: string;
+  id: string
+  content: string
+  authorName?: string
+  userId?: string
+  parentId?: string | null
+  createdAt: string
 }
 
 interface CommentNode extends Comment {
-  children: CommentNode[];
+  children: CommentNode[]
 }
 
 function buildCommentTree(flat: Comment[]): CommentNode[] {
-  const map = new Map<string, CommentNode>();
-  const roots: CommentNode[] = [];
-  for (const c of flat) map.set(c.id, { ...c, children: [] });
+  const map = new Map<string, CommentNode>()
+  const roots: CommentNode[] = []
+  for (const c of flat) map.set(c.id, { ...c, children: [] })
   for (const c of flat) {
-    const node = map.get(c.id)!;
+    const node = map.get(c.id)!
     if (c.parentId && map.has(c.parentId)) {
-      map.get(c.parentId)!.children.push(node);
+      map.get(c.parentId)!.children.push(node)
     } else {
-      roots.push(node);
+      roots.push(node)
     }
   }
-  return roots;
+  return roots
 }
 
 function countDescendants(node: CommentNode): number {
-  let n = 0;
+  let n = 0
   for (const child of node.children) {
-    n += 1 + countDescendants(child);
+    n += 1 + countDescendants(child)
   }
-  return n;
+  return n
 }
 
-const MAX_REPLY_DEPTH = 8;
+const MAX_REPLY_DEPTH = 8
 
 interface Attachment {
-  url: string;
-  name: string;
-  size: number;
-  type: string;
+  url: string
+  name: string
+  size: number
+  type: string
 }
 
 interface Post {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  viewCount: number;
-  likeCount: number;
-  isPinned: boolean;
-  liked?: boolean;
-  attachments?: Attachment[];
-  createdAt: string;
-  updatedAt: string;
-  user?: { id: string; name: string; username: string; avatar: string };
-  comments?: Comment[];
-  _count?: { comments: number; likes: number };
+  id: string
+  title: string
+  content: string
+  category: string
+  viewCount: number
+  likeCount: number
+  isPinned: boolean
+  liked?: boolean
+  attachments?: Attachment[]
+  createdAt: string
+  updatedAt: string
+  user?: { id: string; name: string; username: string; avatar: string }
+  comments?: Comment[]
+  _count?: { comments: number; likes: number }
 }
 
 function timeAgo(date: string) {
-  const diff = Date.now() - new Date(date).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '방금 전';
-  if (mins < 60) return `${mins}분 전`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}일 전`;
-  return formatDate(date);
+  const diff = Date.now() - new Date(date).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return '방금 전'
+  if (mins < 60) return `${mins}분 전`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}시간 전`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}일 전`
+  return formatDate(date)
 }
 
 function readingTime(text: string): string {
-  const words = text.trim().split(/\s+/).length;
-  const mins = Math.ceil(words / 200);
-  return mins <= 1 ? '1분 이내' : `${mins}분`;
+  const words = text.trim().split(/\s+/).length
+  const mins = Math.ceil(words / 200)
+  return mins <= 1 ? '1분 이내' : `${mins}분`
 }
 
 /** Markdown → HTML renderer */
@@ -138,143 +140,143 @@ function inlineFmt(s: string): string {
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  s = esc(s);
-  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      .replace(/'/g, '&#39;')
+  s = esc(s)
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>')
   s = s.replace(
     /`([^`]+)`/g,
-    '<code class="bg-slate-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>',
-  );
-  s = s.replace(/~~(.+?)~~/g, '<del class="opacity-60">$1</del>');
+    '<code class="bg-slate-100 dark:bg-slate-800 text-sky-700 dark:text-sky-400 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>'
+  )
+  s = s.replace(/~~(.+?)~~/g, '<del class="opacity-60">$1</del>')
   s = s.replace(
     /\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80">$1</a>',
-  );
+    '<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 hover:opacity-80">$1</a>'
+  )
   s = s.replace(
     /(^|[\s])(https?:\/\/[^\s<]+)/g,
-    '$1<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 break-all hover:opacity-80">$2</a>',
-  );
-  return s;
+    '$1<a href="$2" target="_blank" rel="noopener" class="text-sky-700 dark:text-sky-400 underline underline-offset-2 break-all hover:opacity-80">$2</a>'
+  )
+  return s
 }
 
 function renderMarkdown(text: string): string {
-  const lines = text.split('\n');
-  const out: string[] = [];
-  let inCode = false;
-  let inList = false;
-  let inQuote = false;
+  const lines = text.split('\n')
+  const out: string[] = []
+  let inCode = false
+  let inList = false
+  let inQuote = false
   const closeList = () => {
     if (inList) {
-      out.push('</ul>');
-      inList = false;
+      out.push('</ul>')
+      inList = false
     }
-  };
+  }
   const closeQuote = () => {
     if (inQuote) {
-      out.push('</blockquote>');
-      inQuote = false;
+      out.push('</blockquote>')
+      inQuote = false
     }
-  };
+  }
 
   for (const raw of lines) {
     if (raw.startsWith('```')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       if (!inCode) {
         out.push(
-          '<pre class="bg-slate-100 dark:bg-slate-800 rounded-lg px-4 py-3 overflow-x-auto text-sm font-mono my-3 text-slate-800 dark:text-slate-200">',
-        );
-        inCode = true;
+          '<pre class="bg-slate-100 dark:bg-slate-800 rounded-lg px-4 py-3 overflow-x-auto text-sm font-mono my-3 text-slate-800 dark:text-slate-200">'
+        )
+        inCode = true
       } else {
-        out.push('</pre>');
-        inCode = false;
+        out.push('</pre>')
+        inCode = false
       }
-      continue;
+      continue
     }
     if (inCode) {
-      out.push(raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'));
-      continue;
+      out.push(raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'))
+      continue
     }
     if (raw.startsWith('### ')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       out.push(
-        `<h3 class="text-lg font-bold mt-5 mb-2 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(4))}</h3>`,
-      );
-      continue;
+        `<h3 class="text-lg font-bold mt-5 mb-2 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(4))}</h3>`
+      )
+      continue
     }
     if (raw.startsWith('## ')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       out.push(
-        `<h2 class="text-xl font-bold mt-6 mb-2 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(3))}</h2>`,
-      );
-      continue;
+        `<h2 class="text-xl font-bold mt-6 mb-2 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(3))}</h2>`
+      )
+      continue
     }
     if (raw.startsWith('# ')) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       out.push(
-        `<h1 class="text-2xl font-bold mt-6 mb-3 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(2))}</h1>`,
-      );
-      continue;
+        `<h1 class="text-2xl font-bold mt-6 mb-3 text-slate-900 dark:text-slate-100">${inlineFmt(raw.slice(2))}</h1>`
+      )
+      continue
     }
     if (raw.startsWith('> ')) {
-      closeList();
+      closeList()
       if (!inQuote) {
         out.push(
-          '<blockquote class="border-l-4 border-sky-400 pl-4 my-3 text-slate-500 dark:text-slate-400 italic">',
-        );
-        inQuote = true;
+          '<blockquote class="border-l-4 border-sky-400 pl-4 my-3 text-slate-500 dark:text-slate-400 italic">'
+        )
+        inQuote = true
       }
-      out.push(`<p class="mb-1">${inlineFmt(raw.slice(2))}</p>`);
-      continue;
+      out.push(`<p class="mb-1">${inlineFmt(raw.slice(2))}</p>`)
+      continue
     } else {
-      closeQuote();
+      closeQuote()
     }
     if (raw.startsWith('- ') || raw.startsWith('* ')) {
       if (!inList) {
         out.push(
-          '<ul class="list-disc list-inside my-2 space-y-1 text-slate-700 dark:text-slate-300">',
-        );
-        inList = true;
+          '<ul class="list-disc list-inside my-2 space-y-1 text-slate-700 dark:text-slate-300">'
+        )
+        inList = true
       }
-      out.push(`<li>${inlineFmt(raw.slice(2))}</li>`);
-      continue;
+      out.push(`<li>${inlineFmt(raw.slice(2))}</li>`)
+      continue
     } else {
-      closeList();
+      closeList()
     }
-    const olM = raw.match(/^(\d+)\. (.+)/);
+    const olM = raw.match(/^(\d+)\. (.+)/)
     if (olM) {
-      closeList();
-      closeQuote();
+      closeList()
+      closeQuote()
       out.push(
-        `<p class="my-1 ml-4 text-slate-700 dark:text-slate-300">${olM[1]}. ${inlineFmt(olM[2])}</p>`,
-      );
-      continue;
+        `<p class="my-1 ml-4 text-slate-700 dark:text-slate-300">${olM[1]}. ${inlineFmt(olM[2])}</p>`
+      )
+      continue
     }
     if (raw === '---' || raw === '***') {
-      closeList();
-      closeQuote();
-      out.push('<hr class="my-4 border-slate-200 dark:border-slate-700" />');
-      continue;
+      closeList()
+      closeQuote()
+      out.push('<hr class="my-4 border-slate-200 dark:border-slate-700" />')
+      continue
     }
     if (raw.trim() === '') {
-      closeList();
-      closeQuote();
-      out.push('<div class="h-3"></div>');
-      continue;
+      closeList()
+      closeQuote()
+      out.push('<div class="h-3"></div>')
+      continue
     }
     out.push(
-      `<p class="my-1.5 text-slate-700 dark:text-slate-300 leading-relaxed">${inlineFmt(raw)}</p>`,
-    );
+      `<p class="my-1.5 text-slate-700 dark:text-slate-300 leading-relaxed">${inlineFmt(raw)}</p>`
+    )
   }
-  closeList();
-  closeQuote();
-  if (inCode) out.push('</pre>');
-  return out.join('\n');
+  closeList()
+  closeQuote()
+  if (inCode) out.push('</pre>')
+  return out.join('\n')
 }
 
 function ContentRenderer({ content }: { content: string }) {
@@ -283,15 +285,15 @@ function ContentRenderer({ content }: { content: string }) {
       className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm sm:text-base prose-style"
       dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
     />
-  );
+  )
 }
 
 export default function CommunityPostPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const user = getUser();
-  const queryClient = useQueryClient();
-  const confirm = useConfirm();
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const user = getUser()
+  const queryClient = useQueryClient()
+  const confirm = useConfirm()
 
   const {
     data: postData,
@@ -300,194 +302,192 @@ export default function CommunityPostPage() {
   } = useQuery<Post | null>({
     queryKey: ['community-post', id],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
-      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
-      const r = await fetch(`${API_URL}/api/community/${id}`, { headers });
-      return r.ok ? await r.json() : null;
+      const token = localStorage.getItem('token')
+      const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
+      const r = await httpClient(`${API_URL}/api/community/${id}`, { headers })
+      return r.ok ? await r.json() : null
     },
     enabled: !!id,
-  });
-  const post: Post | null = (postData as Post | null | undefined) ?? null;
+  })
+  const post: Post | null = (postData as Post | null | undefined) ?? null
   const setPost = (updater: Post | null | ((prev: Post | null) => Post | null)) => {
     queryClient.setQueryData<Post | null>(['community-post', id], (prev) =>
       typeof updater === 'function'
         ? (updater as (prev: Post | null) => Post | null)(prev ?? null)
-        : updater,
-    );
-  };
-  const [liking, setLiking] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
-  const commentRef = useRef<HTMLTextAreaElement>(null);
+        : updater
+    )
+  }
+  const [liking, setLiking] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null)
+  const commentRef = useRef<HTMLTextAreaElement>(null)
 
   const commentForm = useForm<CommunityCommentFormValues>({
     resolver: zodResolver(communityCommentSchema),
     defaultValues: { content: '', authorName: localStorage.getItem('anon-name') || '' },
-  });
+  })
   const replyForm = useForm<CommunityCommentFormValues>({
     resolver: zodResolver(communityCommentSchema),
     defaultValues: { content: '', authorName: localStorage.getItem('anon-name') || '' },
-  });
-  const commentText = useWatch({ control: commentForm.control, name: 'content' }) ?? '';
-  const replyText = useWatch({ control: replyForm.control, name: 'content' }) ?? '';
-  const commentSectionRef = useRef<HTMLElement>(null);
+  })
+  const commentText = useWatch({ control: commentForm.control, name: 'content' }) ?? ''
+  const replyText = useWatch({ control: replyForm.control, name: 'content' }) ?? ''
+  const commentSectionRef = useRef<HTMLElement>(null)
   const [scrapped, setScrapped] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('scrapped-posts') || '[]').includes(id);
+      return JSON.parse(localStorage.getItem('scrapped-posts') || '[]').includes(id)
     } catch {
-      return false;
+      return false
     }
-  });
+  })
 
   const toggleScrap = () => {
     try {
-      const saved: string[] = JSON.parse(localStorage.getItem('scrapped-posts') || '[]');
-      const updated = scrapped ? saved.filter((s) => s !== id) : [...saved, id].slice(-50);
-      localStorage.setItem('scrapped-posts', JSON.stringify(updated));
-      setScrapped(!scrapped);
-      toast(scrapped ? '스크랩이 해제되었습니다' : '게시글을 스크랩했습니다', 'success');
+      const saved: string[] = JSON.parse(localStorage.getItem('scrapped-posts') || '[]')
+      const updated = scrapped ? saved.filter((s) => s !== id) : [...saved, id].slice(-50)
+      localStorage.setItem('scrapped-posts', JSON.stringify(updated))
+      setScrapped(!scrapped)
+      toast(scrapped ? '스크랩이 해제되었습니다' : '게시글을 스크랩했습니다', 'success')
     } catch {}
-  };
+  }
 
   const fetchPost = useCallback(async () => {
-    await refetch();
-  }, [refetch]);
+    await refetch()
+  }, [refetch])
 
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   useEffect(() => {
-    if (post) document.title = `${post.title} — 커뮤니티 — 이력서공방`;
+    if (post) document.title = `${post.title} — 커뮤니티 — 이력서공방`
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [post]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [post])
 
   const handleLike = async () => {
     if (!user) {
-      navigate(ROUTES.login);
-      return;
+      navigate(ROUTES.login)
+      return
     }
-    if (liking || !post) return;
-    setLiking(true);
+    if (liking || !post) return
+    setLiking(true)
 
     // Optimistic update
-    setPost((p) =>
-      p ? { ...p, liked: !p.liked, likeCount: p.likeCount + (p.liked ? -1 : 1) } : p,
-    );
+    setPost((p) => (p ? { ...p, liked: !p.liked, likeCount: p.likeCount + (p.liked ? -1 : 1) } : p))
 
-    const token = localStorage.getItem('token');
-    const r = await fetch(`${API_URL}/api/community/${post.id}/like`, {
+    const token = localStorage.getItem('token')
+    const r = await httpClient(`${API_URL}/api/community/${post.id}/like`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
+    })
 
     if (!r.ok) {
       // Revert
       setPost((p) =>
-        p ? { ...p, liked: !p.liked, likeCount: p.likeCount + (p.liked ? -1 : 1) } : p,
-      );
+        p ? { ...p, liked: !p.liked, likeCount: p.likeCount + (p.liked ? -1 : 1) } : p
+      )
     }
-    setLiking(false);
-  };
+    setLiking(false)
+  }
 
   const onComment = async (data: CommunityCommentFormValues) => {
     if (!user && data.authorName) {
-      localStorage.setItem('anon-name', data.authorName);
+      localStorage.setItem('anon-name', data.authorName)
     }
-    const token = localStorage.getItem('token');
-    const headers: HeadersInit = { 'Content-Type': 'application/json' };
-    if (token) (headers as Record<string, string>).Authorization = `Bearer ${token}`;
-    const body: Record<string, unknown> = { content: data.content.trim() };
-    if (!user && data.authorName) body.authorName = data.authorName;
-    const r = await fetch(`${API_URL}/api/community/${id}/comments`, {
+    const token = localStorage.getItem('token')
+    const headers: HeadersInit = { 'Content-Type': 'application/json' }
+    if (token) (headers as Record<string, string>).Authorization = `Bearer ${token}`
+    const body: Record<string, unknown> = { content: data.content.trim() }
+    if (!user && data.authorName) body.authorName = data.authorName
+    const r = await httpClient(`${API_URL}/api/community/${id}/comments`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-    });
+    })
     if (r.ok) {
-      commentForm.setValue('content', '');
-      fetchPost();
+      commentForm.setValue('content', '')
+      fetchPost()
     } else {
-      toast('댓글 등록에 실패했습니다', 'error');
+      toast('댓글 등록에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleDeleteComment = async (commentId: string) => {
     if (!(await confirm({ title: '댓글을 삭제하시겠습니까?', danger: true, confirmText: '삭제' })))
-      return;
-    const token = localStorage.getItem('token');
-    const r = await fetch(`${API_URL}/api/community/${id}/comments/${commentId}`, {
+      return
+    const token = localStorage.getItem('token')
+    const r = await httpClient(`${API_URL}/api/community/${id}/comments/${commentId}`, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
-    if (r.ok) fetchPost();
-    else toast('삭제에 실패했습니다', 'error');
-  };
+    })
+    if (r.ok) fetchPost()
+    else toast('삭제에 실패했습니다', 'error')
+  }
 
   const onReply = (parentId: string) => async (data: CommunityCommentFormValues) => {
-    if (!replyingTo) return;
-    const token = localStorage.getItem('token');
-    const headers: HeadersInit = { 'Content-Type': 'application/json' };
-    if (token) (headers as Record<string, string>).Authorization = `Bearer ${token}`;
-    const body: Record<string, unknown> = { content: data.content.trim(), parentId };
-    if (!user && data.authorName) body.authorName = data.authorName;
-    const r = await fetch(`${API_URL}/api/community/${id}/comments`, {
+    if (!replyingTo) return
+    const token = localStorage.getItem('token')
+    const headers: HeadersInit = { 'Content-Type': 'application/json' }
+    if (token) (headers as Record<string, string>).Authorization = `Bearer ${token}`
+    const body: Record<string, unknown> = { content: data.content.trim(), parentId }
+    if (!user && data.authorName) body.authorName = data.authorName
+    const r = await httpClient(`${API_URL}/api/community/${id}/comments`, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-    });
+    })
     if (r.ok) {
-      replyForm.reset({ content: '', authorName: localStorage.getItem('anon-name') || '' });
-      setReplyingTo(null);
-      fetchPost();
+      replyForm.reset({ content: '', authorName: localStorage.getItem('anon-name') || '' })
+      setReplyingTo(null)
+      fetchPost()
     } else {
-      toast('답글 등록에 실패했습니다', 'error');
+      toast('답글 등록에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleDeletePost = async () => {
     if (
       !(await confirm({ title: '게시글을 삭제하시겠습니까?', danger: true, confirmText: '삭제' }))
     )
-      return;
-    setDeleting(true);
-    const token = localStorage.getItem('token');
-    const r = await fetch(`${API_URL}/api/community/${id}`, {
+      return
+    setDeleting(true)
+    const token = localStorage.getItem('token')
+    const r = await httpClient(`${API_URL}/api/community/${id}`, {
       method: 'DELETE',
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    });
-    if (r.ok) navigate(ROUTES.community.list);
+    })
+    if (r.ok) navigate(ROUTES.community.list)
     else {
-      toast('삭제에 실패했습니다', 'error');
-      setDeleting(false);
+      toast('삭제에 실패했습니다', 'error')
+      setDeleting(false)
     }
-  };
+  }
 
   const handleShare = async () => {
-    const url = window.location.href;
+    const url = window.location.href
     if (navigator.share) {
       try {
-        await navigator.share({ title: post?.title, url });
-        return;
+        await navigator.share({ title: post?.title, url })
+        return
       } catch {}
     }
-    await navigator.clipboard.writeText(url);
-    toast('링크가 복사되었습니다', 'success');
-  };
+    await navigator.clipboard.writeText(url)
+    toast('링크가 복사되었습니다', 'success')
+  }
 
   const scrollToComment = () => {
-    commentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    setTimeout(() => commentRef.current?.focus(), 400);
-  };
+    commentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setTimeout(() => commentRef.current?.focus(), 400)
+  }
 
-  const isOwner = user && post?.user?.id === user.id;
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
-  const catInfo = post ? CATEGORY_INFO[post.category] || CATEGORY_INFO.free : null;
+  const isOwner = user && post?.user?.id === user.id
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
+  const catInfo = post ? CATEGORY_INFO[post.category] || CATEGORY_INFO.free : null
 
   if (loading) {
     return (
@@ -512,7 +512,7 @@ export default function CommunityPostPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (!post) {
@@ -542,7 +542,7 @@ export default function CommunityPostPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   return (
@@ -698,9 +698,7 @@ export default function CommunityPostPage() {
                     .filter(
                       (att) =>
                         /^https?:\/\//i.test(att.url) ||
-                        /^data:(image\/(png|jpe?g|webp|gif)|application\/pdf);base64,/.test(
-                          att.url,
-                        ),
+                        /^data:(image\/(png|jpe?g|webp|gif)|application\/pdf);base64,/.test(att.url)
                     )
                     .map((att, idx) => (
                       <a
@@ -880,13 +878,13 @@ export default function CommunityPostPage() {
                 <textarea
                   {...commentForm.register('content')}
                   ref={(el) => {
-                    commentForm.register('content').ref(el);
-                    commentRef.current = el;
+                    commentForm.register('content').ref(el)
+                    commentRef.current = el
                   }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                      e.preventDefault();
-                      if (commentText.trim()) commentForm.handleSubmit(onComment)();
+                      e.preventDefault()
+                      if (commentText.trim()) commentForm.handleSubmit(onComment)()
                     }
                   }}
                   placeholder="댓글을 입력하세요... (⌘+Enter로 등록)"
@@ -932,11 +930,11 @@ export default function CommunityPostPage() {
 
           {/* Comment list */}
           {(() => {
-            const tree = buildCommentTree(post.comments || []);
+            const tree = buildCommentTree(post.comments || [])
 
             const renderCommentNode = (node: CommentNode, depth: number) => {
-              const isRoot = depth === 0;
-              const descendantCount = countDescendants(node);
+              const isRoot = depth === 0
+              const descendantCount = countDescendants(node)
 
               return (
                 <div key={node.id}>
@@ -1011,20 +1009,20 @@ export default function CommunityPostPage() {
                             <button
                               onClick={() => {
                                 if (replyingTo?.id === node.id) {
-                                  setReplyingTo(null);
+                                  setReplyingTo(null)
                                   replyForm.reset({
                                     content: '',
                                     authorName: localStorage.getItem('anon-name') || '',
-                                  });
+                                  })
                                 } else {
                                   setReplyingTo({
                                     id: node.id,
                                     authorName: node.authorName || '익명',
-                                  });
+                                  })
                                   replyForm.reset({
                                     content: '',
                                     authorName: localStorage.getItem('anon-name') || '',
-                                  });
+                                  })
                                 }
                               }}
                               className="text-xs text-sky-500 hover:text-sky-700 dark:hover:text-sky-300 transition-colors flex items-center gap-1"
@@ -1105,8 +1103,8 @@ export default function CommunityPostPage() {
                           {...replyForm.register('content')}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-                              e.preventDefault();
-                              if (replyText.trim()) replyForm.handleSubmit(onReply(node.id))();
+                              e.preventDefault()
+                              if (replyText.trim()) replyForm.handleSubmit(onReply(node.id))()
                             }
                           }}
                           placeholder="답글을 입력하세요... (⌘+Enter로 등록)"
@@ -1123,11 +1121,11 @@ export default function CommunityPostPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              setReplyingTo(null);
+                              setReplyingTo(null)
                               replyForm.reset({
                                 content: '',
                                 authorName: localStorage.getItem('anon-name') || '',
-                              });
+                              })
                             }}
                             className="px-3 py-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-colors"
                           >
@@ -1152,8 +1150,8 @@ export default function CommunityPostPage() {
                     </div>
                   )}
                 </div>
-              );
-            };
+              )
+            }
 
             return !tree.length ? (
               <div className="text-center py-10 imp-card">
@@ -1172,7 +1170,7 @@ export default function CommunityPostPage() {
                   </div>
                 ))}
               </div>
-            );
+            )
           })()}
         </section>
 
@@ -1210,5 +1208,5 @@ export default function CommunityPostPage() {
 
       <Footer />
     </>
-  );
+  )
 }

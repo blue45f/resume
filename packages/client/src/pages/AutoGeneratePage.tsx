@@ -1,40 +1,43 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import KoreanQualityBadge from '@/components/KoreanQualityBadge';
-import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import JobUrlInput from '@/components/JobUrlInput';
-import { useTemplates, useResumes } from '@/hooks/useResources';
-import type { Template, ResumeSummary } from '@/types/resume';
-import { API_URL } from '@/lib/config';
-import { ROUTES } from '@/lib/routes';
-import { t, tx } from '@/lib/i18n';
-import { formatDate } from '@/lib/time';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import type { Template, ResumeSummary } from '@/types/resume'
+
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import JobUrlInput from '@/components/JobUrlInput'
+import KoreanQualityBadge from '@/components/KoreanQualityBadge'
+import { useTemplates, useResumes } from '@/hooks/useResources'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { t, tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
 
 const EXAMPLES = [
   '경력 메모, 자기소개 텍스트',
   'LinkedIn 프로필 복사 붙여넣기',
   '이전 이력서 내용 복사',
   '채용공고 + 내 경력 메모',
-];
+]
 
 const STEPS = [
   { id: 1, label: '입력', icon: '1' },
   { id: 2, label: '분석', icon: '2' },
   { id: 3, label: '미리보기', icon: '3' },
   { id: 4, label: '완료', icon: '4' },
-];
+]
 
-const ACCEPTED_FILE_TYPES = '.pdf,.docx,.txt,.rtf,.jpg,.jpeg,.png,.webp';
+const ACCEPTED_FILE_TYPES = '.pdf,.docx,.txt,.rtf,.jpg,.jpeg,.png,.webp'
 const ANALYSIS_PHRASES = [
   '텍스트를 파싱하고 있습니다...',
   '경력 정보를 추출하고 있습니다...',
   '학력 및 기술 스택을 분석 중...',
   '이력서 구조를 생성하고 있습니다...',
   '최종 검토 중...',
-];
+]
 
 type PreviewListKey =
   | 'experiences'
@@ -44,41 +47,41 @@ type PreviewListKey =
   | 'languages'
   | 'projects'
   | 'awards'
-  | 'activities';
+  | 'activities'
 
-type PreviewListItem = Record<string, unknown>;
+type PreviewListItem = Record<string, unknown>
 
 interface GeneratedResumePreview extends Partial<Record<PreviewListKey, PreviewListItem[]>> {
   personalInfo?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    summary?: string;
-  };
+    name?: string
+    email?: string
+    phone?: string
+    summary?: string
+  }
 }
 
 interface AutoGeneratePreviewResponse {
-  resume: GeneratedResumePreview;
-  tokensUsed?: number;
-  provider?: string;
+  resume: GeneratedResumePreview
+  tokensUsed?: number
+  provider?: string
 }
 
 interface AutoGenerateCreateResponse {
   resume: {
-    id: string;
-  };
+    id: string
+  }
 }
 
 const previewText = (value: unknown): string => {
-  if (typeof value === 'string' || typeof value === 'number') return String(value);
-  if (Array.isArray(value)) return value.map(previewText).filter(Boolean).join(', ');
-  return '';
-};
+  if (typeof value === 'string' || typeof value === 'number') return String(value)
+  if (Array.isArray(value)) return value.map(previewText).filter(Boolean).join(', ')
+  return ''
+}
 
 const PREVIEW_SECTIONS: {
-  key: PreviewListKey;
-  label: string;
-  render: (item: PreviewListItem) => string;
+  key: PreviewListKey
+  label: string
+  render: (item: PreviewListItem) => string
 }[] = [
   {
     key: 'experiences',
@@ -108,81 +111,81 @@ const PREVIEW_SECTIONS: {
   { key: 'projects', label: '프로젝트', render: (p) => previewText(p.name) },
   { key: 'awards', label: '수상', render: (a) => previewText(a.name) },
   { key: 'activities', label: '활동', render: (a) => previewText(a.name) },
-];
+]
 
 function parseLayout(layout: string) {
   try {
-    return JSON.parse(layout);
+    return JSON.parse(layout)
   } catch {
-    return {};
+    return {}
   }
 }
 
 export default function AutoGeneratePage() {
-  const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [rawText, setRawText] = useState('');
-  const [instruction, setInstruction] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [preview, setPreview] = useState<AutoGeneratePreviewResponse | null>(null);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [inputMode, setInputMode] = useState<'text' | 'file'>('text');
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [analysisPhrase, setAnalysisPhrase] = useState(0);
+  const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [rawText, setRawText] = useState('')
+  const [instruction, setInstruction] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [preview, setPreview] = useState<AutoGeneratePreviewResponse | null>(null)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [inputMode, setInputMode] = useState<'text' | 'file'>('text')
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [elapsedTime, setElapsedTime] = useState(0)
+  const [analysisPhrase, setAnalysisPhrase] = useState(0)
 
   // Template selection
-  const { data: templatesData } = useTemplates();
-  const templates: Template[] = ((templatesData as Template[] | undefined) ?? []).slice(0, 4);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const { data: templatesData } = useTemplates()
+  const templates: Template[] = ((templatesData as Template[] | undefined) ?? []).slice(0, 4)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
 
   // Previous auto-generates (user's existing resumes as history)
-  const { data: resumesData } = useResumes();
-  const previousResumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? [];
-  const [showHistory, setShowHistory] = useState(false);
+  const { data: resumesData } = useResumes()
+  const previousResumes: ResumeSummary[] = (resumesData as ResumeSummary[] | undefined) ?? []
+  const [showHistory, setShowHistory] = useState(false)
 
   useEffect(() => {
-    document.title = 'AI 자동 생성 — 이력서공방';
+    document.title = 'AI 자동 생성 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   // Timer during analysis
   useEffect(() => {
-    if (!loading) return;
-    const timer = setInterval(() => setElapsedTime((t) => t + 1), 1000);
+    if (!loading) return
+    const timer = setInterval(() => setElapsedTime((t) => t + 1), 1000)
     const phraseTimer = setInterval(
       () => setAnalysisPhrase((p) => (p + 1) % ANALYSIS_PHRASES.length),
-      4000,
-    );
+      4000
+    )
     return () => {
-      clearInterval(timer);
-      clearInterval(phraseTimer);
-    };
-  }, [loading]);
+      clearInterval(timer)
+      clearInterval(phraseTimer)
+    }
+  }, [loading])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0]
     if (file) {
-      setUploadedFile(file);
-      setRawText('');
+      setUploadedFile(file)
+      setRawText('')
     }
-  };
+  }
 
   const handleRemoveFile = () => {
-    setUploadedFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
+    setUploadedFile(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   const getRequestBody = useCallback(() => {
     if (inputMode === 'file' && uploadedFile) {
-      const formData = new FormData();
-      formData.append('file', uploadedFile);
-      if (instruction) formData.append('instruction', instruction);
-      if (selectedTemplateId) formData.append('templateId', selectedTemplateId);
-      return { isFormData: true, body: formData };
+      const formData = new FormData()
+      formData.append('file', uploadedFile)
+      if (instruction) formData.append('instruction', instruction)
+      if (selectedTemplateId) formData.append('templateId', selectedTemplateId)
+      return { isFormData: true, body: formData }
     }
     return {
       isFormData: false,
@@ -191,83 +194,83 @@ export default function AutoGeneratePage() {
         instruction: instruction || undefined,
         templateId: selectedTemplateId || undefined,
       }),
-    };
-  }, [inputMode, uploadedFile, rawText, instruction, selectedTemplateId]);
+    }
+  }, [inputMode, uploadedFile, rawText, instruction, selectedTemplateId])
 
-  const hasInput = inputMode === 'file' ? !!uploadedFile : !!rawText.trim();
+  const hasInput = inputMode === 'file' ? !!uploadedFile : !!rawText.trim()
 
   const handlePreview = async () => {
-    if (!hasInput) return;
-    setElapsedTime(0);
-    setAnalysisPhrase(0);
-    setLoading(true);
-    setError('');
-    setPreview(null);
-    setCurrentStep(2);
+    if (!hasInput) return
+    setElapsedTime(0)
+    setAnalysisPhrase(0)
+    setLoading(true)
+    setError('')
+    setPreview(null)
+    setCurrentStep(2)
     try {
-      const token = localStorage.getItem('token');
-      const { isFormData, body } = getRequestBody();
-      const headers: Record<string, string> = {};
-      if (!isFormData) headers['Content-Type'] = 'application/json';
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const { isFormData, body } = getRequestBody()
+      const headers: Record<string, string> = {}
+      if (!isFormData) headers['Content-Type'] = 'application/json'
+      if (token) headers['Authorization'] = `Bearer ${token}`
 
-      const res = await fetch(`${API_URL}/api/auto-generate/preview`, {
+      const res = await httpClient(`${API_URL}/api/auto-generate/preview`, {
         method: 'POST',
         headers,
         body,
-      });
+      })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || '생성에 실패했습니다');
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.message || '생성에 실패했습니다')
       }
-      const data = (await res.json()) as AutoGeneratePreviewResponse;
-      setPreview(data);
-      setCurrentStep(3);
+      const data = (await res.json()) as AutoGeneratePreviewResponse
+      setPreview(data)
+      setCurrentStep(3)
     } catch (err: unknown) {
-      setError(getErrorMessage(err, '생성에 실패했습니다'));
-      setCurrentStep(1);
+      setError(getErrorMessage(err, '생성에 실패했습니다'))
+      setCurrentStep(1)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleSave = async () => {
-    if (!hasInput) return;
-    setElapsedTime(0);
-    setAnalysisPhrase(0);
-    setLoading(true);
-    setError('');
+    if (!hasInput) return
+    setElapsedTime(0)
+    setAnalysisPhrase(0)
+    setLoading(true)
+    setError('')
     try {
-      const token = localStorage.getItem('token');
-      const { isFormData, body } = getRequestBody();
-      const headers: Record<string, string> = {};
-      if (!isFormData) headers['Content-Type'] = 'application/json';
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const { isFormData, body } = getRequestBody()
+      const headers: Record<string, string> = {}
+      if (!isFormData) headers['Content-Type'] = 'application/json'
+      if (token) headers['Authorization'] = `Bearer ${token}`
 
-      const res = await fetch(`${API_URL}/api/auto-generate/create`, {
+      const res = await httpClient(`${API_URL}/api/auto-generate/create`, {
         method: 'POST',
         headers,
         body,
-      });
+      })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || '저장에 실패했습니다');
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.message || '저장에 실패했습니다')
       }
-      const data = (await res.json()) as AutoGenerateCreateResponse;
-      setCurrentStep(4);
-      navigate(ROUTES.resume.edit(data.resume.id));
+      const data = (await res.json()) as AutoGenerateCreateResponse
+      setCurrentStep(4)
+      navigate(ROUTES.resume.edit(data.resume.id))
     } catch (err: unknown) {
-      setError(getErrorMessage(err, '저장에 실패했습니다'));
+      setError(getErrorMessage(err, '저장에 실패했습니다'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+  }
 
   return (
     <>
@@ -348,11 +351,11 @@ export default function AutoGeneratePage() {
                     p.description && `\n[공고 본문 요약]\n${p.description}`,
                   ]
                     .filter(Boolean)
-                    .join('\n');
+                    .join('\n')
                   if (summary) {
                     setInstruction(
-                      `다음 채용공고에 맞춰 강조 포인트와 표현을 조정해서 작성해줘:\n${summary}`,
-                    );
+                      `다음 채용공고에 맞춰 강조 포인트와 표현을 조정해서 작성해줘:\n${summary}`
+                    )
                   }
                 }}
               />
@@ -405,9 +408,9 @@ export default function AutoGeneratePage() {
                 </div>
               ) : (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     파일 업로드 *
-                  </label>
+                  </span>
                   {uploadedFile ? (
                     <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center shrink-0">
@@ -495,13 +498,20 @@ export default function AutoGeneratePage() {
               {/* Template Selection */}
               {templates.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                  <span
+                    id="autogen-template-label"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5"
+                  >
                     템플릿 선택 (선택사항)
-                  </label>
-                  <div className="stagger-children grid grid-cols-2 gap-2">
+                  </span>
+                  <div
+                    role="group"
+                    aria-labelledby="autogen-template-label"
+                    className="stagger-children grid grid-cols-2 gap-2"
+                  >
                     {templates.map((t) => {
-                      const layout = parseLayout(t.layout || '{}');
-                      const sections: string[] = (layout.sections || []).slice(0, 3);
+                      const layout = parseLayout(t.layout || '{}')
+                      const sections: string[] = (layout.sections || []).slice(0, 3)
                       return (
                         <button
                           key={t.id}
@@ -531,7 +541,7 @@ export default function AutoGeneratePage() {
                             </p>
                           )}
                         </button>
-                      );
+                      )
                     })}
                   </div>
                 </div>
@@ -620,8 +630,8 @@ export default function AutoGeneratePage() {
                   )}
 
                   {PREVIEW_SECTIONS.map(({ key, label, render }) => {
-                    const items = preview.resume?.[key];
-                    if (!items?.length) return null;
+                    const items = preview.resume?.[key]
+                    if (!items?.length) return null
                     return (
                       <div key={key}>
                         <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -635,7 +645,7 @@ export default function AutoGeneratePage() {
                           ))}
                         </ul>
                       </div>
-                    );
+                    )
                   })}
 
                   <button
@@ -729,5 +739,5 @@ export default function AutoGeneratePage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

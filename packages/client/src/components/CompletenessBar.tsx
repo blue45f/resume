@@ -1,10 +1,12 @@
-import { memo, useEffect, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { calculateCompleteness } from '@/lib/completeness';
+import { memo, useEffect, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { calculateCompleteness } from '@/lib/completeness'
 
 interface Props {
-  resume: Resume;
-  compact?: boolean;
+  resume: Resume
+  compact?: boolean
 }
 
 const gradeColors: Record<string, string> = {
@@ -13,7 +15,7 @@ const gradeColors: Record<string, string> = {
   B: 'text-green-600 bg-green-100',
   C: 'text-amber-600 bg-amber-100',
   D: 'text-red-600 bg-red-100',
-};
+}
 
 const barColors: Record<string, string> = {
   S: 'bg-sky-500',
@@ -21,19 +23,19 @@ const barColors: Record<string, string> = {
   B: 'bg-green-500',
   C: 'bg-amber-500',
   D: 'bg-red-500',
-};
+}
 
 /** Circular color based on percentage */
 function getRingColor(pct: number): string {
-  if (pct < 30) return '#ef4444';
-  if (pct < 60) return '#f97316';
-  if (pct < 80) return '#22c55e';
-  return '#3b82f6';
+  if (pct < 30) return '#ef4444'
+  if (pct < 60) return '#f97316'
+  if (pct < 80) return '#22c55e'
+  return '#3b82f6'
 }
 
 /** Section-specific actionable tips */
 function getSectionTip(label: string, scorePct: number): string | null {
-  if (scorePct >= 90) return null;
+  if (scorePct >= 90) return null
 
   const tips: Record<string, { low: string; mid: string }> = {
     인적사항: {
@@ -60,11 +62,11 @@ function getSectionTip(label: string, scorePct: number): string | null {
       low: '자격증, 어학 성적, 수상 경력, 대외활동 중 해당 항목을 추가하세요',
       mid: '관련 자격증이나 어학 성적을 추가하면 경쟁력이 올라갑니다',
     },
-  };
+  }
 
-  const sectionTips = tips[label];
-  if (!sectionTips) return null;
-  return scorePct < 50 ? sectionTips.low : sectionTips.mid;
+  const sectionTips = tips[label]
+  if (!sectionTips) return null
+  return scorePct < 50 ? sectionTips.low : sectionTips.mid
 }
 
 /** Industry benchmark averages (simulated) per section */
@@ -75,40 +77,39 @@ const BENCHMARKS: Record<string, number> = {
   기술: 55,
   프로젝트: 40,
   '자격/어학/수상/활동': 35,
-};
+}
 
 /** Specific improvement suggestions with point values */
 function getMissingSuggestions(resume: Resume): { text: string; points: number }[] {
-  const suggestions: { text: string; points: number }[] = [];
-  const pi = resume.personalInfo;
+  const suggestions: { text: string; points: number }[] = []
+  const pi = resume.personalInfo
 
-  if (!pi.name) suggestions.push({ text: '이름 추가하면', points: 6 });
-  if (!pi.email) suggestions.push({ text: '이메일 추가하면', points: 5 });
+  if (!pi.name) suggestions.push({ text: '이름 추가하면', points: 6 })
+  if (!pi.email) suggestions.push({ text: '이메일 추가하면', points: 5 })
   if (!pi.summary || pi.summary.replace(/<[^>]*>/g, '').length <= 30)
-    suggestions.push({ text: '자기소개 작성하면', points: 8 });
-  if (!pi.photo) suggestions.push({ text: '프로필 사진 추가하면', points: 2 });
-  if (!pi.website && !pi.github) suggestions.push({ text: '웹사이트/GitHub 추가하면', points: 3 });
+    suggestions.push({ text: '자기소개 작성하면', points: 8 })
+  if (!pi.photo) suggestions.push({ text: '프로필 사진 추가하면', points: 2 })
+  if (!pi.website && !pi.github) suggestions.push({ text: '웹사이트/GitHub 추가하면', points: 3 })
 
-  if (resume.experiences.length === 0) suggestions.push({ text: '경력 추가하면', points: 15 });
+  if (resume.experiences.length === 0) suggestions.push({ text: '경력 추가하면', points: 15 })
   else if (resume.experiences.length < 2)
-    suggestions.push({ text: '경력 1개 더 추가하면', points: 5 });
+    suggestions.push({ text: '경력 1개 더 추가하면', points: 5 })
 
-  if (resume.skills.length === 0) suggestions.push({ text: '기술 스택 추가하면', points: 10 });
-  else if (resume.skills.length < 2)
-    suggestions.push({ text: '기술 카테고리 추가하면', points: 4 });
+  if (resume.skills.length === 0) suggestions.push({ text: '기술 스택 추가하면', points: 10 })
+  else if (resume.skills.length < 2) suggestions.push({ text: '기술 카테고리 추가하면', points: 4 })
 
-  if (resume.educations.length === 0) suggestions.push({ text: '학력 추가하면', points: 7 });
+  if (resume.educations.length === 0) suggestions.push({ text: '학력 추가하면', points: 7 })
 
-  if (resume.projects.length === 0) suggestions.push({ text: '프로젝트 추가하면', points: 5 });
+  if (resume.projects.length === 0) suggestions.push({ text: '프로젝트 추가하면', points: 5 })
 
-  if (resume.certifications.length === 0) suggestions.push({ text: '자격증 추가하면', points: 3 });
+  if (resume.certifications.length === 0) suggestions.push({ text: '자격증 추가하면', points: 3 })
 
-  if (resume.languages.length === 0) suggestions.push({ text: '어학 성적 추가하면', points: 2 });
+  if (resume.languages.length === 0) suggestions.push({ text: '어학 성적 추가하면', points: 2 })
 
   if (resume.activities.length === 0)
-    suggestions.push({ text: '활동/대외활동 추가하면', points: 3 });
+    suggestions.push({ text: '활동/대외활동 추가하면', points: 3 })
 
-  return suggestions.sort((a, b) => b.points - a.points).slice(0, 5);
+  return suggestions.sort((a, b) => b.points - a.points).slice(0, 5)
 }
 
 /** SVG circular progress ring */
@@ -117,20 +118,20 @@ function ProgressRing({
   size = 100,
   strokeWidth = 8,
 }: {
-  percentage: number;
-  size?: number;
-  strokeWidth?: number;
+  percentage: number
+  size?: number
+  strokeWidth?: number
 }) {
-  const [animatedPct, setAnimatedPct] = useState(0);
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (animatedPct / 100) * circumference;
-  const color = getRingColor(percentage);
+  const [animatedPct, setAnimatedPct] = useState(0)
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (animatedPct / 100) * circumference
+  const color = getRingColor(percentage)
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimatedPct(percentage), 50);
-    return () => clearTimeout(timer);
-  }, [percentage]);
+    const timer = setTimeout(() => setAnimatedPct(percentage), 50)
+    return () => clearTimeout(timer)
+  }, [percentage])
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -161,17 +162,17 @@ function ProgressRing({
         <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">{percentage}%</span>
       </div>
     </div>
-  );
+  )
 }
 
 /** Animated horizontal bar for section scores */
 function SectionBar({ scorePct, color }: { scorePct: number; color: string }) {
-  const [animatedWidth, setAnimatedWidth] = useState(0);
+  const [animatedWidth, setAnimatedWidth] = useState(0)
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimatedWidth(scorePct), 80);
-    return () => clearTimeout(timer);
-  }, [scorePct]);
+    const timer = setTimeout(() => setAnimatedWidth(scorePct), 80)
+    return () => clearTimeout(timer)
+  }, [scorePct])
 
   return (
     <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
@@ -180,16 +181,16 @@ function SectionBar({ scorePct, color }: { scorePct: number; color: string }) {
         style={{ width: `${animatedWidth}%`, backgroundColor: color }}
       />
     </div>
-  );
+  )
 }
 
 /** Benchmark comparison badge */
 function BenchmarkBadge({ scorePct, benchmark }: { scorePct: number; benchmark: number }) {
-  const diff = scorePct - benchmark;
+  const diff = scorePct - benchmark
   if (diff === 0)
-    return <span className="text-[10px] text-slate-500 dark:text-slate-400">평균</span>;
+    return <span className="text-[10px] text-slate-500 dark:text-slate-400">평균</span>
 
-  const isPositive = diff > 0;
+  const isPositive = diff > 0
   return (
     <span
       className={`text-[10px] font-semibold ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}
@@ -197,12 +198,12 @@ function BenchmarkBadge({ scorePct, benchmark }: { scorePct: number; benchmark: 
       평균 대비 {isPositive ? '+' : ''}
       {diff}%
     </span>
-  );
+  )
 }
 
 function CompletenessBar({ resume, compact }: Props) {
-  const result = calculateCompleteness(resume);
-  const [showDetails, setShowDetails] = useState(true);
+  const result = calculateCompleteness(resume)
+  const [showDetails, setShowDetails] = useState(true)
 
   if (compact) {
     return (
@@ -217,10 +218,10 @@ function CompletenessBar({ resume, compact }: Props) {
           {result.percentage}%
         </span>
       </div>
-    );
+    )
   }
 
-  const suggestions = getMissingSuggestions(resume);
+  const suggestions = getMissingSuggestions(resume)
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
@@ -258,10 +259,10 @@ function CompletenessBar({ resume, compact }: Props) {
       {showDetails && (
         <div className="space-y-3 mb-4">
           {result.sections.map((s) => {
-            const scorePct = Math.round((s.score / s.maxScore) * 100);
-            const benchmark = BENCHMARKS[s.label] ?? 50;
-            const sectionColor = getRingColor(scorePct);
-            const tip = getSectionTip(s.label, scorePct);
+            const scorePct = Math.round((s.score / s.maxScore) * 100)
+            const benchmark = BENCHMARKS[s.label] ?? 50
+            const sectionColor = getRingColor(scorePct)
+            const tip = getSectionTip(s.label, scorePct)
 
             return (
               <div key={s.label} className="group">
@@ -311,7 +312,7 @@ function CompletenessBar({ resume, compact }: Props) {
                   </div>
                 )}
               </div>
-            );
+            )
           })}
         </div>
       )}
@@ -394,7 +395,7 @@ function CompletenessBar({ resume, compact }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default memo(CompletenessBar);
+export default memo(CompletenessBar)

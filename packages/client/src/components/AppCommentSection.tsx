@@ -1,26 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from '@/components/Toast';
-import { timeAgo } from '@/lib/time';
-import { API_URL } from '@/lib/config';
-import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, useEffect, useCallback } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { timeAgo } from '@/lib/time'
+import { commentSchema, type CommentFormValues } from '@/shared/lib/schemas'
 
 interface AppComment {
-  id: string;
-  authorName: string;
-  content: string;
-  createdAt: string;
+  id: string
+  authorName: string
+  content: string
+  createdAt: string
 }
 
 interface Props {
-  applicationId: string;
-  isPublic: boolean;
+  applicationId: string
+  isPublic: boolean
 }
 
 export default function AppCommentSection({ applicationId, isPublic }: Props) {
-  const [comments, setComments] = useState<AppComment[]>([]);
-  const [expanded, setExpanded] = useState(false);
+  const [comments, setComments] = useState<AppComment[]>([])
+  const [expanded, setExpanded] = useState(false)
 
   const {
     register,
@@ -32,61 +34,61 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
   } = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
     defaultValues: { content: '' },
-  });
+  })
 
-  const content = useWatch({ control, name: 'content' }) ?? '';
+  const content = useWatch({ control, name: 'content' }) ?? ''
 
   const load = useCallback(() => {
-    fetch(`${API_URL}/api/applications/${applicationId}/comments`)
+    httpClient(`${API_URL}/api/applications/${applicationId}/comments`)
       .then((r) => (r.ok ? r.json() : []))
       .then(setComments)
-      .catch(() => {});
-  }, [applicationId]);
+      .catch(() => {})
+  }, [applicationId])
 
   useEffect(() => {
-    if (isPublic && expanded) load();
-  }, [isPublic, expanded, load]);
+    if (isPublic && expanded) load()
+  }, [isPublic, expanded, load])
 
   const onSubmit = async (data: CommentFormValues) => {
     // Optimistic update: show comment immediately
-    const optimisticId = `optimistic-${applicationId}-${comments.length}-${data.content.trim().length}`;
+    const optimisticId = `optimistic-${applicationId}-${comments.length}-${data.content.trim().length}`
     const userName = (() => {
       try {
-        return JSON.parse(localStorage.getItem('user') || '{}').name || '나';
+        return JSON.parse(localStorage.getItem('user') || '{}').name || '나'
       } catch {
-        return '나';
+        return '나'
       }
-    })();
+    })()
     const optimisticComment: AppComment = {
       id: optimisticId,
       authorName: userName,
       content: data.content.trim(),
       createdAt: new Date().toISOString(),
-    };
-    setComments((prev) => [...prev, optimisticComment]);
-    const savedContent = data.content;
-    reset();
+    }
+    setComments((prev) => [...prev, optimisticComment])
+    const savedContent = data.content
+    reset()
 
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`${API_URL}/api/applications/${applicationId}/comments`, {
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      const res = await httpClient(`${API_URL}/api/applications/${applicationId}/comments`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ content: savedContent }),
-      });
-      if (!res.ok) throw new Error('작성에 실패했습니다');
-      toast('의견이 등록되었습니다', 'success');
-      load();
+      })
+      if (!res.ok) throw new Error('작성에 실패했습니다')
+      toast('의견이 등록되었습니다', 'success')
+      load()
     } catch (e) {
-      setComments((prev) => prev.filter((c) => c.id !== optimisticId));
-      setValue('content', savedContent);
-      toast(e instanceof Error ? e.message : '작성에 실패했습니다', 'error');
+      setComments((prev) => prev.filter((c) => c.id !== optimisticId))
+      setValue('content', savedContent)
+      toast(e instanceof Error ? e.message : '작성에 실패했습니다', 'error')
     }
-  };
+  }
 
-  if (!isPublic) return null;
+  if (!isPublic) return null
 
   return (
     <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
@@ -166,5 +168,5 @@ export default function AppCommentSection({ applicationId, isPublic }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

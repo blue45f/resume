@@ -1,13 +1,14 @@
-import { useMemo } from 'react';
-import { extractKeywords, type ExtractedKeyword } from '@/lib/koreanChecker';
+import { useMemo } from 'react'
+
+import { extractKeywords, type ExtractedKeyword } from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  topN?: number;
-  minLength?: number;
-  className?: string;
+  text: string
+  topN?: number
+  minLength?: number
+  className?: string
   /** 선택한 키워드 클릭 핸들러 (검색·필터 용) */
-  onKeywordClick?: (keyword: string) => void;
+  onKeywordClick?: (keyword: string) => void
 }
 
 /**
@@ -25,11 +26,11 @@ export default function KeywordCloud({
   onKeywordClick,
 }: Props) {
   const keywords = useMemo<ExtractedKeyword[]>(() => {
-    if (!text || text.length < minLength) return [];
-    return extractKeywords(text, topN);
-  }, [text, topN, minLength]);
+    if (!text || text.length < minLength) return []
+    return extractKeywords(text, topN)
+  }, [text, topN, minLength])
 
-  if (keywords.length === 0) return null;
+  if (keywords.length === 0) return null
 
   return (
     <div
@@ -38,9 +39,9 @@ export default function KeywordCloud({
       aria-label="핵심 키워드"
     >
       {keywords.map((kw) => {
-        const size = 0.75 + kw.weight * 0.6; // 0.75rem ~ 1.35rem
-        const emphasis = 0.45 + kw.weight * 0.55; // 0.45 ~ 1.0 opacity
-        const Tag = onKeywordClick ? 'button' : 'span';
+        const size = 0.75 + kw.weight * 0.6 // 0.75rem ~ 1.35rem
+        const emphasis = 0.45 + kw.weight * 0.55 // 0.45 ~ 1.0 opacity
+        const Tag = onKeywordClick ? 'button' : 'span'
         return (
           <Tag
             key={kw.word}
@@ -66,8 +67,8 @@ export default function KeywordCloud({
               ×{kw.count}
             </span>
           </Tag>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

@@ -1,31 +1,32 @@
-import { useMemo, useState, type SetStateAction } from 'react';
-import { formatDate } from '@/lib/time';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { useMemo, useState, type SetStateAction } from 'react'
+
+import { formatDate } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface InterviewReviewData {
-  difficulty: number;
-  questions: string;
-  result: 'pass' | 'fail' | 'pending';
-  tips: string;
-  createdAt: string;
-  updatedAt: string;
+  difficulty: number
+  questions: string
+  result: 'pass' | 'fail' | 'pending'
+  tips: string
+  createdAt: string
+  updatedAt: string
 }
 
 interface InterviewReviewForm {
-  difficulty: number;
-  questions: string;
-  result: 'pass' | 'fail' | 'pending';
-  tips: string;
+  difficulty: number
+  questions: string
+  result: 'pass' | 'fail' | 'pending'
+  tips: string
 }
 
 interface InterviewReviewState {
-  applicationId: string;
-  review: InterviewReviewData | null;
-  form: InterviewReviewForm;
+  applicationId: string
+  review: InterviewReviewData | null
+  form: InterviewReviewForm
 }
 
 interface Props {
-  applicationId: string;
+  applicationId: string
 }
 
 const RESULT_OPTIONS = [
@@ -47,23 +48,23 @@ const RESULT_OPTIONS = [
     color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
     icon: '...',
   },
-] as const;
+] as const
 
 function getStorageKey(appId: string) {
-  return `interview_review_${appId}`;
+  return `interview_review_${appId}`
 }
 
 function loadReview(appId: string): InterviewReviewData | null {
   try {
-    const raw = localStorage.getItem(getStorageKey(appId));
-    return raw ? JSON.parse(raw) : null;
+    const raw = localStorage.getItem(getStorageKey(appId))
+    return raw ? JSON.parse(raw) : null
   } catch {
-    return null;
+    return null
   }
 }
 
 function saveReview(appId: string, data: InterviewReviewData) {
-  localStorage.setItem(getStorageKey(appId), JSON.stringify(data));
+  localStorage.setItem(getStorageKey(appId), JSON.stringify(data))
 }
 
 function createEmptyReviewForm(): InterviewReviewForm {
@@ -72,7 +73,7 @@ function createEmptyReviewForm(): InterviewReviewForm {
     questions: '',
     result: 'pending',
     tips: '',
-  };
+  }
 }
 
 function createReviewForm(saved: InterviewReviewData): InterviewReviewForm {
@@ -81,47 +82,47 @@ function createReviewForm(saved: InterviewReviewData): InterviewReviewForm {
     questions: saved.questions,
     result: saved.result,
     tips: saved.tips,
-  };
+  }
 }
 
 function loadReviewState(applicationId: string): InterviewReviewState {
-  const saved = loadReview(applicationId);
+  const saved = loadReview(applicationId)
   return {
     applicationId,
     review: saved,
     form: saved ? createReviewForm(saved) : createEmptyReviewForm(),
-  };
+  }
 }
 
 export default function InterviewReview({ applicationId }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const loadedState = useMemo(() => loadReviewState(applicationId), [applicationId]);
-  const [reviewState, setReviewState] = useState<InterviewReviewState>(() => loadedState);
-  const activeState = reviewState.applicationId === applicationId ? reviewState : loadedState;
-  const { review, form } = activeState;
+  const [expanded, setExpanded] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const loadedState = useMemo(() => loadReviewState(applicationId), [applicationId])
+  const [reviewState, setReviewState] = useState<InterviewReviewState>(() => loadedState)
+  const activeState = reviewState.applicationId === applicationId ? reviewState : loadedState
+  const { review, form } = activeState
 
   const setForm = (next: SetStateAction<InterviewReviewForm>) => {
     setReviewState((prev) => {
-      const current = prev.applicationId === applicationId ? prev : loadedState;
-      const formValue = typeof next === 'function' ? next(current.form) : next;
-      return { ...current, applicationId, form: formValue };
-    });
-  };
+      const current = prev.applicationId === applicationId ? prev : loadedState
+      const formValue = typeof next === 'function' ? next(current.form) : next
+      return { ...current, applicationId, form: formValue }
+    })
+  }
 
   const handleSave = () => {
-    const now = new Date().toISOString();
+    const now = new Date().toISOString()
     const data: InterviewReviewData = {
       ...form,
       createdAt: review?.createdAt || now,
       updatedAt: now,
-    };
-    saveReview(applicationId, data);
-    setReviewState({ applicationId, review: data, form: createReviewForm(data) });
-    setEditing(false);
-  };
+    }
+    saveReview(applicationId, data)
+    setReviewState({ applicationId, review: data, form: createReviewForm(data) })
+    setEditing(false)
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const handleDelete = async () => {
     if (
@@ -131,13 +132,13 @@ export default function InterviewReview({ applicationId }: Props) {
         danger: true,
       }))
     )
-      return;
-    localStorage.removeItem(getStorageKey(applicationId));
-    setReviewState({ applicationId, review: null, form: createEmptyReviewForm() });
-    setEditing(false);
-  };
+      return
+    localStorage.removeItem(getStorageKey(applicationId))
+    setReviewState({ applicationId, review: null, form: createEmptyReviewForm() })
+    setEditing(false)
+  }
 
-  const resultInfo = RESULT_OPTIONS.find((r) => r.value === (review?.result || form.result));
+  const resultInfo = RESULT_OPTIONS.find((r) => r.value === (review?.result || form.result))
 
   return (
     <div className="mt-3 border-t border-slate-100 dark:border-slate-700 pt-3">
@@ -182,10 +183,17 @@ export default function InterviewReview({ applicationId }: Props) {
             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 space-y-3">
               {/* Difficulty */}
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                <span
+                  id="interview-difficulty-label"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block"
+                >
                   면접 난이도
-                </label>
-                <div className="flex gap-1">
+                </span>
+                <div
+                  role="group"
+                  aria-labelledby="interview-difficulty-label"
+                  className="flex gap-1"
+                >
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
@@ -216,10 +224,14 @@ export default function InterviewReview({ applicationId }: Props) {
 
               {/* Questions */}
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                <label
+                  htmlFor="interviewreview-field-1"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block"
+                >
                   면접 질문
                 </label>
                 <textarea
+                  id="interviewreview-field-1"
                   value={form.questions}
                   onChange={(e) => setForm((f) => ({ ...f, questions: e.target.value }))}
                   placeholder="어떤 질문을 받았나요? (줄바꿈으로 구분)"
@@ -230,10 +242,13 @@ export default function InterviewReview({ applicationId }: Props) {
 
               {/* Result */}
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                <span
+                  id="interview-result-label"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block"
+                >
                   결과
-                </label>
-                <div className="flex gap-2">
+                </span>
+                <div role="group" aria-labelledby="interview-result-label" className="flex gap-2">
                   {RESULT_OPTIONS.map((opt) => (
                     <button
                       key={opt.value}
@@ -253,10 +268,14 @@ export default function InterviewReview({ applicationId }: Props) {
 
               {/* Tips */}
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block">
+                <label
+                  htmlFor="interviewreview-field-2"
+                  className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 block"
+                >
                   면접 팁
                 </label>
                 <textarea
+                  id="interviewreview-field-2"
                   value={form.tips}
                   onChange={(e) => setForm((f) => ({ ...f, tips: e.target.value }))}
                   placeholder="다른 지원자에게 도움이 될 팁을 공유해주세요"
@@ -270,8 +289,8 @@ export default function InterviewReview({ applicationId }: Props) {
                 <button
                   type="button"
                   onClick={() => {
-                    setEditing(false);
-                    if (!review) setForm(createEmptyReviewForm());
+                    setEditing(false)
+                    if (!review) setForm(createEmptyReviewForm())
                   }}
                   className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors"
                 >
@@ -377,5 +396,5 @@ export default function InterviewReview({ applicationId }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

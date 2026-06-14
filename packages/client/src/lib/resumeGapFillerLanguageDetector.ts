@@ -11,22 +11,22 @@ export type GapFillerCategory =
   | 'vague_contribution' // 기여/참여 모호화
   | 'generic_teamwork' // 팀워크 클리셰
   | 'growth_cliche' // 성장·발전 공허 표현
-  | 'vague_experience'; // "경험을 쌓았습니다" 류
+  | 'vague_experience' // "경험을 쌓았습니다" 류
 
 export interface GapFillerMatch {
-  category: GapFillerCategory;
-  phrase: string;
-  suggestion: string;
+  category: GapFillerCategory
+  phrase: string
+  suggestion: string
 }
 
-export type GapFillerSeverity = 'heavy' | 'moderate' | 'light' | 'clean';
+export type GapFillerSeverity = 'heavy' | 'moderate' | 'light' | 'clean'
 
 export interface ResumeGapFillerReport {
-  matches: GapFillerMatch[];
-  severity: GapFillerSeverity;
-  fillerDensity: number; // matches / 100 chars (x1000 for display)
-  summary: string;
-  rewriteGuide: string[];
+  matches: GapFillerMatch[]
+  severity: GapFillerSeverity
+  fillerDensity: number // matches / 100 chars (x1000 for display)
+  summary: string
+  rewriteGuide: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -34,9 +34,9 @@ export interface ResumeGapFillerReport {
 // ---------------------------------------------------------------------------
 
 interface PatternDef {
-  re: RegExp;
-  category: GapFillerCategory;
-  suggestion: string;
+  re: RegExp
+  category: GapFillerCategory
+  suggestion: string
 }
 
 const FILLER_PATTERNS: PatternDef[] = [
@@ -133,56 +133,56 @@ const FILLER_PATTERNS: PatternDef[] = [
     category: 'vague_experience',
     suggestion: '"많은 경험 보유" 대신 대표 경험 2-3개를 수치화해서 서술하세요',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function detectResumeGapFillerLanguage(text: string): ResumeGapFillerReport {
-  const t = text ?? '';
-  const matches: GapFillerMatch[] = [];
+  const t = text ?? ''
+  const matches: GapFillerMatch[] = []
 
   for (const { re, category, suggestion } of FILLER_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      matches.push({ category, phrase: m[0].slice(0, 40), suggestion });
+      matches.push({ category, phrase: m[0].slice(0, 40), suggestion })
     }
   }
 
-  const charLen = Math.max(t.length, 1);
-  const fillerDensity = Math.round((matches.length / charLen) * 1000 * 10) / 10;
+  const charLen = Math.max(t.length, 1)
+  const fillerDensity = Math.round((matches.length / charLen) * 1000 * 10) / 10
 
-  let severity: GapFillerSeverity;
-  if (matches.length >= 5) severity = 'heavy';
-  else if (matches.length >= 3) severity = 'moderate';
-  else if (matches.length >= 1) severity = 'light';
-  else severity = 'clean';
+  let severity: GapFillerSeverity
+  if (matches.length >= 5) severity = 'heavy'
+  else if (matches.length >= 3) severity = 'moderate'
+  else if (matches.length >= 1) severity = 'light'
+  else severity = 'clean'
 
-  let summary: string;
+  let summary: string
   if (severity === 'heavy') {
-    summary = `공허한 표현이 ${matches.length}개 감지됩니다. 구체적 성과와 수치로 교체하면 서류 통과율이 크게 오릅니다.`;
+    summary = `공허한 표현이 ${matches.length}개 감지됩니다. 구체적 성과와 수치로 교체하면 서류 통과율이 크게 오릅니다.`
   } else if (severity === 'moderate') {
-    summary = `상투적 표현 ${matches.length}개가 있습니다. 일부를 구체적 사례로 바꾸세요.`;
+    summary = `상투적 표현 ${matches.length}개가 있습니다. 일부를 구체적 사례로 바꾸세요.`
   } else if (severity === 'light') {
-    summary = `가벼운 상투 표현 ${matches.length}개가 감지됩니다. 수치나 사례로 대체하면 더 설득력 있습니다.`;
+    summary = `가벼운 상투 표현 ${matches.length}개가 감지됩니다. 수치나 사례로 대체하면 더 설득력 있습니다.`
   } else {
-    summary = '공허한 표현이 감지되지 않습니다. 구체적·수치적 서술이 잘 되어 있습니다.';
+    summary = '공허한 표현이 감지되지 않습니다. 구체적·수치적 서술이 잘 되어 있습니다.'
   }
 
-  const rewriteGuide: string[] = [];
+  const rewriteGuide: string[] = []
   if (matches.some((m) => m.category === 'vague_effort')) {
-    rewriteGuide.push('노력·성실 표현 → 수치화 (예: "마감 준수율 100%", "주 5회 코드 리뷰 주도")');
+    rewriteGuide.push('노력·성실 표현 → 수치화 (예: "마감 준수율 100%", "주 5회 코드 리뷰 주도")')
   }
   if (matches.some((m) => m.category === 'hollow_diversity')) {
-    rewriteGuide.push('"다양한" → 구체적 목록 열거 (예: "React/Next.js/Svelte 3개 FE 스택 경험")');
+    rewriteGuide.push('"다양한" → 구체적 목록 열거 (예: "React/Next.js/Svelte 3개 FE 스택 경험")')
   }
   if (matches.some((m) => m.category === 'vague_contribution')) {
-    rewriteGuide.push('기여/참여 → 개인 산출물 구분 (예: "API 설계 3종 단독 담당")');
+    rewriteGuide.push('기여/참여 → 개인 산출물 구분 (예: "API 설계 3종 단독 담당")')
   }
   if (matches.some((m) => m.category === 'generic_teamwork')) {
-    rewriteGuide.push('팀워크 클리셰 → 협업 메커니즘 (예: "PR 리뷰 응답 시간 4h 이내 유지")');
+    rewriteGuide.push('팀워크 클리셰 → 협업 메커니즘 (예: "PR 리뷰 응답 시간 4h 이내 유지")')
   }
 
-  return { matches, severity, fillerDensity, summary, rewriteGuide };
+  return { matches, severity, fillerDensity, summary, rewriteGuide }
 }

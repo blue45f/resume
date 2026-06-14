@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import * as RadixDialog from '@radix-ui/react-dialog';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
 import {
   analyzeJobMatch,
   analyzeResumeFeedback,
@@ -9,84 +10,84 @@ import {
   type InterviewQuestionSet,
   type JobMatchAnalysis,
   type ResumeFeedback,
-} from '@/lib/api';
-import { getErrorMessage } from '@/lib/errorMessage';
-import { ROUTES, withQuery } from '@/lib/routes';
+} from '@/lib/api'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { ROUTES, withQuery } from '@/lib/routes'
 
 interface Props {
-  resumeId: string;
-  onClose: () => void;
+  resumeId: string
+  onClose: () => void
 }
 
-type Tab = 'feedback' | 'jobmatch' | 'interview';
+type Tab = 'feedback' | 'jobmatch' | 'interview'
 
 export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
-  const [tab, setTab] = useState<Tab>('feedback');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [tab, setTab] = useState<Tab>('feedback')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   // Feedback state
-  const [feedback, setFeedback] = useState<ResumeFeedback | null>(null);
+  const [feedback, setFeedback] = useState<ResumeFeedback | null>(null)
 
   // Job match state
-  const [jd, setJd] = useState('');
-  const [jobMatch, setJobMatch] = useState<JobMatchAnalysis | null>(null);
+  const [jd, setJd] = useState('')
+  const [jobMatch, setJobMatch] = useState<JobMatchAnalysis | null>(null)
 
   // Interview state
-  const [jobRole, setJobRole] = useState('');
-  const [interview, setInterview] = useState<InterviewQuestionSet | null>(null);
+  const [jobRole, setJobRole] = useState('')
+  const [interview, setInterview] = useState<InterviewQuestionSet | null>(null)
 
   const runFeedback = async () => {
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
     try {
-      const data = await analyzeResumeFeedback(resumeId);
-      setFeedback(data.feedback);
+      const data = await analyzeResumeFeedback(resumeId)
+      setFeedback(data.feedback)
     } catch (e) {
-      setError(getErrorMessage(e, '분석 실패'));
+      setError(getErrorMessage(e, '분석 실패'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const runJobMatch = async () => {
-    if (!jd.trim()) return;
-    setLoading(true);
-    setError('');
+    if (!jd.trim()) return
+    setLoading(true)
+    setError('')
     try {
-      const data = await analyzeJobMatch(resumeId, jd);
-      setJobMatch(data.analysis);
+      const data = await analyzeJobMatch(resumeId, jd)
+      setJobMatch(data.analysis)
     } catch (e) {
-      setError(getErrorMessage(e, '분석 실패'));
+      setError(getErrorMessage(e, '분석 실패'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const runInterview = async () => {
-    setLoading(true);
-    setError('');
+    setLoading(true)
+    setError('')
     try {
-      const data = await generateInterviewQuestions(resumeId, jobRole || undefined);
-      setInterview(data.interview);
+      const data = await generateInterviewQuestions(resumeId, jobRole || undefined)
+      setInterview(data.interview)
     } catch (e) {
-      setError(getErrorMessage(e, '생성 실패'));
+      setError(getErrorMessage(e, '생성 실패'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const tabs = [
     { id: 'feedback' as Tab, label: '📊 이력서 피드백', desc: 'AI가 점수와 개선점을 분석' },
     { id: 'jobmatch' as Tab, label: '🎯 JD 매칭', desc: '채용공고와 매칭도 분석' },
     { id: 'interview' as Tab, label: '🎤 면접 질문', desc: '예상 면접 질문 생성' },
-  ];
+  ]
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -297,10 +298,14 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
             {tab === 'jobmatch' && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <label
+                    htmlFor="aianalysispanel-field-1"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                  >
                     채용공고 (JD) 붙여넣기
                   </label>
                   <textarea
+                    id="aianalysispanel-field-1"
                     value={jd}
                     onChange={(e) => setJd(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm h-32 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
@@ -399,10 +404,14 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
                 {!interview ? (
                   <div className="text-center py-6">
                     <div className="mb-4">
-                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      <label
+                        htmlFor="aianalysispanel-field-2"
+                        className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                      >
                         지원 직무 (선택)
                       </label>
                       <input
+                        id="aianalysispanel-field-2"
                         value={jobRole}
                         onChange={(e) => setJobRole(e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 dark:text-slate-100"
@@ -474,5 +483,5 @@ export default function AiAnalysisPanel({ resumeId, onClose }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

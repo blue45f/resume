@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { API_URL } from '@/lib/config';
+import { useState, useEffect } from 'react'
 import {
   ResponsiveContainer,
   BarChart,
@@ -13,57 +12,60 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
+} from 'recharts'
+
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface Analytics {
-  viewCount: number;
-  commentCount: number;
-  bookmarkCount: number;
-  shareCount: number;
-  versionCount: number;
+  viewCount: number
+  commentCount: number
+  bookmarkCount: number
+  shareCount: number
+  versionCount: number
 }
 
 interface DailyView {
-  date: string;
-  count: number;
+  date: string
+  count: number
 }
 
 interface ReferrerStat {
-  source: string;
-  count: number;
-  percentage: number;
+  source: string
+  count: number
+  percentage: number
 }
 
 interface HourStat {
-  hour: number;
-  count: number;
+  hour: number
+  count: number
 }
 
 interface DeviceStat {
-  type: string;
-  count: number;
-  percentage: number;
+  type: string
+  count: number
+  percentage: number
 }
 
 interface DetailedAnalytics {
-  dailyViews: DailyView[];
-  referrers: ReferrerStat[];
-  peakHours: HourStat[];
-  devices: DeviceStat[];
+  dailyViews: DailyView[]
+  referrers: ReferrerStat[]
+  peakHours: HourStat[]
+  devices: DeviceStat[]
 }
 
 interface Props {
-  resumeId: string;
+  resumeId: string
 }
 
-const COLORS = ['#2563eb', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ['#2563eb', '#3b82f6', '#10b981', '#f59e0b', '#ef4444']
 
 function HourHeatmap({ hours }: { hours: HourStat[] }) {
-  const maxCount = Math.max(...hours.map((h) => h.count), 1);
+  const maxCount = Math.max(...hours.map((h) => h.count), 1)
   return (
     <div className="stagger-children grid grid-cols-12 gap-1">
       {hours.map((h) => {
-        const intensity = h.count / maxCount;
+        const intensity = h.count / maxCount
         const bg =
           intensity === 0
             ? 'bg-slate-100 dark:bg-slate-700'
@@ -73,7 +75,7 @@ function HourHeatmap({ hours }: { hours: HourStat[] }) {
                 ? 'bg-sky-200 dark:bg-sky-800/40'
                 : intensity < 0.75
                   ? 'bg-sky-300 dark:bg-sky-700/50'
-                  : 'bg-sky-500 dark:bg-sky-500';
+                  : 'bg-sky-500 dark:bg-sky-500'
         return (
           <div key={h.hour} className="flex flex-col items-center gap-0.5 group relative">
             <div
@@ -86,35 +88,35 @@ function HourHeatmap({ hours }: { hours: HourStat[] }) {
               </div>
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }
 
 function generateMockDetailedAnalytics(viewCount: number): DetailedAnalytics {
-  const dailyViews: DailyView[] = [];
-  const now = new Date();
-  let remaining = viewCount;
+  const dailyViews: DailyView[] = []
+  const now = new Date()
+  let remaining = viewCount
 
   for (let i = 29; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    const weight = (30 - i) / 30;
+    const date = new Date(now)
+    date.setDate(date.getDate() - i)
+    const weight = (30 - i) / 30
     const count =
       i === 0
         ? remaining
-        : Math.min(remaining, Math.floor(Math.random() * (viewCount / 10) * weight));
-    remaining = Math.max(0, remaining - count);
+        : Math.min(remaining, Math.floor(Math.random() * (viewCount / 10) * weight))
+    remaining = Math.max(0, remaining - count)
     dailyViews.push({
       date: `${date.getMonth() + 1}/${date.getDate()}`,
       count,
-    });
+    })
   }
 
-  const directPct = 35 + Math.floor(Math.random() * 15);
-  const browsePct = 25 + Math.floor(Math.random() * 15);
-  const sharePct = 100 - directPct - browsePct;
+  const directPct = 35 + Math.floor(Math.random() * 15)
+  const browsePct = 25 + Math.floor(Math.random() * 15)
+  const sharePct = 100 - directPct - browsePct
   const referrers: ReferrerStat[] = [
     {
       source: '직접 방문',
@@ -127,50 +129,50 @@ function generateMockDetailedAnalytics(viewCount: number): DetailedAnalytics {
       percentage: browsePct,
     },
     { source: '공유 링크', count: Math.round((viewCount * sharePct) / 100), percentage: sharePct },
-  ];
+  ]
 
-  const peakHours: HourStat[] = [];
+  const peakHours: HourStat[] = []
   for (let h = 0; h < 24; h++) {
-    const isBusinessHour = h >= 9 && h <= 18;
-    const isLunchHour = h >= 12 && h <= 13;
-    const base = isLunchHour ? 3 : isBusinessHour ? 2 : 0.5;
+    const isBusinessHour = h >= 9 && h <= 18
+    const isLunchHour = h >= 12 && h <= 13
+    const base = isLunchHour ? 3 : isBusinessHour ? 2 : 0.5
     peakHours.push({
       hour: h,
       count: Math.floor((Math.random() * viewCount * base) / 24),
-    });
+    })
   }
 
-  const mobilePct = 55 + Math.floor(Math.random() * 15);
-  const desktopPct = 100 - mobilePct;
+  const mobilePct = 55 + Math.floor(Math.random() * 15)
+  const desktopPct = 100 - mobilePct
   const devices: DeviceStat[] = [
     { type: '모바일', count: Math.round((viewCount * mobilePct) / 100), percentage: mobilePct },
     { type: '데스크톱', count: Math.round((viewCount * desktopPct) / 100), percentage: desktopPct },
-  ];
+  ]
 
-  return { dailyViews, referrers, peakHours, devices };
+  return { dailyViews, referrers, peakHours, devices }
 }
 
 export default function ResumeAnalytics({ resumeId }: Props) {
-  const [data, setData] = useState<Analytics | null>(null);
-  const [detailed, setDetailed] = useState<DetailedAnalytics | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [data, setData] = useState<Analytics | null>(null)
+  const [detailed, setDetailed] = useState<DetailedAnalytics | null>(null)
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    fetch(`${API_URL}/api/resumes/analytics/${resumeId}`, { headers })
+    const token = localStorage.getItem('token')
+    const headers: Record<string, string> = {}
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    httpClient(`${API_URL}/api/resumes/analytics/${resumeId}`, { headers })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        setData(d);
+        setData(d)
         if (d) {
-          setDetailed(generateMockDetailedAnalytics(d.viewCount || 0));
+          setDetailed(generateMockDetailedAnalytics(d.viewCount || 0))
         }
       })
-      .catch(() => {});
-  }, [resumeId]);
+      .catch(() => {})
+  }, [resumeId])
 
-  if (!data) return null;
+  if (!data) return null
 
   const stats = [
     { label: '조회', value: data.viewCount, icon: '👁', color: 'text-blue-600' },
@@ -178,12 +180,12 @@ export default function ResumeAnalytics({ resumeId }: Props) {
     { label: '북마크', value: data.bookmarkCount, icon: '🔖', color: 'text-amber-600' },
     { label: '공유', value: data.shareCount, icon: '🔗', color: 'text-sky-600' },
     { label: '버전', value: data.versionCount, icon: '📋', color: 'text-slate-600' },
-  ];
+  ]
 
   // 최근 14일 조회수 데이터 (LineChart)
   const recentViews = detailed
     ? detailed.dailyViews.slice(-14).map((d) => ({ name: d.date, 조회수: d.count }))
-    : [];
+    : []
 
   // 섹션별 완성도 BarChart (분석 카드 통계 기반)
   const completionData = [
@@ -192,7 +194,7 @@ export default function ResumeAnalytics({ resumeId }: Props) {
     { name: '북마크', value: data.bookmarkCount },
     { name: '공유', value: data.shareCount },
     { name: '버전', value: data.versionCount },
-  ];
+  ]
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -389,5 +391,5 @@ export default function ResumeAnalytics({ resumeId }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

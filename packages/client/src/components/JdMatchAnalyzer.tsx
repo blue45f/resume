@@ -1,54 +1,57 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { toast } from '@/components/Toast';
-import { API_URL } from '@/lib/config';
-import { formatDate } from '@/lib/time';
-import type { Resume } from '@/types/resume';
-import { getErrorMessage } from '@/lib/errorMessage';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect, useCallback, useRef } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { httpClient } from '@/lib/ky'
+import { formatDate } from '@/lib/time'
 
 interface Props {
-  resumeId: string;
-  resume: Resume;
-  onClose: () => void;
+  resumeId: string
+  resume: Resume
+  onClose: () => void
 }
 
 interface KeywordMatch {
-  found: string[];
-  missing: string[];
+  found: string[]
+  missing: string[]
 }
 
 interface SkillsGap {
-  resumeSkills: string[];
-  requiredSkills: string[];
-  overlap: string[];
+  resumeSkills: string[]
+  requiredSkills: string[]
+  overlap: string[]
 }
 
 interface JdMatchResult {
-  matchScore: number;
-  matchGrade: string;
-  summary: string;
-  keywords: KeywordMatch;
-  skillsGap: SkillsGap;
-  experienceMatch: { required: string; actual: string; verdict: string };
-  matchedSkills?: string[];
-  missingSkills?: string[];
-  recommendations?: string[];
-  coverLetterPoints?: string[];
+  matchScore: number
+  matchGrade: string
+  summary: string
+  keywords: KeywordMatch
+  skillsGap: SkillsGap
+  experienceMatch: { required: string; actual: string; verdict: string }
+  matchedSkills?: string[]
+  missingSkills?: string[]
+  recommendations?: string[]
+  coverLetterPoints?: string[]
 }
 
 interface JdHistoryEntry {
-  id: string;
-  jdSnippet: string;
-  score: number;
-  grade: string;
-  date: string;
+  id: string
+  jdSnippet: string
+  score: number
+  grade: string
+  date: string
 }
 
 function getHeaders() {
-  const token = localStorage.getItem('token');
-  const h: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) h['Authorization'] = `Bearer ${token}`;
-  return h;
+  const token = localStorage.getItem('token')
+  const h: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) h['Authorization'] = `Bearer ${token}`
+  return h
 }
 
 /** Animated circular progress */
@@ -57,23 +60,23 @@ function CircularProgress({
   size = 140,
   strokeWidth = 10,
 }: {
-  value: number;
-  size?: number;
-  strokeWidth?: number;
+  value: number
+  size?: number
+  strokeWidth?: number
 }) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const [offset, setOffset] = useState(circumference);
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const [offset, setOffset] = useState(circumference)
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setOffset(circumference - (value / 100) * circumference);
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [value, circumference]);
+      setOffset(circumference - (value / 100) * circumference)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [value, circumference])
 
   const color =
-    value >= 80 ? '#22c55e' : value >= 60 ? '#eab308' : value >= 40 ? '#f97316' : '#ef4444';
+    value >= 80 ? '#22c55e' : value >= 60 ? '#eab308' : value >= 40 ? '#f97316' : '#ef4444'
 
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -106,13 +109,13 @@ function CircularProgress({
         <span className="text-xs text-slate-500">/ 100</span>
       </div>
     </div>
-  );
+  )
 }
 
 /** Venn-style skill overlap visualization */
 function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
-  const onlyResume = skillsGap.resumeSkills.filter((s) => !skillsGap.overlap.includes(s));
-  const onlyRequired = skillsGap.requiredSkills.filter((s) => !skillsGap.overlap.includes(s));
+  const onlyResume = skillsGap.resumeSkills.filter((s) => !skillsGap.overlap.includes(s))
+  const onlyRequired = skillsGap.requiredSkills.filter((s) => !skillsGap.overlap.includes(s))
 
   return (
     <div className="space-y-3">
@@ -199,127 +202,127 @@ function SkillsVenn({ skillsGap }: { skillsGap: SkillsGap }) {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-const JD_HISTORY_KEY = 'jd-match-history';
+const JD_HISTORY_KEY = 'jd-match-history'
 
 function loadHistory(): JdHistoryEntry[] {
   try {
-    return JSON.parse(localStorage.getItem(JD_HISTORY_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(JD_HISTORY_KEY) || '[]')
   } catch {
-    return [];
+    return []
   }
 }
 
 function saveHistory(entries: JdHistoryEntry[]) {
-  localStorage.setItem(JD_HISTORY_KEY, JSON.stringify(entries.slice(0, 20)));
+  localStorage.setItem(JD_HISTORY_KEY, JSON.stringify(entries.slice(0, 20)))
 }
 
-type ActiveTab = 'analyze' | 'history' | 'coverletter';
+type ActiveTab = 'analyze' | 'history' | 'coverletter'
 
 export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
-  const [jd, setJd] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [optimizing, setOptimizing] = useState(false);
-  const [coverLetterLoading, setCoverLetterLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [result, setResult] = useState<JdMatchResult | null>(null);
-  const [coverLetter, setCoverLetter] = useState('');
-  const [coverLetterEditing, setCoverLetterEditing] = useState(false);
-  const [history, setHistory] = useState<JdHistoryEntry[]>(loadHistory);
-  const [tab, setTab] = useState<ActiveTab>('analyze');
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [jd, setJd] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [optimizing, setOptimizing] = useState(false)
+  const [coverLetterLoading, setCoverLetterLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState<JdMatchResult | null>(null)
+  const [coverLetter, setCoverLetter] = useState('')
+  const [coverLetterEditing, setCoverLetterEditing] = useState(false)
+  const [history, setHistory] = useState<JdHistoryEntry[]>(loadHistory)
+  const [tab, setTab] = useState<ActiveTab>('analyze')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Extract skills from resume for local analysis fallback
   const extractResumeSkills = useCallback((): string[] => {
-    const skills: string[] = [];
+    const skills: string[] = []
     resume.skills.forEach((s) => {
       s.items.split(',').forEach((item) => {
-        const trimmed = item.trim();
-        if (trimmed) skills.push(trimmed);
-      });
-    });
+        const trimmed = item.trim()
+        if (trimmed) skills.push(trimmed)
+      })
+    })
     resume.experiences.forEach((e) => {
       if (e.techStack) {
         e.techStack.split(',').forEach((item) => {
-          const trimmed = item.trim();
-          if (trimmed && !skills.includes(trimmed)) skills.push(trimmed);
-        });
+          const trimmed = item.trim()
+          if (trimmed && !skills.includes(trimmed)) skills.push(trimmed)
+        })
       }
-    });
+    })
     resume.projects.forEach((p) => {
       if (p.techStack) {
         p.techStack.split(',').forEach((item) => {
-          const trimmed = item.trim();
-          if (trimmed && !skills.includes(trimmed)) skills.push(trimmed);
-        });
+          const trimmed = item.trim()
+          if (trimmed && !skills.includes(trimmed)) skills.push(trimmed)
+        })
       }
-    });
-    return skills;
-  }, [resume]);
+    })
+    return skills
+  }, [resume])
 
   const runAnalysis = async () => {
-    if (!jd.trim() || jd.length < 20) return;
-    setLoading(true);
-    setError('');
-    setResult(null);
+    if (!jd.trim() || jd.length < 20) return
+    setLoading(true)
+    setError('')
+    setResult(null)
 
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ jobDescription: jd }),
-      });
+      })
 
       if (!res.ok) {
-        throw new Error((await res.json().catch(() => ({}))).message || '분석 실패');
+        throw new Error((await res.json().catch(() => ({}))).message || '분석 실패')
       }
 
-      const data = await res.json();
-      const analysis = data.analysis;
+      const data = await res.json()
+      const analysis = data.analysis
 
       // Normalize the API response into our structured result
-      const resumeSkills = extractResumeSkills();
-      const matched = analysis.matchedSkills || [];
-      const missing = analysis.missingSkills || [];
+      const resumeSkills = extractResumeSkills()
+      const matched = analysis.matchedSkills || []
+      const missing = analysis.missingSkills || []
 
       // Build keywords from the JD text
       const jdWords = jd
         .toLowerCase()
         .replace(/[^\w가-힣\s]/g, ' ')
         .split(/\s+/)
-        .filter((w) => w.length > 2);
-      const resumeText = JSON.stringify(resume).toLowerCase();
-      const foundKeywords: string[] = [];
-      const missingKeywords: string[] = [];
-      const seen = new Set<string>();
+        .filter((w) => w.length > 2)
+      const resumeText = JSON.stringify(resume).toLowerCase()
+      const foundKeywords: string[] = []
+      const missingKeywords: string[] = []
+      const seen = new Set<string>()
       for (const word of jdWords) {
-        if (seen.has(word)) continue;
-        seen.add(word);
-        if (resumeText.includes(word)) foundKeywords.push(word);
-        else missingKeywords.push(word);
+        if (seen.has(word)) continue
+        seen.add(word)
+        if (resumeText.includes(word)) foundKeywords.push(word)
+        else missingKeywords.push(word)
       }
 
       // Estimate experience
-      let totalYears = 0;
+      let totalYears = 0
       for (const exp of resume.experiences) {
-        const start = exp.startDate ? new Date(exp.startDate) : null;
-        const end = exp.current ? new Date() : exp.endDate ? new Date(exp.endDate) : null;
+        const start = exp.startDate ? new Date(exp.startDate) : null
+        const end = exp.current ? new Date() : exp.endDate ? new Date(exp.endDate) : null
         if (start && end) {
-          totalYears += (end.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+          totalYears += (end.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
         }
       }
-      const actualYearsStr = `${Math.round(totalYears)}년`;
+      const actualYearsStr = `${Math.round(totalYears)}년`
 
       // Try to extract required years from JD
-      const yearsMatch = jd.match(/(\d+)\s*년\s*(이상|경력)/);
-      const requiredYearsStr = yearsMatch ? `${yearsMatch[1]}년 이상` : '명시되지 않음';
+      const yearsMatch = jd.match(/(\d+)\s*년\s*(이상|경력)/)
+      const requiredYearsStr = yearsMatch ? `${yearsMatch[1]}년 이상` : '명시되지 않음'
       const verdict = yearsMatch
         ? totalYears >= parseInt(yearsMatch[1])
           ? '충족'
           : '부족'
-        : '확인 필요';
+        : '확인 필요'
 
       const matchResult: JdMatchResult = {
         matchScore: analysis.matchScore || 0,
@@ -343,9 +346,9 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
         missingSkills: missing,
         recommendations: analysis.recommendations || [],
         coverLetterPoints: analysis.coverLetterPoints || [],
-      };
+      }
 
-      setResult(matchResult);
+      setResult(matchResult)
 
       // Save to history
       const entry: JdHistoryEntry = {
@@ -354,94 +357,94 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
         score: matchResult.matchScore,
         grade: matchResult.matchGrade,
         date: new Date().toISOString(),
-      };
-      const newHistory = [entry, ...history.filter((h) => h.id !== entry.id)].slice(0, 20);
-      setHistory(newHistory);
-      saveHistory(newHistory);
+      }
+      const newHistory = [entry, ...history.filter((h) => h.id !== entry.id)].slice(0, 20)
+      setHistory(newHistory)
+      saveHistory(newHistory)
     } catch (e) {
-      setError(getErrorMessage(e, '분석 중 오류가 발생했습니다'));
+      setError(getErrorMessage(e, '분석 중 오류가 발생했습니다'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const runOptimize = async () => {
-    if (!jd.trim() || !result) return;
-    setOptimizing(true);
-    setError('');
+    if (!jd.trim() || !result) return
+    setOptimizing(true)
+    setError('')
 
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
           templateType: 'custom',
           jobDescription: jd,
         }),
-      });
+      })
 
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || '최적화 실패');
+      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).message || '최적화 실패')
       // Optimization done - the transform endpoint handles saving
-      setError('');
-      toast('JD에 맞춰 이력서가 최적화되었습니다. 변환 기록에서 확인하세요.', 'success');
+      setError('')
+      toast('JD에 맞춰 이력서가 최적화되었습니다. 변환 기록에서 확인하세요.', 'success')
     } catch (e) {
-      setError(getErrorMessage(e));
+      setError(getErrorMessage(e))
     } finally {
-      setOptimizing(false);
+      setOptimizing(false)
     }
-  };
+  }
 
   const runCoverLetter = async () => {
-    if (!jd.trim()) return;
-    setCoverLetterLoading(true);
-    setError('');
-    setCoverLetter('');
+    if (!jd.trim()) return
+    setCoverLetterLoading(true)
+    setError('')
+    setCoverLetter('')
 
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform/job-match`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({
           jobDescription: jd,
           generateCoverLetter: true,
         }),
-      });
+      })
 
       if (!res.ok)
-        throw new Error((await res.json().catch(() => ({}))).message || '자소서 생성 실패');
-      const data = await res.json();
-      const cl = data.coverLetter || data.analysis?.coverLetter || '';
+        throw new Error((await res.json().catch(() => ({}))).message || '자소서 생성 실패')
+      const data = await res.json()
+      const cl = data.coverLetter || data.analysis?.coverLetter || ''
       if (cl) {
-        setCoverLetter(cl);
-        setTab('coverletter');
+        setCoverLetter(cl)
+        setTab('coverletter')
       } else {
         // Fallback: generate locally from coverLetterPoints
-        const points = result?.coverLetterPoints || data.analysis?.coverLetterPoints || [];
-        const fallbackCl = generateLocalCoverLetter(resume, jd, points);
-        setCoverLetter(fallbackCl);
-        setTab('coverletter');
+        const points = result?.coverLetterPoints || data.analysis?.coverLetterPoints || []
+        const fallbackCl = generateLocalCoverLetter(resume, jd, points)
+        setCoverLetter(fallbackCl)
+        setTab('coverletter')
       }
     } catch {
       // Fallback to local generation
-      const points = result?.coverLetterPoints || [];
-      const fallbackCl = generateLocalCoverLetter(resume, jd, points);
-      setCoverLetter(fallbackCl);
-      setTab('coverletter');
+      const points = result?.coverLetterPoints || []
+      const fallbackCl = generateLocalCoverLetter(resume, jd, points)
+      setCoverLetter(fallbackCl)
+      setTab('coverletter')
     } finally {
-      setCoverLetterLoading(false);
+      setCoverLetterLoading(false)
     }
-  };
+  }
 
   const clearHistory = () => {
-    setHistory([]);
-    saveHistory([]);
-  };
+    setHistory([])
+    saveHistory([])
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -504,10 +507,14 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
               <div className="space-y-5">
                 {/* JD Input */}
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  <label
+                    htmlFor="jdmatchanalyzer-field-1"
+                    className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     채용공고 (Job Description) 붙여넣기
                   </label>
                   <textarea
+                    id="jdmatchanalyzer-field-1"
                     ref={textareaRef}
                     value={jd}
                     onChange={(e) => setJd(e.target.value)}
@@ -737,8 +744,8 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                         </button>
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(coverLetter);
-                            toast('자소서가 클립보드에 복사되었습니다.', 'success');
+                            navigator.clipboard.writeText(coverLetter)
+                            toast('자소서가 클립보드에 복사되었습니다.', 'success')
                           }}
                           className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 transition-colors"
                         >
@@ -799,7 +806,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                             ? 'text-green-600 bg-green-50'
                             : entry.score >= 60
                               ? 'text-amber-600 bg-amber-50'
-                              : 'text-red-600 bg-red-50';
+                              : 'text-red-600 bg-red-50'
                         return (
                           <div
                             key={entry.id}
@@ -819,7 +826,7 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
                               </p>
                             </div>
                           </div>
-                        );
+                        )
                       })}
                     </div>
                   </>
@@ -830,21 +837,21 @@ export default function JdMatchAnalyzer({ resumeId, resume, onClose }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }
 
 /** Fallback local cover letter generator */
 function generateLocalCoverLetter(resume: Resume, _jd: string, points: string[]): string {
-  const name = resume.personalInfo.name || '지원자';
-  const skills = resume.skills.map((s) => s.items).join(', ');
+  const name = resume.personalInfo.name || '지원자'
+  const skills = resume.skills.map((s) => s.items).join(', ')
   const expSummary = resume.experiences
     .map((e) => `${e.company}에서 ${e.position}으로 근무`)
-    .join(', ');
+    .join(', ')
 
   const pointsText =
     points.length > 0
       ? points.map((p, i) => `${i + 1}. ${p}`).join('\n')
-      : '- 해당 직무에 대한 열정과 관심\n- 기존 경력을 통해 축적한 실무 역량\n- 지속적인 성장과 기여 의지';
+      : '- 해당 직무에 대한 열정과 관심\n- 기존 경력을 통해 축적한 실무 역량\n- 지속적인 성장과 기여 의지'
 
   return `안녕하세요, ${name}입니다.
 
@@ -867,5 +874,5 @@ ${skills || '채용공고에 명시된 기술 스택에 대한 학습과 실무 
 면접 기회를 주시면 더 자세히 말씀드리겠습니다.
 
 감사합니다.
-${name} 드림`;
+${name} 드림`
 }

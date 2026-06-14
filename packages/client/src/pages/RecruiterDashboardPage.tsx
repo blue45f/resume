@@ -1,16 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { getUser } from '@/lib/auth';
-import { ROUTES, withQuery } from '@/lib/routes';
-import { timeAgo } from '@/lib/time';
-import { API_URL } from '@/lib/config';
-import { t } from '@/lib/i18n';
-import SendMessageButton from '@/components/SendMessageButton';
-import ApplicantDetailDrawer from '@/components/ApplicantDetailDrawer';
-import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
+import { useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
+import ApplicantDetailDrawer from '@/components/ApplicantDetailDrawer'
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import SendMessageButton from '@/components/SendMessageButton'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { t } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
+import { ROUTES, withQuery } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
 
 const PIPELINE_STAGES = [
   {
@@ -37,64 +39,64 @@ const PIPELINE_STAGES = [
     color: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400',
     icon: '✅',
   },
-] as const;
+] as const
 
 interface Candidate {
-  id: string;
-  name: string;
-  email: string;
-  resumeId?: string;
-  stage: string;
-  position: string;
-  updatedAt: string;
+  id: string
+  name: string
+  email: string
+  resumeId?: string
+  stage: string
+  position: string
+  updatedAt: string
 }
 
 interface RecruiterJob {
-  id: string;
-  position?: string;
-  company?: string;
-  status?: string;
-  createdAt?: string;
+  id: string
+  position?: string
+  company?: string
+  status?: string
+  createdAt?: string
 }
 
 interface RecruiterScout {
-  id: string;
-  status?: string;
+  id: string
+  status?: string
 }
 
 interface RecruiterApplicant {
-  id: string;
-  userId?: string;
-  name?: string;
-  email?: string | null;
-  avatar?: string;
-  resumeId?: string | null;
-  coverLetter?: string;
-  stage?: string;
-  position?: string;
-  createdAt?: string;
+  id: string
+  userId?: string
+  name?: string
+  email?: string | null
+  avatar?: string
+  resumeId?: string | null
+  coverLetter?: string
+  stage?: string
+  position?: string
+  createdAt?: string
 }
 
 type SelectedApplicant = RecruiterApplicant & {
-  userId: string;
-  name: string;
-};
+  userId: string
+  name: string
+}
 
 interface RecommendedCandidate {
-  id: string;
-  userId?: string;
-  resumeId?: string;
-  name?: string;
-  title?: string;
-  matchScore?: number;
-  skills?: string[];
+  id: string
+  userId?: string
+  resumeId?: string
+  name?: string
+  title?: string
+  matchScore?: number
+  skills?: string[]
 }
 
 interface PipelineStats {
-  total: number;
-  byStage: Record<string, number>;
-  conversionRates: { contactRate?: number; interviewRate?: number; hireRate?: number };
-  avgResponseHours: number | null;
+  total: number
+  byStage: Record<string, number>
+  conversionRates: { contactRate?: number; interviewRate?: number; hireRate?: number }
+  avgResponseHours: number | null
 }
 
 const EMPTY_PIPELINE_STATS: PipelineStats = {
@@ -102,38 +104,38 @@ const EMPTY_PIPELINE_STATS: PipelineStats = {
   byStage: {},
   conversionRates: {},
   avgResponseHours: null,
-};
+}
 
 const authedFetch = async <T,>(url: string, fallback: T): Promise<T> => {
-  const token = localStorage.getItem('token');
-  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-  const res = await fetch(`${API_URL}${url}`, { headers });
-  if (!res.ok) return fallback;
-  const data = await res.json();
-  return (data ?? fallback) as T;
-};
+  const token = localStorage.getItem('token')
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+  const res = await httpClient(`${API_URL}${url}`, { headers })
+  if (!res.ok) return fallback
+  const data = await res.json()
+  return (data ?? fallback) as T
+}
 
 const toSelectedApplicant = (applicant: RecruiterApplicant): SelectedApplicant => ({
   ...applicant,
   userId: applicant.userId ?? applicant.id,
   name: applicant.name ?? '지원자',
-});
+})
 
 export default function RecruiterDashboardPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const user = getUser();
-  const isRecruiterUser = !!user && user.userType !== 'personal';
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const user = getUser()
+  const isRecruiterUser = !!user && user.userType !== 'personal'
 
   useEffect(() => {
-    document.title = '리크루터 대시보드 — 이력서공방';
+    document.title = '리크루터 대시보드 — 이력서공방'
     if (!user || user.userType === 'personal') {
-      navigate(ROUTES.home);
+      navigate(ROUTES.home)
     }
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [navigate, user]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [navigate, user])
 
   const results = useQueries({
     queries: [
@@ -174,62 +176,62 @@ export default function RecruiterDashboardPage() {
         staleTime: 30_000,
       },
     ],
-  });
-  const [jobsQ, scoutsQ, applicantsQ, pipelineQ, recommendedQ, pipelineStatsQ] = results;
-  const pipelineStats = pipelineStatsQ.data ?? EMPTY_PIPELINE_STATS;
-  const jobs = jobsQ.data ?? [];
-  const scouts = scoutsQ.data ?? [];
-  const applicants = applicantsQ.data ?? [];
-  const candidates = pipelineQ.data ?? [];
-  const recommended = recommendedQ.data ?? [];
-  const loading = results.some((r) => r.isLoading);
+  })
+  const [jobsQ, scoutsQ, applicantsQ, pipelineQ, recommendedQ, pipelineStatsQ] = results
+  const pipelineStats = pipelineStatsQ.data ?? EMPTY_PIPELINE_STATS
+  const jobs = jobsQ.data ?? []
+  const scouts = scoutsQ.data ?? []
+  const applicants = applicantsQ.data ?? []
+  const candidates = pipelineQ.data ?? []
+  const recommended = recommendedQ.data ?? []
+  const loading = results.some((r) => r.isLoading)
 
-  const [selectedApplicant, setSelectedApplicant] = useState<SelectedApplicant | null>(null);
-  const [filterQuery, setFilterQuery] = useState('');
-  const [filterStage, setFilterStage] = useState<string>('all');
+  const [selectedApplicant, setSelectedApplicant] = useState<SelectedApplicant | null>(null)
+  const [filterQuery, setFilterQuery] = useState('')
+  const [filterStage, setFilterStage] = useState<string>('all')
   const [coffeeChatTarget, setCoffeeChatTarget] = useState<{ id: string; name: string } | null>(
-    null,
-  );
+    null
+  )
 
   const stageMutation = useMutation({
     mutationFn: async ({ candidateId, newStage }: { candidateId: string; newStage: string }) => {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/jobs/pipeline/${candidateId}`, {
+      const token = localStorage.getItem('token')
+      const res = await httpClient(`${API_URL}/api/jobs/pipeline/${candidateId}`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage: newStage }),
-      });
-      if (!res.ok) throw new Error();
-      return { candidateId, newStage };
+      })
+      if (!res.ok) throw new Error()
+      return { candidateId, newStage }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recruiter', 'pipeline'] });
+      queryClient.invalidateQueries({ queryKey: ['recruiter', 'pipeline'] })
     },
-  });
+  })
 
-  if (!user || user.userType === 'personal') return null;
+  if (!user || user.userType === 'personal') return null
 
-  const activeJobCount = jobs.filter((j) => j.status === 'active').length;
+  const activeJobCount = jobs.filter((j) => j.status === 'active').length
   const thisMonthApplicants = applicants.filter((a) => {
-    if (!a.createdAt) return false;
-    const d = new Date(a.createdAt);
-    const now = new Date();
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
+    if (!a.createdAt) return false
+    const d = new Date(a.createdAt)
+    const now = new Date()
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+  })
   const scoutResponseRate =
     scouts.length > 0
       ? Math.round(
           (scouts.filter((s) => s.status === 'accepted' || s.status === 'rejected').length /
             scouts.length) *
-            100,
+            100
         )
-      : 0;
+      : 0
 
-  const getPipelineCandidates = (stage: string) => candidates.filter((c) => c.stage === stage);
+  const getPipelineCandidates = (stage: string) => candidates.filter((c) => c.stage === stage)
 
   const updateCandidateStage = (candidateId: string, newStage: string) => {
-    stageMutation.mutate({ candidateId, newStage });
-  };
+    stageMutation.mutate({ candidateId, newStage })
+  }
 
   return (
     <>
@@ -425,7 +427,7 @@ export default function RecruiterDashboardPage() {
               </h2>
               <div className="stagger-children grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {PIPELINE_STAGES.map((stage) => {
-                  const stCandidates = getPipelineCandidates(stage.key);
+                  const stCandidates = getPipelineCandidates(stage.key)
                   return (
                     <div key={stage.key} className="imp-card p-4">
                       <div className="flex items-center justify-between mb-3">
@@ -475,7 +477,7 @@ export default function RecruiterDashboardPage() {
                         )}
                       </div>
                     </div>
-                  );
+                  )
                 })}
               </div>
             </section>
@@ -516,22 +518,22 @@ export default function RecruiterDashboardPage() {
                 )}
               </div>
               {(() => {
-                const q = filterQuery.trim().toLowerCase();
+                const q = filterQuery.trim().toLowerCase()
                 const filtered = applicants.filter((a) => {
-                  if (filterStage !== 'all' && a.stage !== filterStage) return false;
-                  if (!q) return true;
+                  if (filterStage !== 'all' && a.stage !== filterStage) return false
+                  if (!q) return true
                   return (
                     (a.name || '').toLowerCase().includes(q) ||
                     (a.position || '').toLowerCase().includes(q) ||
                     (a.email || '').toLowerCase().includes(q)
-                  );
-                });
+                  )
+                })
                 if (applicants.length === 0) {
                   return (
                     <div className="text-center py-8 imp-card">
                       <p className="text-sm text-slate-400">아직 지원자가 없습니다</p>
                     </div>
-                  );
+                  )
                 }
                 if (filtered.length === 0) {
                   return (
@@ -541,15 +543,15 @@ export default function RecruiterDashboardPage() {
                       </p>
                       <button
                         onClick={() => {
-                          setFilterQuery('');
-                          setFilterStage('all');
+                          setFilterQuery('')
+                          setFilterStage('all')
                         }}
                         className="mt-2 text-xs text-blue-600 hover:underline"
                       >
                         필터 초기화
                       </button>
                     </div>
-                  );
+                  )
                 }
                 return (
                   <div className="imp-card divide-y divide-slate-100 dark:divide-slate-700">
@@ -577,9 +579,9 @@ export default function RecruiterDashboardPage() {
                           label: '✗ 거절',
                           color: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400',
                         },
-                      };
-                      const stage = a.stage ?? 'interested';
-                      const meta = stageMeta[stage] || stageMeta.interested;
+                      }
+                      const stage = a.stage ?? 'interested'
+                      const meta = stageMeta[stage] || stageMeta.interested
                       return (
                         <div
                           key={a.id}
@@ -589,8 +591,8 @@ export default function RecruiterDashboardPage() {
                           tabIndex={0}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              setSelectedApplicant(toSelectedApplicant(a));
+                              e.preventDefault()
+                              setSelectedApplicant(toSelectedApplicant(a))
                             }
                           }}
                         >
@@ -632,10 +634,10 @@ export default function RecruiterDashboardPage() {
                             )}
                             <button
                               onClick={(e) => {
-                                e.stopPropagation();
+                                e.stopPropagation()
                                 navigate(
-                                  withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id }),
-                                );
+                                  withQuery(ROUTES.jobs.scouts, { target: a.userId || a.id })
+                                )
                               }}
                               className="text-xs px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
                             >
@@ -643,10 +645,10 @@ export default function RecruiterDashboardPage() {
                             </button>
                           </div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
-                );
+                )
               })()}
             </section>
 
@@ -826,5 +828,5 @@ export default function RecruiterDashboardPage() {
       )}
       <Footer />
     </>
-  );
+  )
 }

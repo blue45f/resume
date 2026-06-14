@@ -1,34 +1,35 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import EmptyState from '@/components/EmptyState';
-import { timeAgo } from '@/lib/time';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
+import EmptyState from '@/components/EmptyState'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
 import {
   fetchNotifications as apiFetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   deleteNotification,
   deleteNotificationsBulk,
-} from '@/lib/api';
-import { getToken } from '@/lib/auth';
-import { toast } from '@/components/Toast';
-import { ErrorState } from '@/shared/ui/ErrorState';
+} from '@/lib/api'
+import { getToken } from '@/lib/auth'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { timeAgo } from '@/lib/time'
+import { ErrorState } from '@/shared/ui/ErrorState'
 
 interface Notification {
-  id: string;
-  type: string;
-  message: string;
-  link?: string;
-  read: boolean;
-  createdAt: string;
+  id: string
+  type: string
+  message: string
+  link?: string
+  read: boolean
+  createdAt: string
 }
 
-type FilterTab = 'all' | 'unread' | 'system' | 'social';
+type FilterTab = 'all' | 'unread' | 'system' | 'social'
 
 const SYSTEM_TYPES = [
   'system',
@@ -47,15 +48,15 @@ const SYSTEM_TYPES = [
   'job_search_match',
   'subscription_activated',
   'subscription_expired',
-];
-const SOCIAL_TYPES = ['comment', 'bookmark', 'message'];
+]
+const SOCIAL_TYPES = ['comment', 'bookmark', 'message']
 
 const FILTER_TABS: { key: FilterTab; label: string; icon: string }[] = [
   { key: 'all', label: '전체', icon: '🔔' },
   { key: 'unread', label: '안 읽음', icon: '🔴' },
   { key: 'system', label: '시스템', icon: '⚙️' },
   { key: 'social', label: '소셜', icon: '💬' },
-];
+]
 
 const TYPE_META: Record<string, { icon: string; bg: string; label: string; color: string }> = {
   comment: {
@@ -172,23 +173,23 @@ const TYPE_META: Record<string, { icon: string; bg: string; label: string; color
     label: '플랜 만료',
     color: 'text-amber-700 dark:text-amber-400',
   },
-};
-
-function getDateGroup(dateStr: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
-  if (diffDays === 0) return '오늘';
-  if (diffDays === 1) return '어제';
-  if (diffDays < 7) return '이번 주';
-  if (diffDays < 30) return '이번 달';
-  return '이전';
 }
 
-const GROUP_ORDER = ['오늘', '어제', '이번 주', '이번 달', '이전'];
+function getDateGroup(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000)
+  if (diffDays === 0) return '오늘'
+  if (diffDays === 1) return '어제'
+  if (diffDays < 7) return '이번 주'
+  if (diffDays < 30) return '이번 달'
+  return '이전'
+}
+
+const GROUP_ORDER = ['오늘', '어제', '이번 주', '이번 달', '이전']
 
 export default function NotificationsPage() {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   const {
     data: notifications = [],
     isLoading: loading,
@@ -199,94 +200,94 @@ export default function NotificationsPage() {
     queryFn: apiFetchNotifications,
     enabled: !!getToken(),
     staleTime: 30_000,
-  });
-  const [filter, setFilter] = useState<FilterTab>('all');
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [selectMode, setSelectMode] = useState(false);
-  const [expandedAction, setExpandedAction] = useState<string | null>(null);
-  const navigate = useNavigate();
+  })
+  const [filter, setFilter] = useState<FilterTab>('all')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [selectMode, setSelectMode] = useState(false)
+  const [expandedAction, setExpandedAction] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   const markAllRead = useCallback(async () => {
-    await markAllNotificationsRead();
-    queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    toast('모든 알림을 읽음 처리했습니다', 'success');
-  }, [queryClient]);
+    await markAllNotificationsRead()
+    queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    toast('모든 알림을 읽음 처리했습니다', 'success')
+  }, [queryClient])
 
   const handleMarkRead = useCallback(
     async (id: string) => {
-      await markNotificationRead(id).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      await markNotificationRead(id).catch(() => {})
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
-    [queryClient],
-  );
+    [queryClient]
+  )
 
   const handleDelete = useCallback(
     async (id: string) => {
-      setExpandedAction(null);
-      await deleteNotification(id).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      setExpandedAction(null)
+      await deleteNotification(id).catch(() => {})
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
     },
-    [queryClient],
-  );
+    [queryClient]
+  )
 
   const handleBulkDelete = useCallback(async () => {
-    if (!selectedIds.size) return;
-    const ids = [...selectedIds];
-    setSelectedIds(new Set());
-    setSelectMode(false);
-    await deleteNotificationsBulk(ids).catch(() => {});
-    queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    toast(`${ids.length}개 알림이 삭제되었습니다`, 'success');
-  }, [selectedIds, queryClient]);
+    if (!selectedIds.size) return
+    const ids = [...selectedIds]
+    setSelectedIds(new Set())
+    setSelectMode(false)
+    await deleteNotificationsBulk(ids).catch(() => {})
+    queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    toast(`${ids.length}개 알림이 삭제되었습니다`, 'success')
+  }, [selectedIds, queryClient])
 
   const handleBulkMarkRead = useCallback(async () => {
-    await Promise.all([...selectedIds].map((id) => markNotificationRead(id).catch(() => {})));
-    setSelectedIds(new Set());
-    queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    toast('선택한 알림을 읽음 처리했습니다', 'success');
-  }, [selectedIds, queryClient]);
+    await Promise.all([...selectedIds].map((id) => markNotificationRead(id).catch(() => {})))
+    setSelectedIds(new Set())
+    queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    toast('선택한 알림을 읽음 처리했습니다', 'success')
+  }, [selectedIds, queryClient])
 
   const filtered = useMemo(() => {
     switch (filter) {
       case 'unread':
-        return notifications.filter((n) => !n.read);
+        return notifications.filter((n) => !n.read)
       case 'system':
-        return notifications.filter((n) => SYSTEM_TYPES.includes(n.type));
+        return notifications.filter((n) => SYSTEM_TYPES.includes(n.type))
       case 'social':
-        return notifications.filter((n) => SOCIAL_TYPES.includes(n.type));
+        return notifications.filter((n) => SOCIAL_TYPES.includes(n.type))
       default:
-        return notifications;
+        return notifications
     }
-  }, [notifications, filter]);
+  }, [notifications, filter])
 
   const grouped = useMemo(() => {
-    const map = new Map<string, Notification[]>();
+    const map = new Map<string, Notification[]>()
     for (const n of filtered) {
-      const key = getDateGroup(n.createdAt);
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(n);
+      const key = getDateGroup(n.createdAt)
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(n)
     }
-    const entries: [string, Notification[]][] = [];
+    const entries: [string, Notification[]][] = []
     for (const g of GROUP_ORDER) {
-      if (map.has(g)) entries.push([g, map.get(g)!]);
+      if (map.has(g)) entries.push([g, map.get(g)!])
     }
-    return entries;
-  }, [filtered]);
+    return entries
+  }, [filtered])
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
-  const totalCount = notifications.length;
+  const unreadCount = notifications.filter((n) => !n.read).length
+  const totalCount = notifications.length
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev);
+      const next = new Set(prev)
       if (next.has(id)) {
-        next.delete(id);
+        next.delete(id)
       } else {
-        next.add(id);
+        next.add(id)
       }
-      return next;
-    });
-  };
+      return next
+    })
+  }
 
   const tabCounts = useMemo(
     () => ({
@@ -295,8 +296,8 @@ export default function NotificationsPage() {
       system: notifications.filter((n) => SYSTEM_TYPES.includes(n.type)).length,
       social: notifications.filter((n) => SOCIAL_TYPES.includes(n.type)).length,
     }),
-    [notifications],
-  );
+    [notifications]
+  )
 
   return (
     <>
@@ -347,9 +348,9 @@ export default function NotificationsPage() {
             )}
             <button
               onClick={() => {
-                setSelectMode(!selectMode);
-                setSelectedIds(new Set());
-                setExpandedAction(null);
+                setSelectMode(!selectMode)
+                setSelectedIds(new Set())
+                setExpandedAction(null)
               }}
               className={`text-xs px-3 py-1.5 rounded-lg transition-all font-medium ${
                 selectMode
@@ -490,9 +491,9 @@ export default function NotificationsPage() {
                       bg: 'bg-slate-100 dark:bg-slate-700',
                       label: '알림',
                       color: 'text-slate-600',
-                    };
-                    const isSelected = selectedIds.has(n.id);
-                    const isActionOpen = expandedAction === n.id;
+                    }
+                    const isSelected = selectedIds.has(n.id)
+                    const isActionOpen = expandedAction === n.id
 
                     return (
                       <div
@@ -542,14 +543,26 @@ export default function NotificationsPage() {
 
                         {/* Content */}
                         <div
+                          role="button"
+                          tabIndex={0}
                           className="flex-1 min-w-0 cursor-pointer"
                           onClick={() => {
                             if (selectMode) {
-                              toggleSelect(n.id);
-                              return;
+                              toggleSelect(n.id)
+                              return
                             }
-                            if (!n.read) handleMarkRead(n.id);
-                            if (n.link) navigate(n.link);
+                            if (!n.read) handleMarkRead(n.id)
+                            if (n.link) navigate(n.link)
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key !== 'Enter' && e.key !== ' ') return
+                            e.preventDefault()
+                            if (selectMode) {
+                              toggleSelect(n.id)
+                              return
+                            }
+                            if (!n.read) handleMarkRead(n.id)
+                            if (n.link) navigate(n.link)
                           }}
                         >
                           <div className="flex items-center gap-2 mb-0.5">
@@ -597,8 +610,8 @@ export default function NotificationsPage() {
                                 {!n.read && (
                                   <button
                                     onClick={() => {
-                                      handleMarkRead(n.id);
-                                      setExpandedAction(null);
+                                      handleMarkRead(n.id)
+                                      setExpandedAction(null)
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                                   >
@@ -621,8 +634,8 @@ export default function NotificationsPage() {
                                 {n.link && (
                                   <button
                                     onClick={() => {
-                                      setExpandedAction(null);
-                                      navigate(n.link!);
+                                      setExpandedAction(null)
+                                      navigate(n.link!)
                                     }}
                                     className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
                                   >
@@ -666,7 +679,7 @@ export default function NotificationsPage() {
                           </div>
                         )}
                       </div>
-                    );
+                    )
                   })}
                 </div>
               </div>
@@ -685,5 +698,5 @@ export default function NotificationsPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

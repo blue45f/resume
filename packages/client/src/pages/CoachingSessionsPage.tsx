@@ -1,25 +1,26 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
+import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { toast } from '@/components/Toast'
+import { useMyCoachingSessions } from '@/hooks/useResources'
 import {
   updateCoachingSessionStatus,
   reviewCoachingSession,
   type CoachingSession,
   type CoachingSessionStatus,
   type MySessionsResponse,
-} from '@/lib/api';
-import { useMyCoachingSessions } from '@/hooks/useResources';
-import { getUser } from '@/lib/auth';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { getErrorMessage } from '@/lib/errorMessage';
+} from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
-type TabKey = 'client' | 'coach';
+type TabKey = 'client' | 'coach'
 
 const STATUS_LABEL: Record<CoachingSessionStatus, { label: string; className: string }> = {
   requested: {
@@ -42,93 +43,93 @@ const STATUS_LABEL: Record<CoachingSessionStatus, { label: string; className: st
     label: '환불',
     className: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400',
   },
-};
+}
 
 function formatDate(iso: string) {
   try {
-    const d = new Date(iso);
+    const d = new Date(iso)
     return d.toLocaleString('ko-KR', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
+    })
   } catch {
-    return iso;
+    return iso
   }
 }
 
 export default function CoachingSessionsPage() {
-  const queryClient = useQueryClient();
-  const sessionsQuery = useMyCoachingSessions();
+  const queryClient = useQueryClient()
+  const sessionsQuery = useMyCoachingSessions()
   const data: MySessionsResponse | null =
-    (sessionsQuery.data as MySessionsResponse | undefined) ?? null;
-  const loading = sessionsQuery.isLoading;
+    (sessionsQuery.data as MySessionsResponse | undefined) ?? null
+  const loading = sessionsQuery.isLoading
   const error: string | null = sessionsQuery.error
     ? getErrorMessage(sessionsQuery.error, '세션을 불러오지 못했습니다')
-    : null;
-  const [tab, setTab] = useState<TabKey>('client');
-  const [reviewOpen, setReviewOpen] = useState<string | null>(null);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [nowMs] = useState(() => Date.now());
+    : null
+  const [tab, setTab] = useState<TabKey>('client')
+  const [reviewOpen, setReviewOpen] = useState<string | null>(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [nowMs] = useState(() => Date.now())
 
-  const user = getUser();
+  const user = getUser()
 
   const load = () => {
-    queryClient.invalidateQueries({ queryKey: ['coaching-sessions', 'my'] });
-  };
+    queryClient.invalidateQueries({ queryKey: ['coaching-sessions', 'my'] })
+  }
 
   useEffect(() => {
-    document.title = '내 코칭 세션 — 이력서공방';
+    document.title = '내 코칭 세션 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const hasCoachTab = useMemo(
     () => (data?.asCoach?.length || 0) > 0 || user?.userType === 'coach',
-    [data?.asCoach, user?.userType],
-  );
+    [data?.asCoach, user?.userType]
+  )
 
   const effectiveTab: TabKey =
-    tab === 'client' && data?.asClient.length === 0 && data.asCoach.length > 0 ? 'coach' : tab;
-  const sessions = effectiveTab === 'client' ? data?.asClient : data?.asCoach;
+    tab === 'client' && data?.asClient.length === 0 && data.asCoach.length > 0 ? 'coach' : tab
+  const sessions = effectiveTab === 'client' ? data?.asClient : data?.asCoach
 
   const changeStatus = async (session: CoachingSession, status: CoachingSessionStatus) => {
     try {
-      await updateCoachingSessionStatus(session.id, { status });
-      toast('상태가 변경되었습니다', 'success');
-      load();
+      await updateCoachingSessionStatus(session.id, { status })
+      toast('상태가 변경되었습니다', 'success')
+      load()
     } catch (err) {
-      toast(err instanceof Error ? err.message : '상태 변경에 실패했습니다', 'error');
+      toast(err instanceof Error ? err.message : '상태 변경에 실패했습니다', 'error')
     }
-  };
+  }
 
   const submitReview = async (sessionId: string) => {
     if (reviewRating < 1 || reviewRating > 5) {
-      toast('별점은 1~5 사이로 선택해주세요', 'error');
-      return;
+      toast('별점은 1~5 사이로 선택해주세요', 'error')
+      return
     }
-    setSubmitting(true);
+    setSubmitting(true)
     try {
       await reviewCoachingSession(sessionId, {
         rating: reviewRating,
         review: reviewText.trim() || undefined,
-      });
-      toast('리뷰가 등록되었습니다', 'success');
-      setReviewOpen(null);
-      setReviewText('');
-      setReviewRating(5);
-      load();
+      })
+      toast('리뷰가 등록되었습니다', 'success')
+      setReviewOpen(null)
+      setReviewText('')
+      setReviewRating(5)
+      load()
     } catch (err) {
-      toast(err instanceof Error ? err.message : '리뷰 등록에 실패했습니다', 'error');
+      toast(err instanceof Error ? err.message : '리뷰 등록에 실패했습니다', 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   return (
     <>
@@ -237,9 +238,9 @@ export default function CoachingSessionsPage() {
                   nowMs={nowMs}
                   onChangeStatus={changeStatus}
                   onOpenReview={() => {
-                    setReviewOpen(session.id);
-                    setReviewRating(session.rating || 5);
-                    setReviewText(session.review || '');
+                    setReviewOpen(session.id)
+                    setReviewRating(session.rating || 5)
+                    setReviewText(session.review || '')
                   }}
                   reviewOpen={reviewOpen === session.id}
                   onCloseReview={() => setReviewOpen(null)}
@@ -257,23 +258,23 @@ export default function CoachingSessionsPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }
 
 interface SessionRowProps {
-  session: CoachingSession;
-  role: TabKey;
-  nowMs: number;
-  onChangeStatus: (s: CoachingSession, status: CoachingSessionStatus) => void;
-  onOpenReview: () => void;
-  reviewOpen: boolean;
-  onCloseReview: () => void;
-  reviewRating: number;
-  setReviewRating: (n: number) => void;
-  reviewText: string;
-  setReviewText: (s: string) => void;
-  submitting: boolean;
-  onSubmitReview: () => void;
+  session: CoachingSession
+  role: TabKey
+  nowMs: number
+  onChangeStatus: (s: CoachingSession, status: CoachingSessionStatus) => void
+  onOpenReview: () => void
+  reviewOpen: boolean
+  onCloseReview: () => void
+  reviewRating: number
+  setReviewRating: (n: number) => void
+  reviewText: string
+  setReviewText: (s: string) => void
+  submitting: boolean
+  onSubmitReview: () => void
 }
 
 function SessionRow({
@@ -291,28 +292,28 @@ function SessionRow({
   submitting,
   onSubmitReview,
 }: SessionRowProps) {
-  const confirm = useConfirm();
-  const badge = STATUS_LABEL[session.status] || STATUS_LABEL.requested;
-  const coachName = session.coach?.user?.name || '코치';
-  const clientName = session.client?.name || '고객';
+  const confirm = useConfirm()
+  const badge = STATUS_LABEL[session.status] || STATUS_LABEL.requested
+  const coachName = session.coach?.user?.name || '코치'
+  const clientName = session.client?.name || '고객'
   const counterpart =
     role === 'client'
       ? { name: coachName, avatar: session.coach?.user?.avatar, label: '코치' }
-      : { name: clientName, avatar: session.client?.avatar, label: '고객' };
+      : { name: clientName, avatar: session.client?.avatar, label: '고객' }
 
-  const canCoachConfirm = role === 'coach' && session.status === 'requested';
-  const canCoachComplete = role === 'coach' && session.status === 'confirmed';
-  const canCancel = session.status === 'requested' || session.status === 'confirmed';
-  const canClientReview = role === 'client' && session.status === 'completed';
+  const canCoachConfirm = role === 'coach' && session.status === 'requested'
+  const canCoachComplete = role === 'coach' && session.status === 'confirmed'
+  const canCancel = session.status === 'requested' || session.status === 'confirmed'
+  const canClientReview = role === 'client' && session.status === 'completed'
 
   // 24시간 이내 취소 여부: 환불 불가 정책 적용 대상
-  const scheduledMs = new Date(session.scheduledAt).getTime();
+  const scheduledMs = new Date(session.scheduledAt).getTime()
   const hoursUntil = Number.isFinite(scheduledMs)
     ? (scheduledMs - nowMs) / (1000 * 60 * 60)
-    : Infinity;
-  const isLateCancellation = hoursUntil >= 0 && hoursUntil < 24;
+    : Infinity
+  const isLateCancellation = hoursUntil >= 0 && hoursUntil < 24
 
-  const initials = (counterpart.name || 'U').slice(0, 1).toUpperCase();
+  const initials = (counterpart.name || 'U').slice(0, 1).toUpperCase()
 
   return (
     <li className="imp-card p-5">
@@ -409,9 +410,9 @@ function SessionRow({
               onClick={async () => {
                 const msg = isLateCancellation
                   ? '세션 시작 24시간 이내 취소는 환불이 불가합니다.\n정말 취소하시겠습니까?'
-                  : '세션을 취소하시겠습니까?';
+                  : '세션을 취소하시겠습니까?'
                 if (await confirm({ title: msg, danger: true, confirmText: '취소' }))
-                  onChangeStatus(session, 'cancelled');
+                  onChangeStatus(session, 'cancelled')
               }}
               className={`px-3 py-1.5 text-xs font-medium rounded-lg border ${
                 isLateCancellation
@@ -484,5 +485,5 @@ function SessionRow({
         </div>
       )}
     </li>
-  );
+  )
 }

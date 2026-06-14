@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
-export const JOB_TYPE_VALUES = ['fulltime', 'contract', 'parttime', 'intern'] as const;
-export type JobType = (typeof JOB_TYPE_VALUES)[number];
+export const JOB_TYPE_VALUES = ['fulltime', 'contract', 'parttime', 'intern'] as const
+export type JobType = (typeof JOB_TYPE_VALUES)[number]
 
-export const SALARY_MIN = 2000;
-export const SALARY_MAX = 15000;
-export const SALARY_STEP = 500;
+export const SALARY_MIN = 2000
+export const SALARY_MAX = 15000
+export const SALARY_STEP = 500
 
 export const jobPostSchema = z
   .object({
@@ -60,7 +60,7 @@ export const jobPostSchema = z
   .refine((data) => data.salaryMin <= data.salaryMax, {
     message: '최소 연봉은 최대 연봉보다 작거나 같아야 합니다',
     path: ['salaryMin'],
-  });
+  })
 
-export type JobPostFormValues = z.input<typeof jobPostSchema>;
-export type JobPostFormOutput = z.output<typeof jobPostSchema>;
+export type JobPostFormValues = z.input<typeof jobPostSchema>
+export type JobPostFormOutput = z.output<typeof jobPostSchema>

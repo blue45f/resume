@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { checkSoftSkillEvidence } from '@/lib/resumeSoftSkillEvidenceChecker';
-import type { SoftSkillCategory } from '@/lib/resumeSoftSkillEvidenceChecker';
+import { useMemo } from 'react'
+
+import type { SoftSkillCategory } from '@/lib/resumeSoftSkillEvidenceChecker'
+
+import { checkSoftSkillEvidence } from '@/lib/resumeSoftSkillEvidenceChecker'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const CATEGORY_LABEL: Record<SoftSkillCategory, string> = {
@@ -14,22 +16,22 @@ const CATEGORY_LABEL: Record<SoftSkillCategory, string> = {
   responsibility: '책임감',
   adaptability: '적응력',
   creativity: '창의성',
-};
+}
 
 const GRADE_LABEL: Record<string, string> = {
   good: '근거 충분',
   mixed: '근거 혼재',
   bare: '근거 미흡',
   none: '해당 없음',
-};
+}
 
 export default function ResumeSoftSkillEvidencePanel({ text }: Props) {
-  const report = useMemo(() => checkSoftSkillEvidence(text), [text]);
+  const report = useMemo(() => checkSoftSkillEvidence(text), [text])
 
-  if (text.trim().length < 80) return null;
-  if (report.grade === 'none' || report.grade === 'good') return null;
+  if (text.trim().length < 80) return null
+  if (report.grade === 'none' || report.grade === 'good') return null
 
-  const isWarning = report.grade === 'bare';
+  const isWarning = report.grade === 'bare'
 
   return (
     <aside
@@ -73,5 +75,5 @@ export default function ResumeSoftSkillEvidencePanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

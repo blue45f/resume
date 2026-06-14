@@ -1,29 +1,29 @@
-export type QuantTone = 'good' | 'neutral' | 'warning';
+export type QuantTone = 'good' | 'neutral' | 'warning'
 
 export interface QuantBullet {
-  text: string;
+  text: string
   /** True if the bullet contains at least one numeric outcome. */
-  quantified: boolean;
+  quantified: boolean
   /** The matched numeric snippet, if any. */
-  match?: string;
+  match?: string
 }
 
 export interface QuantReport {
   /** All identified experience/achievement bullets. */
-  bullets: QuantBullet[];
+  bullets: QuantBullet[]
   /** Number of bullets with a numeric outcome. */
-  quantifiedCount: number;
+  quantifiedCount: number
   /** 0.0-1.0 fraction. */
-  rate: number;
+  rate: number
   /** 0-100 score derived from rate. */
-  score: number;
-  tone: QuantTone;
+  score: number
+  tone: QuantTone
   /** Korean short label. */
-  label: string;
+  label: string
   /** Korean one-sentence summary. */
-  summary: string;
+  summary: string
   /** Up to 5 unquantified bullets as rewrite suggestions. */
-  suggestions: string[];
+  suggestions: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -56,54 +56,54 @@ const QUANT_PATTERNS: RegExp[] = [
   /\b\d+(?:\.\d+)?\s*[kKmMbB]\b/g,
   // Comma-formatted numbers (1,000+): large enough to be a meaningful metric
   /[1-9]\d{0,2}(?:,\d{3})+/g,
-];
+]
 
 // ---------------------------------------------------------------------------
 // Bullet extraction
 // ---------------------------------------------------------------------------
 
 // Header-like line heuristics: short + ends with colon or is ALL-CAPS.
-const HEADER_RE = /^[A-Z가-힣\s:·|-]{1,25}[:\s]*$/;
+const HEADER_RE = /^[A-Z가-힣\s:·|-]{1,25}[:\s]*$/
 
 // Minimum chars for a line to be treated as a bullet/sentence.
-const MIN_BULLET_LEN = 18;
+const MIN_BULLET_LEN = 18
 
 // Characters that mark explicit bullet points.
-const EXPLICIT_BULLET = /^[-•*▪■◦▸►→✓✔]\s+/;
+const EXPLICIT_BULLET = /^[-•*▪■◦▸►→✓✔]\s+/
 
 // Korean verb endings that indicate a sentence (not a bare header).
-const KO_VERB_RE = /(?:했|하여|했으|한\s*결과|했음|하고|하는|한\s*후|해서|하였|하며)/;
+const KO_VERB_RE = /(?:했|하여|했으|한\s*결과|했음|하고|하는|한\s*후|해서|하였|하며)/
 
 function isLikelyBullet(line: string): boolean {
-  const trimmed = line.trim();
-  if (trimmed.length < MIN_BULLET_LEN) return false;
-  if (EXPLICIT_BULLET.test(trimmed)) return true;
+  const trimmed = line.trim()
+  if (trimmed.length < MIN_BULLET_LEN) return false
+  if (EXPLICIT_BULLET.test(trimmed)) return true
   // Must look like a sentence (contains a Korean verb ending) and not a pure header.
-  if (HEADER_RE.test(trimmed)) return false;
-  return KO_VERB_RE.test(trimmed) || /[.!,]/.test(trimmed);
+  if (HEADER_RE.test(trimmed)) return false
+  return KO_VERB_RE.test(trimmed) || /[.!,]/.test(trimmed)
 }
 
 function extractBullets(text: string): string[] {
   return text
     .split('\n')
     .map((l) => l.trim().replace(EXPLICIT_BULLET, ''))
-    .filter(isLikelyBullet);
+    .filter(isLikelyBullet)
 }
 
 function firstQuantMatch(text: string): string | undefined {
   for (const p of QUANT_PATTERNS) {
-    const re = new RegExp(p.source, p.flags.includes('g') ? p.flags : p.flags + 'g');
-    const m = re.exec(text);
-    if (m) return m[0].trim();
+    const re = new RegExp(p.source, p.flags.includes('g') ? p.flags : p.flags + 'g')
+    const m = re.exec(text)
+    if (m) return m[0].trim()
   }
-  return undefined;
+  return undefined
 }
 
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 export function buildQuantReport(text: string): QuantReport {
-  const safe = (text ?? '').trim();
+  const safe = (text ?? '').trim()
   if (!safe) {
     return {
       bullets: [],
@@ -114,41 +114,41 @@ export function buildQuantReport(text: string): QuantReport {
       label: '수치 분석 없음',
       summary: '분석할 이력서 본문이 없습니다.',
       suggestions: [],
-    };
+    }
   }
 
-  const rawBullets = extractBullets(safe);
+  const rawBullets = extractBullets(safe)
 
   const bullets: QuantBullet[] = rawBullets.map((t) => {
-    const match = firstQuantMatch(t);
-    return { text: t, quantified: match !== undefined, match };
-  });
+    const match = firstQuantMatch(t)
+    return { text: t, quantified: match !== undefined, match }
+  })
 
-  const quantifiedCount = bullets.filter((b) => b.quantified).length;
-  const total = bullets.length;
-  const rate = total === 0 ? 0 : quantifiedCount / total;
-  const score = total === 0 ? 0 : Math.round(rate * 100);
+  const quantifiedCount = bullets.filter((b) => b.quantified).length
+  const total = bullets.length
+  const rate = total === 0 ? 0 : quantifiedCount / total
+  const score = total === 0 ? 0 : Math.round(rate * 100)
 
-  let tone: QuantTone;
-  let summary: string;
+  let tone: QuantTone
+  let summary: string
   if (total === 0) {
-    tone = 'warning';
-    summary = '경력 기술 문장이 감지되지 않았습니다. 경력 항목을 작성해 보세요.';
+    tone = 'warning'
+    summary = '경력 기술 문장이 감지되지 않았습니다. 경력 항목을 작성해 보세요.'
   } else if (score >= 60) {
-    tone = 'good';
-    summary = `경력 기술의 ${score}%가 수치를 포함합니다. 채용 담당자가 성과를 즉시 파악할 수 있습니다.`;
+    tone = 'good'
+    summary = `경력 기술의 ${score}%가 수치를 포함합니다. 채용 담당자가 성과를 즉시 파악할 수 있습니다.`
   } else if (score >= 35) {
-    tone = 'neutral';
-    summary = `수치 포함 비율이 ${score}%입니다. 절반 이상 문장에 숫자를 추가하면 경쟁력이 크게 올라갑니다.`;
+    tone = 'neutral'
+    summary = `수치 포함 비율이 ${score}%입니다. 절반 이상 문장에 숫자를 추가하면 경쟁력이 크게 올라갑니다.`
   } else {
-    tone = 'warning';
-    summary = `수치 포함 비율이 ${score}%로 낮습니다. 각 업무 성과를 숫자(%, 배, 명, 건)로 바꿔 보세요.`;
+    tone = 'warning'
+    summary = `수치 포함 비율이 ${score}%로 낮습니다. 각 업무 성과를 숫자(%, 배, 명, 건)로 바꿔 보세요.`
   }
 
   const suggestions = bullets
     .filter((b) => !b.quantified)
     .slice(0, 5)
-    .map((b) => b.text);
+    .map((b) => b.text)
 
   return {
     bullets,
@@ -159,5 +159,5 @@ export function buildQuantReport(text: string): QuantReport {
     label: `수치화 ${score}%`,
     summary,
     suggestions,
-  };
+  }
 }

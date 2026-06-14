@@ -3,25 +3,25 @@
  * 입사 후 기술 부채 환경에 노출될 가능성을 사전에 경고한다.
  */
 
-export type ObsolescenceLevel = 'eol' | 'declining' | 'aging';
+export type ObsolescenceLevel = 'eol' | 'declining' | 'aging'
 
 export interface ObsoleteTech {
-  name: string;
-  level: ObsolescenceLevel;
-  reason: string;
-  modernAlternative: string;
-  excerpt: string;
+  name: string
+  level: ObsolescenceLevel
+  reason: string
+  modernAlternative: string
+  excerpt: string
 }
 
-export type TechDebtRisk = 'high' | 'moderate' | 'low' | 'none';
+export type TechDebtRisk = 'high' | 'moderate' | 'low' | 'none'
 
 export interface JdTechObsolescenceReport {
-  techs: ObsoleteTech[];
-  eolCount: number;
-  decliningCount: number;
-  agingCount: number;
-  risk: TechDebtRisk;
-  summary: string;
+  techs: ObsoleteTech[]
+  eolCount: number
+  decliningCount: number
+  agingCount: number
+  risk: TechDebtRisk
+  summary: string
 }
 
 // ---------------------------------------------------------------------------
@@ -29,11 +29,11 @@ export interface JdTechObsolescenceReport {
 // ---------------------------------------------------------------------------
 
 interface TechPattern {
-  re: RegExp;
-  name: string;
-  level: ObsolescenceLevel;
-  reason: string;
-  modernAlternative: string;
+  re: RegExp
+  name: string
+  level: ObsolescenceLevel
+  reason: string
+  modernAlternative: string
 }
 
 const TECH_PATTERNS: TechPattern[] = [
@@ -196,53 +196,53 @@ const TECH_PATTERNS: TechPattern[] = [
     reason: 'Bootstrap 5가 최신; 2/3 유지 중이면 프론트엔드 현대화 지연',
     modernAlternative: 'Bootstrap 5, Tailwind CSS',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function detectJdTechObsolescence(text: string): JdTechObsolescenceReport {
-  const t = text ?? '';
-  const techs: ObsoleteTech[] = [];
-  const seenNames = new Set<string>();
+  const t = text ?? ''
+  const techs: ObsoleteTech[] = []
+  const seenNames = new Set<string>()
 
   for (const { re, name, level, reason, modernAlternative } of TECH_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m && !seenNames.has(name)) {
-      seenNames.add(name);
-      techs.push({ name, level, reason, modernAlternative, excerpt: m[0].slice(0, 50) });
+      seenNames.add(name)
+      techs.push({ name, level, reason, modernAlternative, excerpt: m[0].slice(0, 50) })
     }
   }
 
-  const eolCount = techs.filter((t) => t.level === 'eol').length;
-  const decliningCount = techs.filter((t) => t.level === 'declining').length;
-  const agingCount = techs.filter((t) => t.level === 'aging').length;
+  const eolCount = techs.filter((t) => t.level === 'eol').length
+  const decliningCount = techs.filter((t) => t.level === 'declining').length
+  const agingCount = techs.filter((t) => t.level === 'aging').length
 
-  let risk: TechDebtRisk;
+  let risk: TechDebtRisk
   if (eolCount >= 1 || decliningCount >= 2) {
-    risk = 'high';
+    risk = 'high'
   } else if (decliningCount >= 1 || agingCount >= 2) {
-    risk = 'moderate';
+    risk = 'moderate'
   } else if (agingCount >= 1) {
-    risk = 'low';
+    risk = 'low'
   } else {
-    risk = 'none';
+    risk = 'none'
   }
 
-  let summary: string;
+  let summary: string
   if (risk === 'none') {
-    summary = '이 공고에서 노후화된 기술 스택이 발견되지 않았습니다.';
+    summary = '이 공고에서 노후화된 기술 스택이 발견되지 않았습니다.'
   } else if (risk === 'low') {
     summary =
-      '일부 노후화 가능성이 있는 기술이 요구됩니다. 시스템 연령 및 현대화 계획을 면접에서 확인하세요.';
+      '일부 노후화 가능성이 있는 기술이 요구됩니다. 시스템 연령 및 현대화 계획을 면접에서 확인하세요.'
   } else if (risk === 'moderate') {
     summary =
-      '레거시 또는 쇠퇴 중인 기술이 요구됩니다. 기술 부채 규모와 현대화 로드맵을 반드시 확인하세요.';
+      '레거시 또는 쇠퇴 중인 기술이 요구됩니다. 기술 부채 규모와 현대화 로드맵을 반드시 확인하세요.'
   } else {
     summary =
-      'EOL(수명 종료) 또는 다수의 쇠퇴 기술이 요구됩니다. 높은 기술 부채 환경일 가능성이 큽니다. 현대화 의지와 자원을 면접에서 심층 검증하세요.';
+      'EOL(수명 종료) 또는 다수의 쇠퇴 기술이 요구됩니다. 높은 기술 부채 환경일 가능성이 큽니다. 현대화 의지와 자원을 면접에서 심층 검증하세요.'
   }
 
-  return { techs, eolCount, decliningCount, agingCount, risk, summary };
+  return { techs, eolCount, decliningCount, agingCount, risk, summary }
 }

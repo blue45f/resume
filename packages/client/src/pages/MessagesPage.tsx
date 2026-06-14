@@ -1,299 +1,301 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import FeatureDisabledBanner from '@/components/FeatureDisabledBanner';
-import Footer from '@/components/Footer';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import EmptyState from '@/components/EmptyState';
-import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog';
-import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog';
-import { toast } from '@/components/Toast';
-import { timeAgo } from '@/lib/time';
-import { API_URL } from '@/lib/config';
-import { useConversations, useMessages } from '@/hooks/useResources';
-import { tx } from '@/lib/i18n';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { useSearchParams } from 'react-router-dom'
+import { z } from 'zod'
+
+import CoffeeChatRequestDialog from '@/components/CoffeeChatRequestDialog'
+import EmptyState from '@/components/EmptyState'
+import FeatureDisabledBanner from '@/components/FeatureDisabledBanner'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
+import { useConversations, useMessages } from '@/hooks/useResources'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
+import { timeAgo } from '@/lib/time'
 
 const replyComposeSchema = z.object({
   content: z.string().max(2000, '메시지는 2000자 이내로 입력해주세요'),
-});
-type ReplyComposeValues = z.infer<typeof replyComposeSchema>;
+})
+type ReplyComposeValues = z.infer<typeof replyComposeSchema>
 
 interface Conversation {
-  partner: { id: string; name: string; email: string; avatar?: string; lastSeen?: string };
-  lastMessage: { content: string; createdAt: string; isMine: boolean };
-  unreadCount: number;
-  pinned?: boolean;
-  category?: 'general' | 'scout';
+  partner: { id: string; name: string; email: string; avatar?: string; lastSeen?: string }
+  lastMessage: { content: string; createdAt: string; isMine: boolean }
+  unreadCount: number
+  pinned?: boolean
+  category?: 'general' | 'scout'
 }
 
 function isOnline(lastSeen?: string): boolean {
-  if (!lastSeen) return false;
-  return Date.now() - new Date(lastSeen).getTime() < 5 * 60 * 1000;
+  if (!lastSeen) return false
+  return Date.now() - new Date(lastSeen).getTime() < 5 * 60 * 1000
 }
 
 function lastSeenText(lastSeen?: string): string {
-  if (!lastSeen) return '오프라인';
-  const diffMs = Date.now() - new Date(lastSeen).getTime();
-  if (diffMs < 5 * 60 * 1000) return '온라인';
-  const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 60) return `마지막 접속: ${minutes}분 전`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `마지막 접속: ${hours}시간 전`;
-  const days = Math.floor(hours / 24);
-  return `마지막 접속: ${days}일 전`;
+  if (!lastSeen) return '오프라인'
+  const diffMs = Date.now() - new Date(lastSeen).getTime()
+  if (diffMs < 5 * 60 * 1000) return '온라인'
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 60) return `마지막 접속: ${minutes}분 전`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `마지막 접속: ${hours}시간 전`
+  const days = Math.floor(hours / 24)
+  return `마지막 접속: ${days}일 전`
 }
 
 function formatDateGroup(dateStr: string): string {
-  const date = new Date(dateStr);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
+  const date = new Date(dateStr)
+  const today = new Date()
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
 
-  if (date.toDateString() === today.toDateString()) return '오늘';
-  if (date.toDateString() === yesterday.toDateString()) return '어제';
-  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+  if (date.toDateString() === today.toDateString()) return '오늘'
+  if (date.toDateString() === yesterday.toDateString()) return '어제'
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })
 }
 
 function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  return new Date(dateStr).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
 }
 
 interface Message {
-  id: string;
-  senderId: string;
-  content: string;
-  createdAt: string;
-  read?: boolean;
-  reactions?: string[];
-  fileUrl?: string;
-  fileName?: string;
+  id: string
+  senderId: string
+  content: string
+  createdAt: string
+  read?: boolean
+  reactions?: string[]
+  fileUrl?: string
+  fileName?: string
 }
 
-type ReactionType = '👍' | '🙏' | '✅';
+type ReactionType = '👍' | '🙏' | '✅'
 const REACTIONS: { emoji: ReactionType; label: string }[] = [
   { emoji: '👍', label: '좋아요' },
   { emoji: '🙏', label: '감사' },
   { emoji: '✅', label: '확인' },
-];
+]
 
-type CategoryFilter = '전체' | '스카우트' | '일반' | '고정';
+type CategoryFilter = '전체' | '스카우트' | '일반' | '고정'
 
-const PINNED_KEY = 'pinned_conversations';
+const PINNED_KEY = 'pinned_conversations'
 function loadPinned(): Set<string> {
   try {
-    const raw = localStorage.getItem(PINNED_KEY);
-    return new Set(raw ? JSON.parse(raw) : []);
+    const raw = localStorage.getItem(PINNED_KEY)
+    return new Set(raw ? JSON.parse(raw) : [])
   } catch {
-    return new Set();
+    return new Set()
   }
 }
 function savePinned(pinned: Set<string>) {
-  localStorage.setItem(PINNED_KEY, JSON.stringify([...pinned]));
+  localStorage.setItem(PINNED_KEY, JSON.stringify([...pinned]))
 }
 
 export default function MessagesPage() {
-  const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
-  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(searchParams.get('to'));
-  const conversationsQuery = useConversations();
+  const queryClient = useQueryClient()
+  const [searchParams] = useSearchParams()
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(searchParams.get('to'))
+  const conversationsQuery = useConversations()
   const conversations: Conversation[] = useMemo(
     () => (conversationsQuery.data as Conversation[] | undefined) ?? [],
-    [conversationsQuery.data],
-  );
-  const messagesQuery = useMessages(selectedPartnerId ?? undefined);
+    [conversationsQuery.data]
+  )
+  const messagesQuery = useMessages(selectedPartnerId ?? undefined)
   const messages: Message[] = ((messagesQuery.data as Message[] | undefined) ?? []).map((m) => ({
     ...m,
     read: true,
-  }));
+  }))
   const replyForm = useForm<ReplyComposeValues>({
     resolver: zodResolver(replyComposeSchema),
     defaultValues: { content: '' },
-  });
-  const newMessage = useWatch({ control: replyForm.control, name: 'content' }) ?? '';
-  const loading = conversationsQuery.isLoading;
-  const [search, setSearch] = useState('');
-  const [messageSearch, setMessageSearch] = useState('');
-  const [showMessageSearch, setShowMessageSearch] = useState(false);
-  const [shareInChatOpen, setShareInChatOpen] = useState(false);
-  const [coffeeChatOpen, setCoffeeChatOpen] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('전체');
-  const [pinnedIds, setPinnedIds] = useState<Set<string>>(loadPinned);
-  const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({});
-  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const [, setShowFileUpload] = useState(false);
+  })
+  const newMessage = useWatch({ control: replyForm.control, name: 'content' }) ?? ''
+  const loading = conversationsQuery.isLoading
+  const [search, setSearch] = useState('')
+  const [messageSearch, setMessageSearch] = useState('')
+  const [showMessageSearch, setShowMessageSearch] = useState(false)
+  const [shareInChatOpen, setShareInChatOpen] = useState(false)
+  const [coffeeChatOpen, setCoffeeChatOpen] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('전체')
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(loadPinned)
+  const [messageReactions, setMessageReactions] = useState<Record<string, string[]>>({})
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null)
+  const [isTyping, setIsTyping] = useState(false)
+  const [, setShowFileUpload] = useState(false)
   const [attachedFile, setAttachedFile] = useState<{
-    name: string;
-    size: string;
-    type: string;
-  } | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+    name: string
+    size: string
+    type: string
+  } | null>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    document.title = '쪽지 — 이력서공방';
+    document.title = '쪽지 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
 
   // Simulate typing indicator when sending
   useEffect(() => {
-    if (!selectedPartnerId) return;
+    if (!selectedPartnerId) return
     // Mock typing indicator: show briefly after partner's message
-    const timer = setTimeout(() => setIsTyping(false), 3000);
-    return () => clearTimeout(timer);
-  }, [messages, selectedPartnerId]);
+    const timer = setTimeout(() => setIsTyping(false), 3000)
+    return () => clearTimeout(timer)
+  }, [messages, selectedPartnerId])
 
   const getHeaders = () => {
-    const token = localStorage.getItem('token');
-    const h: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) h['Authorization'] = `Bearer ${token}`;
-    return h;
-  };
+    const token = localStorage.getItem('token')
+    const h: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) h['Authorization'] = `Bearer ${token}`
+    return h
+  }
 
   const loadMessages = (partnerId: string) => {
-    setSelectedPartnerId(partnerId);
-    setShowMessageSearch(false);
-    setMessageSearch('');
-    queryClient.invalidateQueries({ queryKey: ['messages', partnerId] });
-  };
+    setSelectedPartnerId(partnerId)
+    setShowMessageSearch(false)
+    setMessageSearch('')
+    queryClient.invalidateQueries({ queryKey: ['messages', partnerId] })
+  }
 
   const onSend = async (data: ReplyComposeValues) => {
-    if (!selectedPartnerId) return;
-    if (!data.content.trim() && !attachedFile) return;
+    if (!selectedPartnerId) return
+    if (!data.content.trim() && !attachedFile) return
     try {
-      const body: Record<string, unknown> = { content: data.content };
+      const body: Record<string, unknown> = { content: data.content }
       if (attachedFile) {
-        body.fileName = attachedFile.name;
-        body.fileType = attachedFile.type;
+        body.fileName = attachedFile.name
+        body.fileType = attachedFile.type
       }
-      await fetch(`${API_URL}/api/social/messages/${selectedPartnerId}`, {
+      await httpClient(`${API_URL}/api/social/messages/${selectedPartnerId}`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(body),
-      });
-      replyForm.reset();
-      setAttachedFile(null);
-      queryClient.invalidateQueries({ queryKey: ['messages', selectedPartnerId] });
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      })
+      replyForm.reset()
+      setAttachedFile(null)
+      queryClient.invalidateQueries({ queryKey: ['messages', selectedPartnerId] })
+      queryClient.invalidateQueries({ queryKey: ['conversations'] })
       // Show typing indicator briefly
-      setTimeout(() => setIsTyping(true), 1000);
+      setTimeout(() => setIsTyping(true), 1000)
     } catch {
-      toast('전송에 실패했습니다', 'error');
+      toast('전송에 실패했습니다', 'error')
     }
-  };
+  }
 
   const handleBack = () => {
-    setSelectedPartnerId(null);
-    setShowMessageSearch(false);
-    setMessageSearch('');
-  };
+    setSelectedPartnerId(null)
+    setShowMessageSearch(false)
+    setMessageSearch('')
+  }
 
   const togglePin = useCallback((partnerId: string) => {
     setPinnedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(partnerId)) next.delete(partnerId);
-      else next.add(partnerId);
-      savePinned(next);
-      return next;
-    });
-  }, []);
+      const next = new Set(prev)
+      if (next.has(partnerId)) next.delete(partnerId)
+      else next.add(partnerId)
+      savePinned(next)
+      return next
+    })
+  }, [])
 
   const toggleReaction = useCallback((messageId: string, emoji: string) => {
     setMessageReactions((prev) => {
-      const current = prev[messageId] || [];
-      const has = current.includes(emoji);
+      const current = prev[messageId] || []
+      const has = current.includes(emoji)
       return {
         ...prev,
         [messageId]: has ? current.filter((r) => r !== emoji) : [...current, emoji],
-      };
-    });
-  }, []);
+      }
+    })
+  }, [])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const file = e.target.files?.[0]
+    if (!file) return
     const sizeStr =
       file.size > 1024 * 1024
         ? `${(file.size / (1024 * 1024)).toFixed(1)}MB`
-        : `${(file.size / 1024).toFixed(0)}KB`;
-    setAttachedFile({ name: file.name, size: sizeStr, type: file.type });
-    setShowFileUpload(false);
-  };
+        : `${(file.size / 1024).toFixed(0)}KB`
+    setAttachedFile({ name: file.name, size: sizeStr, type: file.type })
+    setShowFileUpload(false)
+  }
 
   const filteredConversations = useMemo(() => {
     let result = conversations.map((c) => ({
       ...c,
       pinned: pinnedIds.has(c.partner.id),
-    }));
+    }))
 
     // Category filter
     if (categoryFilter === '고정') {
-      result = result.filter((c) => c.pinned);
+      result = result.filter((c) => c.pinned)
     } else if (categoryFilter === '스카우트') {
-      result = result.filter((c) => c.category === 'scout');
+      result = result.filter((c) => c.category === 'scout')
     } else if (categoryFilter === '일반') {
-      result = result.filter((c) => c.category !== 'scout');
+      result = result.filter((c) => c.category !== 'scout')
     }
 
     // Search filter
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search.toLowerCase()
       result = result.filter(
         (c) =>
           c.partner.name.toLowerCase().includes(q) ||
           c.partner.email.toLowerCase().includes(q) ||
-          c.lastMessage.content.toLowerCase().includes(q),
-      );
+          c.lastMessage.content.toLowerCase().includes(q)
+      )
     }
 
     // Sort: pinned first, then by date
     result.sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
+      if (a.pinned && !b.pinned) return -1
+      if (!a.pinned && b.pinned) return 1
       return (
         new Date(b.lastMessage.createdAt).getTime() - new Date(a.lastMessage.createdAt).getTime()
-      );
-    });
+      )
+    })
 
-    return result;
-  }, [conversations, search, categoryFilter, pinnedIds]);
+    return result
+  }, [conversations, search, categoryFilter, pinnedIds])
 
   // Group messages by date
   const groupedMessages = useMemo(() => {
-    let filtered = messages;
+    let filtered = messages
     if (messageSearch.trim()) {
-      const q = messageSearch.toLowerCase();
-      filtered = messages.filter((m) => m.content.toLowerCase().includes(q));
+      const q = messageSearch.toLowerCase()
+      filtered = messages.filter((m) => m.content.toLowerCase().includes(q))
     }
 
-    const groups: { date: string; messages: Message[] }[] = [];
-    let currentDate = '';
+    const groups: { date: string; messages: Message[] }[] = []
+    let currentDate = ''
     for (const msg of filtered) {
-      const date = new Date(msg.createdAt).toDateString();
+      const date = new Date(msg.createdAt).toDateString()
       if (date !== currentDate) {
-        currentDate = date;
-        groups.push({ date: msg.createdAt, messages: [msg] });
+        currentDate = date
+        groups.push({ date: msg.createdAt, messages: [msg] })
       } else {
-        groups[groups.length - 1].messages.push(msg);
+        groups[groups.length - 1].messages.push(msg)
       }
     }
-    return groups;
-  }, [messages, messageSearch]);
+    return groups
+  }, [messages, messageSearch])
 
-  const selectedConv = conversations.find((c) => c.partner.id === selectedPartnerId);
-  const userId = JSON.parse(localStorage.getItem('user') || '{}').id;
-  const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
-  const isPinned = selectedPartnerId ? pinnedIds.has(selectedPartnerId) : false;
+  const selectedConv = conversations.find((c) => c.partner.id === selectedPartnerId)
+  const userId = JSON.parse(localStorage.getItem('user') || '{}').id
+  const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0)
+  const isPinned = selectedPartnerId ? pinnedIds.has(selectedPartnerId) : false
 
   return (
     <>
@@ -381,7 +383,7 @@ export default function MessagesPage() {
                 ) : (
                   <div className="divide-y divide-slate-100 dark:divide-slate-700">
                     {filteredConversations.map((conv) => {
-                      const convPinned = pinnedIds.has(conv.partner.id);
+                      const convPinned = pinnedIds.has(conv.partner.id)
                       return (
                         <button
                           key={conv.partner.id}
@@ -456,7 +458,7 @@ export default function MessagesPage() {
                             </div>
                           </div>
                         </button>
-                      );
+                      )
                     })}
                   </div>
                 )}
@@ -659,11 +661,11 @@ export default function MessagesPage() {
                             </span>
                           </div>
                           {group.messages.map((msg) => {
-                            const isMine = msg.senderId === userId;
-                            const reactions = messageReactions[msg.id] || [];
+                            const isMine = msg.senderId === userId
+                            const reactions = messageReactions[msg.id] || []
                             const isHighlighted =
                               messageSearch &&
-                              msg.content.toLowerCase().includes(messageSearch.toLowerCase());
+                              msg.content.toLowerCase().includes(messageSearch.toLowerCase())
                             return (
                               <div
                                 key={msg.id}
@@ -768,13 +770,15 @@ export default function MessagesPage() {
                                       className={`flex gap-0.5 mt-0.5 ${isMine ? 'justify-end' : 'justify-start'}`}
                                     >
                                       {reactions.map((r, i) => (
-                                        <span
+                                        <button
                                           key={i}
+                                          type="button"
                                           onClick={() => toggleReaction(msg.id, r)}
+                                          aria-label={`반응 ${r} 토글`}
                                           className="text-xs bg-slate-100 dark:bg-slate-700 rounded-full px-1.5 py-0.5 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                                         >
                                           {r}
-                                        </span>
+                                        </button>
                                       ))}
                                     </div>
                                   )}
@@ -802,7 +806,7 @@ export default function MessagesPage() {
                                   )}
                                 </div>
                               </div>
-                            );
+                            )
                           })}
                         </div>
                       ))
@@ -971,5 +975,5 @@ export default function MessagesPage() {
         />
       )}
     </>
-  );
+  )
 }

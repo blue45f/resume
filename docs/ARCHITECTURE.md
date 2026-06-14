@@ -15,7 +15,7 @@ flowchart TB
         SPA[React 19 SPA<br/>Vite 8 · TS strict]
         Router[React Router 7]
         Pages[pages/ 50+ routes]
-        Features[features/ — 시나리오별]
+        Domains[domains/ — 도메인별 슬라이스]
         Shared[shared/ — UI·utils]
         QueryClient[React Query 5<br/>+ Zustand 5]
         I18n[i18next — ko/en/ja]

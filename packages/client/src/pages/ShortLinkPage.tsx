@@ -1,22 +1,23 @@
-import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { usePublicGet } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
+import { useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+
+import { usePublicGet } from '@/hooks/useResources'
+import { ROUTES } from '@/lib/routes'
 
 export default function ShortLinkPage() {
-  const { code } = useParams<{ code: string }>();
-  const navigate = useNavigate();
+  const { code } = useParams<{ code: string }>()
+  const navigate = useNavigate()
   const { data, isError } = usePublicGet<{ id: string }>(
     ['short-link', code],
     `/api/resumes/short/${code}`,
-    { enabled: !!code, staleTime: 0 },
-  );
+    { enabled: !!code, staleTime: 0 }
+  )
 
   useEffect(() => {
     if (data?.id) {
-      navigate(ROUTES.resume.preview(data.id), { replace: true });
+      navigate(ROUTES.resume.preview(data.id), { replace: true })
     }
-  }, [data, navigate]);
+  }, [data, navigate])
 
   if (isError) {
     return (
@@ -29,12 +30,12 @@ export default function ShortLinkPage() {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="flex-1 flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
     </div>
-  );
+  )
 }

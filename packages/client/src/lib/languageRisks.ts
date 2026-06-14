@@ -10,16 +10,16 @@
  */
 
 export interface ClicheHit {
-  phrase: string;
-  index: number;
-  reason: string;
+  phrase: string
+  index: number
+  reason: string
 }
 
 export interface ClicheAnalysis {
-  hits: ClicheHit[];
-  count: number;
-  level: 'none' | 'few' | 'many';
-  suggestion: string;
+  hits: ClicheHit[]
+  count: number
+  level: 'none' | 'few' | 'many'
+  suggestion: string
 }
 
 const CLICHES: Array<{ re: RegExp; phrase: string; reason: string }> = [
@@ -67,37 +67,37 @@ const CLICHES: Array<{ re: RegExp; phrase: string; reason: string }> = [
     phrase: '성과를 창출/냈',
     reason: '추상 동사. 수치 포함한 성과.',
   },
-];
+]
 
 /**
  * 자소서·이력서에서 자주 쓰이는 진부한 표현 검출.
  * 남들과 구별되지 않는 상투구는 차별성을 떨어뜨림. 심사자가 지겹게 본 표현 모음.
  */
 export function detectCliches(text: string): ClicheAnalysis {
-  const t = text ?? '';
-  const hits: ClicheHit[] = [];
+  const t = text ?? ''
+  const hits: ClicheHit[] = []
   for (const c of CLICHES) {
-    let m: RegExpExecArray | null;
-    const re = new RegExp(c.re.source, 'g');
+    let m: RegExpExecArray | null
+    const re = new RegExp(c.re.source, 'g')
     while ((m = re.exec(t))) {
-      hits.push({ phrase: c.phrase, index: m.index, reason: c.reason });
+      hits.push({ phrase: c.phrase, index: m.index, reason: c.reason })
     }
   }
-  hits.sort((a, b) => a.index - b.index);
-  const count = hits.length;
-  let level: ClicheAnalysis['level'];
-  let suggestion: string;
+  hits.sort((a, b) => a.index - b.index)
+  const count = hits.length
+  let level: ClicheAnalysis['level']
+  let suggestion: string
   if (count === 0) {
-    level = 'none';
-    suggestion = '상투적 표현이 없습니다.';
+    level = 'none'
+    suggestion = '상투적 표현이 없습니다.'
   } else if (count <= 2) {
-    level = 'few';
-    suggestion = `상투적 표현 ${count}건 — 구체 에피소드나 수치로 바꿔 보세요.`;
+    level = 'few'
+    suggestion = `상투적 표현 ${count}건 — 구체 에피소드나 수치로 바꿔 보세요.`
   } else {
-    level = 'many';
-    suggestion = `상투적 표현이 ${count}건으로 많습니다. 심사자 눈에 익은 관용구 대신 고유한 경험을 드러내세요.`;
+    level = 'many'
+    suggestion = `상투적 표현이 ${count}건으로 많습니다. 심사자 눈에 익은 관용구 대신 고유한 경험을 드러내세요.`
   }
-  return { hits: hits.slice(0, 30), count, level, suggestion };
+  return { hits: hits.slice(0, 30), count, level, suggestion }
 }
 
 const JARGON_WORDS = [
@@ -118,14 +118,14 @@ const JARGON_WORDS = [
   '어젠다',
   '콘텐츠',
   '스케일업',
-];
+]
 
 export interface JargonAnalysis {
-  hits: Array<{ word: string; count: number }>;
-  totalCount: number;
-  distinctCount: number;
-  level: 'none' | 'few' | 'many';
-  suggestion: string;
+  hits: Array<{ word: string; count: number }>
+  totalCount: number
+  distinctCount: number
+  level: 'none' | 'few' | 'many'
+  suggestion: string
 }
 
 /**
@@ -133,27 +133,26 @@ export interface JargonAnalysis {
  * 같은 버즈워드는 구체성이 없고 공허한 인상. 3건 이상이면 재작성 권고.
  */
 export function detectJargon(text: string): JargonAnalysis {
-  const t = text ?? '';
-  const counts = new Map<string, number>();
+  const t = text ?? ''
+  const counts = new Map<string, number>()
   for (const w of JARGON_WORDS) {
-    const re = new RegExp(w, 'g');
-    const matches = t.match(re);
-    if (matches) counts.set(w, matches.length);
+    const re = new RegExp(w, 'g')
+    const matches = t.match(re)
+    if (matches) counts.set(w, matches.length)
   }
   const hits = [...counts.entries()]
     .map(([word, count]) => ({ word, count }))
-    .sort((a, b) => b.count - a.count);
-  const totalCount = hits.reduce((a, b) => a + b.count, 0);
-  const distinctCount = hits.length;
-  const level: JargonAnalysis['level'] =
-    totalCount === 0 ? 'none' : totalCount < 3 ? 'few' : 'many';
+    .sort((a, b) => b.count - a.count)
+  const totalCount = hits.reduce((a, b) => a + b.count, 0)
+  const distinctCount = hits.length
+  const level: JargonAnalysis['level'] = totalCount === 0 ? 'none' : totalCount < 3 ? 'few' : 'many'
   const suggestion =
     level === 'none'
       ? '자곤 표현이 감지되지 않았습니다.'
       : level === 'few'
         ? `자곤 ${totalCount}건 — "${hits[0].word}" 등을 구체 표현으로 바꾸세요.`
-        : `자곤이 ${totalCount}건, ${distinctCount}종 남용됩니다. 구체적 행동·결과로 재작성하세요.`;
-  return { hits: hits.slice(0, 10), totalCount, distinctCount, level, suggestion };
+        : `자곤이 ${totalCount}건, ${distinctCount}종 남용됩니다. 구체적 행동·결과로 재작성하세요.`
+  return { hits: hits.slice(0, 10), totalCount, distinctCount, level, suggestion }
 }
 
 const EXAGGERATION_PATTERNS: Array<{ re: RegExp; phrase: string; reason: string }> = [
@@ -187,19 +186,19 @@ const EXAGGERATION_PATTERNS: Array<{ re: RegExp; phrase: string; reason: string 
     phrase: '타사 대비 월등/우수',
     reason: '비교 근거·수치 필요.',
   },
-];
+]
 
 export interface ExaggerationHit {
-  phrase: string;
-  index: number;
-  reason: string;
+  phrase: string
+  index: number
+  reason: string
 }
 
 export interface ExaggerationAnalysis {
-  hits: ExaggerationHit[];
-  count: number;
-  level: 'none' | 'few' | 'many';
-  suggestion: string;
+  hits: ExaggerationHit[]
+  count: number
+  level: 'none' | 'few' | 'many'
+  suggestion: string
 }
 
 /**
@@ -207,25 +206,25 @@ export interface ExaggerationAnalysis {
  * 공식 문서 신뢰도를 떨어뜨림. 10개 패턴 대응.
  */
 export function detectExaggeration(text: string): ExaggerationAnalysis {
-  const t = text ?? '';
-  const hits: ExaggerationHit[] = [];
+  const t = text ?? ''
+  const hits: ExaggerationHit[] = []
   for (const p of EXAGGERATION_PATTERNS) {
-    const re = new RegExp(p.re.source, 'g');
-    let m: RegExpExecArray | null;
+    const re = new RegExp(p.re.source, 'g')
+    let m: RegExpExecArray | null
     while ((m = re.exec(t))) {
-      hits.push({ phrase: p.phrase, index: m.index, reason: p.reason });
-      if (hits.length > 40) break;
+      hits.push({ phrase: p.phrase, index: m.index, reason: p.reason })
+      if (hits.length > 40) break
     }
-    if (hits.length > 40) break;
+    if (hits.length > 40) break
   }
-  hits.sort((a, b) => a.index - b.index);
-  const count = hits.length;
-  const level: ExaggerationAnalysis['level'] = count === 0 ? 'none' : count <= 2 ? 'few' : 'many';
+  hits.sort((a, b) => a.index - b.index)
+  const count = hits.length
+  const level: ExaggerationAnalysis['level'] = count === 0 ? 'none' : count <= 2 ? 'few' : 'many'
   const suggestion =
     level === 'none'
       ? '과장 표현이 없습니다.'
       : level === 'few'
         ? `과장 표현 ${count}건 — "${hits[0].phrase}" 를 증거 있는 표현으로 바꿔보세요.`
-        : `과장 표현이 ${count}건으로 많습니다. 신뢰도를 위해 증명 가능한 수치로 대체하세요.`;
-  return { hits: hits.slice(0, 20), count, level, suggestion };
+        : `과장 표현이 ${count}건으로 많습니다. 신뢰도를 위해 증명 가능한 수치로 대체하세요.`
+  return { hits: hits.slice(0, 20), count, level, suggestion }
 }

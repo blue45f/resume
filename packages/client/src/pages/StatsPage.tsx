@@ -1,67 +1,68 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { useJobStats } from '@/hooks/useApi';
-import { useSiteStatsPublic, usePublicGet, usePopularSkills } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { useJobStats } from '@/hooks/useApi'
+import { useSiteStatsPublic, usePublicGet, usePopularSkills } from '@/hooks/useResources'
+import { ROUTES } from '@/lib/routes'
 
 interface SiteStats {
-  users: { total: number; today: number; thisWeek: number };
-  resumes: { total: number; public: number; today: number };
-  activity: { totalViews: number };
-  content: { templates: number };
-  community: { posts: number; comments: number };
-  jobs: { active: number };
+  users: { total: number; today: number; thisWeek: number }
+  resumes: { total: number; public: number; today: number }
+  activity: { totalViews: number }
+  content: { templates: number }
+  community: { posts: number; comments: number }
+  jobs: { active: number }
 }
 
 interface PopularResume {
-  id: string;
-  title: string;
-  viewCount: number;
-  personalInfo?: { name?: string };
-  skills?: { items: string }[];
+  id: string
+  title: string
+  viewCount: number
+  personalInfo?: { name?: string }
+  skills?: { items: string }[]
 }
 
 interface PopularSkill {
-  skill: string;
-  count: number;
+  skill: string
+  count: number
 }
 
 interface SkillStat {
-  skill?: string;
-  name?: string;
-  count: number;
+  skill?: string
+  name?: string
+  count: number
 }
 
 function CountUp({ target, duration = 1500 }: { target: number; duration?: number }) {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(0)
   useEffect(() => {
-    if (target <= 0) return;
-    let start = 0;
-    const increment = target / (duration / 16);
+    if (target <= 0) return
+    let start = 0
+    const increment = target / (duration / 16)
     const timer = setInterval(() => {
-      start += increment;
+      start += increment
       if (start >= target) {
-        setCount(target);
-        clearInterval(timer);
-      } else setCount(Math.floor(start));
-    }, 16);
-    return () => clearInterval(timer);
-  }, [target, duration]);
-  return <>{count.toLocaleString()}</>;
+        setCount(target)
+        clearInterval(timer)
+      } else setCount(Math.floor(start))
+    }, 16)
+    return () => clearInterval(timer)
+  }, [target, duration])
+  return <>{count.toLocaleString()}</>
 }
 
 function JobStatsSection() {
-  const [filterLocation, setFilterLocation] = useState('');
-  const [filterType, setFilterType] = useState('');
-  const [filterSkill, setFilterSkill] = useState('');
+  const [filterLocation, setFilterLocation] = useState('')
+  const [filterType, setFilterType] = useState('')
+  const [filterSkill, setFilterSkill] = useState('')
 
   const { data, isLoading: loading } = useJobStats(
     filterLocation || undefined,
     filterType || undefined,
-    filterSkill || undefined,
-  );
+    filterSkill || undefined
+  )
 
   if (loading && !data)
     return (
@@ -75,9 +76,9 @@ function JobStatsSection() {
           </div>
         </div>
       </div>
-    );
+    )
 
-  if (!data) return null;
+  if (!data) return null
 
   const TYPE_LABELS: Record<string, string> = {
     full_time: '정규직',
@@ -85,7 +86,7 @@ function JobStatsSection() {
     intern: '인턴',
     part_time: '파트타임',
     freelance: '프리랜서',
-  };
+  }
 
   return (
     <div className="mt-8 space-y-6">
@@ -141,9 +142,9 @@ function JobStatsSection() {
         {(filterLocation || filterType || filterSkill) && (
           <button
             onClick={() => {
-              setFilterLocation('');
-              setFilterType('');
-              setFilterSkill('');
+              setFilterLocation('')
+              setFilterType('')
+              setFilterSkill('')
             }}
             className="px-3 py-1.5 text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
           >
@@ -235,8 +236,8 @@ function JobStatsSection() {
           </h3>
           <div className="flex flex-wrap gap-2">
             {data.bySkill.map((s: SkillStat) => {
-              const maxCount = data.bySkill[0]?.count || 1;
-              const opacity = 0.4 + (s.count / maxCount) * 0.6;
+              const maxCount = data.bySkill[0]?.count || 1
+              const opacity = 0.4 + (s.count / maxCount) * 0.6
               return (
                 <span
                   key={s.skill || s.name}
@@ -248,7 +249,7 @@ function JobStatsSection() {
                   </span>
                   <span className="text-xs text-sky-400">{s.count}</span>
                 </span>
-              );
+              )
             })}
             {data.bySkill.length === 0 && (
               <p className="text-sm text-slate-400 py-4">데이터 없음</p>
@@ -257,23 +258,23 @@ function JobStatsSection() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export default function StatsPage() {
-  const [resumeFilter, setResumeFilter] = useState('');
-  const statsQuery = useSiteStatsPublic();
+  const [resumeFilter, setResumeFilter] = useState('')
+  const statsQuery = useSiteStatsPublic()
   const popularQuery = usePublicGet<{ data?: PopularResume[]; items?: PopularResume[] }>(
     ['public-resumes', 'top-viewed'],
     '/api/resumes?visibility=public&limit=10&sort=viewCount',
-    { staleTime: 60_000 },
-  );
-  const skillsQuery = usePopularSkills();
+    { staleTime: 60_000 }
+  )
+  const skillsQuery = usePopularSkills()
 
-  const stats: SiteStats | null = (statsQuery.data as SiteStats | null) ?? null;
+  const stats: SiteStats | null = (statsQuery.data as SiteStats | null) ?? null
   const popular: PopularResume[] = (
     (popularQuery.data?.data || popularQuery.data?.items || []) as PopularResume[]
-  ).slice(0, 10);
+  ).slice(0, 10)
   const skills: PopularSkill[] = (
     Array.isArray(skillsQuery.data)
       ? (skillsQuery.data as SkillStat[]).map((s) => ({
@@ -281,15 +282,15 @@ export default function StatsPage() {
           count: s.count,
         }))
       : []
-  ).slice(0, 15);
-  const loading = statsQuery.isLoading || popularQuery.isLoading || skillsQuery.isLoading;
+  ).slice(0, 15)
+  const loading = statsQuery.isLoading || popularQuery.isLoading || skillsQuery.isLoading
 
   useEffect(() => {
-    document.title = '전체 통계 — 이력서공방';
+    document.title = '전체 통계 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   if (loading)
     return (
@@ -307,7 +308,7 @@ export default function StatsPage() {
         </main>
         <Footer />
       </>
-    );
+    )
 
   return (
     <>
@@ -436,19 +437,19 @@ export default function StatsPage() {
             {(() => {
               const filtered = resumeFilter.trim()
                 ? popular.filter((r) => {
-                    const q = resumeFilter.toLowerCase();
+                    const q = resumeFilter.toLowerCase()
                     const skillText =
                       r.skills
                         ?.map((s) => s.items)
                         .join(',')
-                        .toLowerCase() || '';
+                        .toLowerCase() || ''
                     return (
                       r.title.toLowerCase().includes(q) ||
                       skillText.includes(q) ||
                       (r.personalInfo?.name || '').toLowerCase().includes(q)
-                    );
+                    )
                   })
-                : popular;
+                : popular
               return filtered.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-6">
                   {resumeFilter ? '필터 결과 없음' : '데이터가 없습니다'}
@@ -503,7 +504,7 @@ export default function StatsPage() {
                     </Link>
                   ))}
                 </div>
-              );
+              )
             })()}
           </div>
 
@@ -518,8 +519,8 @@ export default function StatsPage() {
             ) : (
               <div className="space-y-2">
                 {skills.map((s, i) => {
-                  const maxCount = skills[0]?.count || 1;
-                  const pct = Math.round((s.count / maxCount) * 100);
+                  const maxCount = skills[0]?.count || 1
+                  const pct = Math.round((s.count / maxCount) * 100)
                   return (
                     <div key={s.skill} className="flex items-center gap-3">
                       <span
@@ -544,7 +545,7 @@ export default function StatsPage() {
                         </div>
                       </div>
                     </div>
-                  );
+                  )
                 })}
               </div>
             )}
@@ -560,5 +561,5 @@ export default function StatsPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

@@ -1,20 +1,20 @@
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react'
 
-import Dialog from '@/shared/ui/Dialog';
+import Dialog from '@/shared/ui/Dialog'
 
 interface PromptOptions {
-  title: string;
-  description?: string;
-  label?: string;
-  placeholder?: string;
-  defaultValue?: string;
-  confirmText?: string;
-  cancelText?: string;
+  title: string
+  description?: string
+  label?: string
+  placeholder?: string
+  defaultValue?: string
+  confirmText?: string
+  cancelText?: string
 }
 
-type PromptFn = (options: PromptOptions) => Promise<string | null>;
+type PromptFn = (options: PromptOptions) => Promise<string | null>
 
-const PromptContext = createContext<PromptFn | null>(null);
+const PromptContext = createContext<PromptFn | null>(null)
 
 /**
  * Imperative `prompt()` resolving to the entered string (or null if cancelled),
@@ -23,23 +23,23 @@ const PromptContext = createContext<PromptFn | null>(null);
  * call sites do `const v = await prompt({ title }); if (v === null) return;`.
  */
 const promptProvider = function PromptProvider({ children }: { children: ReactNode }) {
-  const [options, setOptions] = useState<PromptOptions | null>(null);
-  const [value, setValue] = useState('');
-  const resolverRef = useRef<((value: string | null) => void) | null>(null);
+  const [options, setOptions] = useState<PromptOptions | null>(null)
+  const [value, setValue] = useState('')
+  const resolverRef = useRef<((value: string | null) => void) | null>(null)
 
   const prompt = useCallback<PromptFn>((opts) => {
-    setOptions(opts);
-    setValue(opts.defaultValue ?? '');
+    setOptions(opts)
+    setValue(opts.defaultValue ?? '')
     return new Promise<string | null>((resolve) => {
-      resolverRef.current = resolve;
-    });
-  }, []);
+      resolverRef.current = resolve
+    })
+  }, [])
 
   const settle = useCallback((result: string | null) => {
-    resolverRef.current?.(result);
-    resolverRef.current = null;
-    setOptions(null);
-  }, []);
+    resolverRef.current?.(result)
+    resolverRef.current = null
+    setOptions(null)
+  }, [])
 
   return (
     <PromptContext.Provider value={prompt}>
@@ -47,7 +47,7 @@ const promptProvider = function PromptProvider({ children }: { children: ReactNo
       <Dialog
         open={options !== null}
         onOpenChange={(open) => {
-          if (!open) settle(null);
+          if (!open) settle(null)
         }}
         title={options?.title ?? ''}
         description={options?.description}
@@ -56,8 +56,8 @@ const promptProvider = function PromptProvider({ children }: { children: ReactNo
         {options && (
           <form
             onSubmit={(e) => {
-              e.preventDefault();
-              settle(value);
+              e.preventDefault()
+              settle(value)
             }}
           >
             {options.label && (
@@ -91,13 +91,13 @@ const promptProvider = function PromptProvider({ children }: { children: ReactNo
         )}
       </Dialog>
     </PromptContext.Provider>
-  );
-};
+  )
+}
 
-export const PromptProvider = promptProvider;
+export const PromptProvider = promptProvider
 
 export function usePrompt(): PromptFn {
-  const ctx = useContext(PromptContext);
-  if (!ctx) throw new Error('usePrompt must be used within a PromptProvider');
-  return ctx;
+  const ctx = useContext(PromptContext)
+  if (!ctx) throw new Error('usePrompt must be used within a PromptProvider')
+  return ctx
 }

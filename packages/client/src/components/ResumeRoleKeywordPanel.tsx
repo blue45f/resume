@@ -1,19 +1,20 @@
-import { useMemo } from 'react';
-import { analyzeRoleKeywordGap } from '@/lib/roleKeywordGapAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeRoleKeywordGap } from '@/lib/roleKeywordGapAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeRoleKeywordPanel({ text }: Props) {
-  const report = useMemo(() => analyzeRoleKeywordGap(text), [text]);
+  const report = useMemo(() => analyzeRoleKeywordGap(text), [text])
 
-  if (report.category === 'unknown') return null;
-  if (report.score >= 70) return null;
-  if (report.missing.length === 0) return null;
+  if (report.category === 'unknown') return null
+  if (report.score >= 70) return null
+  if (report.missing.length === 0) return null
 
-  const tone = report.score < 40 ? 'warning' : 'neutral';
-  const fill = Math.max(0.04, report.score / 100);
+  const tone = report.score < 40 ? 'warning' : 'neutral'
+  const fill = Math.max(0.04, report.score / 100)
 
   return (
     <aside
@@ -69,5 +70,5 @@ export default function ResumeRoleKeywordPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

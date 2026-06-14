@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { calculateCompleteness } from './completeness';
-import type { Resume } from '@/types/resume';
+import { describe, expect, it } from 'vitest'
+
+import { calculateCompleteness } from './completeness'
+
+import type { Resume } from '@/types/resume'
 
 function makeResume(overrides: Partial<Resume> = {}): Resume {
   return {
@@ -25,19 +27,19 @@ function makeResume(overrides: Partial<Resume> = {}): Resume {
     awards: [],
     activities: [],
     ...overrides,
-  } as Resume;
+  } as Resume
 }
 
 describe('calculateCompleteness', () => {
   it('returns very low percentage for empty resume + collects tips', () => {
-    const r = calculateCompleteness(makeResume());
-    expect(r.percentage).toBeLessThan(30);
-    expect(r.tips.length).toBeGreaterThan(0);
-    expect(r.grade).toBe('D');
-  });
+    const r = calculateCompleteness(makeResume())
+    expect(r.percentage).toBeLessThan(30)
+    expect(r.tips.length).toBeGreaterThan(0)
+    expect(r.grade).toBe('D')
+  })
 
   it('rewards full personal info', () => {
-    const empty = calculateCompleteness(makeResume());
+    const empty = calculateCompleteness(makeResume())
     const full = calculateCompleteness(
       makeResume({
         personalInfo: {
@@ -50,10 +52,10 @@ describe('calculateCompleteness', () => {
           photo: 'https://p',
           summary: '5년차 백엔드 개발자 소개 텍스트입니다.',
         },
-      }),
-    );
-    expect(full.percentage).toBeGreaterThan(empty.percentage);
-  });
+      })
+    )
+    expect(full.percentage).toBeGreaterThan(empty.percentage)
+  })
 
   it('grade ladder maps roughly to percentage', () => {
     const r = calculateCompleteness(
@@ -90,17 +92,17 @@ describe('calculateCompleteness', () => {
           },
         ],
         skills: [{ id: 's', category: 'Backend', items: 'Java, Kotlin, Spring' }],
-      }),
-    );
-    expect(['S', 'A', 'B', 'C']).toContain(r.grade);
-  });
+      })
+    )
+    expect(['S', 'A', 'B', 'C']).toContain(r.grade)
+  })
 
   it('sections array reflects all 6 buckets', () => {
-    const r = calculateCompleteness(makeResume());
-    const labels = r.sections.map((s) => s.label);
-    expect(labels).toContain('인적사항');
-    expect(labels).toContain('경력');
-    expect(labels).toContain('학력');
-    expect(labels).toContain('기술');
-  });
-});
+    const r = calculateCompleteness(makeResume())
+    const labels = r.sections.map((s) => s.label)
+    expect(labels).toContain('인적사항')
+    expect(labels).toContain('경력')
+    expect(labels).toContain('학력')
+    expect(labels).toContain('기술')
+  })
+})

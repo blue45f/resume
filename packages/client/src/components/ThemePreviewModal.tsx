@@ -1,20 +1,21 @@
-import * as RadixDialog from '@radix-ui/react-dialog';
-import type { ResumeTheme } from '@/lib/resumeThemes';
+import * as RadixDialog from '@radix-ui/react-dialog'
+
+import type { ResumeTheme } from '@/lib/resumeThemes'
 
 interface Props {
-  theme: ResumeTheme;
-  onClose: () => void;
-  onSelect: () => void;
+  theme: ResumeTheme
+  onClose: () => void
+  onSelect: () => void
 }
 
 export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
-  const p = theme.preview;
+  const p = theme.preview
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -263,5 +264,5 @@ export default function ThemePreviewModal({ theme, onClose, onSelect }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

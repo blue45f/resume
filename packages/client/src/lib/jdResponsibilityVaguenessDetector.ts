@@ -10,21 +10,21 @@ export type VagueResponsibilityType =
   | 'catch_all' // 기타 업무/그 외 업무/잡무
   | 'on_demand' // 필요시 지원/요청 시 수행
   | 'broad_generic' // 전반적인 업무/회사 전반
-  | 'undefined_misc'; // 그때그때/닥치는 대로/멀티태스킹
+  | 'undefined_misc' // 그때그때/닥치는 대로/멀티태스킹
 
 export interface VagueResponsibilityMatch {
-  type: VagueResponsibilityType;
-  excerpt: string;
+  type: VagueResponsibilityType
+  excerpt: string
 }
 
-export type ResponsibilityClarity = 'clear' | 'some' | 'vague';
+export type ResponsibilityClarity = 'clear' | 'some' | 'vague'
 
 export interface JdResponsibilityVaguenessReport {
-  clarity: ResponsibilityClarity;
-  matches: VagueResponsibilityMatch[];
-  count: number;
-  summary: string;
-  tips: string[];
+  clarity: ResponsibilityClarity
+  matches: VagueResponsibilityMatch[]
+  count: number
+  summary: string
+  tips: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -48,64 +48,64 @@ const PATTERNS: Array<{ type: VagueResponsibilityType; re: RegExp }> = [
     type: 'undefined_misc',
     re: /(?:그때그때|닥치는\s*대로|멀티\s*(?:플레이|태스킹)|다방면(?:의|으로)\s*업무|여러\s*가지\s*업무를\s*동시)/,
   },
-];
+]
 
 const TYPE_LABEL: Record<VagueResponsibilityType, string> = {
   catch_all: '기타/잡무성 표현',
   on_demand: '필요시 투입',
   broad_generic: '전반적 업무',
   undefined_misc: '비정형 업무',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function detectJdResponsibilityVagueness(text: string): JdResponsibilityVaguenessReport {
-  const t = (text ?? '').trim();
-  const lines = t.split('\n').map((l) => l.trim());
+  const t = (text ?? '').trim()
+  const lines = t.split('\n').map((l) => l.trim())
 
-  const matches: VagueResponsibilityMatch[] = [];
+  const matches: VagueResponsibilityMatch[] = []
   for (const line of lines) {
-    if (!line) continue;
+    if (!line) continue
     for (const { type, re } of PATTERNS) {
       if (re.test(line)) {
-        matches.push({ type, excerpt: line.slice(0, 50) });
-        break; // one type per line
+        matches.push({ type, excerpt: line.slice(0, 50) })
+        break // one type per line
       }
     }
   }
 
-  const count = matches.length;
+  const count = matches.length
 
-  let clarity: ResponsibilityClarity;
+  let clarity: ResponsibilityClarity
   if (count === 0) {
-    clarity = 'clear';
+    clarity = 'clear'
   } else if (count <= 2) {
-    clarity = 'some';
+    clarity = 'some'
   } else {
-    clarity = 'vague';
+    clarity = 'vague'
   }
 
   // Summary
-  let summary: string;
+  let summary: string
   if (clarity === 'clear') {
-    summary = '담당업무가 비교적 구체적으로 정의되어 있습니다.';
+    summary = '담당업무가 비교적 구체적으로 정의되어 있습니다.'
   } else if (clarity === 'some') {
-    summary = `범위가 모호한 업무 표현이 ${count}건 있습니다. 실제 담당 범위를 확인하세요.`;
+    summary = `범위가 모호한 업무 표현이 ${count}건 있습니다. 실제 담당 범위를 확인하세요.`
   } else {
-    summary = `포괄·잡무성 표현이 ${count}건으로 직무 범위가 불명확합니다. 스코프 크리프에 유의하세요.`;
+    summary = `포괄·잡무성 표현이 ${count}건으로 직무 범위가 불명확합니다. 스코프 크리프에 유의하세요.`
   }
 
   // Tips
-  const tips: string[] = [];
+  const tips: string[] = []
   if (clarity !== 'clear') {
-    const types = Array.from(new Set(matches.map((m) => TYPE_LABEL[m.type])));
-    tips.push(`감지된 유형: ${types.join(', ')}`);
-    tips.push('"일과 시간의 70%는 어떤 업무에 쓰이나요?"로 핵심 업무 비중을 확인하세요.');
+    const types = Array.from(new Set(matches.map((m) => TYPE_LABEL[m.type])))
+    tips.push(`감지된 유형: ${types.join(', ')}`)
+    tips.push('"일과 시간의 70%는 어떤 업무에 쓰이나요?"로 핵심 업무 비중을 확인하세요.')
   }
   if (clarity === 'vague') {
-    tips.push('담당업무가 광범위하면 평가 기준도 모호해질 수 있으니 KPI·성과 기준을 질문하세요.');
+    tips.push('담당업무가 광범위하면 평가 기준도 모호해질 수 있으니 KPI·성과 기준을 질문하세요.')
   }
 
   return {
@@ -114,5 +114,5 @@ export function detectJdResponsibilityVagueness(text: string): JdResponsibilityV
     count,
     summary,
     tips,
-  };
+  }
 }

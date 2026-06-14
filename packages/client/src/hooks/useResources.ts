@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query'
+
 import {
   fetchResumes,
   fetchResume,
@@ -44,10 +45,11 @@ import {
   fetchTransformUsage,
   fetchPresets,
   type ListJobQuestionsParams,
-} from '@/lib/api';
-import { getToken } from '@/lib/auth';
+} from '@/lib/api'
+import { getToken } from '@/lib/auth'
+import { httpClient } from '@/lib/ky'
 
-const hasToken = () => !!getToken();
+const hasToken = () => !!getToken()
 
 // ── Resumes ──────────────────────────────────
 export function useResumes(enabled = true) {
@@ -55,7 +57,7 @@ export function useResumes(enabled = true) {
     queryKey: ['resumes'],
     queryFn: fetchResumes,
     enabled: enabled && hasToken(),
-  });
+  })
 }
 
 export function useResume(id: string | undefined) {
@@ -63,14 +65,14 @@ export function useResume(id: string | undefined) {
     queryKey: ['resume', id],
     queryFn: () => fetchResume(id!),
     enabled: !!id,
-  });
+  })
 }
 
 export function usePublicResumes() {
   return useQuery({
     queryKey: ['resumes', 'public'],
     queryFn: fetchPublicResumes,
-  });
+  })
 }
 
 export function useResumeTrend(id: string | undefined) {
@@ -78,7 +80,7 @@ export function useResumeTrend(id: string | undefined) {
     queryKey: ['resume-trend', id],
     queryFn: () => fetchResumeTrend(id!),
     enabled: !!id,
-  });
+  })
 }
 
 export function useResumeAnalytics(id: string | undefined) {
@@ -86,7 +88,7 @@ export function useResumeAnalytics(id: string | undefined) {
     queryKey: ['resume-analytics', id],
     queryFn: () => fetchResumeAnalytics(id!),
     enabled: !!id,
-  });
+  })
 }
 
 // ── Bookmarks ────────────────────────────────
@@ -95,7 +97,7 @@ export function useBookmarks(enabled = true) {
     queryKey: ['bookmarks'],
     queryFn: fetchBookmarks,
     enabled: enabled && hasToken(),
-  });
+  })
 }
 
 // ── Tags ─────────────────────────────────────
@@ -104,7 +106,7 @@ export function useTags(enabled = true) {
     queryKey: ['tags'],
     queryFn: fetchTags,
     enabled,
-  });
+  })
 }
 
 // ── Templates ────────────────────────────────
@@ -112,21 +114,21 @@ export function useTemplates() {
   return useQuery({
     queryKey: ['templates'],
     queryFn: fetchTemplates,
-  });
+  })
 }
 
 export function usePublicTemplates(category?: string) {
   return useQuery({
     queryKey: ['templates', 'public', category ?? 'all'],
     queryFn: () => fetchPublicTemplates(category),
-  });
+  })
 }
 
 export function usePresets() {
   return useQuery({
     queryKey: ['presets'],
     queryFn: fetchPresets,
-  });
+  })
 }
 
 // ── Jobs ─────────────────────────────────────
@@ -134,7 +136,7 @@ export function useJobs(query?: string) {
   return useQuery({
     queryKey: ['jobs', query ?? ''],
     queryFn: () => fetchJobs(query),
-  });
+  })
 }
 
 export function useJob(id: string | undefined) {
@@ -142,7 +144,7 @@ export function useJob(id: string | undefined) {
     queryKey: ['job', id],
     queryFn: () => fetchJob(id!),
     enabled: !!id,
-  });
+  })
 }
 
 // ── Cover Letters ────────────────────────────
@@ -151,7 +153,7 @@ export function useCoverLetters() {
     queryKey: ['cover-letters'],
     queryFn: fetchCoverLetters,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useCoverLetter(id: string | undefined) {
@@ -159,7 +161,7 @@ export function useCoverLetter(id: string | undefined) {
     queryKey: ['cover-letter', id],
     queryFn: () => fetchCoverLetter(id!),
     enabled: !!id,
-  });
+  })
 }
 
 // ── Scouts / Social ──────────────────────────
@@ -168,7 +170,7 @@ export function useScouts() {
     queryKey: ['scouts'],
     queryFn: fetchScouts,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useSentScouts(enabled = true) {
@@ -176,7 +178,7 @@ export function useSentScouts(enabled = true) {
     queryKey: ['scouts', 'sent'],
     queryFn: fetchSentScouts,
     enabled: enabled && hasToken(),
-  });
+  })
 }
 
 export function useFollowers() {
@@ -184,7 +186,7 @@ export function useFollowers() {
     queryKey: ['followers'],
     queryFn: fetchFollowers,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useFollowing() {
@@ -192,7 +194,7 @@ export function useFollowing() {
     queryKey: ['following'],
     queryFn: fetchFollowing,
     enabled: hasToken(),
-  });
+  })
 }
 
 // ── Messages ─────────────────────────────────
@@ -201,7 +203,7 @@ export function useConversations() {
     queryKey: ['conversations'],
     queryFn: fetchConversations,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useMessages(partnerId: string | undefined) {
@@ -209,7 +211,7 @@ export function useMessages(partnerId: string | undefined) {
     queryKey: ['messages', partnerId],
     queryFn: () => fetchMessages(partnerId!),
     enabled: !!partnerId,
-  });
+  })
 }
 
 export function useUnreadMessageCount() {
@@ -217,7 +219,7 @@ export function useUnreadMessageCount() {
     queryKey: ['messages', 'unread-count'],
     queryFn: fetchUnreadMessageCount,
     enabled: hasToken(),
-  });
+  })
 }
 
 // ── Applications ─────────────────────────────
@@ -226,7 +228,7 @@ export function useApplications() {
     queryKey: ['applications'],
     queryFn: fetchApplications,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useApplicationStats() {
@@ -234,17 +236,17 @@ export function useApplicationStats() {
     queryKey: ['applications', 'stats'],
     queryFn: fetchApplicationStats,
     enabled: hasToken(),
-  });
+  })
 }
 
 // ── Coaching ─────────────────────────────────
 export function useCoaches(
-  params: { specialty?: string; minRate?: number; maxRate?: number } = {},
+  params: { specialty?: string; minRate?: number; maxRate?: number } = {}
 ) {
   return useQuery({
     queryKey: ['coaches', params],
     queryFn: () => fetchCoaches(params),
-  });
+  })
 }
 
 export function useCoach(id: string | undefined) {
@@ -252,7 +254,7 @@ export function useCoach(id: string | undefined) {
     queryKey: ['coach', id],
     queryFn: () => fetchCoach(id!),
     enabled: !!id,
-  });
+  })
 }
 
 export function useMyCoachingSessions() {
@@ -260,7 +262,7 @@ export function useMyCoachingSessions() {
     queryKey: ['coaching-sessions', 'my'],
     queryFn: fetchMyCoachingSessions,
     enabled: hasToken(),
-  });
+  })
 }
 
 // ── Profile / Auth ───────────────────────────
@@ -269,7 +271,7 @@ export function useProfile() {
     queryKey: ['profile'],
     queryFn: fetchProfile,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useLinkedAccounts() {
@@ -277,7 +279,7 @@ export function useLinkedAccounts() {
     queryKey: ['linked-accounts'],
     queryFn: fetchLinkedAccounts,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useAdminUsers(search?: string) {
@@ -285,7 +287,7 @@ export function useAdminUsers(search?: string) {
     queryKey: ['admin', 'users', search ?? ''],
     queryFn: () => fetchAdminUsers(search),
     enabled: hasToken(),
-  });
+  })
 }
 
 // ── Dashboard / Analytics ────────────────────
@@ -294,14 +296,14 @@ export function useDashboard() {
     queryKey: ['dashboard'],
     queryFn: fetchDashboard,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function usePopularSkills() {
   return useQuery({
     queryKey: ['popular-skills'],
     queryFn: fetchPopularSkills,
-  });
+  })
 }
 
 // ── Transform / AI ───────────────────────────
@@ -310,7 +312,7 @@ export function useTransformHistory(resumeId: string | undefined) {
     queryKey: ['transform-history', resumeId],
     queryFn: () => fetchTransformHistory(resumeId!),
     enabled: !!resumeId,
-  });
+  })
 }
 
 export function useLlmProviders(resumeId: string | undefined) {
@@ -318,7 +320,7 @@ export function useLlmProviders(resumeId: string | undefined) {
     queryKey: ['llm-providers', resumeId],
     queryFn: () => fetchLlmProviders(resumeId!),
     enabled: !!resumeId,
-  });
+  })
 }
 
 export function useTransformUsage(resumeId: string | undefined) {
@@ -326,7 +328,7 @@ export function useTransformUsage(resumeId: string | undefined) {
     queryKey: ['transform-usage', resumeId],
     queryFn: () => fetchTransformUsage(resumeId!),
     enabled: !!resumeId,
-  });
+  })
 }
 
 // ── Resume Add-ons ───────────────────────────
@@ -335,7 +337,7 @@ export function useAttachments(resumeId: string | undefined) {
     queryKey: ['attachments', resumeId],
     queryFn: () => fetchAttachments(resumeId!),
     enabled: !!resumeId,
-  });
+  })
 }
 
 export function useVersions(resumeId: string | undefined) {
@@ -343,7 +345,7 @@ export function useVersions(resumeId: string | undefined) {
     queryKey: ['versions', resumeId],
     queryFn: () => fetchVersions(resumeId!),
     enabled: !!resumeId,
-  });
+  })
 }
 
 export function useShareLinks(resumeId: string | undefined) {
@@ -351,7 +353,7 @@ export function useShareLinks(resumeId: string | undefined) {
     queryKey: ['share-links', resumeId],
     queryFn: () => fetchShareLinks(resumeId!),
     enabled: !!resumeId,
-  });
+  })
 }
 
 // ── Interview ────────────────────────────────
@@ -360,30 +362,30 @@ export function useInterviewAnswers() {
     queryKey: ['interview-answers'],
     queryFn: fetchInterviewAnswers,
     enabled: hasToken(),
-  });
+  })
 }
 
 export function useJobInterviewQuestions(params: ListJobQuestionsParams = {}) {
   return useQuery({
     queryKey: ['job-interview-questions', params],
     queryFn: () => fetchJobInterviewQuestions(params),
-  });
+  })
 }
 
 // ── Study Groups ─────────────────────────────
 export function useStudyGroups(params?: {
-  q?: string;
-  companyName?: string;
-  jobPostId?: string;
-  jobKey?: string;
-  mine?: boolean;
-  page?: number;
-  limit?: number;
+  q?: string
+  companyName?: string
+  jobPostId?: string
+  jobKey?: string
+  mine?: boolean
+  page?: number
+  limit?: number
 }) {
   return useQuery({
     queryKey: ['study-groups', params],
     queryFn: () => fetchStudyGroups(params),
-  });
+  })
 }
 
 export function useStudyGroup(id: string | undefined) {
@@ -391,7 +393,7 @@ export function useStudyGroup(id: string | undefined) {
     queryKey: ['study-group', id],
     queryFn: () => fetchStudyGroup(id!),
     enabled: !!id,
-  });
+  })
 }
 
 export function useStudyGroupQuestions(id: string | undefined) {
@@ -399,7 +401,7 @@ export function useStudyGroupQuestions(id: string | undefined) {
     queryKey: ['study-group-questions', id],
     queryFn: () => fetchStudyGroupQuestions(id!),
     enabled: !!id,
-  });
+  })
 }
 
 // ── Health / Usage ───────────────────────────
@@ -408,7 +410,7 @@ export function useUsage() {
     queryKey: ['usage'],
     queryFn: fetchUsage,
     enabled: hasToken(),
-  });
+  })
 }
 
 // ── System Content (public content blocks: about, pricing_faq, etc.) ──
@@ -416,53 +418,53 @@ export function useSystemContent<T = unknown>(key: string, enabled = true) {
   return useQuery<T | null>({
     queryKey: ['system-content', key],
     queryFn: async () => {
-      const { API_URL } = await import('@/lib/config');
-      const res = await fetch(`${API_URL}/api/system-config/content/${key}`);
-      if (!res.ok) return null;
-      return (await res.json()) as T;
+      const { API_URL } = await import('@/lib/config')
+      const res = await httpClient(`${API_URL}/api/system-config/content/${key}`)
+      if (!res.ok) return null
+      return (await res.json()) as T
     },
     staleTime: 5 * 60_000,
     enabled,
-  });
+  })
 }
 
 // ── File Upload Settings (admin-toggleable) ──
 export interface UploadSettings {
-  enabled: boolean;
-  maxSizeMb: number;
-  allowedMime: string;
+  enabled: boolean
+  maxSizeMb: number
+  allowedMime: string
 }
 
 export function useUploadSettings() {
   return useQuery<UploadSettings>({
     queryKey: ['upload-settings'],
     queryFn: async () => {
-      const { API_URL } = await import('@/lib/config');
-      const res = await fetch(`${API_URL}/api/system-config/upload-settings`);
+      const { API_URL } = await import('@/lib/config')
+      const res = await httpClient(`${API_URL}/api/system-config/upload-settings`)
       if (!res.ok) {
-        return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' };
+        return { enabled: true, maxSizeMb: 10, allowedMime: 'image/*,application/pdf' }
       }
-      return (await res.json()) as UploadSettings;
+      return (await res.json()) as UploadSettings
     },
     staleTime: 5 * 60_000,
-  });
+  })
 }
 
 // ── Feature Toggles (admin-toggleable 기능 on/off) ──
-export type FeatureToggleMap = Record<string, boolean>;
+export type FeatureToggleMap = Record<string, boolean>
 
 /** 전체 feature toggle 맵 — admin UI/dashboard 용 */
 export function useFeatureToggles() {
   return useQuery<FeatureToggleMap>({
     queryKey: ['feature-toggles'],
     queryFn: async () => {
-      const { API_URL } = await import('@/lib/config');
-      const res = await fetch(`${API_URL}/api/system-config/feature-toggles`);
-      if (!res.ok) return {};
-      return (await res.json()) as FeatureToggleMap;
+      const { API_URL } = await import('@/lib/config')
+      const res = await httpClient(`${API_URL}/api/system-config/feature-toggles`)
+      if (!res.ok) return {}
+      return (await res.json()) as FeatureToggleMap
     },
     staleTime: 5 * 60_000,
-  });
+  })
 }
 
 /**
@@ -472,76 +474,76 @@ export function useFeatureToggles() {
  *   if (!aiEnabled) return <DisabledBanner />
  */
 export function useFeatureToggle(name: string): boolean {
-  const { data } = useFeatureToggles();
-  if (!data) return true;
-  const v = data[name];
-  return v !== false; // undefined 면 기본 활성 (서버 default 와 동일)
+  const { data } = useFeatureToggles()
+  if (!data) return true
+  const v = data[name]
+  return v !== false // undefined 면 기본 활성 (서버 default 와 동일)
 }
 
 // ── Site Stats (public) ──────────────────────
 interface PublicSiteStats {
-  users: { total: number; today?: number; thisWeek?: number };
-  resumes: { total: number; public?: number; today?: number };
-  activity: { totalViews: number; transforms?: number; applications?: number };
-  community: { posts?: number; comments?: number };
-  content: { templates: number; comments?: number };
-  jobs: { active?: number };
+  users: { total: number; today?: number; thisWeek?: number }
+  resumes: { total: number; public?: number; today?: number }
+  activity: { totalViews: number; transforms?: number; applications?: number }
+  community: { posts?: number; comments?: number }
+  content: { templates: number; comments?: number }
+  jobs: { active?: number }
 }
 
 export function useSiteStatsPublic() {
   return useQuery<PublicSiteStats | null>({
     queryKey: ['site-stats-public'],
     queryFn: async () => {
-      const { API_URL } = await import('@/lib/config');
-      const res = await fetch(`${API_URL}/api/health/stats`);
-      if (!res.ok) return null;
-      return res.json();
+      const { API_URL } = await import('@/lib/config')
+      const res = await httpClient(`${API_URL}/api/health/stats`)
+      if (!res.ok) return null
+      return res.json()
     },
     staleTime: 60_000,
-  });
+  })
 }
 
 // ── Generic public GET ──────────────────────
 export function usePublicGet<T = unknown>(
   key: readonly unknown[],
   url: string,
-  options?: { enabled?: boolean; staleTime?: number },
+  options?: { enabled?: boolean; staleTime?: number }
 ) {
   return useQuery<T | null>({
     queryKey: key,
     queryFn: async () => {
-      const { API_URL } = await import('@/lib/config');
-      const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
-      const res = await fetch(fullUrl);
-      if (!res.ok) return null;
-      const text = await res.text();
-      return (text ? JSON.parse(text) : null) as T;
+      const { API_URL } = await import('@/lib/config')
+      const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`
+      const res = await httpClient(fullUrl)
+      if (!res.ok) return null
+      const text = await res.text()
+      return (text ? JSON.parse(text) : null) as T
     },
     staleTime: options?.staleTime ?? 60_000,
     enabled: options?.enabled,
-  });
+  })
 }
 
 // ── Generic authed GET ─────────────────────
 export function useAuthedGet<T = unknown>(
   key: readonly unknown[],
   url: string,
-  options?: { enabled?: boolean; staleTime?: number; requireAuth?: boolean },
+  options?: { enabled?: boolean; staleTime?: number; requireAuth?: boolean }
 ) {
   return useQuery<T | null>({
     queryKey: key,
     queryFn: async () => {
-      const { API_URL } = await import('@/lib/config');
-      const token = getToken();
-      const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`;
-      const res = await fetch(fullUrl, {
+      const { API_URL } = await import('@/lib/config')
+      const token = getToken()
+      const fullUrl = url.startsWith('http') ? url : `${API_URL}${url}`
+      const res = await httpClient(fullUrl, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) return null;
-      const text = await res.text();
-      return (text ? JSON.parse(text) : null) as T;
+      })
+      if (!res.ok) return null
+      const text = await res.text()
+      return (text ? JSON.parse(text) : null) as T
     },
     staleTime: options?.staleTime ?? 60_000,
     enabled: (options?.requireAuth === false || hasToken()) && options?.enabled !== false,
-  });
+  })
 }

@@ -10,32 +10,32 @@ export type TechDepthSignalType =
   | 'scale_metric' // 규모·성능 수치 (TPS/QPS/latency 등)
   | 'system_design' // 시스템 설계·분산 시스템 언급
   | 'optimization_detail' // 최적화 구체적 방법론
-  | 'debugging_depth'; // 디버깅·장애 원인 분석 경험
+  | 'debugging_depth' // 디버깅·장애 원인 분석 경험
 
 export type TechSurfaceType =
   | 'buzzword_list' // "React, Vue, Spring 사용 경험"
-  | 'vague_proficiency'; // "XX에 대한 깊은 이해"
+  | 'vague_proficiency' // "XX에 대한 깊은 이해"
 
 export interface TechDepthSignal {
-  type: TechDepthSignalType;
-  excerpt: string;
+  type: TechDepthSignalType
+  excerpt: string
 }
 
 export interface TechSurfaceSignal {
-  type: TechSurfaceType;
-  excerpt: string;
+  type: TechSurfaceType
+  excerpt: string
 }
 
-export type TechDepthGrade = 'deep' | 'adequate' | 'surface' | 'none';
+export type TechDepthGrade = 'deep' | 'adequate' | 'surface' | 'none'
 
 export interface ResumeTechDepthReport {
-  depthSignals: TechDepthSignal[];
-  surfaceSignals: TechSurfaceSignal[];
-  depthScore: number; // 0–100
-  surfaceScore: number; // 0–100 (높을수록 버즈워드 위주)
-  grade: TechDepthGrade;
-  summary: string;
-  suggestions: string[];
+  depthSignals: TechDepthSignal[]
+  surfaceSignals: TechSurfaceSignal[]
+  depthScore: number // 0–100
+  surfaceScore: number // 0–100 (높을수록 버즈워드 위주)
+  grade: TechDepthGrade
+  summary: string
+  suggestions: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -43,9 +43,9 @@ export interface ResumeTechDepthReport {
 // ---------------------------------------------------------------------------
 
 interface DepthPattern {
-  re: RegExp;
-  type: TechDepthSignalType;
-  weight: number;
+  re: RegExp
+  type: TechDepthSignalType
+  weight: number
 }
 
 const DEPTH_PATTERNS: DepthPattern[] = [
@@ -175,16 +175,16 @@ const DEPTH_PATTERNS: DepthPattern[] = [
     type: 'debugging_depth',
     weight: 15,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Surface / buzzword patterns
 // ---------------------------------------------------------------------------
 
 interface SurfacePattern {
-  re: RegExp;
-  type: TechSurfaceType;
-  penalty: number;
+  re: RegExp
+  type: TechSurfaceType
+  penalty: number
 }
 
 const SURFACE_PATTERNS: SurfacePattern[] = [
@@ -211,70 +211,70 @@ const SURFACE_PATTERNS: SurfacePattern[] = [
     type: 'vague_proficiency',
     penalty: 5,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeResumeTechDepth(text: string): ResumeTechDepthReport {
-  const t = text ?? '';
-  const depthSignals: TechDepthSignal[] = [];
-  const surfaceSignals: TechSurfaceSignal[] = [];
-  let depthRaw = 0;
-  let surfacePenalty = 0;
+  const t = text ?? ''
+  const depthSignals: TechDepthSignal[] = []
+  const surfaceSignals: TechSurfaceSignal[] = []
+  let depthRaw = 0
+  let surfacePenalty = 0
 
-  const seenDepthTypes = new Set<TechDepthSignalType>();
+  const seenDepthTypes = new Set<TechDepthSignalType>()
 
   for (const { re, type, weight } of DEPTH_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      depthSignals.push({ type, excerpt: m[0].slice(0, 70) });
+      depthSignals.push({ type, excerpt: m[0].slice(0, 70) })
       if (!seenDepthTypes.has(type)) {
-        seenDepthTypes.add(type);
-        depthRaw += weight;
+        seenDepthTypes.add(type)
+        depthRaw += weight
       }
     }
   }
 
   for (const { re, type, penalty } of SURFACE_PATTERNS) {
-    const m = t.match(re);
+    const m = t.match(re)
     if (m) {
-      surfaceSignals.push({ type, excerpt: m[0].slice(0, 60) });
-      surfacePenalty += penalty;
+      surfaceSignals.push({ type, excerpt: m[0].slice(0, 60) })
+      surfacePenalty += penalty
     }
   }
 
-  const depthScore = Math.min(100, depthRaw);
-  const surfaceScore = Math.min(100, surfacePenalty);
+  const depthScore = Math.min(100, depthRaw)
+  const surfaceScore = Math.min(100, surfacePenalty)
 
-  let grade: TechDepthGrade;
-  if (depthScore >= 60) grade = 'deep';
-  else if (depthScore >= 25) grade = 'adequate';
-  else if (surfaceScore > depthScore) grade = 'surface';
-  else grade = 'none';
+  let grade: TechDepthGrade
+  if (depthScore >= 60) grade = 'deep'
+  else if (depthScore >= 25) grade = 'adequate'
+  else if (surfaceScore > depthScore) grade = 'surface'
+  else grade = 'none'
 
-  let summary: string;
+  let summary: string
   if (grade === 'deep') {
-    summary = '아키텍처 의사결정·성능 지표·트레이드오프 등 기술 깊이를 증명하는 서술이 풍부합니다.';
+    summary = '아키텍처 의사결정·성능 지표·트레이드오프 등 기술 깊이를 증명하는 서술이 풍부합니다.'
   } else if (grade === 'adequate') {
-    summary = '일부 기술 깊이 신호가 있습니다. 더 많은 의사결정 근거와 수치를 추가하면 강해집니다.';
+    summary = '일부 기술 깊이 신호가 있습니다. 더 많은 의사결정 근거와 수치를 추가하면 강해집니다.'
   } else if (grade === 'surface') {
-    summary = '기술명 나열 위주입니다. 아키텍처 선택 이유, 성능 수치, 트레이드오프를 서술하세요.';
+    summary = '기술명 나열 위주입니다. 아키텍처 선택 이유, 성능 수치, 트레이드오프를 서술하세요.'
   } else {
-    summary = '기술 역량 관련 내용이 감지되지 않았습니다.';
+    summary = '기술 역량 관련 내용이 감지되지 않았습니다.'
   }
 
-  const suggestions: string[] = [];
+  const suggestions: string[] = []
   if (!seenDepthTypes.has('scale_metric')) {
-    suggestions.push('처리량(TPS/QPS)·지연시간(p99 latency)·사용자 규모 등 수치를 추가하세요.');
+    suggestions.push('처리량(TPS/QPS)·지연시간(p99 latency)·사용자 규모 등 수치를 추가하세요.')
   }
   if (!seenDepthTypes.has('architecture_decision')) {
-    suggestions.push('기술·아키텍처 선택 이유와 고려한 대안을 명시하세요.');
+    suggestions.push('기술·아키텍처 선택 이유와 고려한 대안을 명시하세요.')
   }
   if (!seenDepthTypes.has('tradeoff_reasoning')) {
-    suggestions.push('장단점 비교나 트레이드오프 분석 경험을 서술하세요.');
+    suggestions.push('장단점 비교나 트레이드오프 분석 경험을 서술하세요.')
   }
 
-  return { depthSignals, surfaceSignals, depthScore, surfaceScore, grade, summary, suggestions };
+  return { depthSignals, surfaceSignals, depthScore, surfaceScore, grade, summary, suggestions }
 }

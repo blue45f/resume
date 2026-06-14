@@ -1,21 +1,22 @@
-import { useMemo } from 'react';
-import { detectSelfDeprecation, analyzeCallToAction } from '@/lib/coverLetterHelpers';
+import { useMemo } from 'react'
+
+import { detectSelfDeprecation, analyzeCallToAction } from '@/lib/coverLetterHelpers'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function CoverLetterConfidencePanel({ text }: Props) {
-  const selfDep = useMemo(() => detectSelfDeprecation(text), [text]);
-  const cta = useMemo(() => analyzeCallToAction(text), [text]);
+  const selfDep = useMemo(() => detectSelfDeprecation(text), [text])
+  const cta = useMemo(() => analyzeCallToAction(text), [text])
 
-  const hasSelfDepIssue = selfDep.level !== 'none';
-  const hasCtaIssue = !cta.hasCTA && text.trim().length > 80;
+  const hasSelfDepIssue = selfDep.level !== 'none'
+  const hasCtaIssue = !cta.hasCTA && text.trim().length > 80
 
-  if (!hasSelfDepIssue && !hasCtaIssue) return null;
+  if (!hasSelfDepIssue && !hasCtaIssue) return null
 
-  const issueCount = [hasSelfDepIssue, hasCtaIssue].filter(Boolean).length;
-  const tone = selfDep.level === 'many' ? 'warning' : 'neutral';
+  const issueCount = [hasSelfDepIssue, hasCtaIssue].filter(Boolean).length
+  const tone = selfDep.level === 'many' ? 'warning' : 'neutral'
 
   return (
     <aside
@@ -64,5 +65,5 @@ export default function CoverLetterConfidencePanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

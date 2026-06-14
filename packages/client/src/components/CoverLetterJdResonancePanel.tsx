@@ -1,25 +1,26 @@
-import { useMemo } from 'react';
-import { analyzeCoverLetterJdResonance, type ResonanceTone } from '@/lib/coverLetterJdResonance';
-import { tx } from '@/lib/i18n';
+import { useMemo } from 'react'
+
+import { analyzeCoverLetterJdResonance, type ResonanceTone } from '@/lib/coverLetterJdResonance'
+import { tx } from '@/lib/i18n'
 
 interface Props {
-  coverLetter: string;
-  jd: string;
-  className?: string;
+  coverLetter: string
+  jd: string
+  className?: string
 }
 
 const TONE_RING: Record<ResonanceTone, string> = {
   good: 'text-emerald-600 dark:text-emerald-400',
   neutral: 'text-amber-600 dark:text-amber-400',
   warning: 'text-rose-600 dark:text-rose-400',
-};
+}
 
 /**
  * 자소서 ↔ 채용공고 가치 정합성 패널 — 공고가 강조한 가치·문화 테마를 자소서가
  * 얼마나 반영하는지, 어떤 가치가 빠졌는지 보여준다.
  */
 export default function CoverLetterJdResonancePanel({ coverLetter, jd, className = '' }: Props) {
-  const report = useMemo(() => analyzeCoverLetterJdResonance(coverLetter, jd), [coverLetter, jd]);
+  const report = useMemo(() => analyzeCoverLetterJdResonance(coverLetter, jd), [coverLetter, jd])
 
   if (
     !jd ||
@@ -28,10 +29,10 @@ export default function CoverLetterJdResonancePanel({ coverLetter, jd, className
     coverLetter.trim().length < 50 ||
     report.themes.length === 0
   ) {
-    return null;
+    return null
   }
 
-  const titleId = 'cl-resonance-title';
+  const titleId = 'cl-resonance-title'
   return (
     <section
       className={`rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/40 p-3 ${className}`}
@@ -92,5 +93,5 @@ export default function CoverLetterJdResonancePanel({ coverLetter, jd, className
         {report.suggestion}
       </p>
     </section>
-  );
+  )
 }

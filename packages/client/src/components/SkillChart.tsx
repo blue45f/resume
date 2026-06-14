@@ -1,68 +1,69 @@
-import { memo, useEffect, useState, type ReactElement } from 'react';
-import type { Resume } from '@/types/resume';
+import { memo, useEffect, useState, type ReactElement } from 'react'
+
+import type { Resume } from '@/types/resume'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 interface SkillData {
-  category: string;
-  count: number;
-  items: string[];
+  category: string
+  count: number
+  items: string[]
 }
 
 /** Proficiency labels by item count ratio */
-const PROFICIENCY_LABELS = ['입문', '초급', '중급', '고급', '전문가'] as const;
+const PROFICIENCY_LABELS = ['입문', '초급', '중급', '고급', '전문가'] as const
 const PROFICIENCY_COLORS = [
   'text-slate-400 bg-slate-100 dark:bg-slate-700',
   'text-blue-500 bg-blue-50 dark:bg-blue-900/30',
   'text-green-500 bg-green-50 dark:bg-green-900/30',
   'text-amber-500 bg-amber-50 dark:bg-amber-900/30',
   'text-sky-500 bg-sky-50 dark:bg-sky-900/30',
-] as const;
+] as const
 const PROFICIENCY_BAR_COLORS = [
   'from-slate-300 to-slate-400',
   'from-blue-400 to-blue-500',
   'from-green-400 to-emerald-500',
   'from-amber-400 to-orange-500',
   'from-blue-500 to-cyan-500',
-] as const;
+] as const
 
 function getProficiencyIndex(count: number, maxCount: number): number {
-  const ratio = count / maxCount;
-  if (ratio <= 0.2) return 0;
-  if (ratio <= 0.4) return 1;
-  if (ratio <= 0.6) return 2;
-  if (ratio <= 0.8) return 3;
-  return 4;
+  const ratio = count / maxCount
+  if (ratio <= 0.2) return 0
+  if (ratio <= 0.4) return 1
+  if (ratio <= 0.6) return 2
+  if (ratio <= 0.8) return 3
+  return 4
 }
 
 /** SVG Radar/Spider chart using CSS-based SVG */
 function RadarChart({ data, maxCount }: { data: SkillData[]; maxCount: number }) {
-  const [animatedScale, setAnimatedScale] = useState(0);
-  const n = data.length;
+  const [animatedScale, setAnimatedScale] = useState(0)
+  const n = data.length
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimatedScale(1), 100);
-    return () => clearTimeout(timer);
-  }, []);
+    const timer = setTimeout(() => setAnimatedScale(1), 100)
+    return () => clearTimeout(timer)
+  }, [])
 
-  if (n < 3) return null; // Need at least 3 categories for a radar
+  if (n < 3) return null // Need at least 3 categories for a radar
 
-  const cx = 120;
-  const cy = 120;
-  const maxR = 90;
-  const levels = 5;
-  const angleStep = (2 * Math.PI) / n;
+  const cx = 120
+  const cy = 120
+  const maxR = 90
+  const levels = 5
+  const angleStep = (2 * Math.PI) / n
 
   // Grid circles
-  const gridLines: ReactElement[] = [];
+  const gridLines: ReactElement[] = []
   for (let lv = 1; lv <= levels; lv++) {
-    const r = (lv / levels) * maxR;
+    const r = (lv / levels) * maxR
     const points = Array.from({ length: n }, (_, i) => {
-      const angle = i * angleStep - Math.PI / 2;
-      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
-    }).join(' ');
+      const angle = i * angleStep - Math.PI / 2
+      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`
+    }).join(' ')
     gridLines.push(
       <polygon
         key={`grid-${lv}`}
@@ -71,15 +72,15 @@ function RadarChart({ data, maxCount }: { data: SkillData[]; maxCount: number })
         stroke="currentColor"
         strokeWidth={0.5}
         className="text-slate-200 dark:text-slate-600"
-      />,
-    );
+      />
+    )
   }
 
   // Axis lines
   const axisLines = data.map((_, i) => {
-    const angle = i * angleStep - Math.PI / 2;
-    const x2 = cx + maxR * Math.cos(angle);
-    const y2 = cy + maxR * Math.sin(angle);
+    const angle = i * angleStep - Math.PI / 2
+    const x2 = cx + maxR * Math.cos(angle)
+    const y2 = cy + maxR * Math.sin(angle)
     return (
       <line
         key={`axis-${i}`}
@@ -91,25 +92,25 @@ function RadarChart({ data, maxCount }: { data: SkillData[]; maxCount: number })
         strokeWidth={0.5}
         className="text-slate-200 dark:text-slate-600"
       />
-    );
-  });
+    )
+  })
 
   // Data polygon
   const dataPoints = data
     .map((d, i) => {
-      const ratio = Math.min(d.count / maxCount, 1) * animatedScale;
-      const r = ratio * maxR;
-      const angle = i * angleStep - Math.PI / 2;
-      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`;
+      const ratio = Math.min(d.count / maxCount, 1) * animatedScale
+      const r = ratio * maxR
+      const angle = i * angleStep - Math.PI / 2
+      return `${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`
     })
-    .join(' ');
+    .join(' ')
 
   // Labels
   const labels = data.map((d, i) => {
-    const angle = i * angleStep - Math.PI / 2;
-    const labelR = maxR + 18;
-    const x = cx + labelR * Math.cos(angle);
-    const y = cy + labelR * Math.sin(angle);
+    const angle = i * angleStep - Math.PI / 2
+    const labelR = maxR + 18
+    const x = cx + labelR * Math.cos(angle)
+    const y = cy + labelR * Math.sin(angle)
     return (
       <text
         key={`label-${i}`}
@@ -123,16 +124,16 @@ function RadarChart({ data, maxCount }: { data: SkillData[]; maxCount: number })
       >
         {d.category.length > 8 ? d.category.slice(0, 8) + '..' : d.category}
       </text>
-    );
-  });
+    )
+  })
 
   // Data points (circles at vertices)
   const dots = data.map((d, i) => {
-    const ratio = Math.min(d.count / maxCount, 1) * animatedScale;
-    const r = ratio * maxR;
-    const angle = i * angleStep - Math.PI / 2;
-    const x = cx + r * Math.cos(angle);
-    const y = cy + r * Math.sin(angle);
+    const ratio = Math.min(d.count / maxCount, 1) * animatedScale
+    const r = ratio * maxR
+    const angle = i * angleStep - Math.PI / 2
+    const x = cx + r * Math.cos(angle)
+    const y = cy + r * Math.sin(angle)
     return (
       <circle
         key={`dot-${i}`}
@@ -142,8 +143,8 @@ function RadarChart({ data, maxCount }: { data: SkillData[]; maxCount: number })
         className="fill-blue-500 dark:fill-blue-400"
         style={{ transition: 'cx 0.8s ease-out, cy 0.8s ease-out' }}
       />
-    );
-  });
+    )
+  })
 
   return (
     <div className="flex justify-center">
@@ -162,21 +163,21 @@ function RadarChart({ data, maxCount }: { data: SkillData[]; maxCount: number })
         {labels}
       </svg>
     </div>
-  );
+  )
 }
 
 /** Animated skill bar */
 function SkillBar({ d, maxCount, delay }: { d: SkillData; maxCount: number; delay: number }) {
-  const [animatedWidth, setAnimatedWidth] = useState(0);
-  const profIdx = getProficiencyIndex(d.count, maxCount);
-  const profLabel = PROFICIENCY_LABELS[profIdx];
-  const profColor = PROFICIENCY_COLORS[profIdx];
-  const barColor = PROFICIENCY_BAR_COLORS[profIdx];
+  const [animatedWidth, setAnimatedWidth] = useState(0)
+  const profIdx = getProficiencyIndex(d.count, maxCount)
+  const profLabel = PROFICIENCY_LABELS[profIdx]
+  const profColor = PROFICIENCY_COLORS[profIdx]
+  const barColor = PROFICIENCY_BAR_COLORS[profIdx]
 
   useEffect(() => {
-    const timer = setTimeout(() => setAnimatedWidth((d.count / maxCount) * 100), 100 + delay);
-    return () => clearTimeout(timer);
-  }, [d.count, maxCount, delay]);
+    const timer = setTimeout(() => setAnimatedWidth((d.count / maxCount) * 100), 100 + delay)
+    return () => clearTimeout(timer)
+  }, [d.count, maxCount, delay])
 
   return (
     <div>
@@ -198,14 +199,14 @@ function SkillBar({ d, maxCount, delay }: { d: SkillData; maxCount: number; dela
         />
       </div>
     </div>
-  );
+  )
 }
 
 /** Collapsible category section showing individual items */
 function CategorySection({ d, maxCount }: { d: SkillData; maxCount: number }) {
-  const [open, setOpen] = useState(false);
-  const profIdx = getProficiencyIndex(d.count, maxCount);
-  const barColor = PROFICIENCY_BAR_COLORS[profIdx];
+  const [open, setOpen] = useState(false)
+  const profIdx = getProficiencyIndex(d.count, maxCount)
+  const barColor = PROFICIENCY_BAR_COLORS[profIdx]
 
   return (
     <div className="border border-slate-100 dark:border-slate-700 rounded-lg overflow-hidden">
@@ -244,13 +245,13 @@ function CategorySection({ d, maxCount }: { d: SkillData; maxCount: number }) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 function SkillChart({ resume }: Props) {
-  const [viewMode, setViewMode] = useState<'bar' | 'radar'>('bar');
-  const skills = resume.skills;
-  if (skills.length === 0) return null;
+  const [viewMode, setViewMode] = useState<'bar' | 'radar'>('bar')
+  const skills = resume.skills
+  if (skills.length === 0) return null
 
   const data: SkillData[] = skills.map((s) => ({
     category: s.category,
@@ -262,9 +263,9 @@ function SkillChart({ resume }: Props) {
       .split(',')
       .map((i) => i.trim())
       .filter(Boolean),
-  }));
+  }))
 
-  const maxCount = Math.max(...data.map((d) => d.count), 1);
+  const maxCount = Math.max(...data.map((d) => d.count), 1)
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -348,7 +349,7 @@ function SkillChart({ resume }: Props) {
         ))}
       </div>
     </div>
-  );
+  )
 }
 
-export default memo(SkillChart);
+export default memo(SkillChart)

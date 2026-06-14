@@ -12,23 +12,23 @@
  *   // 테마 변경
  *   useUIStore.getState().setTheme('dark');
  */
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
-export type Theme = 'light' | 'dark' | 'system';
+export type Theme = 'light' | 'dark' | 'system'
 
 interface UIState {
-  sidebarOpen: boolean;
-  mobileMenuOpen: boolean;
-  searchOpen: boolean;
-  theme: Theme;
-  toggleSidebar: () => void;
-  setSidebarOpen: (open: boolean) => void;
-  toggleMobileMenu: () => void;
-  setMobileMenuOpen: (open: boolean) => void;
-  toggleSearch: () => void;
-  setSearchOpen: (open: boolean) => void;
-  setTheme: (theme: Theme) => void;
+  sidebarOpen: boolean
+  mobileMenuOpen: boolean
+  searchOpen: boolean
+  theme: Theme
+  toggleSidebar: () => void
+  setSidebarOpen: (open: boolean) => void
+  toggleMobileMenu: () => void
+  setMobileMenuOpen: (open: boolean) => void
+  toggleSearch: () => void
+  setSearchOpen: (open: boolean) => void
+  setTheme: (theme: Theme) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -58,6 +58,6 @@ export const useUIStore = create<UIState>()(
         sidebarOpen: state.sidebarOpen,
         theme: state.theme,
       }),
-    },
-  ),
-);
+    }
+  )
+)

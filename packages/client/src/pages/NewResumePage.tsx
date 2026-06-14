@@ -1,35 +1,38 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { z } from 'zod';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import ResumeForm from '@/components/ResumeForm';
-import ThemePreviewCard from '@/components/ThemePreviewCard';
-import ThemePreviewModal from '@/components/ThemePreviewModal';
-import ContentSuggestions, { JOB_TITLE_LIST } from '@/components/ContentSuggestions';
-import { toast } from '@/components/Toast';
-import { createEmptyResumeData } from '@/types/resume';
-import type { Resume, Template } from '@/types/resume';
-import { createResume, fetchResume, duplicateResume } from '@/lib/api';
-import { useTemplates, useResumes } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
-import { API_URL } from '@/lib/config';
-import { formatDate } from '@/lib/time';
-import { getUser } from '@/lib/auth';
-import { getPlan } from '@/lib/plans';
-import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
-import { getErrorMessage } from '@/lib/errorMessage';
+import { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { z } from 'zod'
+
+import type { Resume, Template } from '@/types/resume'
+
+import ContentSuggestions, { JOB_TITLE_LIST } from '@/components/ContentSuggestions'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import ResumeForm from '@/components/ResumeForm'
+import ThemePreviewCard from '@/components/ThemePreviewCard'
+import ThemePreviewModal from '@/components/ThemePreviewModal'
+import { toast } from '@/components/Toast'
+import { useTemplates, useResumes } from '@/hooks/useResources'
+import { createResume, fetchResume, duplicateResume } from '@/lib/api'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { httpClient } from '@/lib/ky'
+import { getPlan } from '@/lib/plans'
+import { resumeThemes, THEME_CATEGORY_LABELS, type ResumeTheme } from '@/lib/resumeThemes'
+import { ROUTES } from '@/lib/routes'
+import { formatDate } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
+import { createEmptyResumeData } from '@/types/resume'
 
 // Zod schema for resume meta (title) validation before save
 const newResumeSchema = z.object({
   title: z.string().min(1, '제목을 입력하세요').max(100, '제목은 100자 이내로 입력하세요'),
-});
+})
 
-type ResumeDraft = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
+type ResumeDraft = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>
 
 interface AutoGeneratePreviewResponse {
-  resume?: ResumeDraft;
+  resume?: ResumeDraft
 }
 
 const SECTION_LABELS: Record<string, string> = {
@@ -43,7 +46,7 @@ const SECTION_LABELS: Record<string, string> = {
   languages: '어학',
   awards: '수상',
   activities: '활동',
-};
+}
 
 const SAMPLE_DATA: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'> = {
   title: '샘플 이력서',
@@ -129,13 +132,13 @@ const SAMPLE_DATA: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'> = {
   ],
   awards: [],
   activities: [],
-};
+}
 
 function parseLayout(layout: string) {
   try {
-    return JSON.parse(layout);
+    return JSON.parse(layout)
   } catch {
-    return {};
+    return {}
   }
 }
 
@@ -164,7 +167,7 @@ const WIZARD_STEPS = [
     label: '미리보기',
     icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
   },
-] as const;
+] as const
 
 const WIZARD_TIPS: Record<number, string[]> = {
   0: [
@@ -197,9 +200,9 @@ const WIZARD_TIPS: Record<number, string[]> = {
     '모든 날짜와 기간이 정확한지 확인하세요',
     '저장 후 미리보기에서 최종 결과를 확인하세요',
   ],
-};
+}
 
-type WizardResumeData = ReturnType<typeof createEmptyResumeData>;
+type WizardResumeData = ReturnType<typeof createEmptyResumeData>
 
 function WizardMode({
   wizardStep,
@@ -212,23 +215,23 @@ function WizardMode({
   onSave,
   onBack,
 }: {
-  wizardStep: number;
-  setWizardStep: (s: number) => void;
-  wizardData: WizardResumeData;
-  setWizardData: React.Dispatch<React.SetStateAction<WizardResumeData>>;
-  wizardJobTitle: string;
-  setWizardJobTitle: (s: string) => void;
-  saving: boolean;
-  onSave: (data: WizardResumeData) => void;
-  onBack: () => void;
+  wizardStep: number
+  setWizardStep: (s: number) => void
+  wizardData: WizardResumeData
+  setWizardData: React.Dispatch<React.SetStateAction<WizardResumeData>>
+  wizardJobTitle: string
+  setWizardJobTitle: (s: string) => void
+  saving: boolean
+  onSave: (data: WizardResumeData) => void
+  onBack: () => void
 }) {
   const inputClass =
-    'w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-colors';
-  const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1';
+    'w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 transition-colors'
+  const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1'
 
   const updatePI = (field: string, value: string) => {
-    setWizardData((prev) => ({ ...prev, personalInfo: { ...prev.personalInfo, [field]: value } }));
-  };
+    setWizardData((prev) => ({ ...prev, personalInfo: { ...prev.personalInfo, [field]: value } }))
+  }
 
   const addExperience = () => {
     setWizardData((prev) => ({
@@ -246,26 +249,26 @@ function WizardMode({
           description: '',
         },
       ],
-    }));
-  };
+    }))
+  }
 
   const updateExperience = <K extends keyof Resume['experiences'][number]>(
     id: string,
     field: K,
-    value: Resume['experiences'][number][K],
+    value: Resume['experiences'][number][K]
   ) => {
     setWizardData((prev) => ({
       ...prev,
       experiences: prev.experiences.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
-    }));
-  };
+    }))
+  }
 
   const removeExperience = (id: string) => {
     setWizardData((prev) => ({
       ...prev,
       experiences: prev.experiences.filter((e) => e.id !== id),
-    }));
-  };
+    }))
+  }
 
   const addEducation = () => {
     setWizardData((prev) => ({
@@ -283,72 +286,72 @@ function WizardMode({
           description: '',
         },
       ],
-    }));
-  };
+    }))
+  }
 
   const updateEducation = (id: string, field: string, value: string) => {
     setWizardData((prev) => ({
       ...prev,
       educations: prev.educations.map((e) => (e.id === id ? { ...e, [field]: value } : e)),
-    }));
-  };
+    }))
+  }
 
   const removeEducation = (id: string) => {
-    setWizardData((prev) => ({ ...prev, educations: prev.educations.filter((e) => e.id !== id) }));
-  };
+    setWizardData((prev) => ({ ...prev, educations: prev.educations.filter((e) => e.id !== id) }))
+  }
 
   const addSkill = () => {
     setWizardData((prev) => ({
       ...prev,
       skills: [...prev.skills, { id: crypto.randomUUID(), category: '', items: '' }],
-    }));
-  };
+    }))
+  }
 
   const updateSkill = (id: string, field: string, value: string) => {
     setWizardData((prev) => ({
       ...prev,
       skills: prev.skills.map((s) => (s.id === id ? { ...s, [field]: value } : s)),
-    }));
-  };
+    }))
+  }
 
   const removeSkill = (id: string) => {
-    setWizardData((prev) => ({ ...prev, skills: prev.skills.filter((s) => s.id !== id) }));
-  };
+    setWizardData((prev) => ({ ...prev, skills: prev.skills.filter((s) => s.id !== id) }))
+  }
 
   const canProceed = () => {
     switch (wizardStep) {
       case 0:
-        return true; // job title is optional
+        return true // job title is optional
       case 1:
-        return !!wizardData.personalInfo.name?.trim();
+        return !!wizardData.personalInfo.name?.trim()
       default:
-        return true;
+        return true
     }
-  };
+  }
 
   const handleNext = () => {
     if (wizardStep === 1 && !wizardData.title?.trim()) {
       // Auto-set title from name + job
-      const name = wizardData.personalInfo.name || '';
-      const job = wizardJobTitle || '이력서';
-      setWizardData((prev) => ({ ...prev, title: `${name} - ${job}` }));
+      const name = wizardData.personalInfo.name || ''
+      const job = wizardJobTitle || '이력서'
+      setWizardData((prev) => ({ ...prev, title: `${name} - ${job}` }))
     }
     if (wizardStep < WIZARD_STEPS.length - 1) {
-      setWizardStep(wizardStep + 1);
+      setWizardStep(wizardStep + 1)
     }
-  };
+  }
 
   const handlePrev = () => {
-    if (wizardStep > 0) setWizardStep(wizardStep - 1);
-  };
+    if (wizardStep > 0) setWizardStep(wizardStep - 1)
+  }
 
   const handleComplete = () => {
     if (!wizardData.title?.trim()) {
-      const name = wizardData.personalInfo.name || '이력서';
-      setWizardData((prev) => ({ ...prev, title: name }));
+      const name = wizardData.personalInfo.name || '이력서'
+      setWizardData((prev) => ({ ...prev, title: name }))
     }
-    onSave(wizardData);
-  };
+    onSave(wizardData)
+  }
 
   return (
     <>
@@ -472,8 +475,11 @@ function WizardMode({
               ))}
             </div>
             <div>
-              <label className={labelClass}>또는 직접 입력</label>
+              <label htmlFor="newresumepage-field-1" className={labelClass}>
+                또는 직접 입력
+              </label>
               <input
+                id="newresumepage-field-1"
                 className={inputClass}
                 placeholder="예: 소프트웨어 엔지니어"
                 value={wizardJobTitle}
@@ -489,8 +495,11 @@ function WizardMode({
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">인적사항</h2>
             <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>이력서 제목</label>
+                <label htmlFor="newresumepage-field-2" className={labelClass}>
+                  이력서 제목
+                </label>
                 <input
+                  id="newresumepage-field-2"
                   className={inputClass}
                   placeholder="예: 2026 상반기 이력서"
                   value={wizardData.title}
@@ -498,18 +507,22 @@ function WizardMode({
                 />
               </div>
               <div>
-                <label className={labelClass}>
+                <label htmlFor="newresumepage-field-3" className={labelClass}>
                   이름 <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="newresumepage-field-3"
                   className={inputClass}
                   value={wizardData.personalInfo.name}
                   onChange={(e) => updatePI('name', e.target.value)}
                 />
               </div>
               <div>
-                <label className={labelClass}>이메일</label>
+                <label htmlFor="newresumepage-field-4" className={labelClass}>
+                  이메일
+                </label>
                 <input
+                  id="newresumepage-field-4"
                   type="email"
                   className={inputClass}
                   value={wizardData.personalInfo.email}
@@ -517,8 +530,11 @@ function WizardMode({
                 />
               </div>
               <div>
-                <label className={labelClass}>전화번호</label>
+                <label htmlFor="newresumepage-field-5" className={labelClass}>
+                  전화번호
+                </label>
                 <input
+                  id="newresumepage-field-5"
                   type="tel"
                   className={inputClass}
                   value={wizardData.personalInfo.phone}
@@ -526,16 +542,22 @@ function WizardMode({
                 />
               </div>
               <div>
-                <label className={labelClass}>주소</label>
+                <label htmlFor="newresumepage-field-6" className={labelClass}>
+                  주소
+                </label>
                 <input
+                  id="newresumepage-field-6"
                   className={inputClass}
                   value={wizardData.personalInfo.address}
                   onChange={(e) => updatePI('address', e.target.value)}
                 />
               </div>
               <div>
-                <label className={labelClass}>웹사이트</label>
+                <label htmlFor="newresumepage-field-7" className={labelClass}>
+                  웹사이트
+                </label>
                 <input
+                  id="newresumepage-field-7"
                   type="url"
                   className={inputClass}
                   placeholder="https://example.com"
@@ -544,8 +566,11 @@ function WizardMode({
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className={labelClass}>자기소개</label>
+                <label htmlFor="newresumepage-field-8" className={labelClass}>
+                  자기소개
+                </label>
                 <textarea
+                  id="newresumepage-field-8"
                   className={inputClass + ' h-28 resize-none'}
                   placeholder="자기소개를 작성하세요. 핵심 역량과 경력을 2-3문장으로 요약하세요."
                   value={wizardData.personalInfo.summary}
@@ -607,24 +632,33 @@ function WizardMode({
                 </div>
                 <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>회사명</label>
+                    <label htmlFor="newresumepage-field-9" className={labelClass}>
+                      회사명
+                    </label>
                     <input
+                      id="newresumepage-field-9"
                       className={inputClass}
                       value={exp.company}
                       onChange={(e) => updateExperience(exp.id, 'company', e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>직위</label>
+                    <label htmlFor="newresumepage-field-10" className={labelClass}>
+                      직위
+                    </label>
                     <input
+                      id="newresumepage-field-10"
                       className={inputClass}
                       value={exp.position}
                       onChange={(e) => updateExperience(exp.id, 'position', e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>시작일</label>
+                    <label htmlFor="newresumepage-field-11" className={labelClass}>
+                      시작일
+                    </label>
                     <input
+                      id="newresumepage-field-11"
                       type="month"
                       className={inputClass}
                       value={exp.startDate}
@@ -659,8 +693,11 @@ function WizardMode({
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={labelClass}>업무 설명</label>
+                    <label htmlFor="newresumepage-field-12" className={labelClass}>
+                      업무 설명
+                    </label>
                     <textarea
+                      id="newresumepage-field-12"
                       className={inputClass + ' h-24 resize-none'}
                       placeholder="담당 업무와 성과를 작성하세요"
                       value={exp.description}
@@ -676,12 +713,12 @@ function WizardMode({
               <ContentSuggestions
                 jobTitle={wizardJobTitle}
                 onInsert={(text) => {
-                  if (wizardData.experiences.length === 0) addExperience();
+                  if (wizardData.experiences.length === 0) addExperience()
                   // Append to last experience description
-                  const last = wizardData.experiences[wizardData.experiences.length - 1];
+                  const last = wizardData.experiences[wizardData.experiences.length - 1]
                   if (last) {
-                    const newDesc = last.description ? `${last.description}\n${text}` : text;
-                    updateExperience(last.id, 'description', newDesc);
+                    const newDesc = last.description ? `${last.description}\n${text}` : text
+                    updateExperience(last.id, 'description', newDesc)
                   }
                 }}
               />
@@ -737,16 +774,22 @@ function WizardMode({
                 </div>
                 <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>학교명</label>
+                    <label htmlFor="newresumepage-field-13" className={labelClass}>
+                      학교명
+                    </label>
                     <input
+                      id="newresumepage-field-13"
                       className={inputClass}
                       value={edu.school}
                       onChange={(e) => updateEducation(edu.id, 'school', e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>학위</label>
+                    <label htmlFor="newresumepage-field-14" className={labelClass}>
+                      학위
+                    </label>
                     <select
+                      id="newresumepage-field-14"
                       className={inputClass}
                       value={edu.degree}
                       onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)}
@@ -760,16 +803,22 @@ function WizardMode({
                     </select>
                   </div>
                   <div>
-                    <label className={labelClass}>전공</label>
+                    <label htmlFor="newresumepage-field-15" className={labelClass}>
+                      전공
+                    </label>
                     <input
+                      id="newresumepage-field-15"
                       className={inputClass}
                       value={edu.field}
                       onChange={(e) => updateEducation(edu.id, 'field', e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>학점 (선택)</label>
+                    <label htmlFor="newresumepage-field-16" className={labelClass}>
+                      학점 (선택)
+                    </label>
                     <input
+                      id="newresumepage-field-16"
                       className={inputClass}
                       placeholder="예: 3.8/4.5"
                       value={edu.gpa || ''}
@@ -777,8 +826,11 @@ function WizardMode({
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>입학일</label>
+                    <label htmlFor="newresumepage-field-17" className={labelClass}>
+                      입학일
+                    </label>
                     <input
+                      id="newresumepage-field-17"
                       type="month"
                       className={inputClass}
                       value={edu.startDate}
@@ -786,8 +838,11 @@ function WizardMode({
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>졸업일</label>
+                    <label htmlFor="newresumepage-field-18" className={labelClass}>
+                      졸업일
+                    </label>
                     <input
+                      id="newresumepage-field-18"
                       type="month"
                       className={inputClass}
                       value={edu.endDate}
@@ -848,8 +903,11 @@ function WizardMode({
                 </div>
                 <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className={labelClass}>카테고리</label>
+                    <label htmlFor="newresumepage-field-19" className={labelClass}>
+                      카테고리
+                    </label>
                     <input
+                      id="newresumepage-field-19"
                       className={inputClass}
                       placeholder="예: Frontend, Backend, Tools"
                       value={skill.category}
@@ -857,8 +915,11 @@ function WizardMode({
                     />
                   </div>
                   <div>
-                    <label className={labelClass}>기술 항목 (쉼표로 구분)</label>
+                    <label htmlFor="newresumepage-field-20" className={labelClass}>
+                      기술 항목 (쉼표로 구분)
+                    </label>
                     <input
+                      id="newresumepage-field-20"
                       className={inputClass}
                       placeholder="예: React, TypeScript, Next.js"
                       value={skill.items}
@@ -874,11 +935,11 @@ function WizardMode({
               <ContentSuggestions
                 jobTitle={wizardJobTitle}
                 onInsert={(text) => {
-                  if (wizardData.skills.length === 0) addSkill();
-                  const last = wizardData.skills[wizardData.skills.length - 1];
+                  if (wizardData.skills.length === 0) addSkill()
+                  const last = wizardData.skills[wizardData.skills.length - 1]
                   if (last) {
-                    const newItems = last.items ? `${last.items}, ${text}` : text;
-                    updateSkill(last.id, 'items', newItems);
+                    const newItems = last.items ? `${last.items}, ${text}` : text
+                    updateSkill(last.id, 'items', newItems)
                   }
                 }}
               />
@@ -1048,61 +1109,61 @@ function WizardMode({
         )}
       </div>
     </>
-  );
+  )
 }
 
 export default function NewResumePage() {
-  const navigate = useNavigate();
-  const confirm = useConfirm();
-  const [saving, setSaving] = useState(false);
-  const templatesQuery = useTemplates();
-  const templates: Template[] = templatesQuery.data ?? [];
-  const resumesQuery = useResumes();
-  const allResumes = resumesQuery.data ?? [];
-  const resumeCount = allResumes.length;
-  const existingTitles = allResumes.map((r) => r.title.toLowerCase());
-  const existingResumes = allResumes;
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [step, setStep] = useState<'template' | 'form' | 'wizard'>('template');
+  const navigate = useNavigate()
+  const confirm = useConfirm()
+  const [saving, setSaving] = useState(false)
+  const templatesQuery = useTemplates()
+  const templates: Template[] = templatesQuery.data ?? []
+  const resumesQuery = useResumes()
+  const allResumes = resumesQuery.data ?? []
+  const resumeCount = allResumes.length
+  const existingTitles = allResumes.map((r) => r.title.toLowerCase())
+  const existingResumes = allResumes
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
+  const [step, setStep] = useState<'template' | 'form' | 'wizard'>('template')
   const [startMode, setStartMode] = useState<'empty' | 'sample' | 'copy' | 'ai-upload' | 'wizard'>(
-    'empty',
-  );
+    'empty'
+  )
   // Wizard state
-  const [wizardStep, setWizardStep] = useState(0);
-  const [wizardData, setWizardData] = useState(createEmptyResumeData());
-  const [wizardJobTitle, setWizardJobTitle] = useState('');
-  const [copySourceId, setCopySourceId] = useState('');
-  const [initialData, setInitialData] = useState<ResumeDraft | null>(null);
-  const [loadingCopy, setLoadingCopy] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadText, setUploadText] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiProgress, setAiProgress] = useState('');
-  const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
-  const [previewTheme, setPreviewTheme] = useState<ResumeTheme | null>(null);
-  const [themeFilter, setThemeFilter] = useState<string>('all');
-  const user = getUser();
-  const plan = getPlan(user?.plan || 'free');
-  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin';
+  const [wizardStep, setWizardStep] = useState(0)
+  const [wizardData, setWizardData] = useState(createEmptyResumeData())
+  const [wizardJobTitle, setWizardJobTitle] = useState('')
+  const [copySourceId, setCopySourceId] = useState('')
+  const [initialData, setInitialData] = useState<ResumeDraft | null>(null)
+  const [loadingCopy, setLoadingCopy] = useState(false)
+  const [uploadFile, setUploadFile] = useState<File | null>(null)
+  const [uploadText, setUploadText] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiProgress, setAiProgress] = useState('')
+  const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null)
+  const [previewTheme, setPreviewTheme] = useState<ResumeTheme | null>(null)
+  const [themeFilter, setThemeFilter] = useState<string>('all')
+  const user = getUser()
+  const plan = getPlan(user?.plan || 'free')
+  const isAdminUser = user?.role === 'admin' || user?.role === 'superadmin'
   const atLimit =
-    !isAdminUser && plan.features.maxResumes > 0 && resumeCount >= plan.features.maxResumes;
+    !isAdminUser && plan.features.maxResumes > 0 && resumeCount >= plan.features.maxResumes
 
   useEffect(() => {
-    document.title = '새 이력서 — 이력서공방';
+    document.title = '새 이력서 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const handleSave = async (data: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
     // Validate meta (title) with Zod before submit
-    const parsed = newResumeSchema.safeParse({ title: data.title });
+    const parsed = newResumeSchema.safeParse({ title: data.title })
     if (!parsed.success) {
-      const firstError = parsed.error.issues[0]?.message || '제목을 확인해주세요';
-      toast(firstError, 'error');
-      return;
+      const firstError = parsed.error.issues[0]?.message || '제목을 확인해주세요'
+      toast(firstError, 'error')
+      return
     }
-    const isDuplicate = existingTitles.includes((data.title || '').toLowerCase());
+    const isDuplicate = existingTitles.includes((data.title || '').toLowerCase())
     if (
       isDuplicate &&
       !(await confirm({
@@ -1110,121 +1171,121 @@ export default function NewResumePage() {
         confirmText: '계속',
       }))
     )
-      return;
-    setSaving(true);
+      return
+    setSaving(true)
     try {
-      const result = await createResume(data);
-      toast('이력서가 생성되었습니다', 'success');
-      navigate(ROUTES.resume.edit(result.id));
+      const result = await createResume(data)
+      toast('이력서가 생성되었습니다', 'success')
+      navigate(ROUTES.resume.edit(result.id))
     } catch {
-      toast('이력서 생성에 실패했습니다', 'error');
+      toast('이력서 생성에 실패했습니다', 'error')
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleAiUpload = async () => {
-    const text = uploadText.trim();
+    const text = uploadText.trim()
     if (!text && !uploadFile) {
-      toast('텍스트를 입력하거나 파일을 업로드해주세요', 'error');
-      return;
+      toast('텍스트를 입력하거나 파일을 업로드해주세요', 'error')
+      return
     }
-    setAiLoading(true);
-    setAiProgress('문서를 분석하고 있습니다...');
+    setAiLoading(true)
+    setAiProgress('문서를 분석하고 있습니다...')
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
 
-      let bodyText = text;
+      let bodyText = text
       if (uploadFile && !text) {
         // 파일에서 텍스트 읽기 (txt 파일만 클라이언트에서 처리)
         if (uploadFile.name.endsWith('.txt')) {
-          bodyText = await uploadFile.text();
+          bodyText = await uploadFile.text()
         } else {
           // PDF/DOCX는 서버에서 처리 (현재는 파일명만 전달)
-          bodyText = `[업로드된 파일: ${uploadFile.name}] 파일 내용을 분석하여 이력서를 생성해주세요.`;
+          bodyText = `[업로드된 파일: ${uploadFile.name}] 파일 내용을 분석하여 이력서를 생성해주세요.`
         }
       }
 
-      setAiProgress('AI가 이력서 항목을 추출하고 있습니다...');
-      headers['Content-Type'] = 'application/json';
-      const res = await fetch(`${API_URL}/api/auto-generate/preview`, {
+      setAiProgress('AI가 이력서 항목을 추출하고 있습니다...')
+      headers['Content-Type'] = 'application/json'
+      const res = await httpClient(`${API_URL}/api/auto-generate/preview`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ rawText: bodyText }),
-      });
-      if (!res.ok) throw new Error('AI 분석에 실패했습니다');
-      const data = (await res.json()) as AutoGeneratePreviewResponse;
+      })
+      if (!res.ok) throw new Error('AI 분석에 실패했습니다')
+      const data = (await res.json()) as AutoGeneratePreviewResponse
 
-      setAiProgress('이력서를 구성하고 있습니다...');
+      setAiProgress('이력서를 구성하고 있습니다...')
       if (data.resume) {
-        setInitialData(data.resume);
-        toast('AI가 이력서를 자동으로 채웠습니다! 내용을 확인하고 수정해주세요.', 'success');
-        setStep('form');
+        setInitialData(data.resume)
+        toast('AI가 이력서를 자동으로 채웠습니다! 내용을 확인하고 수정해주세요.', 'success')
+        setStep('form')
       } else {
-        throw new Error('이력서 데이터를 생성할 수 없습니다');
+        throw new Error('이력서 데이터를 생성할 수 없습니다')
       }
     } catch (err: unknown) {
-      toast(getErrorMessage(err, 'AI 분석에 실패했습니다'), 'error');
+      toast(getErrorMessage(err, 'AI 분석에 실패했습니다'), 'error')
     } finally {
-      setAiLoading(false);
-      setAiProgress('');
+      setAiLoading(false)
+      setAiProgress('')
     }
-  };
+  }
 
   const handleSkip = () => {
-    setSelectedTemplate(null);
-    proceedToForm('empty');
-  };
+    setSelectedTemplate(null)
+    proceedToForm('empty')
+  }
 
   const handleSelectTemplate = (id: string) => {
-    setSelectedTemplate(id);
-    proceedToForm(startMode);
-  };
+    setSelectedTemplate(id)
+    proceedToForm(startMode)
+  }
 
   const proceedToForm = async (mode: 'empty' | 'sample' | 'copy' | 'ai-upload' | 'wizard') => {
     if (mode === 'sample') {
-      setInitialData(SAMPLE_DATA);
-      setStep('form');
+      setInitialData(SAMPLE_DATA)
+      setStep('form')
     } else if (mode === 'copy' && copySourceId) {
-      setLoadingCopy(true);
+      setLoadingCopy(true)
       try {
-        const source = await fetchResume(copySourceId);
-        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = source;
-        setInitialData({ ...rest, title: `${rest.title} (복사본)` });
+        const source = await fetchResume(copySourceId)
+        const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...rest } = source
+        setInitialData({ ...rest, title: `${rest.title} (복사본)` })
       } catch {
-        toast('이력서를 불러오는데 실패했습니다', 'error');
-        setInitialData(createEmptyResumeData());
+        toast('이력서를 불러오는데 실패했습니다', 'error')
+        setInitialData(createEmptyResumeData())
       } finally {
-        setLoadingCopy(false);
+        setLoadingCopy(false)
       }
-      setStep('form');
+      setStep('form')
     } else {
-      setInitialData(createEmptyResumeData());
-      setStep('form');
+      setInitialData(createEmptyResumeData())
+      setStep('form')
     }
-  };
+  }
 
   const handleCopyFromExisting = async () => {
     if (!copySourceId) {
-      toast('복사할 이력서를 선택해주세요', 'error');
-      return;
+      toast('복사할 이력서를 선택해주세요', 'error')
+      return
     }
-    setLoadingCopy(true);
+    setLoadingCopy(true)
     try {
-      const result = await duplicateResume(copySourceId);
-      toast('이력서가 복사되었습니다', 'success');
-      navigate(ROUTES.resume.edit(result.id));
+      const result = await duplicateResume(copySourceId)
+      toast('이력서가 복사되었습니다', 'success')
+      navigate(ROUTES.resume.edit(result.id))
     } catch {
-      toast('복사에 실패했습니다. 직접 편집 모드로 전환합니다.', 'error');
-      proceedToForm('copy');
+      toast('복사에 실패했습니다. 직접 편집 모드로 전환합니다.', 'error')
+      proceedToForm('copy')
     } finally {
-      setLoadingCopy(false);
+      setLoadingCopy(false)
     }
-  };
+  }
 
-  const selected = templates.find((t) => t.id === selectedTemplate);
+  const selected = templates.find((t) => t.id === selectedTemplate)
 
   return (
     <>
@@ -1422,15 +1483,15 @@ export default function NewResumePage() {
                         >
                           {i + 1}. {label}
                         </span>
-                      ),
+                      )
                     )}
                   </div>
                   <button
                     onClick={() => {
-                      setWizardData(createEmptyResumeData());
-                      setWizardStep(0);
-                      setWizardJobTitle('');
-                      setStep('wizard');
+                      setWizardData(createEmptyResumeData())
+                      setWizardStep(0)
+                      setWizardJobTitle('')
+                      setStep('wizard')
                     }}
                     className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                   >
@@ -1442,10 +1503,17 @@ export default function NewResumePage() {
               {/* Copy source selector */}
               {startMode === 'copy' && existingResumes.length > 0 && (
                 <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <span
+                    id="newresume-copy-source-label"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     복사할 이력서 선택
-                  </label>
-                  <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                  </span>
+                  <div
+                    role="group"
+                    aria-labelledby="newresume-copy-source-label"
+                    className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3"
+                  >
                     {existingResumes.slice(0, 6).map((r) => (
                       <button
                         key={r.id}
@@ -1478,10 +1546,14 @@ export default function NewResumePage() {
               {/* AI Upload mode */}
               {startMode === 'ai-upload' && (
                 <div className="mt-3 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  <label
+                    htmlFor="newresumepage-field-21"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
                     경력증명서, 기존 이력서, 자기소개 텍스트 등을 붙여넣거나 파일을 업로드하세요
                   </label>
                   <textarea
+                    id="newresumepage-field-21"
                     value={uploadText}
                     onChange={(e) => setUploadText(e.target.value)}
                     placeholder={
@@ -1590,7 +1662,7 @@ export default function NewResumePage() {
                   전체
                 </button>
                 {Object.entries(THEME_CATEGORY_LABELS).map(([key, label]) => {
-                  const count = resumeThemes.filter((t) => t.preview?.category === key).length;
+                  const count = resumeThemes.filter((t) => t.preview?.category === key).length
                   return (
                     <button
                       key={key}
@@ -1603,7 +1675,7 @@ export default function NewResumePage() {
                     >
                       {label} ({count})
                     </button>
-                  );
+                  )
                 })}
               </div>
 
@@ -1616,18 +1688,18 @@ export default function NewResumePage() {
                       : 'border-slate-300 dark:border-slate-600 hover:border-blue-300'
                   }`}
                   onClick={() => {
-                    setSelectedThemeId(null);
-                    setSelectedTemplate(null);
-                    proceedToForm(startMode);
+                    setSelectedThemeId(null)
+                    setSelectedTemplate(null)
+                    proceedToForm(startMode)
                   }}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      setSelectedThemeId(null);
-                      setSelectedTemplate(null);
-                      proceedToForm(startMode);
+                      e.preventDefault()
+                      setSelectedThemeId(null)
+                      setSelectedTemplate(null)
+                      proceedToForm(startMode)
                     }
                   }}
                 >
@@ -1665,8 +1737,8 @@ export default function NewResumePage() {
                       theme={theme}
                       selected={selectedThemeId === theme.id}
                       onClick={() => {
-                        setSelectedThemeId(theme.id);
-                        proceedToForm(startMode);
+                        setSelectedThemeId(theme.id)
+                        proceedToForm(startMode)
                       }}
                       onPreview={() => setPreviewTheme(theme)}
                     />
@@ -1683,10 +1755,10 @@ export default function NewResumePage() {
                     s.items
                       .toLowerCase()
                       .split(',')
-                      .map((i) => i.trim()),
-                  ),
-                );
-                const allPositions = existingResumes.flatMap((r) => r.title?.toLowerCase() || '');
+                      .map((i) => i.trim())
+                  )
+                )
+                const allPositions = existingResumes.flatMap((r) => r.title?.toLowerCase() || '')
 
                 const JOB_TEMPLATE_MAP: { keywords: string[]; jobLabel: string; reason: string }[] =
                   [
@@ -1766,20 +1838,20 @@ export default function NewResumePage() {
                       jobLabel: 'HR/인사',
                       reason: '조직 관리와 채용 경험을 강조하는 구성입니다',
                     },
-                  ];
+                  ]
 
                 const matchedJobs = JOB_TEMPLATE_MAP.filter((job) =>
                   job.keywords.some(
-                    (kw) => allSkills.includes(kw) || allPositions.some((p) => p.includes(kw)),
-                  ),
-                );
+                    (kw) => allSkills.includes(kw) || allPositions.some((p) => p.includes(kw))
+                  )
+                )
 
                 // Sort templates by usageCount for popularity
                 const sortedTemplates = [...templates].sort(
-                  (a, b) => (b.usageCount || 0) - (a.usageCount || 0),
-                );
-                const maxUsage = sortedTemplates[0]?.usageCount || 0;
-                const popularThreshold = maxUsage > 0 ? maxUsage * 0.7 : Infinity;
+                  (a, b) => (b.usageCount || 0) - (a.usageCount || 0)
+                )
+                const maxUsage = sortedTemplates[0]?.usageCount || 0
+                const popularThreshold = maxUsage > 0 ? maxUsage * 0.7 : Infinity
 
                 // Recommended templates: match by category name or description
                 const recommendedTemplates =
@@ -1795,10 +1867,10 @@ export default function NewResumePage() {
                               .includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()) ||
                             (t.description || '')
                               .toLowerCase()
-                              .includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()),
-                        ),
+                              .includes(job.jobLabel.replace(/\/.*/, '').toLowerCase())
+                        )
                       )
-                    : [];
+                    : []
 
                 return (
                   <>
@@ -1828,8 +1900,8 @@ export default function NewResumePage() {
                         </div>
                         <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           {recommendedTemplates.map((t) => {
-                            const layout = parseLayout(t.layout || '{}');
-                            const sections: string[] = layout.sections || [];
+                            const layout = parseLayout(t.layout || '{}')
+                            const sections: string[] = layout.sections || []
                             const matchedJob = matchedJobs.find(
                               (job) =>
                                 t.name
@@ -1840,8 +1912,8 @@ export default function NewResumePage() {
                                   .includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()) ||
                                 (t.description || '')
                                   .toLowerCase()
-                                  .includes(job.jobLabel.replace(/\/.*/, '').toLowerCase()),
-                            );
+                                  .includes(job.jobLabel.replace(/\/.*/, '').toLowerCase())
+                            )
 
                             return (
                               <button
@@ -1894,7 +1966,7 @@ export default function NewResumePage() {
                                   </div>
                                 )}
                               </button>
-                            );
+                            )
                           })}
                         </div>
                       </div>
@@ -1907,9 +1979,9 @@ export default function NewResumePage() {
                       </h2>
                       <div className="stagger-children grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                         {sortedTemplates.map((t) => {
-                          const layout = parseLayout(t.layout || '{}');
-                          const sections: string[] = layout.sections || [];
-                          const isPopular = (t.usageCount || 0) >= popularThreshold && maxUsage > 0;
+                          const layout = parseLayout(t.layout || '{}')
+                          const sections: string[] = layout.sections || []
+                          const isPopular = (t.usageCount || 0) >= popularThreshold && maxUsage > 0
 
                           return (
                             <button
@@ -1962,12 +2034,12 @@ export default function NewResumePage() {
                                 </div>
                               )}
                             </button>
-                          );
+                          )
                         })}
                       </div>
                     </div>
                   </>
-                );
+                )
               })()}
 
             {/* Theme Preview Modal */}
@@ -1976,9 +2048,9 @@ export default function NewResumePage() {
                 theme={previewTheme}
                 onClose={() => setPreviewTheme(null)}
                 onSelect={() => {
-                  setSelectedThemeId(previewTheme.id);
-                  setPreviewTheme(null);
-                  proceedToForm(startMode);
+                  setSelectedThemeId(previewTheme.id)
+                  setPreviewTheme(null)
+                  proceedToForm(startMode)
                 }}
               />
             )}
@@ -2035,5 +2107,5 @@ export default function NewResumePage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

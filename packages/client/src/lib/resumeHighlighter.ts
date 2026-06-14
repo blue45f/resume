@@ -7,20 +7,20 @@
  * - filler: 모호한 상투 표현(다양한·열심히·많은 …)
  */
 
-export type HighlightCategory = 'metric' | 'strongVerb' | 'filler';
+export type HighlightCategory = 'metric' | 'strongVerb' | 'filler'
 
 export interface HighlightToken {
-  text: string;
-  category: HighlightCategory | null;
+  text: string
+  category: HighlightCategory | null
 }
 
 export interface ResumeHighlightResult {
-  tokens: HighlightToken[];
-  counts: Record<HighlightCategory, number>;
-  truncated: boolean;
+  tokens: HighlightToken[]
+  counts: Record<HighlightCategory, number>
+  truncated: boolean
 }
 
-const MAX_CHARS = 1500;
+const MAX_CHARS = 1500
 
 const CATEGORY_PATTERNS: Array<{ category: HighlightCategory; re: RegExp }> = [
   {
@@ -35,58 +35,58 @@ const CATEGORY_PATTERNS: Array<{ category: HighlightCategory; re: RegExp }> = [
     category: 'filler',
     re: /(?:다양한|여러\s*가지|열심히|최선을\s*다해?|많은|다수의|성실히|적극적으로|원활하게|폭넓은|다방면|열정을\s*가지고|책임감을\s*가지고)/g,
   },
-];
+]
 
 interface RawMatch {
-  start: number;
-  end: number;
-  category: HighlightCategory;
+  start: number
+  end: number
+  category: HighlightCategory
 }
 
 export function highlightResume(text: string): ResumeHighlightResult {
-  const full = text ?? '';
-  const truncated = full.length > MAX_CHARS;
-  const t = truncated ? full.slice(0, MAX_CHARS) : full;
+  const full = text ?? ''
+  const truncated = full.length > MAX_CHARS
+  const t = truncated ? full.slice(0, MAX_CHARS) : full
 
   // 1. Collect all matches.
-  const raw: RawMatch[] = [];
+  const raw: RawMatch[] = []
   for (const { category, re } of CATEGORY_PATTERNS) {
     for (const m of t.matchAll(re)) {
-      if (m.index === undefined) continue;
-      const matched = m[0];
-      if (!matched) continue;
-      raw.push({ start: m.index, end: m.index + matched.length, category });
+      if (m.index === undefined) continue
+      const matched = m[0]
+      if (!matched) continue
+      raw.push({ start: m.index, end: m.index + matched.length, category })
     }
   }
 
   // 2. Sort by start asc, then by length desc (prefer longer match on ties).
-  raw.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
+  raw.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start))
 
   // 3. Greedily select non-overlapping matches.
-  const selected: RawMatch[] = [];
-  let lastEnd = 0;
+  const selected: RawMatch[] = []
+  let lastEnd = 0
   for (const m of raw) {
     if (m.start >= lastEnd) {
-      selected.push(m);
-      lastEnd = m.end;
+      selected.push(m)
+      lastEnd = m.end
     }
   }
 
   // 4. Build ordered tokens, filling gaps with plain text.
-  const tokens: HighlightToken[] = [];
-  const counts: Record<HighlightCategory, number> = { metric: 0, strongVerb: 0, filler: 0 };
-  let cursor = 0;
+  const tokens: HighlightToken[] = []
+  const counts: Record<HighlightCategory, number> = { metric: 0, strongVerb: 0, filler: 0 }
+  let cursor = 0
   for (const m of selected) {
     if (m.start > cursor) {
-      tokens.push({ text: t.slice(cursor, m.start), category: null });
+      tokens.push({ text: t.slice(cursor, m.start), category: null })
     }
-    tokens.push({ text: t.slice(m.start, m.end), category: m.category });
-    counts[m.category]++;
-    cursor = m.end;
+    tokens.push({ text: t.slice(m.start, m.end), category: m.category })
+    counts[m.category]++
+    cursor = m.end
   }
   if (cursor < t.length) {
-    tokens.push({ text: t.slice(cursor), category: null });
+    tokens.push({ text: t.slice(cursor), category: null })
   }
 
-  return { tokens, counts, truncated };
+  return { tokens, counts, truncated }
 }

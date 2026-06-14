@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
-import { scoreApplicationReadiness } from './applicationReadinessScore';
-import type { JobApplication } from './api';
+import { describe, expect, it } from 'vitest'
+
+import { scoreApplicationReadiness } from './applicationReadinessScore'
+
+import type { JobApplication } from './api'
 
 const baseApplication = (overrides: Partial<JobApplication>): JobApplication => ({
   id: overrides.id ?? 'app-1',
@@ -10,7 +12,7 @@ const baseApplication = (overrides: Partial<JobApplication>): JobApplication => 
   createdAt: overrides.createdAt ?? '2026-05-20T09:00:00Z',
   updatedAt: overrides.updatedAt ?? '2026-05-26T09:00:00Z',
   ...overrides,
-});
+})
 
 describe('scoreApplicationReadiness', () => {
   it('marks a fully prepared interview application as ready', () => {
@@ -25,13 +27,13 @@ describe('scoreApplicationReadiness', () => {
         status: 'interview',
         interviewDate: '2026-05-28',
       }),
-      new Date('2026-05-27T12:00:00Z'),
-    );
+      new Date('2026-05-27T12:00:00Z')
+    )
 
-    expect(readiness.grade).toBe('ready');
-    expect(readiness.score).toBe(100);
-    expect(readiness.blockingItems).toEqual([]);
-  });
+    expect(readiness.grade).toBe('ready')
+    expect(readiness.score).toBe(100)
+    expect(readiness.blockingItems).toEqual([])
+  })
 
   it('flags missing job context and tailored resume as blockers', () => {
     const readiness = scoreApplicationReadiness(
@@ -40,14 +42,14 @@ describe('scoreApplicationReadiness', () => {
         notes: '',
         resumeId: '',
       }),
-      new Date('2026-05-27T12:00:00Z'),
-    );
+      new Date('2026-05-27T12:00:00Z')
+    )
 
-    expect(readiness.grade).toBe('blocked');
+    expect(readiness.grade).toBe('blocked')
     expect(readiness.blockingItems.map((item) => item.id)).toEqual(
-      expect.arrayContaining(['job-context', 'resume']),
-    );
-  });
+      expect.arrayContaining(['job-context', 'resume'])
+    )
+  })
 
   it('penalizes stale active applications without follow-up evidence', () => {
     const readiness = scoreApplicationReadiness(
@@ -56,12 +58,12 @@ describe('scoreApplicationReadiness', () => {
         resumeId: 'resume-1',
         updatedAt: '2026-05-01T09:00:00Z',
       }),
-      new Date('2026-05-27T12:00:00Z'),
-    );
+      new Date('2026-05-27T12:00:00Z')
+    )
 
-    expect(readiness.checks.find((check) => check.id === 'follow-up')?.complete).toBe(false);
-    expect(readiness.nextAction).toContain('후속');
-  });
+    expect(readiness.checks.find((check) => check.id === 'follow-up')?.complete).toBe(false)
+    expect(readiness.nextAction).toContain('후속')
+  })
 
   it('does not require follow-up freshness for terminal applications', () => {
     const readiness = scoreApplicationReadiness(
@@ -69,9 +71,9 @@ describe('scoreApplicationReadiness', () => {
         status: 'rejected',
         updatedAt: '2026-05-01T09:00:00Z',
       }),
-      new Date('2026-05-27T12:00:00Z'),
-    );
+      new Date('2026-05-27T12:00:00Z')
+    )
 
-    expect(readiness.checks.find((check) => check.id === 'follow-up')?.complete).toBe(true);
-  });
-});
+    expect(readiness.checks.find((check) => check.id === 'follow-up')?.complete).toBe(true)
+  })
+})

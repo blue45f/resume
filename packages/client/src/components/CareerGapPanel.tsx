@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
-import { detectCareerGaps } from '@/lib/koreanChecker';
-import { tx } from '@/lib/i18n';
+import { useMemo } from 'react'
+
+import { tx } from '@/lib/i18n'
+import { detectCareerGaps } from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  minLength?: number;
-  className?: string;
+  text: string
+  minLength?: number
+  className?: string
 }
 
-type Severity = 'minor' | 'notable' | 'major';
+type Severity = 'minor' | 'notable' | 'major'
 
 const SEVERITY_META: Record<Severity, { color: string; border: string }> = {
   minor: {
@@ -23,7 +24,7 @@ const SEVERITY_META: Record<Severity, { color: string; border: string }> = {
     color: 'text-rose-700 dark:text-rose-300',
     border: 'border-rose-200 dark:border-rose-900/40',
   },
-};
+}
 
 /**
  * 경력 구간 사이 6개월↑ 공백을 감지해 면접에서 설명 필요한 신호로 강조.
@@ -31,13 +32,13 @@ const SEVERITY_META: Record<Severity, { color: string; border: string }> = {
  */
 export default function CareerGapPanel({ text, minLength = 200, className = '' }: Props) {
   const analysis = useMemo(() => {
-    if (!text || text.length < minLength) return null;
-    return detectCareerGaps(text);
-  }, [text, minLength]);
+    if (!text || text.length < minLength) return null
+    return detectCareerGaps(text)
+  }, [text, minLength])
 
-  if (!analysis || analysis.gaps.length === 0) return null;
+  if (!analysis || analysis.gaps.length === 0) return null
 
-  const titleId = 'career-gap-panel-title';
+  const titleId = 'career-gap-panel-title'
   return (
     <section className={`mt-3 ${className}`} aria-labelledby={titleId}>
       <div className="flex items-baseline justify-between mb-1.5">
@@ -51,12 +52,12 @@ export default function CareerGapPanel({ text, minLength = 200, className = '' }
       </div>
       <ul className="space-y-1">
         {analysis.gaps.map((g, i) => {
-          const meta = SEVERITY_META[g.severity];
-          const severityLabel = tx(`resumeAnalysis.careerGap.severity.${g.severity}`);
+          const meta = SEVERITY_META[g.severity]
+          const severityLabel = tx(`resumeAnalysis.careerGap.severity.${g.severity}`)
           const monthsLabel = tx('resumeAnalysis.careerGap.monthsLabel', {
             months: g.gapMonths,
-          });
-          const rangeLabel = `${g.from.year}.${String(g.from.month).padStart(2, '0')} → ${g.to.year}.${String(g.to.month).padStart(2, '0')}`;
+          })
+          const rangeLabel = `${g.from.year}.${String(g.from.month).padStart(2, '0')} → ${g.to.year}.${String(g.to.month).padStart(2, '0')}`
           return (
             <li
               key={i}
@@ -73,12 +74,12 @@ export default function CareerGapPanel({ text, minLength = 200, className = '' }
                 {monthsLabel}
               </span>
             </li>
-          );
+          )
         })}
       </ul>
       <p className="mt-1 text-[10.5px] text-slate-500 dark:text-slate-400">
         {tx('resumeAnalysis.careerGap.hint')}
       </p>
     </section>
-  );
+  )
 }

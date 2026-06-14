@@ -1,154 +1,157 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { toast } from '@/components/Toast';
-import type { Resume, ResumeSummary } from '@/types/resume';
-import { API_URL } from '@/lib/config';
-import { useResume, useResumes, usePublicGet } from '@/hooks/useResources';
-import { RelatedGroupsWidget } from '@/features/study-groups';
-import InterviewScoreHistory from '@/components/InterviewScoreHistory';
-import JdSignalDashboard from '@/components/JdSignalDashboard';
-import JdCompetitiveLandscapePanel from '@/components/JdCompetitiveLandscapePanel';
-import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection';
-import { analyzeInterviewAnswer } from '@/lib/api';
-import { formatDate } from '@/lib/time';
-import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer';
-import { buildJdBiasReport } from '@/lib/jdBiasDetector';
-import { buildJdCompensationReport } from '@/lib/jdCompensationSignals';
-import { buildJdCultureReport } from '@/lib/jdCultureSignals';
-import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap';
-import { buildSalaryBenchmarkReport } from '@/lib/jdSalaryBenchmark';
-import { buildInterviewStrategyReport, FORMAT_LABEL_MAP } from '@/lib/jdInterviewStrategy';
-import { buildJdRequirementsReport } from '@/lib/jdRequirementsExtractor';
-import { buildJdResumeMatchReport } from '@/lib/jdResumeMatch';
-import { buildWorkModalityReport } from '@/lib/jdWorkModality';
-import { detectHiringMode } from '@/lib/jdHiringModeDetector';
-import { detectJdRedFlags } from '@/lib/jdRedFlagDetector';
-import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector';
-import { analyzeJdGrowthOpportunity } from '@/lib/jdGrowthOpportunityAnalyzer';
-import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer';
-import { detectJdCultureVagueness } from '@/lib/jdCultureVaguenessDetector';
-import { analyzeJdSalaryTransparency } from '@/lib/jdSalaryTransparencyAnalyzer';
-import { analyzeJdBenefitsSpecificity } from '@/lib/jdBenefitsSpecificityAnalyzer';
-import { estimateJdInterviewComplexity } from '@/lib/jdInterviewComplexityEstimator';
-import { parseJdRequiredVsPreferred } from '@/lib/jdRequiredVsPreferredParser';
-import { extractJdRemoteWorkPolicy } from '@/lib/jdRemoteWorkPolicyExtractor';
-import { detectJdApplicationUrgency } from '@/lib/jdApplicationUrgencyDetector';
-import { detectJdStatutoryBenefits } from '@/lib/jdStatutoryBenefitsDetector';
-import { analyzeJdTeamStructure } from '@/lib/jdTeamStructureAnalyzer';
-import { extractJdHiringProcess } from '@/lib/jdHiringProcessExtractor';
-import { detectJdResponsibilityVagueness } from '@/lib/jdResponsibilityVaguenessDetector';
-import { checkJdPostingCompleteness } from '@/lib/jdPostingCompletenessChecker';
-import { detectCompanyStage } from '@/lib/jdCompanyStageDetector';
-import { buildResumePlainText } from '@/lib/resumeText';
-import { tx } from '@/lib/i18n';
-import { analyzeInterviewAnswer as analyzeAnswerHeuristic } from '@/lib/interviewAnswerAnalyzer';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
+
+import type { Resume, ResumeSummary } from '@/types/resume'
+
+import CollapsibleAnalysisSection from '@/components/CollapsibleAnalysisSection'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import InterviewScoreHistory from '@/components/InterviewScoreHistory'
+import JdCompetitiveLandscapePanel from '@/components/JdCompetitiveLandscapePanel'
+import JdSignalDashboard from '@/components/JdSignalDashboard'
+import { toast } from '@/components/Toast'
+import { RelatedGroupsWidget } from '@/domains/community/study-groups'
+import { useResume, useResumes, usePublicGet } from '@/hooks/useResources'
+import { analyzeInterviewAnswer } from '@/lib/api'
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { analyzeInterviewAnswer as analyzeAnswerHeuristic } from '@/lib/interviewAnswerAnalyzer'
+import { detectJdApplicationUrgency } from '@/lib/jdApplicationUrgencyDetector'
+import { analyzeJdBenefitsSpecificity } from '@/lib/jdBenefitsSpecificityAnalyzer'
+import { buildJdBiasReport } from '@/lib/jdBiasDetector'
+import { detectCompanyStage } from '@/lib/jdCompanyStageDetector'
+import { buildJdCompensationReport } from '@/lib/jdCompensationSignals'
+import { buildJdCultureReport } from '@/lib/jdCultureSignals'
+import { detectJdCultureVagueness } from '@/lib/jdCultureVaguenessDetector'
+import { analyzeJdGrowthOpportunity } from '@/lib/jdGrowthOpportunityAnalyzer'
+import { detectHiringMode } from '@/lib/jdHiringModeDetector'
+import { extractJdHiringProcess } from '@/lib/jdHiringProcessExtractor'
+import { estimateJdInterviewComplexity } from '@/lib/jdInterviewComplexityEstimator'
+import { buildInterviewStrategyReport, FORMAT_LABEL_MAP } from '@/lib/jdInterviewStrategy'
+import { buildJdKeywordGapReport } from '@/lib/jdKeywordGap'
+import { checkJdPostingCompleteness } from '@/lib/jdPostingCompletenessChecker'
+import { detectJdRedFlags } from '@/lib/jdRedFlagDetector'
+import { extractJdRemoteWorkPolicy } from '@/lib/jdRemoteWorkPolicyExtractor'
+import { parseJdRequiredVsPreferred } from '@/lib/jdRequiredVsPreferredParser'
+import { buildJdRequirementsReport } from '@/lib/jdRequirementsExtractor'
+import { detectJdResponsibilityVagueness } from '@/lib/jdResponsibilityVaguenessDetector'
+import { buildJdResumeMatchReport } from '@/lib/jdResumeMatch'
+import { buildSalaryBenchmarkReport } from '@/lib/jdSalaryBenchmark'
+import { analyzeJdSalaryTransparency } from '@/lib/jdSalaryTransparencyAnalyzer'
+import { analyzeJdSeniority } from '@/lib/jdSeniorityAnalyzer'
+import { detectJdStatutoryBenefits } from '@/lib/jdStatutoryBenefitsDetector'
+import { analyzeJdTeamStructure } from '@/lib/jdTeamStructureAnalyzer'
+import { detectJdTechObsolescence } from '@/lib/jdTechObsolescenceDetector'
+import { analyzeJdWorkLifeBalance } from '@/lib/jdWorkLifeBalanceAnalyzer'
+import { buildWorkModalityReport } from '@/lib/jdWorkModality'
+import { httpClient } from '@/lib/ky'
+import { buildResumePlainText } from '@/lib/resumeText'
+import { formatDate } from '@/lib/time'
 
 // ── Types ──
 
-type Difficulty = 'beginner' | 'intermediate' | 'advanced';
-type Category = '전체' | '기술' | '행동' | '상황' | '인성';
-type JobField = '전체' | '개발' | '디자인' | '기획' | '마케팅' | '데이터' | '기타';
-type ViewMode = 'setup' | 'list' | 'mock' | 'report';
+type Difficulty = 'beginner' | 'intermediate' | 'advanced'
+type Category = '전체' | '기술' | '행동' | '상황' | '인성'
+type JobField = '전체' | '개발' | '디자인' | '기획' | '마케팅' | '데이터' | '기타'
+type ViewMode = 'setup' | 'list' | 'mock' | 'report'
 
 interface Question {
-  question: string;
-  answer: string;
-  category?: Category;
-  jobField?: JobField;
-  difficulty?: Difficulty;
+  question: string
+  answer: string
+  category?: Category
+  jobField?: JobField
+  difficulty?: Difficulty
 }
 
 interface ScoreBreakdown {
-  관련성: number;
-  구체성: number;
-  구조: number;
-  표현력: number;
+  관련성: number
+  구체성: number
+  구조: number
+  표현력: number
 }
 
 interface EvaluationResult {
-  score: number;
-  breakdown: ScoreBreakdown;
-  strengths: string[];
-  improvements: string[];
-  modelAnswer: string;
-  highlightGood: string[];
-  highlightWeak: string[];
+  score: number
+  breakdown: ScoreBreakdown
+  strengths: string[]
+  improvements: string[]
+  modelAnswer: string
+  highlightGood: string[]
+  highlightWeak: string[]
 }
 
 interface QuestionResult {
-  questionIdx: number;
-  userAnswer: string;
-  evaluation: EvaluationResult;
-  timeSpent: number;
+  questionIdx: number
+  userAnswer: string
+  evaluation: EvaluationResult
+  timeSpent: number
 }
 
 interface InterviewReport {
-  date: string;
-  resumeId: string;
-  jobRole: string;
-  difficulty: Difficulty;
-  results: QuestionResult[];
-  overallScore: number;
-  grade: string;
-  categoryScores: ScoreBreakdown;
+  date: string
+  resumeId: string
+  jobRole: string
+  difficulty: Difficulty
+  results: QuestionResult[]
+  overallScore: number
+  grade: string
+  categoryScores: ScoreBreakdown
 }
 
 interface InterviewJobPost {
-  id: string;
-  company: string;
-  position: string;
-  description?: string;
-  skills?: string;
+  id: string
+  company: string
+  position: string
+  description?: string
+  skills?: string
 }
 
 type InterviewJobsResponse =
   | InterviewJobPost[]
   | {
-      items?: InterviewJobPost[];
-      data?: InterviewJobPost[];
-    };
+      items?: InterviewJobPost[]
+      data?: InterviewJobPost[]
+    }
 
 // ── Storage keys ──
 
-const STORAGE_KEY = 'interview-prep-answers';
-const FAVORITES_KEY = 'interview-prep-favorites';
-const CUSTOM_QUESTIONS_KEY = 'interview-prep-custom-questions';
-const REPORTS_KEY = 'interview-prep-reports';
-const ANSWER_HISTORY_KEY = 'interview-prep-answer-history';
+const STORAGE_KEY = 'interview-prep-answers'
+const FAVORITES_KEY = 'interview-prep-favorites'
+const CUSTOM_QUESTIONS_KEY = 'interview-prep-custom-questions'
+const REPORTS_KEY = 'interview-prep-reports'
+const ANSWER_HISTORY_KEY = 'interview-prep-answer-history'
 
 // ── Storage helpers ──
 
 function loadJSON<T>(key: string, fallback: T): T {
   try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
   } catch {
-    return fallback;
+    return fallback
   }
 }
 
 function saveJSON(key: string, data: unknown) {
-  localStorage.setItem(key, JSON.stringify(data));
+  localStorage.setItem(key, JSON.stringify(data))
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
+  return error instanceof Error ? error.message : fallback
 }
 
 function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
 function computeGrade(score: number): string {
-  if (score >= 9) return 'S';
-  if (score >= 8) return 'A';
-  if (score >= 6.5) return 'B';
-  if (score >= 5) return 'C';
-  return 'D';
+  if (score >= 9) return 'S'
+  if (score >= 8) return 'A'
+  if (score >= 6.5) return 'B'
+  if (score >= 5) return 'C'
+  return 'D'
 }
 
 const gradeColors: Record<string, string> = {
@@ -157,7 +160,7 @@ const gradeColors: Record<string, string> = {
   B: 'text-blue-500',
   C: 'text-orange-500',
   D: 'text-red-500',
-};
+}
 
 // ── LLM evaluation ──
 
@@ -165,14 +168,14 @@ async function evaluateAnswer(
   resumeId: string,
   question: string,
   userAnswer: string,
-  jobRole: string,
+  jobRole: string
 ): Promise<EvaluationResult> {
-  const token = localStorage.getItem('token');
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const token = localStorage.getItem('token')
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
 
   try {
-    const res = await fetch(`${API_URL}/api/resumes/${resumeId}/transform/interview`, {
+    const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/transform/interview`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -195,16 +198,16 @@ async function evaluateAnswer(
   "highlightWeak": ["답변 중 약한 표현"]
 }`,
       }),
-    });
+    })
 
-    if (!res.ok) throw new Error('평가 실패');
-    const data = await res.json();
-    const text = data.text || data.data?.text || '';
+    if (!res.ok) throw new Error('평가 실패')
+    const data = await res.json()
+    const text = data.text || data.data?.text || ''
 
     // Try to parse JSON from response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
+      const parsed = JSON.parse(jsonMatch[0])
       return {
         score: Math.min(10, Math.max(1, parsed.score || 5)),
         breakdown: {
@@ -218,13 +221,13 @@ async function evaluateAnswer(
         modelAnswer: parsed.modelAnswer || '',
         highlightGood: parsed.highlightGood || [],
         highlightWeak: parsed.highlightWeak || [],
-      };
+      }
     }
-    throw new Error('JSON 파싱 실패');
+    throw new Error('JSON 파싱 실패')
   } catch {
     // Fallback: generate local evaluation
-    const len = userAnswer.length;
-    const score = Math.min(10, Math.max(3, Math.round(4 + (len / 100) * 2 + Math.random() * 2)));
+    const len = userAnswer.length
+    const score = Math.min(10, Math.max(3, Math.round(4 + (len / 100) * 2 + Math.random() * 2)))
     return {
       score,
       breakdown: {
@@ -238,35 +241,35 @@ async function evaluateAnswer(
       modelAnswer: '',
       highlightGood: [],
       highlightWeak: [],
-    };
+    }
   }
 }
 
 // ── Radar Chart (CSS-based) ──
 
 function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: number }) {
-  const labels = Object.keys(scores) as (keyof ScoreBreakdown)[];
-  const center = size / 2;
-  const maxRadius = size / 2 - 30;
-  const angleStep = (2 * Math.PI) / labels.length;
+  const labels = Object.keys(scores) as (keyof ScoreBreakdown)[]
+  const center = size / 2
+  const maxRadius = size / 2 - 30
+  const angleStep = (2 * Math.PI) / labels.length
 
   const getPoint = (index: number, value: number) => {
-    const angle = angleStep * index - Math.PI / 2;
-    const r = (value / 10) * maxRadius;
-    return { x: center + r * Math.cos(angle), y: center + r * Math.sin(angle) };
-  };
+    const angle = angleStep * index - Math.PI / 2
+    const r = (value / 10) * maxRadius
+    return { x: center + r * Math.cos(angle), y: center + r * Math.sin(angle) }
+  }
 
-  const dataPoints = labels.map((_, i) => getPoint(i, scores[labels[i]]));
-  const polygon = dataPoints.map((p) => `${p.x},${p.y}`).join(' ');
+  const dataPoints = labels.map((_, i) => getPoint(i, scores[labels[i]]))
+  const polygon = dataPoints.map((p) => `${p.x},${p.y}`).join(' ')
 
   // Grid rings
-  const rings = [2, 4, 6, 8, 10];
+  const rings = [2, 4, 6, 8, 10]
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
       {/* Grid */}
       {rings.map((ring) => {
-        const ringPoints = labels.map((_, i) => getPoint(i, ring));
+        const ringPoints = labels.map((_, i) => getPoint(i, ring))
         return (
           <polygon
             key={ring}
@@ -276,11 +279,11 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
             strokeWidth="0.5"
             className="text-slate-200 dark:text-slate-600"
           />
-        );
+        )
       })}
       {/* Axis lines */}
       {labels.map((_, i) => {
-        const p = getPoint(i, 10);
+        const p = getPoint(i, 10)
         return (
           <line
             key={i}
@@ -292,7 +295,7 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
             strokeWidth="0.5"
             className="text-slate-200 dark:text-slate-600"
           />
-        );
+        )
       })}
       {/* Data polygon */}
       <polygon
@@ -307,7 +310,7 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
       ))}
       {/* Labels */}
       {labels.map((label, i) => {
-        const p = getPoint(i, 12);
+        const p = getPoint(i, 12)
         return (
           <text
             key={label}
@@ -319,10 +322,10 @@ function RadarChart({ scores, size = 200 }: { scores: ScoreBreakdown; size?: num
           >
             {label} ({scores[label]})
           </text>
-        );
+        )
       })}
     </svg>
-  );
+  )
 }
 
 // ── Circular Timer ──
@@ -332,16 +335,16 @@ function CircularTimer({
   duration,
   size = 120,
 }: {
-  seconds: number;
-  duration: number;
-  size?: number;
+  seconds: number
+  duration: number
+  size?: number
 }) {
-  const remaining = Math.max(0, duration - seconds);
-  const progress = duration > 0 ? remaining / duration : 1;
-  const r = (size - 12) / 2;
-  const circumference = 2 * Math.PI * r;
-  const offset = circumference * (1 - progress);
-  const isWarning = progress < 0.2;
+  const remaining = Math.max(0, duration - seconds)
+  const progress = duration > 0 ? remaining / duration : 1
+  const r = (size - 12) / 2
+  const circumference = 2 * Math.PI * r
+  const offset = circumference * (1 - progress)
+  const isWarning = progress < 0.2
 
   return (
     <div
@@ -380,12 +383,12 @@ function CircularTimer({
         <span className="text-xs text-slate-500 dark:text-slate-400">남은 시간</span>
       </div>
     </div>
-  );
+  )
 }
 
 function JdSeniorityHint({ text }: { text: string }) {
-  const analysis = useMemo(() => analyzeJdSeniority(text), [text]);
-  if (analysis.level === 'unspecified' && analysis.signals.length === 0) return null;
+  const analysis = useMemo(() => analyzeJdSeniority(text), [text])
+  if (analysis.level === 'unspecified' && analysis.signals.length === 0) return null
   return (
     <aside
       className={`jd-seniority-hint jd-seniority-hint--${analysis.tone}`}
@@ -407,12 +410,12 @@ function JdSeniorityHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdBiasHint({ text }: { text: string }) {
-  const report = useMemo(() => buildJdBiasReport(text), [text]);
-  if (report.totalCount === 0) return null;
+  const report = useMemo(() => buildJdBiasReport(text), [text])
+  if (report.totalCount === 0) return null
   return (
     <aside className={`jd-bias-hint jd-bias-hint--${report.tone}`} aria-label="채용공고 편향 신호">
       <div className="jd-bias-hint__head">
@@ -444,14 +447,14 @@ function JdBiasHint({ text }: { text: string }) {
         )}
       </ul>
     </aside>
-  );
+  )
 }
 
 function JdCompensationHint({ text }: { text: string }) {
-  const report = useMemo(() => buildJdCompensationReport(text), [text]);
-  if (text.trim().length < 30) return null;
-  const presentCount = report.categories.filter((c) => c.present).length;
-  if (presentCount === 0 && !report.salaryRangeText) return null;
+  const report = useMemo(() => buildJdCompensationReport(text), [text])
+  if (text.trim().length < 30) return null
+  const presentCount = report.categories.filter((c) => c.present).length
+  if (presentCount === 0 && !report.salaryRangeText) return null
   return (
     <aside
       className={`jd-comp-hint jd-comp-hint--${report.tone}`}
@@ -482,18 +485,18 @@ function JdCompensationHint({ text }: { text: string }) {
         ))}
       </ul>
     </aside>
-  );
+  )
 }
 
 function JdCultureHint({ text }: { text: string }) {
-  const report = useMemo(() => buildJdCultureReport(text), [text]);
-  const [expanded, setExpanded] = useState(false);
-  if (text.trim().length < 30) return null;
-  if (report.hits.length === 0 && report.concreteSignals === 0) return null;
+  const report = useMemo(() => buildJdCultureReport(text), [text])
+  const [expanded, setExpanded] = useState(false)
+  if (text.trim().length < 30) return null
+  if (report.hits.length === 0 && report.concreteSignals === 0) return null
 
-  const fill = Math.max(0.04, Math.min(1, report.specificityScore / 100));
-  const visibleHits = expanded ? report.hits : report.hits.slice(0, 2);
-  const remaining = report.hits.length - visibleHits.length;
+  const fill = Math.max(0.04, Math.min(1, report.specificityScore / 100))
+  const visibleHits = expanded ? report.hits : report.hits.slice(0, 2)
+  const remaining = report.hits.length - visibleHits.length
 
   return (
     <aside
@@ -566,19 +569,19 @@ function JdCultureHint({ text }: { text: string }) {
         </button>
       )}
     </aside>
-  );
+  )
 }
 
 function JdKeywordGapHint({ jdText, resumeText }: { jdText: string; resumeText: string }) {
-  const report = useMemo(() => buildJdKeywordGapReport(jdText, resumeText), [jdText, resumeText]);
-  const [expanded, setExpanded] = useState(false);
-  if (jdText.trim().length < 30) return null;
-  if (report.jdKeywords.length === 0) return null;
+  const report = useMemo(() => buildJdKeywordGapReport(jdText, resumeText), [jdText, resumeText])
+  const [expanded, setExpanded] = useState(false)
+  if (jdText.trim().length < 30) return null
+  if (report.jdKeywords.length === 0) return null
 
-  const fill = Math.max(0.04, Math.min(1, report.matchScore / 100));
+  const fill = Math.max(0.04, Math.min(1, report.matchScore / 100))
   const categories = (Object.keys(report.byCategory) as (keyof typeof report.byCategory)[]).filter(
-    (cat) => report.byCategory[cat].length > 0,
-  );
+    (cat) => report.byCategory[cat].length > 0
+  )
 
   return (
     <aside
@@ -608,8 +611,8 @@ function JdKeywordGapHint({ jdText, resumeText }: { jdText: string; resumeText: 
 
       {expanded &&
         categories.map((cat) => {
-          const items = report.byCategory[cat];
-          if (items.length === 0) return null;
+          const items = report.byCategory[cat]
+          if (items.length === 0) return null
           return (
             <div key={cat} className="jd-gap-hint__cat-group">
               <span className="jd-gap-hint__cat-label">{items[0]!.categoryLabel}</span>
@@ -624,7 +627,7 @@ function JdKeywordGapHint({ jdText, resumeText }: { jdText: string; resumeText: 
                 ))}
               </div>
             </div>
-          );
+          )
         })}
 
       {!expanded && report.missing.length > 0 && (
@@ -649,13 +652,13 @@ function JdKeywordGapHint({ jdText, resumeText }: { jdText: string; resumeText: 
         {expanded ? '접기' : '전체 키워드 보기'}
       </button>
     </aside>
-  );
+  )
 }
 
 function JdWorkModalityHint({ text }: { text: string }) {
-  const report = useMemo(() => buildWorkModalityReport(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.modality === 'unknown' && !report.relocationRequired) return null;
+  const report = useMemo(() => buildWorkModalityReport(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.modality === 'unknown' && !report.relocationRequired) return null
 
   const toneClass =
     report.modality === 'remote'
@@ -664,7 +667,7 @@ function JdWorkModalityHint({ text }: { text: string }) {
         ? 'neutral'
         : report.modality === 'onsite'
           ? 'warning'
-          : 'neutral';
+          : 'neutral'
 
   const icon =
     report.modality === 'remote'
@@ -675,7 +678,7 @@ function JdWorkModalityHint({ text }: { text: string }) {
           ? '🏢'
           : report.modality === 'flexible'
             ? '⏱'
-            : '❓';
+            : '❓'
 
   return (
     <aside
@@ -699,19 +702,19 @@ function JdWorkModalityHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdSalaryBenchmarkHint({ text }: { text: string }) {
-  const report = useMemo(() => buildSalaryBenchmarkReport(text), [text]);
-  const [showTips, setShowTips] = useState(false);
-  if (text.trim().length < 30) return null;
+  const report = useMemo(() => buildSalaryBenchmarkReport(text), [text])
+  const [showTips, setShowTips] = useState(false)
+  if (text.trim().length < 30) return null
 
   const toneClass = report.isBelowMarket
     ? 'warning'
     : report.jdRange && report.jdRange.max >= report.marketRange.max * 0.95
       ? 'good'
-      : 'neutral';
+      : 'neutral'
 
   return (
     <aside className={`jd-salary-hint jd-salary-hint--${toneClass}`} aria-label="연봉 벤치마크">
@@ -753,13 +756,13 @@ function JdSalaryBenchmarkHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdInterviewStrategyHint({ text }: { text: string }) {
-  const report = useMemo(() => buildInterviewStrategyReport(text), [text]);
-  const [expanded, setExpanded] = useState(false);
-  if (text.trim().length < 30) return null;
+  const report = useMemo(() => buildInterviewStrategyReport(text), [text])
+  const [expanded, setExpanded] = useState(false)
+  if (text.trim().length < 30) return null
 
   return (
     <aside className="jd-strategy-hint" aria-label="면접 전략 추천">
@@ -816,7 +819,7 @@ function JdInterviewStrategyHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -825,17 +828,17 @@ const CATEGORY_LABEL: Record<string, string> = {
   education: '학력',
   soft: '소프트',
   other: '기타',
-};
+}
 
 function JdRequirementsHint({ text }: { text: string }) {
-  const report = useMemo(() => buildJdRequirementsReport(text), [text]);
-  const [expanded, setExpanded] = useState(false);
-  if (text.trim().length < 30) return null;
-  if (!report.hasSections && report.requiredCount === 0 && report.preferredCount === 0) return null;
+  const report = useMemo(() => buildJdRequirementsReport(text), [text])
+  const [expanded, setExpanded] = useState(false)
+  if (text.trim().length < 30) return null
+  if (!report.hasSections && report.requiredCount === 0 && report.preferredCount === 0) return null
 
-  const hasPreferred = report.preferredCount > 0;
-  const visiblePreferred = expanded ? report.preferred : report.preferred.slice(0, 3);
-  const remaining = report.preferred.length - visiblePreferred.length;
+  const hasPreferred = report.preferredCount > 0
+  const visiblePreferred = expanded ? report.preferred : report.preferred.slice(0, 3)
+  const remaining = report.preferred.length - visiblePreferred.length
 
   return (
     <aside className="jd-req-hint" aria-label="채용공고 자격요건 분석">
@@ -898,15 +901,15 @@ function JdRequirementsHint({ text }: { text: string }) {
         </p>
       )}
     </aside>
-  );
+  )
 }
 
 function JdResumeMatchHint({ jdText, resumeText }: { jdText: string; resumeText: string }) {
-  const report = useMemo(() => buildJdResumeMatchReport(jdText, resumeText), [jdText, resumeText]);
-  if (jdText.trim().length < 30 || resumeText.trim().length < 50) return null;
-  if (report.coverageItems.length === 0) return null;
+  const report = useMemo(() => buildJdResumeMatchReport(jdText, resumeText), [jdText, resumeText])
+  if (jdText.trim().length < 30 || resumeText.trim().length < 50) return null
+  if (report.coverageItems.length === 0) return null
 
-  const fill = Math.max(0.04, report.matchScore / 100);
+  const fill = Math.max(0.04, report.matchScore / 100)
 
   return (
     <aside
@@ -956,28 +959,28 @@ function JdResumeMatchHint({ jdText, resumeText }: { jdText: string; resumeText:
         </p>
       )}
     </aside>
-  );
+  )
 }
 
 // ── JD Hiring Mode ──
 
 function JdHiringModeHint({ text }: { text: string }) {
-  const report = useMemo(() => detectHiringMode(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.mode === 'unclear') return null;
+  const report = useMemo(() => detectHiringMode(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.mode === 'unclear') return null
 
   const toneMap: Record<string, string> = {
     batch: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700',
     rolling: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700',
     mixed: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700',
     unclear: '',
-  };
+  }
   const labelMap: Record<string, string> = {
     batch: 'text-blue-700 dark:text-blue-300',
     rolling: 'text-emerald-700 dark:text-emerald-300',
     mixed: 'text-amber-700 dark:text-amber-300',
     unclear: '',
-  };
+  }
 
   return (
     <aside
@@ -1017,39 +1020,39 @@ function JdHiringModeHint({ text }: { text: string }) {
         ))}
       </ul>
     </aside>
-  );
+  )
 }
 
 // ── JD Red Flag ──
 
 function JdRedFlagHint({ text }: { text: string }) {
-  const report = useMemo(() => detectJdRedFlags(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.riskLevel === 'clean') return null;
+  const report = useMemo(() => detectJdRedFlags(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.riskLevel === 'clean') return null
 
   const containerClass =
     report.riskLevel === 'high'
       ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
       : report.riskLevel === 'moderate'
         ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
-        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
 
   const badgeClass =
     report.riskLevel === 'high'
       ? 'text-rose-700 dark:text-rose-300'
       : report.riskLevel === 'moderate'
         ? 'text-amber-700 dark:text-amber-300'
-        : 'text-neutral-500';
+        : 'text-neutral-500'
 
   const riskLabel =
-    report.riskLevel === 'high' ? '⚠ 고위험' : report.riskLevel === 'moderate' ? '주의' : '참고';
+    report.riskLevel === 'high' ? '⚠ 고위험' : report.riskLevel === 'moderate' ? '주의' : '참고'
 
   const severityChipClass = (sev: string) =>
     sev === 'high'
       ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300'
       : sev === 'medium'
         ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'
-        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300';
+        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
 
   return (
     <aside
@@ -1077,39 +1080,39 @@ function JdRedFlagHint({ text }: { text: string }) {
         ))}
       </ul>
     </aside>
-  );
+  )
 }
 
 // ── JD Tech Obsolescence ──
 
 function JdTechObsolescenceHint({ text }: { text: string }) {
-  const report = useMemo(() => detectJdTechObsolescence(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.risk === 'none') return null;
+  const report = useMemo(() => detectJdTechObsolescence(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.risk === 'none') return null
 
   const containerClass =
     report.risk === 'high'
       ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
       : report.risk === 'moderate'
         ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
-        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
 
   const badgeClass =
     report.risk === 'high'
       ? 'text-rose-700 dark:text-rose-300'
       : report.risk === 'moderate'
         ? 'text-amber-700 dark:text-amber-300'
-        : 'text-neutral-500';
+        : 'text-neutral-500'
 
   const levelChipClass = (level: string) =>
     level === 'eol'
       ? 'bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300'
       : level === 'declining'
         ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300'
-        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300';
+        : 'bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300'
 
   const riskLabel =
-    report.risk === 'high' ? '⚠ 고위험' : report.risk === 'moderate' ? '주의' : '참고';
+    report.risk === 'high' ? '⚠ 고위험' : report.risk === 'moderate' ? '주의' : '참고'
 
   return (
     <aside
@@ -1137,32 +1140,32 @@ function JdTechObsolescenceHint({ text }: { text: string }) {
         ))}
       </ul>
     </aside>
-  );
+  )
 }
 
 // ── JD Company Stage ──
 
 function JdWorkLifeBalanceHint({ text }: { text: string }) {
-  const report = useMemo(() => analyzeJdWorkLifeBalance(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.rating === 'excellent') return null;
+  const report = useMemo(() => analyzeJdWorkLifeBalance(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.rating === 'excellent') return null
 
   const containerClass =
     report.rating === 'concern'
       ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
       : report.rating === 'neutral'
         ? 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
-        : 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700';
+        : 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700'
 
   const badgeClass =
     report.rating === 'concern'
       ? 'text-rose-700 dark:text-rose-300'
       : report.rating === 'neutral'
         ? 'text-neutral-500'
-        : 'text-sky-700 dark:text-sky-300';
+        : 'text-sky-700 dark:text-sky-300'
 
   const ratingLabel =
-    report.rating === 'concern' ? '주의' : report.rating === 'neutral' ? '미언급' : '보통';
+    report.rating === 'concern' ? '주의' : report.rating === 'neutral' ? '미언급' : '보통'
 
   return (
     <aside className={`rounded-lg border p-3 text-sm ${containerClass}`} aria-label="워라밸 분석">
@@ -1193,35 +1196,35 @@ function JdWorkLifeBalanceHint({ text }: { text: string }) {
         </div>
       )}
     </aside>
-  );
+  )
 }
 
 function JdCultureVaguenessHint({ text }: { text: string }) {
-  const report = useMemo(() => detectJdCultureVagueness(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.clarity === 'concrete') return null;
-  if (report.vagueCount === 0 && report.concreteCount === 0) return null;
+  const report = useMemo(() => detectJdCultureVagueness(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.clarity === 'concrete') return null
+  if (report.vagueCount === 0 && report.concreteCount === 0) return null
 
   const containerClass =
     report.riskLevel === 'high'
       ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
       : report.riskLevel === 'medium'
         ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
-        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
 
   const badgeClass =
     report.riskLevel === 'high'
       ? 'text-rose-700 dark:text-rose-300'
       : report.riskLevel === 'medium'
         ? 'text-amber-700 dark:text-amber-300'
-        : 'text-neutral-500';
+        : 'text-neutral-500'
 
   const clarityLabel: Record<string, string> = {
     concrete: '구체적',
     mixed: '혼재',
     vague: '모호',
     none: '미언급',
-  };
+  }
 
   return (
     <aside
@@ -1258,34 +1261,34 @@ function JdCultureVaguenessHint({ text }: { text: string }) {
         </div>
       )}
     </aside>
-  );
+  )
 }
 
 function JdSalaryTransparencyHint({ text }: { text: string }) {
-  const report = useMemo(() => analyzeJdSalaryTransparency(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.transparency === 'transparent') return null;
+  const report = useMemo(() => analyzeJdSalaryTransparency(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.transparency === 'transparent') return null
 
   const containerClass =
     report.transparency === 'silent'
       ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700'
       : report.transparency === 'opaque'
         ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
-        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
 
   const badgeClass =
     report.transparency === 'silent'
       ? 'text-rose-700 dark:text-rose-300'
       : report.transparency === 'opaque'
         ? 'text-amber-700 dark:text-amber-300'
-        : 'text-sky-700 dark:text-sky-300';
+        : 'text-sky-700 dark:text-sky-300'
 
   const transparencyLabel: Record<string, string> = {
     transparent: '공개',
     partial: '부분 공개',
     opaque: '모호',
     silent: '미공개',
-  };
+  }
 
   return (
     <aside
@@ -1324,34 +1327,34 @@ function JdSalaryTransparencyHint({ text }: { text: string }) {
         </div>
       )}
     </aside>
-  );
+  )
 }
 
 function JdBenefitsSpecificityHint({ text }: { text: string }) {
-  const report = useMemo(() => analyzeJdBenefitsSpecificity(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.clarity === 'absent') return null;
+  const report = useMemo(() => analyzeJdBenefitsSpecificity(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.clarity === 'absent') return null
 
   const containerClass =
     report.clarity === 'detailed'
       ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700'
       : report.clarity === 'vague'
         ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
-        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700';
+        : 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
 
   const badgeClass =
     report.clarity === 'detailed'
       ? 'text-emerald-700 dark:text-emerald-300'
       : report.clarity === 'vague'
         ? 'text-amber-700 dark:text-amber-300'
-        : 'text-sky-700 dark:text-sky-300';
+        : 'text-sky-700 dark:text-sky-300'
 
   const clarityLabel: Record<string, string> = {
     detailed: '구체적',
     partial: '부분',
     vague: '모호',
     absent: '미공개',
-  };
+  }
 
   return (
     <aside
@@ -1388,23 +1391,23 @@ function JdBenefitsSpecificityHint({ text }: { text: string }) {
         </div>
       )}
     </aside>
-  );
+  )
 }
 
 function JdStatutoryBenefitsHint({ text }: { text: string }) {
-  const report = useMemo(() => detectJdStatutoryBenefits(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.padding === 'none' || report.padding === 'genuine') return null;
+  const report = useMemo(() => detectJdStatutoryBenefits(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.padding === 'none' || report.padding === 'genuine') return null
 
   const PADDING_LABEL: Record<string, string> = {
     padded: '법정 항목 위주',
     mixed: '법정+실질 혼합',
-  };
+  }
   const cardColor =
-    report.padding === 'padded' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50';
-  const textColor = report.padding === 'padded' ? 'text-amber-800' : 'text-sky-800';
+    report.padding === 'padded' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50'
+  const textColor = report.padding === 'padded' ? 'text-amber-800' : 'text-sky-800'
   const badgeColor =
-    report.padding === 'padded' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800';
+    report.padding === 'padded' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'
 
   return (
     <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="복지 실질성 분석">
@@ -1429,13 +1432,13 @@ function JdStatutoryBenefitsHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdInterviewComplexityHint({ text }: { text: string }) {
-  const report = useMemo(() => estimateJdInterviewComplexity(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.difficulty === 'entry' && report.signalCount === 0) return null;
+  const report = useMemo(() => estimateJdInterviewComplexity(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.difficulty === 'entry' && report.signalCount === 0) return null
 
   const difficultyColor: Record<string, string> = {
     expert: 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700',
@@ -1443,21 +1446,21 @@ function JdInterviewComplexityHint({ text }: { text: string }) {
     mid: 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700',
     junior: 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700',
     entry: 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700',
-  };
+  }
   const badgeColor: Record<string, string> = {
     expert: 'text-rose-700 dark:text-rose-300',
     senior: 'text-amber-700 dark:text-amber-300',
     mid: 'text-sky-700 dark:text-sky-300',
     junior: 'text-neutral-500',
     entry: 'text-neutral-500',
-  };
+  }
   const difficultyLabel: Record<string, string> = {
     expert: '최상급',
     senior: '시니어',
     mid: '미드레벨',
     junior: '주니어',
     entry: '신입',
-  };
+  }
 
   return (
     <aside
@@ -1498,13 +1501,13 @@ function JdInterviewComplexityHint({ text }: { text: string }) {
         </div>
       )}
     </aside>
-  );
+  )
 }
 
 function JdRequiredVsPreferredHint({ text }: { text: string }) {
-  const report = useMemo(() => parseJdRequiredVsPreferred(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.requiredCount === 0 && report.preferredCount === 0) return null;
+  const report = useMemo(() => parseJdRequiredVsPreferred(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.requiredCount === 0 && report.preferredCount === 0) return null
 
   return (
     <aside
@@ -1554,26 +1557,26 @@ function JdRequiredVsPreferredHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdRemoteWorkPolicyHint({ text }: { text: string }) {
-  const report = useMemo(() => extractJdRemoteWorkPolicy(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.arrangement === 'unclear') return null;
+  const report = useMemo(() => extractJdRemoteWorkPolicy(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.arrangement === 'unclear') return null
 
   const ARRANGEMENT_LABEL: Record<string, string> = {
     fully_remote: '풀 리모트',
     hybrid: '하이브리드',
     on_site: '전면 출근',
     flexible: '자율 근무지',
-  };
+  }
   const ARRANGEMENT_COLOR: Record<string, string> = {
     fully_remote: 'bg-emerald-100 text-emerald-800',
     hybrid: 'bg-sky-100 text-sky-800',
     on_site: 'bg-amber-100 text-amber-800',
     flexible: 'bg-cyan-100 text-cyan-800',
-  };
+  }
 
   return (
     <aside
@@ -1608,36 +1611,36 @@ function JdRemoteWorkPolicyHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdApplicationUrgencyHint({ text }: { text: string }) {
-  const report = useMemo(() => detectJdApplicationUrgency(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.level === 'unspecified') return null;
+  const report = useMemo(() => detectJdApplicationUrgency(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.level === 'unspecified') return null
 
   const LEVEL_LABEL: Record<string, string> = {
     urgent: '긴급',
     deadline_fixed: '마감일 지정',
     rolling: '상시채용',
-  };
+  }
   const LEVEL_COLOR: Record<string, string> = {
     urgent: 'bg-rose-100 text-rose-800',
     deadline_fixed: 'bg-amber-100 text-amber-800',
     rolling: 'bg-sky-100 text-sky-800',
-  };
+  }
   const cardColor =
     report.level === 'urgent'
       ? 'border-rose-200 bg-rose-50'
       : report.level === 'deadline_fixed'
         ? 'border-amber-200 bg-amber-50'
-        : 'border-sky-200 bg-sky-50';
+        : 'border-sky-200 bg-sky-50'
   const textColor =
     report.level === 'urgent'
       ? 'text-rose-800'
       : report.level === 'deadline_fixed'
         ? 'text-amber-800'
-        : 'text-sky-800';
+        : 'text-sky-800'
 
   return (
     <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="지원 마감/긴급도">
@@ -1666,20 +1669,20 @@ function JdApplicationUrgencyHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdPostingCompletenessHint({ text }: { text: string }) {
-  const report = useMemo(() => checkJdPostingCompleteness(text), [text]);
-  if (text.trim().length < 40) return null;
+  const report = useMemo(() => checkJdPostingCompleteness(text), [text])
+  if (text.trim().length < 40) return null
   // Only surface when the posting is missing something worth flagging.
-  if (report.grade === 'complete') return null;
+  if (report.grade === 'complete') return null
 
   const GRADE_LABEL: Record<string, string> = {
     good: '일부 누락',
     partial: '정보 부족',
     sparse: '정보 부실',
-  };
+  }
   const SECTION_LABEL: Record<string, string> = {
     responsibilities: '담당업무',
     qualifications: '자격요건',
@@ -1687,17 +1690,17 @@ function JdPostingCompletenessHint({ text }: { text: string }) {
     preferred: '우대사항',
     benefits: '복리후생',
     process: '전형절차',
-  };
+  }
   const cardColor =
     report.grade === 'sparse' || report.grade === 'partial'
       ? 'border-amber-200 bg-amber-50'
-      : 'border-sky-200 bg-sky-50';
+      : 'border-sky-200 bg-sky-50'
   const textColor =
-    report.grade === 'sparse' || report.grade === 'partial' ? 'text-amber-800' : 'text-sky-800';
+    report.grade === 'sparse' || report.grade === 'partial' ? 'text-amber-800' : 'text-sky-800'
   const badgeColor =
     report.grade === 'sparse' || report.grade === 'partial'
       ? 'bg-amber-100 text-amber-800'
-      : 'bg-sky-100 text-sky-800';
+      : 'bg-sky-100 text-sky-800'
 
   return (
     <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="공고 완성도">
@@ -1734,23 +1737,23 @@ function JdPostingCompletenessHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdResponsibilityVaguenessHint({ text }: { text: string }) {
-  const report = useMemo(() => detectJdResponsibilityVagueness(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.clarity === 'clear') return null;
+  const report = useMemo(() => detectJdResponsibilityVagueness(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.clarity === 'clear') return null
 
   const CLARITY_LABEL: Record<string, string> = {
     some: '범위 확인 필요',
     vague: '범위 불명확',
-  };
+  }
   const cardColor =
-    report.clarity === 'vague' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50';
-  const textColor = report.clarity === 'vague' ? 'text-amber-800' : 'text-sky-800';
+    report.clarity === 'vague' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50'
+  const textColor = report.clarity === 'vague' ? 'text-amber-800' : 'text-sky-800'
   const badgeColor =
-    report.clarity === 'vague' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800';
+    report.clarity === 'vague' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'
 
   return (
     <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="담당업무 모호성">
@@ -1772,13 +1775,13 @@ function JdResponsibilityVaguenessHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdHiringProcessHint({ text }: { text: string }) {
-  const report = useMemo(() => extractJdHiringProcess(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.clarity === 'none') return null;
+  const report = useMemo(() => extractJdHiringProcess(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.clarity === 'none') return null
 
   return (
     <aside
@@ -1815,25 +1818,25 @@ function JdHiringProcessHint({ text }: { text: string }) {
         </ul>
       )}
     </aside>
-  );
+  )
 }
 
 function JdTeamStructureHint({ text }: { text: string }) {
-  const report = useMemo(() => analyzeJdTeamStructure(text), [text]);
-  if (text.trim().length < 30) return null;
+  const report = useMemo(() => analyzeJdTeamStructure(text), [text])
+  if (text.trim().length < 30) return null
   // Only surface when info is missing (opaque/partial); detailed needs no nudge.
-  if (report.clarity === 'detailed') return null;
-  if (report.questions.length === 0) return null;
+  if (report.clarity === 'detailed') return null
+  if (report.questions.length === 0) return null
 
   const CLARITY_LABEL: Record<string, string> = {
     partial: '일부 명시',
     opaque: '정보 부족',
-  };
+  }
   const cardColor =
-    report.clarity === 'opaque' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50';
-  const textColor = report.clarity === 'opaque' ? 'text-amber-800' : 'text-sky-800';
+    report.clarity === 'opaque' ? 'border-amber-200 bg-amber-50' : 'border-sky-200 bg-sky-50'
+  const textColor = report.clarity === 'opaque' ? 'text-amber-800' : 'text-sky-800'
   const badgeColor =
-    report.clarity === 'opaque' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800';
+    report.clarity === 'opaque' ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800'
 
   return (
     <aside className={`rounded-xl border p-4 text-sm ${cardColor}`} aria-label="팀 구조 명확성">
@@ -1854,13 +1857,13 @@ function JdTeamStructureHint({ text }: { text: string }) {
         ))}
       </ul>
     </aside>
-  );
+  )
 }
 
 function JdCompanyStageHint({ text }: { text: string }) {
-  const report = useMemo(() => detectCompanyStage(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.stage === 'unclear') return null;
+  const report = useMemo(() => detectCompanyStage(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.stage === 'unclear') return null
 
   const stageColor: Record<string, string> = {
     startup: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700',
@@ -1868,14 +1871,14 @@ function JdCompanyStageHint({ text }: { text: string }) {
     enterprise: 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700',
     foreign: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700',
     public: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700',
-  };
+  }
   const stageLabel: Record<string, string> = {
     startup: 'text-emerald-700 dark:text-emerald-300',
     scaleup: 'text-sky-700 dark:text-sky-300',
     enterprise: 'text-neutral-600 dark:text-neutral-300',
     foreign: 'text-blue-700 dark:text-blue-300',
     public: 'text-amber-700 dark:text-amber-300',
-  };
+  }
 
   return (
     <aside
@@ -1912,32 +1915,32 @@ function JdCompanyStageHint({ text }: { text: string }) {
         ))}
       </ul>
     </aside>
-  );
+  )
 }
 
 // ── JD Growth Opportunity ──
 
 function JdGrowthOpportunityHint({ text }: { text: string }) {
-  const report = useMemo(() => analyzeJdGrowthOpportunity(text), [text]);
-  if (text.trim().length < 30) return null;
-  if (report.rating === 'rich') return null;
+  const report = useMemo(() => analyzeJdGrowthOpportunity(text), [text])
+  if (text.trim().length < 30) return null
+  if (report.rating === 'rich') return null
 
   const containerClass =
     report.rating === 'none'
       ? 'bg-neutral-50 dark:bg-neutral-800/40 border-neutral-200 dark:border-neutral-700'
       : report.rating === 'sparse'
         ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700'
-        : 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700';
+        : 'bg-sky-50 dark:bg-sky-900/20 border-sky-200 dark:border-sky-700'
 
   const badgeClass =
     report.rating === 'none'
       ? 'text-neutral-500'
       : report.rating === 'sparse'
         ? 'text-amber-700 dark:text-amber-300'
-        : 'text-sky-700 dark:text-sky-300';
+        : 'text-sky-700 dark:text-sky-300'
 
   const ratingLabel =
-    report.rating === 'none' ? '미언급' : report.rating === 'sparse' ? '부족' : '보통';
+    report.rating === 'none' ? '미언급' : report.rating === 'sparse' ? '부족' : '보통'
 
   const typeIcon: Record<string, string> = {
     learning_budget: '📚',
@@ -1948,7 +1951,7 @@ function JdGrowthOpportunityHint({ text }: { text: string }) {
     global_exposure: '🌏',
     ownership: '🔑',
     cross_functional: '🤝',
-  };
+  }
 
   return (
     <aside
@@ -1985,28 +1988,28 @@ function JdGrowthOpportunityHint({ text }: { text: string }) {
         </div>
       )}
     </aside>
-  );
+  )
 }
 
 // ── Answer Quick Score (heuristic, zero-cost) ──
 
 function AnswerQuickScore({ text }: { text: string }) {
-  const analysis = useMemo(() => analyzeAnswerHeuristic(text), [text]);
-  if (text.length < 30) return null;
+  const analysis = useMemo(() => analyzeAnswerHeuristic(text), [text])
+  if (text.length < 30) return null
 
   const STAR_KEYS = [
     { key: 'situation', label: 'S' },
     { key: 'task', label: 'T' },
     { key: 'action', label: 'A' },
     { key: 'result', label: 'R' },
-  ] as const;
+  ] as const
 
   const scoreColor =
     analysis.score >= 75
       ? 'text-emerald-600 dark:text-emerald-400'
       : analysis.score >= 50
         ? 'text-amber-600 dark:text-amber-400'
-        : 'text-rose-600 dark:text-rose-400';
+        : 'text-rose-600 dark:text-rose-400'
 
   return (
     <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
@@ -2035,145 +2038,145 @@ function AnswerQuickScore({ text }: { text: string }) {
         </span>
       )}
     </div>
-  );
+  )
 }
 
 // ── Main Component ──
 
 export default function InterviewPrepPage() {
-  const [searchParams] = useSearchParams();
-  const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '');
+  const [searchParams] = useSearchParams()
+  const [selectedResumeId, setSelectedResumeId] = useState(searchParams.get('resumeId') || '')
   const [jobRole, setJobRole] = useState(
-    searchParams.get('position') || searchParams.get('jobRole') || '',
-  );
-  const [jobDescription, setJobDescription] = useState('');
-  const [difficulty, setDifficulty] = useState<Difficulty>('intermediate');
-  const [showJobSelect, setShowJobSelect] = useState(false);
-  const [categoryFilter, setCategoryFilter] = useState<Category>('전체');
-  const [jobFieldFilter, setJobFieldFilter] = useState<JobField>('전체');
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [revealedIdx, setRevealedIdx] = useState<Set<number>>(new Set());
-  const [viewMode, setViewMode] = useState<ViewMode>('setup');
+    searchParams.get('position') || searchParams.get('jobRole') || ''
+  )
+  const [jobDescription, setJobDescription] = useState('')
+  const [difficulty, setDifficulty] = useState<Difficulty>('intermediate')
+  const [showJobSelect, setShowJobSelect] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState<Category>('전체')
+  const [jobFieldFilter, setJobFieldFilter] = useState<JobField>('전체')
+  const [questions, setQuestions] = useState<Question[]>([])
+  const [loading, setLoading] = useState(false)
+  const [revealedIdx, setRevealedIdx] = useState<Set<number>>(new Set())
+  const [viewMode, setViewMode] = useState<ViewMode>('setup')
 
   // User answers
-  const [userAnswers, setUserAnswers] = useState<Record<string, string>>(loadJSON(STORAGE_KEY, {}));
-  const [editingIdx, setEditingIdx] = useState<number | null>(null);
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>(loadJSON(STORAGE_KEY, {}))
+  const [editingIdx, setEditingIdx] = useState<number | null>(null)
 
   // Favorites
   const [favorites, setFavorites] = useState<Set<string>>(
-    new Set(loadJSON<string[]>(FAVORITES_KEY, [])),
-  );
+    new Set(loadJSON<string[]>(FAVORITES_KEY, []))
+  )
 
   // Custom questions
   const [customQuestions, setCustomQuestions] = useState<Question[]>(
-    loadJSON(CUSTOM_QUESTIONS_KEY, []),
-  );
-  const [showCustomInput, setShowCustomInput] = useState(false);
-  const [customQuestionText, setCustomQuestionText] = useState('');
-  const [customQuestionCategory, setCustomQuestionCategory] = useState<Category>('기술');
+    loadJSON(CUSTOM_QUESTIONS_KEY, [])
+  )
+  const [showCustomInput, setShowCustomInput] = useState(false)
+  const [customQuestionText, setCustomQuestionText] = useState('')
+  const [customQuestionCategory, setCustomQuestionCategory] = useState<Category>('기술')
 
   // Answer history
   const [answerHistory] = useState<Record<string, { answer: string; date: string }[]>>(
-    loadJSON(ANSWER_HISTORY_KEY, {}),
-  );
-  const [showHistoryFor, setShowHistoryFor] = useState<string | null>(null);
+    loadJSON(ANSWER_HISTORY_KEY, {})
+  )
+  const [showHistoryFor, setShowHistoryFor] = useState<string | null>(null)
 
   // Timer (for list mode)
-  const [timerActive, setTimerActive] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [timerDuration, setTimerDuration] = useState(120);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [timerActive, setTimerActive] = useState(false)
+  const [timerSeconds, setTimerSeconds] = useState(0)
+  const [timerDuration, setTimerDuration] = useState(120)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // ── Mock Interview State ──
-  const [mockCurrentIdx, setMockCurrentIdx] = useState(0);
-  const [mockAnswer, setMockAnswer] = useState('');
-  const [mockTimerSeconds, setMockTimerSeconds] = useState(0);
-  const [mockTimerActive, setMockTimerActive] = useState(false);
-  const [mockTimerDuration, setMockTimerDuration] = useState(120);
-  const [mockResults, setMockResults] = useState<QuestionResult[]>([]);
-  const [mockEvaluating, setMockEvaluating] = useState(false);
-  const [mockCurrentEval, setMockCurrentEval] = useState<EvaluationResult | null>(null);
-  const [mockShowFeedback, setMockShowFeedback] = useState(false);
-  const mockTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const mockTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const [mockCurrentIdx, setMockCurrentIdx] = useState(0)
+  const [mockAnswer, setMockAnswer] = useState('')
+  const [mockTimerSeconds, setMockTimerSeconds] = useState(0)
+  const [mockTimerActive, setMockTimerActive] = useState(false)
+  const [mockTimerDuration, setMockTimerDuration] = useState(120)
+  const [mockResults, setMockResults] = useState<QuestionResult[]>([])
+  const [mockEvaluating, setMockEvaluating] = useState(false)
+  const [mockCurrentEval, setMockCurrentEval] = useState<EvaluationResult | null>(null)
+  const [mockShowFeedback, setMockShowFeedback] = useState(false)
+  const mockTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const mockTextareaRef = useRef<HTMLTextAreaElement>(null)
 
   // ── Report State ──
-  const [currentReport, setCurrentReport] = useState<InterviewReport | null>(null);
-  const [savedReports, setSavedReports] = useState<InterviewReport[]>(loadJSON(REPORTS_KEY, []));
+  const [currentReport, setCurrentReport] = useState<InterviewReport | null>(null)
+  const [savedReports, setSavedReports] = useState<InterviewReport[]>(loadJSON(REPORTS_KEY, []))
 
   // ── AI 깊이 분석 (LLM endpoint, save=true 로 score history 누적) ──
-  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false)
   const [aiAnalysis, setAiAnalysis] = useState<{
-    overallScore: number;
-    strengths: string[];
-    weaknesses: string[];
-    improvements: string[];
-    rewrittenAnswer: string;
-    starBreakdown: { situation: string; task: string; action: string; result: string };
-  } | null>(null);
+    overallScore: number
+    strengths: string[]
+    weaknesses: string[]
+    improvements: string[]
+    rewrittenAnswer: string
+    starBreakdown: { situation: string; task: string; action: string; result: string }
+  } | null>(null)
 
   const runAiAnalysis = async (question: string, answer: string) => {
-    if (!answer.trim()) return;
-    setAiAnalyzing(true);
-    setAiAnalysis(null);
+    if (!answer.trim()) return
+    setAiAnalyzing(true)
+    setAiAnalysis(null)
     try {
       const result = await analyzeInterviewAnswer({
         question,
         answer,
         jobRole: jobRole || undefined,
         save: true,
-      });
-      setAiAnalysis(result);
-      toast(`AI 분석 완료 — ${result.overallScore}점`, 'success');
+      })
+      setAiAnalysis(result)
+      toast(`AI 분석 완료 — ${result.overallScore}점`, 'success')
     } catch (err: unknown) {
-      toast(getErrorMessage(err, 'AI 분석 실패'), 'error');
+      toast(getErrorMessage(err, 'AI 분석 실패'), 'error')
     } finally {
-      setAiAnalyzing(false);
+      setAiAnalyzing(false)
     }
-  };
+  }
 
   // ── Related study groups (cross-feature recommendation) ──
-  const selectedResumeQuery = useResume(selectedResumeId || undefined);
+  const selectedResumeQuery = useResume(selectedResumeId || undefined)
   const selectedResumeDetail: Resume | null =
-    (selectedResumeQuery.data as Resume | undefined) ?? null;
+    (selectedResumeQuery.data as Resume | undefined) ?? null
 
   const resumeTextForGap = useMemo(
     () => buildResumePlainText(selectedResumeDetail),
-    [selectedResumeDetail],
-  );
+    [selectedResumeDetail]
+  )
 
   const recommendationContext = useMemo(() => {
-    const latestExperience = selectedResumeDetail?.experiences?.find((e) => e.company?.trim());
-    const companyFromResume = latestExperience?.company?.trim() || '';
-    const positionFromResume = latestExperience?.position?.trim() || '';
+    const latestExperience = selectedResumeDetail?.experiences?.find((e) => e.company?.trim())
+    const companyFromResume = latestExperience?.company?.trim() || ''
+    const positionFromResume = latestExperience?.position?.trim() || ''
     return {
       companyName: companyFromResume,
       position: jobRole.trim() || positionFromResume,
-    };
-  }, [selectedResumeDetail, jobRole]);
+    }
+  }, [selectedResumeDetail, jobRole])
 
-  const resumesQuery = useResumes();
+  const resumesQuery = useResumes()
   const jobsQuery = usePublicGet<InterviewJobsResponse>(['interview-prep-jobs'], '/api/jobs', {
     staleTime: 60_000,
-  });
+  })
   const resumes = useMemo<ResumeSummary[]>(
     () => (resumesQuery.data ? (resumesQuery.data as ResumeSummary[]) : []),
-    [resumesQuery.data],
-  );
+    [resumesQuery.data]
+  )
   const jobPosts = useMemo<InterviewJobPost[]>(() => {
-    const d = jobsQuery.data;
-    if (!d) return [];
-    const items = Array.isArray(d) ? d : d.items || d.data || [];
-    return items.slice(0, 30);
-  }, [jobsQuery.data]);
+    const d = jobsQuery.data
+    if (!d) return []
+    const items = Array.isArray(d) ? d : d.items || d.data || []
+    return items.slice(0, 30)
+  }, [jobsQuery.data])
 
   useEffect(() => {
-    document.title = '면접 준비 — 이력서공방';
+    document.title = '면접 준비 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   // List mode timer
   useEffect(() => {
@@ -2181,21 +2184,21 @@ export default function InterviewPrepPage() {
       timerRef.current = setInterval(() => {
         setTimerSeconds((prev) => {
           if (prev >= timerDuration) {
-            setTimerActive(false);
-            toast('시간이 종료되었습니다!', 'warning');
-            return 0;
+            setTimerActive(false)
+            toast('시간이 종료되었습니다!', 'warning')
+            return 0
           }
-          return prev + 1;
-        });
-      }, 1000);
+          return prev + 1
+        })
+      }, 1000)
     } else if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
+      clearInterval(timerRef.current)
+      timerRef.current = null
     }
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [timerActive, timerDuration]);
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [timerActive, timerDuration])
 
   // Mock timer
   useEffect(() => {
@@ -2203,96 +2206,98 @@ export default function InterviewPrepPage() {
       mockTimerRef.current = setInterval(() => {
         setMockTimerSeconds((prev) => {
           if (prev >= mockTimerDuration) {
-            setMockTimerActive(false);
-            toast('시간이 종료되었습니다! 답변을 제출해주세요.', 'warning');
-            return mockTimerDuration;
+            setMockTimerActive(false)
+            toast('시간이 종료되었습니다! 답변을 제출해주세요.', 'warning')
+            return mockTimerDuration
           }
-          return prev + 1;
-        });
-      }, 1000);
+          return prev + 1
+        })
+      }, 1000)
     } else if (mockTimerRef.current) {
-      clearInterval(mockTimerRef.current);
-      mockTimerRef.current = null;
+      clearInterval(mockTimerRef.current)
+      mockTimerRef.current = null
     }
     return () => {
-      if (mockTimerRef.current) clearInterval(mockTimerRef.current);
-    };
-  }, [mockTimerActive, mockTimerDuration]);
+      if (mockTimerRef.current) clearInterval(mockTimerRef.current)
+    }
+  }, [mockTimerActive, mockTimerDuration])
 
   const difficultyLabels: Record<Difficulty, string> = {
     beginner: tx('interview.difficulty.beginner'),
     intermediate: tx('interview.difficulty.intermediate'),
     advanced: tx('interview.difficulty.advanced'),
-  };
+  }
 
   const difficultyDescriptions: Record<Difficulty, string> = {
     beginner: '기본적인 개념과 자기소개 중심',
     intermediate: '실무 경험과 문제 해결 중심',
     advanced: '심층 기술 및 리더십 역량 중심',
-  };
+  }
 
-  const categories: Category[] = ['전체', '기술', '행동', '상황', '인성'];
-  const jobFields: JobField[] = ['전체', '개발', '디자인', '기획', '마케팅', '데이터', '기타'];
+  const categories: Category[] = ['전체', '기술', '행동', '상황', '인성']
+  const jobFields: JobField[] = ['전체', '개발', '디자인', '기획', '마케팅', '데이터', '기타']
 
   const classifyCategory = (q: string): Category => {
-    if (/기술|코드|구현|아키텍처|설계|프레임워크|언어|알고리즘|데이터|시스템/.test(q))
-      return '기술';
-    if (/경험|했던|상황|프로젝트에서|팀에서|갈등|실패|성공/.test(q)) return '행동';
-    if (/만약|가정|어떻게.*할|상황이.*라면|대처/.test(q)) return '상황';
-    if (/가치관|동기|목표|장단점|성격|왜.*지원|비전/.test(q)) return '인성';
-    return '기술';
-  };
+    if (/기술|코드|구현|아키텍처|설계|프레임워크|언어|알고리즘|데이터|시스템/.test(q)) return '기술'
+    if (/경험|했던|상황|프로젝트에서|팀에서|갈등|실패|성공/.test(q)) return '행동'
+    if (/만약|가정|어떻게.*할|상황이.*라면|대처/.test(q)) return '상황'
+    if (/가치관|동기|목표|장단점|성격|왜.*지원|비전/.test(q)) return '인성'
+    return '기술'
+  }
 
   const classifyJobField = (q: string): JobField => {
-    if (/코드|개발|프로그래밍|API|서버|프론트엔드|백엔드|배포|테스트|디버깅/.test(q)) return '개발';
-    if (/디자인|UI|UX|프로토타입|와이어프레임|비주얼|색상/.test(q)) return '디자인';
-    if (/기획|PM|프로덕트|로드맵|요구사항|스프린트|백로그/.test(q)) return '기획';
-    if (/마케팅|광고|캠페인|SEO|콘텐츠|브랜드|소셜/.test(q)) return '마케팅';
-    if (/데이터|분석|ML|모델|통계|시각화|파이프라인/.test(q)) return '데이터';
-    return '기타';
-  };
+    if (/코드|개발|프로그래밍|API|서버|프론트엔드|백엔드|배포|테스트|디버깅/.test(q)) return '개발'
+    if (/디자인|UI|UX|프로토타입|와이어프레임|비주얼|색상/.test(q)) return '디자인'
+    if (/기획|PM|프로덕트|로드맵|요구사항|스프린트|백로그/.test(q)) return '기획'
+    if (/마케팅|광고|캠페인|SEO|콘텐츠|브랜드|소셜/.test(q)) return '마케팅'
+    if (/데이터|분석|ML|모델|통계|시각화|파이프라인/.test(q)) return '데이터'
+    return '기타'
+  }
 
   // ── Question Generation ──
 
   const handleGenerate = useCallback(async () => {
     if (!selectedResumeId) {
-      toast('이력서를 선택해주세요', 'warning');
-      return;
+      toast('이력서를 선택해주세요', 'warning')
+      return
     }
-    setLoading(true);
-    setQuestions([]);
-    setRevealedIdx(new Set());
-    setEditingIdx(null);
+    setLoading(true)
+    setQuestions([])
+    setRevealedIdx(new Set())
+    setEditingIdx(null)
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`${API_URL}/api/resumes/${selectedResumeId}/transform/interview`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          jobRole: jobRole || undefined,
-          difficulty,
-          jobDescription: jobDescription || undefined,
-        }),
-      });
-      if (!res.ok) throw new Error('생성에 실패했습니다');
-      const data = await res.json();
-      const text = data.text || data.data?.text || '';
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+      const res = await httpClient(
+        `${API_URL}/api/resumes/${selectedResumeId}/transform/interview`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            jobRole: jobRole || undefined,
+            difficulty,
+            jobDescription: jobDescription || undefined,
+          }),
+        }
+      )
+      if (!res.ok) throw new Error('생성에 실패했습니다')
+      const data = await res.json()
+      const text = data.text || data.data?.text || ''
       const parsed: Question[] = text
         .split(/\d+[.)]\s/)
         .filter(Boolean)
         .map((q: string) => {
-          const parts = q.split(/모범\s*답변|샘플\s*답변|답변\s*예시/i);
-          const question = parts[0]?.trim() || q.trim();
+          const parts = q.split(/모범\s*답변|샘플\s*답변|답변\s*예시/i)
+          const question = parts[0]?.trim() || q.trim()
           return {
             question,
             answer: parts[1]?.trim() || '',
             category: classifyCategory(question),
             jobField: classifyJobField(question),
             difficulty,
-          };
-        });
+          }
+        })
       const combined =
         parsed.length > 0
           ? parsed
@@ -2304,140 +2309,140 @@ export default function InterviewPrepPage() {
                 jobField: '기타' as JobField,
                 difficulty,
               },
-            ];
+            ]
       // Append custom questions
-      setQuestions([...combined, ...customQuestions]);
-      setViewMode('list');
-      toast('면접 질문이 생성되었습니다', 'success');
+      setQuestions([...combined, ...customQuestions])
+      setViewMode('list')
+      toast('면접 질문이 생성되었습니다', 'success')
     } catch (e: unknown) {
-      toast(getErrorMessage(e, '생성에 실패했습니다'), 'error');
+      toast(getErrorMessage(e, '생성에 실패했습니다'), 'error')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [selectedResumeId, jobRole, difficulty, jobDescription, customQuestions]);
+  }, [selectedResumeId, jobRole, difficulty, jobDescription, customQuestions])
 
   // ── Helpers ──
 
   const toggleReveal = (idx: number) => {
     setRevealedIdx((prev) => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
-  };
+      const next = new Set(prev)
+      if (next.has(idx)) next.delete(idx)
+      else next.add(idx)
+      return next
+    })
+  }
 
   const handleSaveAnswer = (questionKey: string, answer: string) => {
-    const updated = { ...userAnswers, [questionKey]: answer };
-    setUserAnswers(updated);
-    saveJSON(STORAGE_KEY, updated);
+    const updated = { ...userAnswers, [questionKey]: answer }
+    setUserAnswers(updated)
+    saveJSON(STORAGE_KEY, updated)
 
     // Save to history
     const history = loadJSON<Record<string, { answer: string; date: string }[]>>(
       ANSWER_HISTORY_KEY,
-      {},
-    );
-    if (!history[questionKey]) history[questionKey] = [];
-    history[questionKey].unshift({ answer, date: new Date().toISOString() });
-    if (history[questionKey].length > 10) history[questionKey] = history[questionKey].slice(0, 10);
-    saveJSON(ANSWER_HISTORY_KEY, history);
+      {}
+    )
+    if (!history[questionKey]) history[questionKey] = []
+    history[questionKey].unshift({ answer, date: new Date().toISOString() })
+    if (history[questionKey].length > 10) history[questionKey] = history[questionKey].slice(0, 10)
+    saveJSON(ANSWER_HISTORY_KEY, history)
 
-    setEditingIdx(null);
-    toast('답변이 저장되었습니다', 'success');
-  };
+    setEditingIdx(null)
+    toast('답변이 저장되었습니다', 'success')
+  }
 
   const getQuestionKey = (q: Question, idx: number) =>
-    `${selectedResumeId}-${idx}-${q.question.slice(0, 30)}`;
+    `${selectedResumeId}-${idx}-${q.question.slice(0, 30)}`
 
   const toggleFavorite = (questionKey: string) => {
     setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(questionKey)) next.delete(questionKey);
-      else next.add(questionKey);
-      saveJSON(FAVORITES_KEY, [...next]);
-      return next;
-    });
-  };
+      const next = new Set(prev)
+      if (next.has(questionKey)) next.delete(questionKey)
+      else next.add(questionKey)
+      saveJSON(FAVORITES_KEY, [...next])
+      return next
+    })
+  }
 
   const addCustomQuestion = () => {
-    if (!customQuestionText.trim()) return;
+    if (!customQuestionText.trim()) return
     const q: Question = {
       question: customQuestionText.trim(),
       answer: '',
       category: customQuestionCategory,
       jobField: classifyJobField(customQuestionText),
       difficulty: 'intermediate',
-    };
-    const updated = [...customQuestions, q];
-    setCustomQuestions(updated);
-    saveJSON(CUSTOM_QUESTIONS_KEY, updated);
-    setCustomQuestionText('');
-    setShowCustomInput(false);
-    toast('커스텀 질문이 추가되었습니다', 'success');
+    }
+    const updated = [...customQuestions, q]
+    setCustomQuestions(updated)
+    saveJSON(CUSTOM_QUESTIONS_KEY, updated)
+    setCustomQuestionText('')
+    setShowCustomInput(false)
+    toast('커스텀 질문이 추가되었습니다', 'success')
 
     // Add to current questions if already generated
     if (questions.length > 0) {
-      setQuestions((prev) => [...prev, q]);
+      setQuestions((prev) => [...prev, q])
     }
-  };
+  }
 
   const filteredQuestions = useMemo(() => {
-    let filtered = questions;
-    if (categoryFilter !== '전체') filtered = filtered.filter((q) => q.category === categoryFilter);
-    if (jobFieldFilter !== '전체') filtered = filtered.filter((q) => q.jobField === jobFieldFilter);
-    return filtered;
-  }, [questions, categoryFilter, jobFieldFilter]);
+    let filtered = questions
+    if (categoryFilter !== '전체') filtered = filtered.filter((q) => q.category === categoryFilter)
+    if (jobFieldFilter !== '전체') filtered = filtered.filter((q) => q.jobField === jobFieldFilter)
+    return filtered
+  }, [questions, categoryFilter, jobFieldFilter])
 
-  const answeredCount = questions.filter((q, i) => userAnswers[getQuestionKey(q, i)]).length;
+  const answeredCount = questions.filter((q, i) => userAnswers[getQuestionKey(q, i)]).length
 
   const startTimer = () => {
-    setTimerSeconds(0);
-    setTimerActive(true);
-  };
+    setTimerSeconds(0)
+    setTimerActive(true)
+  }
   const stopTimer = () => {
-    setTimerActive(false);
-    setTimerSeconds(0);
-  };
-  const timerProgress = timerDuration > 0 ? (timerSeconds / timerDuration) * 100 : 0;
+    setTimerActive(false)
+    setTimerSeconds(0)
+  }
+  const timerProgress = timerDuration > 0 ? (timerSeconds / timerDuration) * 100 : 0
 
   // ── Mock Interview Functions ──
 
   const startMockInterview = () => {
     if (questions.length === 0) {
-      toast('먼저 질문을 생성해주세요', 'warning');
-      return;
+      toast('먼저 질문을 생성해주세요', 'warning')
+      return
     }
-    setViewMode('mock');
-    setMockCurrentIdx(0);
-    setMockAnswer('');
-    setMockResults([]);
-    setMockCurrentEval(null);
-    setMockShowFeedback(false);
-    setMockTimerSeconds(0);
-    setMockTimerActive(true);
-    setTimeout(() => mockTextareaRef.current?.focus(), 100);
-  };
+    setViewMode('mock')
+    setMockCurrentIdx(0)
+    setMockAnswer('')
+    setMockResults([])
+    setMockCurrentEval(null)
+    setMockShowFeedback(false)
+    setMockTimerSeconds(0)
+    setMockTimerActive(true)
+    setTimeout(() => mockTextareaRef.current?.focus(), 100)
+  }
 
   const handleMockSubmitAnswer = async () => {
     if (!mockAnswer.trim()) {
-      toast('답변을 입력해주세요', 'warning');
-      return;
+      toast('답변을 입력해주세요', 'warning')
+      return
     }
-    setMockTimerActive(false);
-    setMockEvaluating(true);
+    setMockTimerActive(false)
+    setMockEvaluating(true)
 
-    const timeSpent = mockTimerSeconds;
-    const currentQ = questions[mockCurrentIdx];
+    const timeSpent = mockTimerSeconds
+    const currentQ = questions[mockCurrentIdx]
 
     try {
       const evaluation = await evaluateAnswer(
         selectedResumeId,
         currentQ.question,
         mockAnswer,
-        jobRole,
-      );
-      setMockCurrentEval(evaluation);
-      setMockShowFeedback(true);
+        jobRole
+      )
+      setMockCurrentEval(evaluation)
+      setMockShowFeedback(true)
       setMockResults((prev) => [
         ...prev,
         {
@@ -2446,29 +2451,29 @@ export default function InterviewPrepPage() {
           evaluation,
           timeSpent,
         },
-      ]);
+      ])
     } catch {
-      toast('평가에 실패했습니다', 'error');
+      toast('평가에 실패했습니다', 'error')
     } finally {
-      setMockEvaluating(false);
+      setMockEvaluating(false)
     }
-  };
+  }
 
   const handleMockNextQuestion = () => {
-    const nextIdx = mockCurrentIdx + 1;
+    const nextIdx = mockCurrentIdx + 1
     if (nextIdx >= questions.length) {
       // All questions done, generate report
-      generateReport([...mockResults]);
-      return;
+      generateReport([...mockResults])
+      return
     }
-    setMockCurrentIdx(nextIdx);
-    setMockAnswer('');
-    setMockCurrentEval(null);
-    setMockShowFeedback(false);
-    setMockTimerSeconds(0);
-    setMockTimerActive(true);
-    setTimeout(() => mockTextareaRef.current?.focus(), 100);
-  };
+    setMockCurrentIdx(nextIdx)
+    setMockAnswer('')
+    setMockCurrentEval(null)
+    setMockShowFeedback(false)
+    setMockTimerSeconds(0)
+    setMockTimerActive(true)
+    setTimeout(() => mockTextareaRef.current?.focus(), 100)
+  }
 
   const handleSkipQuestion = () => {
     setMockResults((prev) => [
@@ -2487,41 +2492,41 @@ export default function InterviewPrepPage() {
         },
         timeSpent: mockTimerSeconds,
       },
-    ]);
-    handleMockNextQuestion();
-  };
+    ])
+    handleMockNextQuestion()
+  }
 
   const finishMockEarly = () => {
     if (mockResults.length === 0) {
-      setViewMode('list');
-      return;
+      setViewMode('list')
+      return
     }
-    generateReport(mockResults);
-  };
+    generateReport(mockResults)
+  }
 
   // ── Report Generation ──
 
   const generateReport = (results: QuestionResult[]) => {
-    const validResults = results.filter((r) => r.evaluation.score > 0);
+    const validResults = results.filter((r) => r.evaluation.score > 0)
     const overallScore =
       validResults.length > 0
         ? Math.round(
-            (validResults.reduce((s, r) => s + r.evaluation.score, 0) / validResults.length) * 10,
+            (validResults.reduce((s, r) => s + r.evaluation.score, 0) / validResults.length) * 10
           ) / 10
-        : 0;
+        : 0
 
-    const avgBreakdown: ScoreBreakdown = { 관련성: 0, 구체성: 0, 구조: 0, 표현력: 0 };
+    const avgBreakdown: ScoreBreakdown = { 관련성: 0, 구체성: 0, 구조: 0, 표현력: 0 }
     if (validResults.length > 0) {
       for (const r of validResults) {
-        avgBreakdown.관련성 += r.evaluation.breakdown.관련성;
-        avgBreakdown.구체성 += r.evaluation.breakdown.구체성;
-        avgBreakdown.구조 += r.evaluation.breakdown.구조;
-        avgBreakdown.표현력 += r.evaluation.breakdown.표현력;
+        avgBreakdown.관련성 += r.evaluation.breakdown.관련성
+        avgBreakdown.구체성 += r.evaluation.breakdown.구체성
+        avgBreakdown.구조 += r.evaluation.breakdown.구조
+        avgBreakdown.표현력 += r.evaluation.breakdown.표현력
       }
-      avgBreakdown.관련성 = Math.round((avgBreakdown.관련성 / validResults.length) * 10) / 10;
-      avgBreakdown.구체성 = Math.round((avgBreakdown.구체성 / validResults.length) * 10) / 10;
-      avgBreakdown.구조 = Math.round((avgBreakdown.구조 / validResults.length) * 10) / 10;
-      avgBreakdown.표현력 = Math.round((avgBreakdown.표현력 / validResults.length) * 10) / 10;
+      avgBreakdown.관련성 = Math.round((avgBreakdown.관련성 / validResults.length) * 10) / 10
+      avgBreakdown.구체성 = Math.round((avgBreakdown.구체성 / validResults.length) * 10) / 10
+      avgBreakdown.구조 = Math.round((avgBreakdown.구조 / validResults.length) * 10) / 10
+      avgBreakdown.표현력 = Math.round((avgBreakdown.표현력 / validResults.length) * 10) / 10
     }
 
     const report: InterviewReport = {
@@ -2533,72 +2538,72 @@ export default function InterviewPrepPage() {
       overallScore,
       grade: computeGrade(overallScore),
       categoryScores: avgBreakdown,
-    };
+    }
 
-    setCurrentReport(report);
-    setViewMode('report');
-    setMockTimerActive(false);
-  };
+    setCurrentReport(report)
+    setViewMode('report')
+    setMockTimerActive(false)
+  }
 
   const saveReport = () => {
-    if (!currentReport) return;
-    const updated = [currentReport, ...savedReports].slice(0, 50);
-    setSavedReports(updated);
-    saveJSON(REPORTS_KEY, updated);
-    toast('결과가 저장되었습니다', 'success');
-  };
+    if (!currentReport) return
+    const updated = [currentReport, ...savedReports].slice(0, 50)
+    setSavedReports(updated)
+    saveJSON(REPORTS_KEY, updated)
+    toast('결과가 저장되었습니다', 'success')
+  }
 
   const restartMock = () => {
-    setViewMode('mock');
-    setMockCurrentIdx(0);
-    setMockAnswer('');
-    setMockResults([]);
-    setMockCurrentEval(null);
-    setMockShowFeedback(false);
-    setMockTimerSeconds(0);
-    setMockTimerActive(true);
-  };
+    setViewMode('mock')
+    setMockCurrentIdx(0)
+    setMockAnswer('')
+    setMockResults([])
+    setMockCurrentEval(null)
+    setMockShowFeedback(false)
+    setMockTimerSeconds(0)
+    setMockTimerActive(true)
+  }
 
   // ── Highlight helper ──
   const highlightText = (text: string, goodPhrases: string[], weakPhrases: string[]) => {
-    if (!goodPhrases.length && !weakPhrases.length) return <span>{text}</span>;
-    const result = text;
-    const segments: { text: string; type: 'good' | 'weak' | 'normal' }[] = [];
+    if (!goodPhrases.length && !weakPhrases.length) return <span>{text}</span>
+    const result = text
+    const segments: { text: string; type: 'good' | 'weak' | 'normal' }[] = []
 
     // Simple approach: split and tag
-    let remaining = result;
+    let remaining = result
     while (remaining.length > 0) {
-      let earliestIdx = remaining.length;
-      let earliestPhrase = '';
-      let earliestType: 'good' | 'weak' = 'good';
+      let earliestIdx = remaining.length
+      let earliestPhrase = ''
+      let earliestType: 'good' | 'weak' = 'good'
 
       for (const phrase of goodPhrases) {
-        const idx = remaining.indexOf(phrase);
+        const idx = remaining.indexOf(phrase)
         if (idx !== -1 && idx < earliestIdx) {
-          earliestIdx = idx;
-          earliestPhrase = phrase;
-          earliestType = 'good';
+          earliestIdx = idx
+          earliestPhrase = phrase
+          earliestType = 'good'
         }
       }
       for (const phrase of weakPhrases) {
-        const idx = remaining.indexOf(phrase);
+        const idx = remaining.indexOf(phrase)
         if (idx !== -1 && idx < earliestIdx) {
-          earliestIdx = idx;
-          earliestPhrase = phrase;
-          earliestType = 'weak';
+          earliestIdx = idx
+          earliestPhrase = phrase
+          earliestType = 'weak'
         }
       }
 
       if (earliestIdx === remaining.length) {
-        segments.push({ text: remaining, type: 'normal' });
-        break;
+        segments.push({ text: remaining, type: 'normal' })
+        break
       }
 
       if (earliestIdx > 0) {
-        segments.push({ text: remaining.slice(0, earliestIdx), type: 'normal' });
+        segments.push({ text: remaining.slice(0, earliestIdx), type: 'normal' })
       }
-      segments.push({ text: earliestPhrase, type: earliestType });
-      remaining = remaining.slice(earliestIdx + earliestPhrase.length);
+      segments.push({ text: earliestPhrase, type: earliestType })
+      remaining = remaining.slice(earliestIdx + earliestPhrase.length)
     }
 
     return (
@@ -2612,7 +2617,7 @@ export default function InterviewPrepPage() {
               >
                 {seg.text}
               </mark>
-            );
+            )
           if (seg.type === 'weak')
             return (
               <mark
@@ -2621,18 +2626,18 @@ export default function InterviewPrepPage() {
               >
                 {seg.text}
               </mark>
-            );
-          return <span key={i}>{seg.text}</span>;
+            )
+          return <span key={i}>{seg.text}</span>
         })}
       </span>
-    );
-  };
+    )
+  }
 
   // ══════════════════════════════════════════════
   // RENDER: Mock Interview (Full-screen)
   // ══════════════════════════════════════════════
   if (viewMode === 'mock') {
-    const currentQ = questions[mockCurrentIdx];
+    const currentQ = questions[mockCurrentIdx]
     return (
       <div className="fixed inset-0 z-50 bg-white dark:bg-slate-900 flex flex-col">
         {/* Top bar */}
@@ -2736,7 +2741,7 @@ export default function InterviewPrepPage() {
                             {val}
                           </span>
                         </div>
-                      ),
+                      )
                     )}
                   </div>
                 </div>
@@ -2750,7 +2755,7 @@ export default function InterviewPrepPage() {
                     {highlightText(
                       mockAnswer,
                       mockCurrentEval.highlightGood,
-                      mockCurrentEval.highlightWeak,
+                      mockCurrentEval.highlightWeak
                     )}
                   </p>
                 </div>
@@ -2818,8 +2823,8 @@ export default function InterviewPrepPage() {
                       </h4>
                       <button
                         onClick={() => {
-                          setMockAnswer(mockCurrentEval!.modelAnswer);
-                          toast('모범 답변이 적용되었습니다', 'success');
+                          setMockAnswer(mockCurrentEval!.modelAnswer)
+                          toast('모범 답변이 적용되었습니다', 'success')
                         }}
                         className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-800/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
                       >
@@ -2915,8 +2920,8 @@ export default function InterviewPrepPage() {
                             </p>
                             <button
                               onClick={() => {
-                                setMockAnswer(aiAnalysis.rewrittenAnswer);
-                                toast('리라이트 답변이 적용되었습니다', 'success');
+                                setMockAnswer(aiAnalysis.rewrittenAnswer)
+                                toast('리라이트 답변이 적용되었습니다', 'success')
                               }}
                               className="text-[10px] px-2 py-0.5 bg-blue-600 text-white rounded hover:bg-blue-700"
                             >
@@ -2942,8 +2947,8 @@ export default function InterviewPrepPage() {
                 <div className="flex justify-center">
                   <button
                     onClick={() => {
-                      setAiAnalysis(null);
-                      handleMockNextQuestion();
+                      setAiAnalysis(null)
+                      handleMockNextQuestion()
                     }}
                     className="px-8 py-3 bg-sky-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-sky-700 transition-all shadow-sm text-sm"
                   >
@@ -3031,21 +3036,21 @@ export default function InterviewPrepPage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // ══════════════════════════════════════════════
   // RENDER: Report Card
   // ══════════════════════════════════════════════
   if (viewMode === 'report' && currentReport) {
-    const { overallScore, grade, categoryScores, results } = currentReport;
-    const validResults = results.filter((r) => r.evaluation.score > 0);
-    const skippedCount = results.length - validResults.length;
+    const { overallScore, grade, categoryScores, results } = currentReport
+    const validResults = results.filter((r) => r.evaluation.score > 0)
+    const skippedCount = results.length - validResults.length
 
     // Find strongest and weakest
-    const breakdownEntries = Object.entries(categoryScores) as [string, number][];
-    const strongest = [...breakdownEntries].sort((a, b) => b[1] - a[1])[0];
-    const weakest = [...breakdownEntries].sort((a, b) => a[1] - b[1])[0];
+    const breakdownEntries = Object.entries(categoryScores) as [string, number][]
+    const strongest = [...breakdownEntries].sort((a, b) => b[1] - a[1])[0]
+    const weakest = [...breakdownEntries].sort((a, b) => a[1] - b[1])[0]
 
     return (
       <>
@@ -3116,7 +3121,7 @@ export default function InterviewPrepPage() {
               </h3>
               <div className="space-y-3">
                 {results.map((r, i) => {
-                  const q = questions[r.questionIdx];
+                  const q = questions[r.questionIdx]
                   return (
                     <div
                       key={i}
@@ -3153,7 +3158,7 @@ export default function InterviewPrepPage() {
                         </span>
                       )}
                     </div>
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -3216,7 +3221,7 @@ export default function InterviewPrepPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   // ══════════════════════════════════════════════
@@ -3246,10 +3251,14 @@ export default function InterviewPrepPage() {
         <div className="imp-card p-6 mb-6">
           <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              <label
+                htmlFor="interviewpreppage-field-1"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+              >
                 이력서 선택 *
               </label>
               <select
+                id="interviewpreppage-field-1"
                 value={selectedResumeId}
                 onChange={(e) => setSelectedResumeId(e.target.value)}
                 className="w-full px-3 py-2.5 min-h-[44px] border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
@@ -3263,10 +3272,14 @@ export default function InterviewPrepPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">
+              <label
+                htmlFor="interviewpreppage-field-2"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1"
+              >
                 지원 직무 (선택)
               </label>
               <input
+                id="interviewpreppage-field-2"
                 value={jobRole}
                 onChange={(e) => setJobRole(e.target.value)}
                 placeholder="예: 프론트엔드 개발자"
@@ -3275,7 +3288,10 @@ export default function InterviewPrepPage() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                <label
+                  htmlFor="interview-jd"
+                  className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                >
                   채용공고 / JD (선택)
                 </label>
                 {jobPosts.length > 0 && (
@@ -3301,10 +3317,10 @@ export default function InterviewPrepPage() {
                           job.skills ? `요구기술: ${job.skills}` : '',
                         ]
                           .filter(Boolean)
-                          .join('\n');
-                        setJobDescription(jd);
-                        setJobRole(job.position);
-                        setShowJobSelect(false);
+                          .join('\n')
+                        setJobDescription(jd)
+                        setJobRole(job.position)
+                        setShowJobSelect(false)
                       }}
                       className="w-full text-left px-3 py-2 hover:bg-sky-50 dark:hover:bg-sky-900/20 transition-colors"
                     >
@@ -3319,6 +3335,7 @@ export default function InterviewPrepPage() {
                 </div>
               )}
               <textarea
+                id="interview-jd"
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
                 placeholder="채용공고 내용이나 자격요건을 붙여넣으면 맞춤 질문이 생성됩니다"
@@ -3393,15 +3410,19 @@ export default function InterviewPrepPage() {
 
           {/* Timer option */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+            <label
+              htmlFor="interview-mock-timer"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5"
+            >
               모의 면접 타이머
             </label>
             <div className="flex items-center gap-3">
               <select
+                id="interview-mock-timer"
                 value={mockTimerDuration}
                 onChange={(e) => {
-                  setMockTimerDuration(Number(e.target.value));
-                  setTimerDuration(Number(e.target.value));
+                  setMockTimerDuration(Number(e.target.value))
+                  setTimerDuration(Number(e.target.value))
                 }}
                 className="px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
               >
@@ -3419,7 +3440,10 @@ export default function InterviewPrepPage() {
             {showCustomInput ? (
               <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <label
+                    htmlFor="interview-custom-question"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-200"
+                  >
                     커스텀 질문 추가
                   </label>
                   <button
@@ -3430,6 +3454,7 @@ export default function InterviewPrepPage() {
                   </button>
                 </div>
                 <textarea
+                  id="interview-custom-question"
                   value={customQuestionText}
                   onChange={(e) => setCustomQuestionText(e.target.value)}
                   placeholder="연습하고 싶은 면접 질문을 입력하세요..."
@@ -3681,11 +3706,11 @@ export default function InterviewPrepPage() {
 
             {/* Question cards */}
             {filteredQuestions.map((q) => {
-              const originalIdx = questions.indexOf(q);
-              const questionKey = getQuestionKey(q, originalIdx);
-              const savedAnswer = userAnswers[questionKey] || '';
-              const isFavorite = favorites.has(questionKey);
-              const history = answerHistory[questionKey] || [];
+              const originalIdx = questions.indexOf(q)
+              const questionKey = getQuestionKey(q, originalIdx)
+              const savedAnswer = userAnswers[questionKey] || ''
+              const isFavorite = favorites.has(questionKey)
+              const history = answerHistory[questionKey] || []
 
               return (
                 <div key={originalIdx} className="imp-card p-4 animate-fade-in-up">
@@ -3815,11 +3840,11 @@ export default function InterviewPrepPage() {
                               <button
                                 onClick={() => {
                                   const el = document.getElementById(
-                                    `answer-${originalIdx}`,
-                                  ) as HTMLTextAreaElement;
+                                    `answer-${originalIdx}`
+                                  ) as HTMLTextAreaElement
                                   if (el && el.value.trim())
-                                    handleSaveAnswer(questionKey, el.value.trim());
-                                  else toast('답변을 입력해주세요', 'warning');
+                                    handleSaveAnswer(questionKey, el.value.trim())
+                                  else toast('답변을 입력해주세요', 'warning')
                                 }}
                                 className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                               >
@@ -3862,12 +3887,12 @@ export default function InterviewPrepPage() {
                     </div>
                   </div>
                 </div>
-              );
+              )
             })}
           </div>
         )}
       </main>
       <Footer />
     </>
-  );
+  )
 }

@@ -1,17 +1,18 @@
-import { Link } from 'react-router-dom';
-import { ROUTES } from '@/lib/routes';
+import { Link } from 'react-router-dom'
+
+import { ROUTES } from '@/lib/routes'
 
 interface Crumb {
-  label: string;
-  to?: string;
+  label: string
+  to?: string
 }
 
 interface Props {
-  items: Crumb[];
+  items: Crumb[]
 }
 
 export default function Breadcrumb({ items }: Props) {
-  const lastIndex = items.length - 1;
+  const lastIndex = items.length - 1
   return (
     <nav
       className="flex items-center gap-2 text-sm text-[var(--color-text-muted)] mb-4 no-print"
@@ -24,7 +25,7 @@ export default function Breadcrumb({ items }: Props) {
         홈
       </Link>
       {items.map((item, i) => {
-        const isLast = i === lastIndex;
+        const isLast = i === lastIndex
         return (
           <span key={i} className="flex items-center gap-2">
             <svg
@@ -52,8 +53,8 @@ export default function Breadcrumb({ items }: Props) {
               </span>
             )}
           </span>
-        );
+        )
       })}
     </nav>
-  );
+  )
 }

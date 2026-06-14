@@ -1,9 +1,11 @@
-import { useMemo } from 'react';
-import { extractLinks } from '@/lib/metaUtils';
-import type { ExtractedLink } from '@/lib/metaUtils';
+import { useMemo } from 'react'
+
+import type { ExtractedLink } from '@/lib/metaUtils'
+
+import { extractLinks } from '@/lib/metaUtils'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const PLATFORM_LABEL: Record<ExtractedLink['platform'], string> = {
@@ -15,7 +17,7 @@ const PLATFORM_LABEL: Record<ExtractedLink['platform'], string> = {
   velog: 'velog',
   blog: '블로그',
   other: '기타',
-};
+}
 
 const PLATFORM_ICON: Record<ExtractedLink['platform'], string> = {
   github: '⌨',
@@ -26,20 +28,20 @@ const PLATFORM_ICON: Record<ExtractedLink['platform'], string> = {
   velog: '✍',
   blog: '📰',
   other: '🔗',
-};
+}
 
 export default function ResumePortfolioLinksPanel({ text }: Props) {
-  const report = useMemo(() => extractLinks(text), [text]);
+  const report = useMemo(() => extractLinks(text), [text])
 
-  const hasMissingScheme = report.missingScheme > 0;
-  const noGithub = !report.platforms.includes('github');
-  const noLinkedIn = !report.platforms.includes('linkedin');
+  const hasMissingScheme = report.missingScheme > 0
+  const noGithub = !report.platforms.includes('github')
+  const noLinkedIn = !report.platforms.includes('linkedin')
 
-  const hasIssues = hasMissingScheme || report.count === 0 || (noGithub && noLinkedIn);
-  if (!hasIssues) return null;
-  if (text.trim().length < 40) return null;
+  const hasIssues = hasMissingScheme || report.count === 0 || (noGithub && noLinkedIn)
+  if (!hasIssues) return null
+  if (text.trim().length < 40) return null
 
-  const isWarning = report.count === 0 || hasMissingScheme;
+  const isWarning = report.count === 0 || hasMissingScheme
 
   return (
     <aside
@@ -109,5 +111,5 @@ export default function ResumePortfolioLinksPanel({ text }: Props) {
         </p>
       )}
     </aside>
-  );
+  )
 }

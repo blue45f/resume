@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { toast } from '@/components/Toast'
+import { aiSpellCheck, type AiSpellIssue } from '@/lib/api'
 import {
   checkKorean,
   autoFixResume,
@@ -15,15 +18,14 @@ import {
   compareKoreanResults,
   KOREAN_RULE_COUNT,
   type KoreanIssue,
-} from '@/lib/koreanChecker';
-import { toast } from '@/components/Toast';
-import { aiSpellCheck, type AiSpellIssue } from '@/lib/api';
+} from '@/lib/koreanChecker'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface Props {
-  resume: Resume;
-  resumeId?: string;
+  resume: Resume
+  resumeId?: string
   /** 자동 수정 적용을 허용하는 부모 핸들러. 전달 시 '전체 자동 수정' 버튼 표시. */
-  onApplyFix?: (fixed: Resume) => Promise<void> | void;
+  onApplyFix?: (fixed: Resume) => Promise<void> | void
 }
 
 /**
@@ -32,74 +34,74 @@ interface Props {
  * 문체 혼용(합니다체 vs 해요체)를 감지.
  */
 export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [applying, setApplying] = useState(false);
-  const [aiMode, setAiMode] = useState(false);
-  const [aiIssues, setAiIssues] = useState<AiSpellIssue[] | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [severityFilter, setSeverityFilter] = useState<'all' | KoreanIssue['severity']>('all');
-  const result = useMemo(() => checkKorean(resume), [resume]);
+  const [expanded, setExpanded] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [aiMode, setAiMode] = useState(false)
+  const [aiIssues, setAiIssues] = useState<AiSpellIssue[] | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [severityFilter, setSeverityFilter] = useState<'all' | KoreanIssue['severity']>('all')
+  const result = useMemo(() => checkKorean(resume), [resume])
   // 심각도 정렬 + 동일 (섹션, wrong) 중복 제거 — 같은 오타 반복 시 count 배지로 집계.
   // severityFilter 가 'all' 이 아니면 issuesBySeverity 로 필터 선제 적용.
   const displayIssues = useMemo(() => {
     const base =
-      severityFilter === 'all' ? result.issues : issuesBySeverity(result.issues, severityFilter);
-    return dedupIssues(sortKoreanIssues(base));
-  }, [result.issues, severityFilter]);
+      severityFilter === 'all' ? result.issues : issuesBySeverity(result.issues, severityFilter)
+    return dedupIssues(sortKoreanIssues(base))
+  }, [result.issues, severityFilter])
   // 섹션별 이슈 수 — 헤더에 "어느 섹션이 문제인지" 한눈에 노출
   const sectionCounts = useMemo(() => {
-    const groups = groupIssuesBySection(result.issues);
+    const groups = groupIssuesBySection(result.issues)
     return Object.entries(groups)
       .map(([name, list]) => ({ name, count: list.length }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 5);
-  }, [result.issues]);
-  const hasErrors = hasKoreanErrors(result);
+      .slice(0, 5)
+  }, [result.issues])
+  const hasErrors = hasKoreanErrors(result)
   // 학습 힌트 — 가장 자주 틀리는 표현 Top 3 (같은 wrong 이 2회+ 반복일 때만)
-  const topWrongs = useMemo(() => getTopWrongPatterns(result.issues, 3), [result.issues]);
+  const topWrongs = useMemo(() => getTopWrongPatterns(result.issues, 3), [result.issues])
   // 우선순위 개선 팁 Top 3
-  const improvementTips = useMemo(() => computeImprovementTips(result), [result]);
+  const improvementTips = useMemo(() => computeImprovementTips(result), [result])
 
   const copyAsMarkdown = async () => {
     if (result.issues.length === 0) {
-      toast('공유할 이슈가 없습니다', 'info');
-      return;
+      toast('공유할 이슈가 없습니다', 'info')
+      return
     }
-    const md = exportIssuesAsMarkdown(result.issues);
+    const md = exportIssuesAsMarkdown(result.issues)
     try {
-      await navigator.clipboard.writeText(md);
-      toast('Markdown 이 클립보드에 복사되었습니다', 'success');
+      await navigator.clipboard.writeText(md)
+      toast('Markdown 이 클립보드에 복사되었습니다', 'success')
     } catch {
-      toast('복사에 실패했습니다', 'error');
+      toast('복사에 실패했습니다', 'error')
     }
-  };
+  }
 
   const runAiCheck = async () => {
     if (!resumeId) {
-      toast('AI 체크를 사용하려면 저장된 이력서여야 합니다', 'info');
-      return;
+      toast('AI 체크를 사용하려면 저장된 이력서여야 합니다', 'info')
+      return
     }
-    setAiLoading(true);
+    setAiLoading(true)
     try {
-      const r = await aiSpellCheck(resumeId);
-      setAiIssues(r.issues);
-      setAiMode(true);
-      toast(`AI 검사 완료 — ${r.issues.length}건 검출 (${r.provider})`, 'success');
+      const r = await aiSpellCheck(resumeId)
+      setAiIssues(r.issues)
+      setAiMode(true)
+      toast(`AI 검사 완료 — ${r.issues.length}건 검출 (${r.provider})`, 'success')
     } catch (e) {
-      toast(e instanceof Error ? e.message : 'AI 맞춤법 검사 실패', 'error');
+      toast(e instanceof Error ? e.message : 'AI 맞춤법 검사 실패', 'error')
     } finally {
-      setAiLoading(false);
+      setAiLoading(false)
     }
-  };
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const handleAutoFix = async () => {
-    if (!onApplyFix) return;
-    const { resume: fixed, totalChanges } = autoFixResume(resume, 'error');
+    if (!onApplyFix) return
+    const { resume: fixed, totalChanges } = autoFixResume(resume, 'error')
     if (totalChanges === 0) {
-      toast('자동 수정할 오타가 없습니다.', 'info');
-      return;
+      toast('자동 수정할 오타가 없습니다.', 'info')
+      return
     }
     if (
       !(await confirm({
@@ -108,43 +110,43 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
         confirmText: '수정',
       }))
     )
-      return;
-    setApplying(true);
+      return
+    setApplying(true)
     try {
       // 수정 전후 비교해 점수 개선치 함께 안내
-      const afterResult = checkKorean(fixed);
-      const diff = compareKoreanResults(result, afterResult);
-      await onApplyFix(fixed);
-      const deltaLabel = diff.scoreDelta > 0 ? `+${diff.scoreDelta}` : `${diff.scoreDelta}`;
+      const afterResult = checkKorean(fixed)
+      const diff = compareKoreanResults(result, afterResult)
+      await onApplyFix(fixed)
+      const deltaLabel = diff.scoreDelta > 0 ? `+${diff.scoreDelta}` : `${diff.scoreDelta}`
       toast(
         `${totalChanges}개 수정 완료 — 점수 ${diff.beforeScore}→${diff.afterScore} (${deltaLabel})`,
-        'success',
-      );
+        'success'
+      )
     } catch (e) {
-      toast(e instanceof Error ? e.message : '자동 수정 실패', 'error');
+      toast(e instanceof Error ? e.message : '자동 수정 실패', 'error')
     } finally {
-      setApplying(false);
+      setApplying(false)
     }
-  };
+  }
 
-  const { error: errorCount, warning: warningCount, info: infoCount } = result.summary;
+  const { error: errorCount, warning: warningCount, info: infoCount } = result.summary
 
   const toneLabel = {
     formal: '합니다체',
     polite: '해요체',
     mixed: '혼용',
     none: '판정 불가',
-  }[result.toneMix.dominant];
+  }[result.toneMix.dominant]
 
   const toneColor =
     result.toneMix.dominant === 'mixed'
       ? 'text-amber-700 bg-amber-50'
       : result.toneMix.dominant === 'none'
         ? 'text-slate-500 bg-slate-50'
-        : 'text-green-700 bg-green-50';
+        : 'text-green-700 bg-green-50'
 
   // 품질 점수 배지 색상 (≥90 녹색, 70~89 파랑, 50~69 앰버, <50 적색)
-  const score = result.score;
+  const score = result.score
   const scoreColor =
     score >= 90
       ? 'text-green-700 bg-green-50 border-green-200'
@@ -152,7 +154,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
         ? 'text-blue-700 bg-blue-50 border-blue-200'
         : score >= 50
           ? 'text-amber-700 bg-amber-50 border-amber-200'
-          : 'text-red-700 bg-red-50 border-red-200';
+          : 'text-red-700 bg-red-50 border-red-200'
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -420,7 +422,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                   { k: 'info' as const, l: '💡 제안', n: infoCount },
                 ] as const
               ).map((t) => {
-                const active = severityFilter === t.k;
+                const active = severityFilter === t.k
                 return (
                   <button
                     key={t.k}
@@ -435,7 +437,7 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
                   >
                     {t.l} {t.n}
                   </button>
-                );
+                )
               })}
             </div>
           )}
@@ -537,5 +539,5 @@ export default function KoreanCheckerPanel({ resume, resumeId, onApplyFix }: Pro
         </div>
       )}
     </div>
-  );
+  )
 }

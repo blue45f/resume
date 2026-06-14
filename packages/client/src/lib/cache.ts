@@ -1,30 +1,30 @@
 interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
+  data: T
+  timestamp: number
 }
 
-const cache = new Map<string, CacheEntry<unknown>>();
+const cache = new Map<string, CacheEntry<unknown>>()
 
 export function getCached<T>(key: string, maxAgeMs: number): T | null {
-  const entry = cache.get(key);
-  if (!entry) return null;
+  const entry = cache.get(key)
+  if (!entry) return null
   if (Date.now() - entry.timestamp > maxAgeMs) {
-    cache.delete(key);
-    return null;
+    cache.delete(key)
+    return null
   }
-  return entry.data as T;
+  return entry.data as T
 }
 
 export function setCache<T>(key: string, data: T): void {
-  cache.set(key, { data, timestamp: Date.now() });
+  cache.set(key, { data, timestamp: Date.now() })
 }
 
 export function clearCache(prefix?: string): void {
   if (!prefix) {
-    cache.clear();
-    return;
+    cache.clear()
+    return
   }
   for (const key of cache.keys()) {
-    if (key.startsWith(prefix)) cache.delete(key);
+    if (key.startsWith(prefix)) cache.delete(key)
   }
 }

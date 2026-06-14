@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { analyzeInterviewBait, BAIT_TYPE_LABEL } from '@/lib/resumeInterviewBaitAnalyzer';
+import { useMemo } from 'react'
+
+import { analyzeInterviewBait, BAIT_TYPE_LABEL } from '@/lib/resumeInterviewBaitAnalyzer'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -10,16 +11,16 @@ const LEVEL_LABEL: Record<string, string> = {
   adequate: '보통',
   sparse: '부족',
   none: '없음',
-};
+}
 
 export default function ResumeInterviewBaitPanel({ text }: Props) {
-  const report = useMemo(() => analyzeInterviewBait(text), [text]);
+  const report = useMemo(() => analyzeInterviewBait(text), [text])
 
-  if (text.trim().length < 100) return null;
+  if (text.trim().length < 100) return null
   // Don't show if already rich in story hooks
-  if (report.level === 'rich') return null;
+  if (report.level === 'rich') return null
 
-  const isWarning = report.level === 'none' || report.level === 'sparse';
+  const isWarning = report.level === 'none' || report.level === 'sparse'
 
   return (
     <aside
@@ -46,5 +47,5 @@ export default function ResumeInterviewBaitPanel({ text }: Props) {
 
       <p className="interview-bait-card__tip">{report.tip}</p>
     </aside>
-  );
+  )
 }

@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import type { Resume } from '@/types/resume';
-import { generatePitch } from '@/lib/pitchGenerator';
-import { filterNaturalKoreanVoices } from '@/lib/voicePersona';
+import { useEffect, useMemo, useState } from 'react'
+
+import type { Resume } from '@/types/resume'
+
+import { generatePitch } from '@/lib/pitchGenerator'
+import { filterNaturalKoreanVoices } from '@/lib/voicePersona'
 
 interface Props {
-  resume: Resume;
+  resume: Resume
 }
 
 /**
@@ -18,59 +20,59 @@ interface Props {
  * 외부 API 불필요. OS 네이티브 한국어 음성 사용.
  */
 export default function AudioSummaryPanel({ resume }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [voiceURI, setVoiceURI] = useState<string>('');
-  const [rate, setRate] = useState(1.0);
+  const [expanded, setExpanded] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  const [voiceURI, setVoiceURI] = useState<string>('')
+  const [rate, setRate] = useState(1.0)
 
   // 상세 요약 스크립트 — PitchPanel 보다 길고 구조적
-  const script = useMemo(() => buildAudioScript(resume), [resume]);
+  const script = useMemo(() => buildAudioScript(resume), [resume])
 
-  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
   useEffect(() => {
-    if (!supported) return;
+    if (!supported) return
 
     const loadVoices = () => {
-      const list = window.speechSynthesis.getVoices();
+      const list = window.speechSynthesis.getVoices()
       // lib/voicePersona 의 단일 휴리스틱 사용 — 사이트 전반 TTS 일관.
-      const natural = filterNaturalKoreanVoices(list);
-      setVoices(natural);
+      const natural = filterNaturalKoreanVoices(list)
+      setVoices(natural)
       if (!voiceURI && natural.length > 0) {
-        setVoiceURI(natural[0].voiceURI);
+        setVoiceURI(natural[0].voiceURI)
       }
-    };
+    }
 
-    loadVoices();
-    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    loadVoices()
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
     return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices);
-      window.speechSynthesis.cancel();
-    };
-  }, [supported, voiceURI]);
+      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
+      window.speechSynthesis.cancel()
+    }
+  }, [supported, voiceURI])
 
   const play = () => {
-    if (!supported) return;
-    const utter = new SpeechSynthesisUtterance(script);
-    const voice = voices.find((v) => v.voiceURI === voiceURI);
-    if (voice) utter.voice = voice;
-    utter.lang = voice?.lang || 'ko-KR';
-    utter.rate = rate;
-    utter.onend = () => setPlaying(false);
-    utter.onerror = () => setPlaying(false);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utter);
-    setPlaying(true);
-  };
+    if (!supported) return
+    const utter = new SpeechSynthesisUtterance(script)
+    const voice = voices.find((v) => v.voiceURI === voiceURI)
+    if (voice) utter.voice = voice
+    utter.lang = voice?.lang || 'ko-KR'
+    utter.rate = rate
+    utter.onend = () => setPlaying(false)
+    utter.onerror = () => setPlaying(false)
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(utter)
+    setPlaying(true)
+  }
 
   const stop = () => {
-    if (!supported) return;
-    window.speechSynthesis.cancel();
-    setPlaying(false);
-  };
+    if (!supported) return
+    window.speechSynthesis.cancel()
+    setPlaying(false)
+  }
 
-  if (!supported) return null;
+  if (!supported) return null
 
   return (
     <div className="imp-card bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -168,64 +170,64 @@ export default function AudioSummaryPanel({ resume }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 /** 낭독용 스크립트 생성 — 구조적·자연스러운 한국어 */
 function buildAudioScript(resume: Resume): string {
-  const p = resume.personalInfo;
-  const sentences: string[] = [];
+  const p = resume.personalInfo
+  const sentences: string[] = []
 
   // 1. 1줄 pitch (공식 톤 재활용)
-  const pitch = generatePitch(resume, { tone: 'professional', maxSentences: 2 });
-  if (pitch) sentences.push(pitch);
+  const pitch = generatePitch(resume, { tone: 'professional', maxSentences: 2 })
+  if (pitch) sentences.push(pitch)
 
   // 2. 주요 경력 (최근 2건)
   if (resume.experiences.length > 0) {
-    const recent = resume.experiences.slice(0, 2);
+    const recent = resume.experiences.slice(0, 2)
     const exps = recent
       .map((e) => {
         const range = e.current
           ? `${e.startDate}부터 현재까지`
-          : `${e.startDate}부터 ${e.endDate}까지`;
-        const name = `${e.company || ''} ${e.position || ''}`.trim();
-        return `${range} ${name}`;
+          : `${e.startDate}부터 ${e.endDate}까지`
+        const name = `${e.company || ''} ${e.position || ''}`.trim()
+        return `${range} ${name}`
       })
       .filter(Boolean)
-      .join(', ');
-    if (exps) sentences.push(`주요 경력은 ${exps}입니다.`);
+      .join(', ')
+    if (exps) sentences.push(`주요 경력은 ${exps}입니다.`)
   }
 
   // 3. 대표 기술 스택
   const topSkills = resume.skills
     .flatMap((s) => s.items.split(',').map((x) => x.trim()))
     .filter(Boolean)
-    .slice(0, 5);
+    .slice(0, 5)
   if (topSkills.length > 0) {
-    sentences.push(`주로 다루는 기술은 ${topSkills.join(', ')} 입니다.`);
+    sentences.push(`주로 다루는 기술은 ${topSkills.join(', ')} 입니다.`)
   }
 
   // 4. 프로젝트 수
   if (resume.projects.length > 0) {
     sentences.push(
-      `${resume.projects.length}개의 주요 프로젝트를 진행했으며, 대표 프로젝트는 ${resume.projects[0].name}입니다.`,
-    );
+      `${resume.projects.length}개의 주요 프로젝트를 진행했으며, 대표 프로젝트는 ${resume.projects[0].name}입니다.`
+    )
   }
 
   // 5. 학력
-  const edu = resume.educations[0];
+  const edu = resume.educations[0]
   if (edu?.school) {
-    const major = edu.field ? ` ${edu.field}` : '';
-    sentences.push(`학력은 ${edu.school}${major}${edu.degree ? ` ${edu.degree}` : ''} 입니다.`);
+    const major = edu.field ? ` ${edu.field}` : ''
+    sentences.push(`학력은 ${edu.school}${major}${edu.degree ? ` ${edu.degree}` : ''} 입니다.`)
   }
 
   // 6. 연락처
-  if (p.email) sentences.push(`연락처는 ${spellEmail(p.email)} 입니다.`);
+  if (p.email) sentences.push(`연락처는 ${spellEmail(p.email)} 입니다.`)
 
-  return sentences.join(' ');
+  return sentences.join(' ')
 }
 
 /** 이메일을 TTS 가 잘 읽도록 철자 풀어서 */
 function spellEmail(email: string): string {
-  return email.replace('@', ' 골뱅이 ').replace(/\./g, ' 점 ');
+  return email.replace('@', ' 골뱅이 ').replace(/\./g, ' 점 ')
 }

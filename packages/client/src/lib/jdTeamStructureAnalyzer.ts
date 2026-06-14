@@ -7,21 +7,21 @@ export type TeamSignalType =
   | 'team_size' // 팀 규모(인원)
   | 'reporting_line' // 보고 체계/직속
   | 'team_composition' // 팀 구성/멤버 소개
-  | 'collaboration'; // 협업 부서/유관 조직
+  | 'collaboration' // 협업 부서/유관 조직
 
 export interface TeamSignalMatch {
-  type: TeamSignalType;
-  excerpt: string;
+  type: TeamSignalType
+  excerpt: string
 }
 
-export type TeamClarity = 'detailed' | 'partial' | 'opaque';
+export type TeamClarity = 'detailed' | 'partial' | 'opaque'
 
 export interface JdTeamStructureReport {
-  clarity: TeamClarity;
-  signals: TeamSignalMatch[];
-  presentTypes: TeamSignalType[];
-  summary: string;
-  questions: string[]; // 면접에서 물어볼 질문 제안
+  clarity: TeamClarity
+  signals: TeamSignalMatch[]
+  presentTypes: TeamSignalType[]
+  summary: string
+  questions: string[] // 면접에서 물어볼 질문 제안
 }
 
 // ---------------------------------------------------------------------------
@@ -45,39 +45,39 @@ const PATTERNS: Array<{ type: TeamSignalType; re: RegExp }> = [
     type: 'collaboration',
     re: /(?:협업\s*(?:부서|팀|조직)|유관\s*부서|타\s*팀과|cross[\s-]?functional|부서\s*간\s*협업|함께\s*협업)/i,
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function analyzeJdTeamStructure(text: string): JdTeamStructureReport {
-  const t = (text ?? '').trim();
-  const lines = t.split('\n').map((l) => l.trim());
+  const t = (text ?? '').trim()
+  const lines = t.split('\n').map((l) => l.trim())
 
-  const signals: TeamSignalMatch[] = [];
-  const seen = new Set<TeamSignalType>();
+  const signals: TeamSignalMatch[] = []
+  const seen = new Set<TeamSignalType>()
 
   for (const line of lines) {
-    if (!line) continue;
+    if (!line) continue
     for (const { type, re } of PATTERNS) {
       if (!seen.has(type) && re.test(line)) {
-        signals.push({ type, excerpt: line.slice(0, 55) });
-        seen.add(type);
+        signals.push({ type, excerpt: line.slice(0, 55) })
+        seen.add(type)
       }
     }
   }
 
-  const presentTypes = Array.from(seen);
-  const count = presentTypes.length;
+  const presentTypes = Array.from(seen)
+  const count = presentTypes.length
 
-  let clarity: TeamClarity;
+  let clarity: TeamClarity
   if (count >= 3) {
-    clarity = 'detailed';
+    clarity = 'detailed'
   } else if (count >= 1) {
-    clarity = 'partial';
+    clarity = 'partial'
   } else {
-    clarity = 'opaque';
+    clarity = 'opaque'
   }
 
   // Summary
@@ -85,8 +85,8 @@ export function analyzeJdTeamStructure(text: string): JdTeamStructureReport {
     detailed: `팀 구조가 비교적 명확합니다 (${count}개 항목 명시).`,
     partial: `팀 구조 정보가 일부만 제공됩니다 (${count}개 항목).`,
     opaque: '팀 규모·보고 체계 등 조직 정보가 거의 없습니다.',
-  };
-  const summary = CLARITY_LABEL[clarity];
+  }
+  const summary = CLARITY_LABEL[clarity]
 
   // Interview questions for missing pieces
   const ALL_TYPES: TeamSignalType[] = [
@@ -94,17 +94,17 @@ export function analyzeJdTeamStructure(text: string): JdTeamStructureReport {
     'reporting_line',
     'team_composition',
     'collaboration',
-  ];
+  ]
   const QUESTION: Record<TeamSignalType, string> = {
     team_size: '합류할 팀의 규모와 구성(직군별 인원)은 어떻게 되나요?',
     reporting_line: '이 포지션은 누구에게 보고하며 평가는 어떻게 이루어지나요?',
     team_composition: '함께 일하게 될 팀원들의 경력/역할 구성이 궁금합니다.',
     collaboration: '주로 협업하는 부서나 직군은 어디인가요?',
-  };
-  const questions: string[] = [];
+  }
+  const questions: string[] = []
   for (const type of ALL_TYPES) {
     if (!seen.has(type)) {
-      questions.push(QUESTION[type]);
+      questions.push(QUESTION[type])
     }
   }
 
@@ -114,5 +114,5 @@ export function analyzeJdTeamStructure(text: string): JdTeamStructureReport {
     presentTypes,
     summary,
     questions: questions.slice(0, 4),
-  };
+  }
 }

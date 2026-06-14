@@ -1,21 +1,23 @@
-import { useState, useEffect } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { API_URL } from '@/lib/config';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect } from 'react'
 
-const STORAGE_KEY = 'whats-new-seen-v';
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+
+const STORAGE_KEY = 'whats-new-seen-v'
 
 interface Feature {
-  icon: string;
-  title: string;
-  desc: string;
-  badge?: string;
+  icon: string
+  title: string
+  desc: string
+  badge?: string
 }
 
 interface WhatsNewData {
-  version: string;
-  title?: string;
-  subtitle?: string;
-  features: Feature[];
+  version: string
+  title?: string
+  subtitle?: string
+  features: Feature[]
 }
 
 const FALLBACK: WhatsNewData = {
@@ -69,40 +71,40 @@ const FALLBACK: WhatsNewData = {
       desc: '두 이력서 버전을 단어 단위 추가/삭제 색상 표시. LCS 알고리즘.',
     },
   ],
-};
+}
 
 export default function WhatsNewModal() {
-  const [open, setOpen] = useState(false);
-  const [data, setData] = useState<WhatsNewData | null>(null);
+  const [open, setOpen] = useState(false)
+  const [data, setData] = useState<WhatsNewData | null>(null)
 
   useEffect(() => {
-    fetch(`${API_URL}/api/system-config/content/whats_new`)
+    httpClient(`${API_URL}/api/system-config/content/whats_new`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        const content: WhatsNewData = d && d.version ? d : FALLBACK;
-        if (!content.features?.length) return;
-        const seen = localStorage.getItem(STORAGE_KEY);
+        const content: WhatsNewData = d && d.version ? d : FALLBACK
+        if (!content.features?.length) return
+        const seen = localStorage.getItem(STORAGE_KEY)
         if (seen !== content.version) {
-          setData(content);
-          const t = setTimeout(() => setOpen(true), 2000);
-          return () => clearTimeout(t);
+          setData(content)
+          const t = setTimeout(() => setOpen(true), 2000)
+          return () => clearTimeout(t)
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {})
+  }, [])
 
   const handleClose = () => {
-    if (data) localStorage.setItem(STORAGE_KEY, data.version);
-    setOpen(false);
-  };
+    if (data) localStorage.setItem(STORAGE_KEY, data.version)
+    setOpen(false)
+  }
 
-  if (!data || !data.features?.length) return null;
+  if (!data || !data.features?.length) return null
 
   return (
     <RadixDialog.Root
       open={open}
       onOpenChange={(o) => {
-        if (!o) handleClose();
+        if (!o) handleClose()
       }}
     >
       <RadixDialog.Portal>
@@ -201,5 +203,5 @@ export default function WhatsNewModal() {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

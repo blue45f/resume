@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
+
+import type { Prisma } from '@prisma/client'
 
 @Injectable()
 export class TemplatesService {
@@ -9,7 +11,7 @@ export class TemplatesService {
   async findAll(userId?: string, role?: string) {
     // 비공개 사용자 템플릿(layout/prompt)이 목록으로 노출되지 않도록 스코프 (IDOR 방지).
     // 시스템 기본·공개 템플릿은 누구나, 본인 비공개 템플릿은 본인만, 관리자는 전체.
-    const isAdmin = role === 'admin' || role === 'superadmin';
+    const isAdmin = role === 'admin' || role === 'superadmin'
     const where = isAdmin
       ? {}
       : {
@@ -19,113 +21,113 @@ export class TemplatesService {
             { userId: null },
             ...(userId ? [{ userId }] : []),
           ],
-        };
+        }
     return this.prisma.template.findMany({
       where,
       orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
-    });
+    })
   }
 
   async findOne(id: string, userId?: string, role?: string) {
-    const template = await this.prisma.template.findUnique({ where: { id } });
-    if (!template) throw new NotFoundException('템플릿을 찾을 수 없습니다');
+    const template = await this.prisma.template.findUnique({ where: { id } })
+    if (!template) throw new NotFoundException('템플릿을 찾을 수 없습니다')
     // 비공개 사용자 템플릿은 소유자/관리자만 조회 (IDOR 방지). 시스템 기본(userId=null·isDefault)·
     // 공개(visibility='public') 템플릿은 누구나. 존재 비노출을 위해 NotFound 로 통일.
-    const isAdmin = role === 'admin' || role === 'superadmin';
+    const isAdmin = role === 'admin' || role === 'superadmin'
     const isShared =
-      template.isDefault || template.visibility === 'public' || template.userId === null;
+      template.isDefault || template.visibility === 'public' || template.userId === null
     if (!isShared && template.userId !== userId && !isAdmin) {
-      throw new NotFoundException('템플릿을 찾을 수 없습니다');
+      throw new NotFoundException('템플릿을 찾을 수 없습니다')
     }
-    return template;
+    return template
   }
 
   async create(
     data: {
-      name: string;
-      description?: string;
-      category?: string;
-      prompt?: string;
-      layout?: string;
-      isDefault?: boolean;
+      name: string
+      description?: string
+      category?: string
+      prompt?: string
+      layout?: string
+      isDefault?: boolean
     },
     userId?: string,
-    role?: string,
+    role?: string
   ) {
     // 비관리자는 시스템 기본 템플릿(isDefault)을 만들 수 없음 (기본 갤러리 오염 + 자기 잠금 방지).
-    const isAdmin = role === 'admin' || role === 'superadmin';
+    const isAdmin = role === 'admin' || role === 'superadmin'
     return this.prisma.template.create({
       data: {
         ...data,
         isDefault: isAdmin ? (data.isDefault ?? false) : false,
         userId: userId || null,
       },
-    });
+    })
   }
 
   async update(
     id: string,
     data: {
-      name?: string;
-      description?: string;
-      category?: string;
-      prompt?: string;
-      layout?: string;
-      visibility?: string;
-      isDefault?: boolean;
+      name?: string
+      description?: string
+      category?: string
+      prompt?: string
+      layout?: string
+      visibility?: string
+      isDefault?: boolean
     },
     userId?: string,
-    role?: string,
+    role?: string
   ) {
-    const existing = await this.prisma.template.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다');
+    const existing = await this.prisma.template.findUnique({ where: { id } })
+    if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다')
     if (role !== 'admin' && role !== 'superadmin') {
       if (existing.isDefault) {
-        throw new ForbiddenException('기본 템플릿은 수정할 수 없습니다');
+        throw new ForbiddenException('기본 템플릿은 수정할 수 없습니다')
       }
       if (existing.userId && existing.userId !== userId) {
-        throw new ForbiddenException('이 템플릿을 수정할 권한이 없습니다');
+        throw new ForbiddenException('이 템플릿을 수정할 권한이 없습니다')
       }
       // 비관리자는 isDefault 를 변경할 수 없음 (자기 템플릿을 기본으로 승격 → 잠금/오염 차단).
-      delete data.isDefault;
+      delete data.isDefault
     }
-    return this.prisma.template.update({ where: { id }, data });
+    return this.prisma.template.update({ where: { id }, data })
   }
 
   async remove(id: string, userId?: string, role?: string) {
-    const existing = await this.prisma.template.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다');
+    const existing = await this.prisma.template.findUnique({ where: { id } })
+    if (!existing) throw new NotFoundException('템플릿을 찾을 수 없습니다')
     if (role !== 'admin' && role !== 'superadmin') {
       if (existing.isDefault) {
-        throw new ForbiddenException('기본 템플릿은 삭제할 수 없습니다');
+        throw new ForbiddenException('기본 템플릿은 삭제할 수 없습니다')
       }
       if (existing.userId && existing.userId !== userId) {
-        throw new ForbiddenException('이 템플릿을 삭제할 권한이 없습니다');
+        throw new ForbiddenException('이 템플릿을 삭제할 권한이 없습니다')
       }
     }
-    await this.prisma.template.delete({ where: { id } });
-    return { success: true };
+    await this.prisma.template.delete({ where: { id } })
+    return { success: true }
   }
 
   async findPublic(category?: string) {
-    const where: Prisma.TemplateWhereInput = { visibility: 'public' };
-    if (category) where.category = category;
+    const where: Prisma.TemplateWhereInput = { visibility: 'public' }
+    if (category) where.category = category
     return this.prisma.template.findMany({
       where,
       orderBy: { usageCount: 'desc' },
       take: 50,
-    });
+    })
   }
 
   async incrementUsage(id: string) {
     this.prisma.template
       .update({ where: { id }, data: { usageCount: { increment: 1 } } })
-      .catch(() => {});
+      .catch(() => {})
   }
 
   async seed() {
-    const count = await this.prisma.template.count();
-    if (count > 0) return { message: '이미 시드 데이터가 존재합니다' };
+    const count = await this.prisma.template.count()
+    if (count > 0) return { message: '이미 시드 데이터가 존재합니다' }
 
     const defaults = [
       {
@@ -244,9 +246,9 @@ export class TemplatesService {
         }),
         isDefault: true,
       },
-    ];
+    ]
 
-    await this.prisma.template.createMany({ data: defaults });
-    return { message: `${defaults.length}개의 기본 템플릿이 생성되었습니다` };
+    await this.prisma.template.createMany({ data: defaults })
+    return { message: `${defaults.length}개의 기본 템플릿이 생성되었습니다` }
   }
 }

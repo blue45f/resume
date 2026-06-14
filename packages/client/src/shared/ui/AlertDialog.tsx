@@ -13,19 +13,20 @@
  *     onConfirm={() => deleteItem()}
  *   />
  */
-import * as RadixAlertDialog from '@radix-ui/react-alert-dialog';
-import type { ReactNode } from 'react';
+import * as RadixAlertDialog from '@radix-ui/react-alert-dialog'
+
+import type { ReactNode } from 'react'
 
 interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  description?: ReactNode;
-  confirmText?: string;
-  cancelText?: string;
-  danger?: boolean;
-  onConfirm: () => void;
-  children?: ReactNode;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description?: ReactNode
+  confirmText?: string
+  cancelText?: string
+  danger?: boolean
+  onConfirm: () => void
+  children?: ReactNode
 }
 
 export default function AlertDialog({
@@ -126,5 +127,5 @@ export default function AlertDialog({
         </RadixAlertDialog.Content>
       </RadixAlertDialog.Portal>
     </RadixAlertDialog.Root>
-  );
+  )
 }

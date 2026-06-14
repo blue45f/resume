@@ -1,16 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo } from 'react'
+
 import {
   computeSectionHealth,
   analyzeSectionDensity,
   splitByExperienceSection,
   analyzeStarPattern,
   type StarPatternReport,
-} from '@/lib/koreanChecker';
+} from '@/lib/koreanChecker'
 
 interface Props {
-  text: string;
-  minLength?: number;
-  className?: string;
+  text: string
+  minLength?: number
+  className?: string
 }
 
 const TIER_COLORS: Record<'excellent' | 'good' | 'fair' | 'poor', string> = {
@@ -18,14 +19,14 @@ const TIER_COLORS: Record<'excellent' | 'good' | 'fair' | 'poor', string> = {
   good: 'text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20',
   fair: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20',
   poor: 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/20',
-};
+}
 
 const TIER_LABELS: Record<'excellent' | 'good' | 'fair' | 'poor', string> = {
   excellent: '우수',
   good: '양호',
   fair: '보통',
   poor: '취약',
-};
+}
 
 /**
  * 이력서 섹션 분석 패널 — 균형·순서·밀도 3축 종합 점수와 섹션별 밀도 + 개선 힌트 노출.
@@ -34,20 +35,20 @@ const TIER_LABELS: Record<'excellent' | 'good' | 'fair' | 'poor', string> = {
 export default function SectionInsightsPanel({ text, minLength = 200, className = '' }: Props) {
   const { health, density, sections, star } = useMemo(() => {
     if (!text || text.length < minLength) {
-      return { health: null, density: [], sections: [], star: null };
+      return { health: null, density: [], sections: [], star: null }
     }
     return {
       health: computeSectionHealth(text),
       density: analyzeSectionDensity(text),
       sections: splitByExperienceSection(text),
       star: analyzeStarPattern(text),
-    };
-  }, [text, minLength]);
+    }
+  }, [text, minLength])
 
-  if (!health || sections.length < 2) return null;
+  if (!health || sections.length < 2) return null
 
-  const tierColor = TIER_COLORS[health.tier];
-  const tierLabel = TIER_LABELS[health.tier];
+  const tierColor = TIER_COLORS[health.tier]
+  const tierLabel = TIER_LABELS[health.tier]
 
   return (
     <div className={`mt-3 ${className}`}>
@@ -65,10 +66,10 @@ export default function SectionInsightsPanel({ text, minLength = 200, className 
       {density.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-1.5">
           {density.map((d) => {
-            const ok = !d.needsBoost;
+            const ok = !d.needsBoost
             const chipClass = ok
               ? 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-              : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/40';
+              : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/40'
             return (
               <span
                 key={d.key}
@@ -78,7 +79,7 @@ export default function SectionInsightsPanel({ text, minLength = 200, className 
                 {ok ? '✓' : '⚠'} {d.key}
                 <span className="text-[9px] text-slate-400 dark:text-slate-500">{d.chars}자</span>
               </span>
-            );
+            )
           })}
         </div>
       )}
@@ -97,7 +98,7 @@ export default function SectionInsightsPanel({ text, minLength = 200, className 
         </ul>
       )}
     </div>
-  );
+  )
 }
 
 const STAR_CUE_LABELS: Record<'S' | 'T' | 'A' | 'R', string> = {
@@ -105,27 +106,27 @@ const STAR_CUE_LABELS: Record<'S' | 'T' | 'A' | 'R', string> = {
   T: '과제',
   A: '행동',
   R: '결과',
-};
+}
 
 const STAR_CUE_TIPS: Record<'S' | 'T' | 'A' | 'R', string> = {
   S: '당시 상황·문제·환경을 한 줄로 추가해보세요',
   T: '본인이 맡은 역할·목표·미션을 명시해보세요',
   A: '직접 한 행동(개발·개선·도입 등)을 적어보세요',
   R: '숫자·% 또는 절감·향상 같은 결과를 넣어보세요',
-};
+}
 
 function StarSummary({ star }: { star: StarPatternReport }) {
-  const missCount: Record<'S' | 'T' | 'A' | 'R', number> = { S: 0, T: 0, A: 0, R: 0 };
+  const missCount: Record<'S' | 'T' | 'A' | 'R', number> = { S: 0, T: 0, A: 0, R: 0 }
   for (const r of star.results) {
-    if (!r.hasSituation) missCount.S++;
-    if (!r.hasTask) missCount.T++;
-    if (!r.hasAction) missCount.A++;
-    if (!r.hasResult) missCount.R++;
+    if (!r.hasSituation) missCount.S++
+    if (!r.hasTask) missCount.T++
+    if (!r.hasAction) missCount.A++
+    if (!r.hasResult) missCount.R++
   }
   const worst = (['S', 'T', 'A', 'R'] as const).reduce(
     (acc, k) => (missCount[k] > missCount[acc] ? k : acc),
-    'S' as 'S' | 'T' | 'A' | 'R',
-  );
+    'S' as 'S' | 'T' | 'A' | 'R'
+  )
   const chipClass =
     star.tier === 'excellent'
       ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300'
@@ -133,7 +134,7 @@ function StarSummary({ star }: { star: StarPatternReport }) {
         ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
         : star.tier === 'fair'
           ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300'
-          : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300';
+          : 'bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300'
   return (
     <div className="mb-1.5">
       <div className="flex items-baseline gap-2 mb-1">
@@ -146,9 +147,9 @@ function StarSummary({ star }: { star: StarPatternReport }) {
       </div>
       <div className="flex flex-wrap gap-1">
         {(['S', 'T', 'A', 'R'] as const).map((k) => {
-          const missed = missCount[k];
-          const satisfied = star.analyzed - missed;
-          const ok = missed === 0;
+          const missed = missCount[k]
+          const satisfied = star.analyzed - missed
+          const ok = missed === 0
           return (
             <span
               key={k}
@@ -164,7 +165,7 @@ function StarSummary({ star }: { star: StarPatternReport }) {
                 {satisfied}/{star.analyzed}
               </span>
             </span>
-          );
+          )
         })}
       </div>
       {missCount[worst] > 0 && star.coverage < 75 && (
@@ -174,5 +175,5 @@ function StarSummary({ star }: { star: StarPatternReport }) {
         </p>
       )}
     </div>
-  );
+  )
 }

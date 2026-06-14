@@ -6,40 +6,40 @@
 // - Fonts (Google): cache-first with 30d expiry
 // - API GETs: network-only (never cached — data freshness)
 
-const CACHE_VERSION = 'v2';
-const CACHE_SHELL = `resume-shell-${CACHE_VERSION}`;
-const CACHE_ASSETS = `resume-assets-${CACHE_VERSION}`;
-const CACHE_FONTS = `resume-fonts-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v2'
+const CACHE_SHELL = `resume-shell-${CACHE_VERSION}`
+const CACHE_ASSETS = `resume-assets-${CACHE_VERSION}`
+const CACHE_FONTS = `resume-fonts-${CACHE_VERSION}`
 
-const APP_SHELL = ['/', '/index.html', '/manifest.json', '/favicon.svg'];
+const APP_SHELL = ['/', '/index.html', '/manifest.json', '/favicon.svg']
 
 // Install: precache shell, activate immediately
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_SHELL).then((cache) => cache.addAll(APP_SHELL)));
-  self.skipWaiting();
-});
+  event.waitUntil(caches.open(CACHE_SHELL).then((cache) => cache.addAll(APP_SHELL)))
+  self.skipWaiting()
+})
 
 // Activate: clean up old caches, claim clients
 self.addEventListener('activate', (event) => {
-  const valid = new Set([CACHE_SHELL, CACHE_ASSETS, CACHE_FONTS]);
+  const valid = new Set([CACHE_SHELL, CACHE_ASSETS, CACHE_FONTS])
   event.waitUntil(
     caches
       .keys()
       .then((keys) => Promise.all(keys.filter((k) => !valid.has(k)).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim()),
-  );
-});
+      .then(() => self.clients.claim())
+  )
+})
 
 // Fetch handler
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
+  const { request } = event
+  const url = new URL(request.url)
 
   // Only handle GET
-  if (request.method !== 'GET') return;
+  if (request.method !== 'GET') return
 
   // Never cache API calls — always network (data freshness)
-  if (url.pathname.startsWith('/api/')) return;
+  if (url.pathname.startsWith('/api/')) return
 
   // Navigation → network-first (fresh HTML) + offline fallback
   if (request.mode === 'navigate') {
@@ -47,31 +47,31 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_SHELL).then((cache) => cache.put('/index.html', clone));
+            const clone = response.clone()
+            caches.open(CACHE_SHELL).then((cache) => cache.put('/index.html', clone))
           }
-          return response;
+          return response
         })
-        .catch(() => caches.match('/index.html')),
-    );
-    return;
+        .catch(() => caches.match('/index.html'))
+    )
+    return
   }
 
   // Google Fonts → cache-first (fonts are immutable)
   if (url.host === 'fonts.googleapis.com' || url.host === 'fonts.gstatic.com') {
     event.respondWith(
       caches.match(request).then((cached) => {
-        if (cached) return cached;
+        if (cached) return cached
         return fetch(request).then((response) => {
           if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_FONTS).then((cache) => cache.put(request, clone));
+            const clone = response.clone()
+            caches.open(CACHE_FONTS).then((cache) => cache.put(request, clone))
           }
-          return response;
-        });
-      }),
-    );
-    return;
+          return response
+        })
+      })
+    )
+    return
   }
 
   // Static assets → stale-while-revalidate
@@ -81,22 +81,22 @@ self.addEventListener('fetch', (event) => {
         const fetchPromise = fetch(request)
           .then((response) => {
             if (response.ok) {
-              const clone = response.clone();
-              caches.open(CACHE_ASSETS).then((cache) => cache.put(request, clone));
+              const clone = response.clone()
+              caches.open(CACHE_ASSETS).then((cache) => cache.put(request, clone))
             }
-            return response;
+            return response
           })
-          .catch(() => cached);
-        return cached || fetchPromise;
-      }),
-    );
-    return;
+          .catch(() => cached)
+        return cached || fetchPromise
+      })
+    )
+    return
   }
-});
+})
 
 // Message handler: allow clients to request immediate update
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+    self.skipWaiting()
   }
-});
+})

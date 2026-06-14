@@ -1,20 +1,20 @@
-import type { Resume } from '@/types/resume';
+import type { Resume } from '@/types/resume'
 
-export type ProficiencyLevel = 'Novice' | 'Intermediate' | 'Advanced' | 'Expert';
+export type ProficiencyLevel = 'Novice' | 'Intermediate' | 'Advanced' | 'Expert'
 
 export interface SkillProficiency {
-  skill: string;
-  level: ProficiencyLevel;
+  skill: string
+  level: ProficiencyLevel
   /** 0-100 점수 */
-  score: number;
+  score: number
   /** 스킬이 언급된 경력 년수 합산 (겹치는 기간은 한 번만) */
-  years: number;
+  years: number
   /** 프로젝트에서 사용된 횟수 */
-  projectCount: number;
+  projectCount: number
   /** 전체 텍스트에서 등장한 횟수 */
-  mentions: number;
+  mentions: number
   /** 근거 — 어디서 감지됐는지 */
-  evidence: string[];
+  evidence: string[]
 }
 
 /**
@@ -29,84 +29,84 @@ export interface SkillProficiency {
  */
 export function analyzeSkillProficiency(resume: Resume): SkillProficiency[] {
   // 1. 스킬 목록 수집 — 스킬 섹션의 items 우선
-  const skillsFromSection = new Set<string>();
+  const skillsFromSection = new Set<string>()
   for (const s of resume.skills) {
     for (const item of s.items.split(',')) {
-      const name = item.trim();
-      if (name) skillsFromSection.add(name);
+      const name = item.trim()
+      if (name) skillsFromSection.add(name)
     }
   }
 
   // 2. 경력·프로젝트 techStack 에서 추가 추출
-  const techStackSkills = new Set<string>();
+  const techStackSkills = new Set<string>()
   for (const e of resume.experiences) {
     if (e.techStack) {
       for (const item of e.techStack.split(',')) {
-        const name = item.trim();
-        if (name) techStackSkills.add(name);
+        const name = item.trim()
+        if (name) techStackSkills.add(name)
       }
     }
   }
   for (const p of resume.projects) {
     if (p.techStack) {
       for (const item of p.techStack.split(',')) {
-        const name = item.trim();
-        if (name) techStackSkills.add(name);
+        const name = item.trim()
+        if (name) techStackSkills.add(name)
       }
     }
   }
 
   // 스킬 섹션에 있거나 techStack 에 명시된 것만 분석 대상
-  const allSkills = new Set<string>([...skillsFromSection, ...techStackSkills]);
-  const allText = collectAllText(resume).toLowerCase();
+  const allSkills = new Set<string>([...skillsFromSection, ...techStackSkills])
+  const allText = collectAllText(resume).toLowerCase()
 
-  const results: SkillProficiency[] = [];
+  const results: SkillProficiency[] = []
 
   for (const skill of allSkills) {
-    const lower = skill.toLowerCase();
+    const lower = skill.toLowerCase()
 
     // 언급 횟수 (단어 경계 매칭)
-    const mentions = countOccurrences(allText, lower);
+    const mentions = countOccurrences(allText, lower)
 
     // 프로젝트 사용 횟수
-    let projectCount = 0;
+    let projectCount = 0
     for (const p of resume.projects) {
-      const pTech = (p.techStack || '').toLowerCase();
-      const pDesc = (p.description || '').toLowerCase();
+      const pTech = (p.techStack || '').toLowerCase()
+      const pDesc = (p.description || '').toLowerCase()
       if (pTech.includes(lower) || pDesc.includes(lower)) {
-        projectCount++;
+        projectCount++
       }
     }
 
     // 경력 년수 — 해당 스킬이 언급된 경력의 기간 합산 (중복 제거)
-    const intervals: Array<[number, number]> = [];
+    const intervals: Array<[number, number]> = []
     for (const e of resume.experiences) {
-      const eTech = (e.techStack || '').toLowerCase();
-      const eDesc = (e.description || '').toLowerCase();
-      if (!eTech.includes(lower) && !eDesc.includes(lower)) continue;
-      if (!e.startDate) continue;
-      const start = parseMonth(e.startDate);
-      const end = e.current ? Date.now() : parseMonth(e.endDate || e.startDate);
-      if (start && end && end > start) intervals.push([start, end]);
+      const eTech = (e.techStack || '').toLowerCase()
+      const eDesc = (e.description || '').toLowerCase()
+      if (!eTech.includes(lower) && !eDesc.includes(lower)) continue
+      if (!e.startDate) continue
+      const start = parseMonth(e.startDate)
+      const end = e.current ? Date.now() : parseMonth(e.endDate || e.startDate)
+      if (start && end && end > start) intervals.push([start, end])
     }
-    const years = mergeIntervalsToYears(intervals);
+    const years = mergeIntervalsToYears(intervals)
 
     // 근거 문자열
-    const evidence: string[] = [];
-    if (skillsFromSection.has(skill)) evidence.push('기술 섹션');
-    if (years > 0) evidence.push(`경력 ${Math.round(years * 10) / 10}년`);
-    if (projectCount > 0) evidence.push(`프로젝트 ${projectCount}개`);
-    if (mentions > 3) evidence.push(`본문 ${mentions}회 언급`);
+    const evidence: string[] = []
+    if (skillsFromSection.has(skill)) evidence.push('기술 섹션')
+    if (years > 0) evidence.push(`경력 ${Math.round(years * 10) / 10}년`)
+    if (projectCount > 0) evidence.push(`프로젝트 ${projectCount}개`)
+    if (mentions > 3) evidence.push(`본문 ${mentions}회 언급`)
 
     // 점수 계산
-    const yearScore = Math.min(40, Math.round(years * 8));
-    const projectScore = Math.min(30, projectCount * 10);
-    const mentionScore = Math.min(20, Math.round(mentions * 2));
-    const sectionScore = skillsFromSection.has(skill) ? 10 : 0;
-    const score = yearScore + projectScore + mentionScore + sectionScore;
+    const yearScore = Math.min(40, Math.round(years * 8))
+    const projectScore = Math.min(30, projectCount * 10)
+    const mentionScore = Math.min(20, Math.round(mentions * 2))
+    const sectionScore = skillsFromSection.has(skill) ? 10 : 0
+    const score = yearScore + projectScore + mentionScore + sectionScore
 
     const level: ProficiencyLevel =
-      score >= 80 ? 'Expert' : score >= 55 ? 'Advanced' : score >= 30 ? 'Intermediate' : 'Novice';
+      score >= 80 ? 'Expert' : score >= 55 ? 'Advanced' : score >= 30 ? 'Intermediate' : 'Novice'
 
     results.push({
       skill,
@@ -116,62 +116,62 @@ export function analyzeSkillProficiency(resume: Resume): SkillProficiency[] {
       projectCount,
       mentions,
       evidence,
-    });
+    })
   }
 
-  return results.sort((a, b) => b.score - a.score);
+  return results.sort((a, b) => b.score - a.score)
 }
 
 function collectAllText(resume: Resume): string {
-  const parts: string[] = [];
-  if (resume.personalInfo.summary) parts.push(resume.personalInfo.summary);
+  const parts: string[] = []
+  if (resume.personalInfo.summary) parts.push(resume.personalInfo.summary)
   for (const e of resume.experiences) {
-    parts.push(e.description || '');
-    parts.push(e.achievements || '');
-    parts.push(e.techStack || '');
-    parts.push(e.position || '');
+    parts.push(e.description || '')
+    parts.push(e.achievements || '')
+    parts.push(e.techStack || '')
+    parts.push(e.position || '')
   }
   for (const p of resume.projects) {
-    parts.push(p.description || '');
-    parts.push(p.techStack || '');
-    parts.push(p.name || '');
+    parts.push(p.description || '')
+    parts.push(p.techStack || '')
+    parts.push(p.name || '')
   }
   for (const s of resume.skills) {
-    parts.push(s.items);
+    parts.push(s.items)
   }
-  return parts.join(' ');
+  return parts.join(' ')
 }
 
 function parseMonth(date: string): number | null {
-  if (!date) return null;
-  const parts = date.split('-');
-  if (parts.length < 2) return new Date(parseInt(parts[0]), 0, 1).getTime();
-  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1).getTime();
+  if (!date) return null
+  const parts = date.split('-')
+  if (parts.length < 2) return new Date(parseInt(parts[0]), 0, 1).getTime()
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, 1).getTime()
 }
 
 /** 겹치는 기간을 제거하고 총 년수 반환 */
 function mergeIntervalsToYears(intervals: Array<[number, number]>): number {
-  if (intervals.length === 0) return 0;
-  const sorted = [...intervals].sort((a, b) => a[0] - b[0]);
-  const merged: Array<[number, number]> = [sorted[0]];
+  if (intervals.length === 0) return 0
+  const sorted = [...intervals].sort((a, b) => a[0] - b[0])
+  const merged: Array<[number, number]> = [sorted[0]]
   for (let i = 1; i < sorted.length; i++) {
-    const last = merged[merged.length - 1];
-    const curr = sorted[i];
+    const last = merged[merged.length - 1]
+    const curr = sorted[i]
     if (curr[0] <= last[1]) {
-      last[1] = Math.max(last[1], curr[1]);
+      last[1] = Math.max(last[1], curr[1])
     } else {
-      merged.push(curr);
+      merged.push(curr)
     }
   }
-  const msPerYear = 1000 * 60 * 60 * 24 * 365;
-  return merged.reduce((sum, [s, e]) => sum + (e - s) / msPerYear, 0);
+  const msPerYear = 1000 * 60 * 60 * 24 * 365
+  return merged.reduce((sum, [s, e]) => sum + (e - s) / msPerYear, 0)
 }
 
 /** 대소문자 무관 단어 경계 카운트 */
 function countOccurrences(haystack: string, needle: string): number {
-  if (!needle || needle.length < 2) return 0;
-  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`(?:^|[\\s,.;(<])${escaped}(?:$|[\\s,.;)>])`, 'g');
-  const matches = haystack.match(re);
-  return matches ? matches.length : 0;
+  if (!needle || needle.length < 2) return 0
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`(?:^|[\\s,.;(<])${escaped}(?:$|[\\s,.;)>])`, 'g')
+  const matches = haystack.match(re)
+  return matches ? matches.length : 0
 }

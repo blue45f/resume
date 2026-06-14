@@ -1,24 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react'
 
 export default function ScrollToTop() {
-  const [show, setShow] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [show, setShow] = useState(false)
+  const [progress, setProgress] = useState(0)
 
   const handleScroll = useCallback(() => {
-    setShow(window.scrollY > 400);
+    setShow(window.scrollY > 400)
 
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
     if (scrollHeight > 0) {
-      setProgress(Math.min((window.scrollY / scrollHeight) * 100, 100));
+      setProgress(Math.min((window.scrollY / scrollHeight) * 100, 100))
     } else {
-      setProgress(0);
+      setProgress(0)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [handleScroll])
 
   return (
     <>
@@ -48,5 +48,5 @@ export default function ScrollToTop() {
         </button>
       )}
     </>
-  );
+  )
 }

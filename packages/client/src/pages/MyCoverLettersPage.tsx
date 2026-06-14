@@ -1,78 +1,79 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { CardGridSkeleton } from '@/components/Skeleton';
-import EmptyState from '@/components/EmptyState';
-import { toast } from '@/components/Toast';
-import { formatDate, timeAgo } from '@/lib/time';
-import { deleteCoverLetter } from '@/lib/api';
-import { useCoverLetters } from '@/hooks/useResources';
-import { ROUTES } from '@/lib/routes';
-import { t } from '@/lib/i18n';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useEffect, useMemo } from 'react'
+import { Link } from 'react-router-dom'
+
+import EmptyState from '@/components/EmptyState'
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { CardGridSkeleton } from '@/components/Skeleton'
+import { toast } from '@/components/Toast'
+import { useCoverLetters } from '@/hooks/useResources'
+import { deleteCoverLetter } from '@/lib/api'
+import { t } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
+import { formatDate, timeAgo } from '@/lib/time'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface CoverLetter {
-  id: string;
-  company: string;
-  position: string;
-  tone: string;
-  content: string;
-  resumeId?: string;
-  createdAt: string;
-  updatedAt: string;
+  id: string
+  company: string
+  position: string
+  tone: string
+  content: string
+  resumeId?: string
+  createdAt: string
+  updatedAt: string
 }
 
-type SortMode = 'recent' | 'name';
+type SortMode = 'recent' | 'name'
 
 export default function MyCoverLettersPage() {
-  const queryClient = useQueryClient();
-  const { data, isLoading: loading } = useCoverLetters();
-  const letters: CoverLetter[] = useMemo(() => (data as CoverLetter[] | undefined) ?? [], [data]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortMode, setSortMode] = useState<SortMode>('recent');
-  const [batchMode, setBatchMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const confirm = useConfirm();
+  const queryClient = useQueryClient()
+  const { data, isLoading: loading } = useCoverLetters()
+  const letters: CoverLetter[] = useMemo(() => (data as CoverLetter[] | undefined) ?? [], [data])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortMode, setSortMode] = useState<SortMode>('recent')
+  const [batchMode, setBatchMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const confirm = useConfirm()
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteCoverLetter(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['cover-letters'] }),
-  });
+  })
 
   useEffect(() => {
-    document.title = '내 자소서 — 이력서공방';
+    document.title = '내 자소서 — 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
   const filteredLetters = useMemo(() => {
-    let result = letters;
+    let result = letters
 
     // Search filter
     if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
+      const q = searchQuery.trim().toLowerCase()
       result = result.filter(
         (l) =>
           (l.company || '').toLowerCase().includes(q) ||
-          (l.position || '').toLowerCase().includes(q),
-      );
+          (l.position || '').toLowerCase().includes(q)
+      )
     }
 
     // Sort
     if (sortMode === 'recent') {
       result = [...result].sort(
-        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      );
+        (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
     } else {
-      result = [...result].sort((a, b) => (a.company || '').localeCompare(b.company || '', 'ko'));
+      result = [...result].sort((a, b) => (a.company || '').localeCompare(b.company || '', 'ko'))
     }
 
-    return result;
-  }, [letters, searchQuery, sortMode]);
+    return result
+  }, [letters, searchQuery, sortMode])
 
   const handleDelete = async (id: string) => {
     if (
@@ -82,16 +83,16 @@ export default function MyCoverLettersPage() {
         confirmText: '삭제',
       }))
     )
-      return;
-    await deleteMutation.mutateAsync(id).catch(() => {});
-    if (selectedId === id) setSelectedId(null);
-    toast('자소서가 삭제되었습니다', 'success');
-  };
+      return
+    await deleteMutation.mutateAsync(id).catch(() => {})
+    if (selectedId === id) setSelectedId(null)
+    toast('자소서가 삭제되었습니다', 'success')
+  }
 
   const handleBatchDelete = async () => {
     if (selectedIds.size === 0) {
-      toast('삭제할 자소서를 선택해주세요', 'warning');
-      return;
+      toast('삭제할 자소서를 선택해주세요', 'warning')
+      return
     }
     if (
       !(await confirm({
@@ -100,42 +101,42 @@ export default function MyCoverLettersPage() {
         confirmText: '삭제',
       }))
     )
-      return;
-    await Promise.allSettled(Array.from(selectedIds).map((id) => deleteCoverLetter(id)));
-    queryClient.invalidateQueries({ queryKey: ['cover-letters'] });
-    if (selectedId && selectedIds.has(selectedId)) setSelectedId(null);
-    toast(`${selectedIds.size}개의 자소서가 삭제되었습니다`, 'success');
-    setSelectedIds(new Set());
-    setBatchMode(false);
-  };
+      return
+    await Promise.allSettled(Array.from(selectedIds).map((id) => deleteCoverLetter(id)))
+    queryClient.invalidateQueries({ queryKey: ['cover-letters'] })
+    if (selectedId && selectedIds.has(selectedId)) setSelectedId(null)
+    toast(`${selectedIds.size}개의 자소서가 삭제되었습니다`, 'success')
+    setSelectedIds(new Set())
+    setBatchMode(false)
+  }
 
   const toggleBatchSelect = (id: string) => {
     setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   const handleCopy = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast('클립보드에 복사되었습니다', 'success');
-  };
+    navigator.clipboard.writeText(content)
+    toast('클립보드에 복사되었습니다', 'success')
+  }
 
   const getSnippet = (content: string) => {
-    if (!content) return '';
-    const clean = content.replace(/\s+/g, ' ').trim();
-    return clean.length > 100 ? clean.slice(0, 100) + '...' : clean;
-  };
+    if (!content) return ''
+    const clean = content.replace(/\s+/g, ' ').trim()
+    return clean.length > 100 ? clean.slice(0, 100) + '...' : clean
+  }
 
-  const selected = letters.find((l) => l.id === selectedId);
+  const selected = letters.find((l) => l.id === selectedId)
   const toneLabels: Record<string, string> = {
     formal: '격식체',
     friendly: '친근체',
     passionate: '열정체',
     confident: '자신감체',
-  };
+  }
 
   return (
     <>
@@ -202,8 +203,8 @@ export default function MyCoverLettersPage() {
                 </select>
                 <button
                   onClick={() => {
-                    setBatchMode(!batchMode);
-                    setSelectedIds(new Set());
+                    setBatchMode(!batchMode)
+                    setSelectedIds(new Set())
                   }}
                   className={`px-3 py-2 text-sm font-medium rounded-xl border transition-colors ${
                     batchMode
@@ -319,5 +320,5 @@ export default function MyCoverLettersPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

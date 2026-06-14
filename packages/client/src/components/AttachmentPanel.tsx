@@ -1,17 +1,19 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { API_URL } from '@/lib/config';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useEffect, useRef, useCallback } from 'react'
+
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface Attachment {
-  id: string;
-  originalName: string;
-  mimeType: string;
-  size: number;
-  category: string;
-  description: string;
-  downloadUrl: string;
-  createdAt: string;
+  id: string
+  originalName: string
+  mimeType: string
+  size: number
+  category: string
+  description: string
+  downloadUrl: string
+  createdAt: string
 }
 
 const CATEGORIES = [
@@ -19,98 +21,98 @@ const CATEGORIES = [
   { value: 'portfolio', label: '포트폴리오' },
   { value: 'document', label: '제출 서류' },
   { value: 'reference', label: '참고자료' },
-];
+]
 
 function formatSize(bytes: number) {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
 }
 
 function fileIcon(mimeType: string) {
-  if (mimeType.startsWith('image/')) return '🖼️';
-  if (mimeType === 'application/pdf') return '📕';
-  if (mimeType.includes('word')) return '📝';
-  if (mimeType.includes('sheet') || mimeType.includes('excel')) return '📊';
-  if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return '📽️';
-  return '📎';
+  if (mimeType.startsWith('image/')) return '🖼️'
+  if (mimeType === 'application/pdf') return '📕'
+  if (mimeType.includes('word')) return '📝'
+  if (mimeType.includes('sheet') || mimeType.includes('excel')) return '📊'
+  if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return '📽️'
+  return '📎'
 }
 
 interface Props {
-  resumeId: string;
-  onClose: () => void;
+  resumeId: string
+  onClose: () => void
 }
 
 export default function AttachmentPanel({ resumeId, onClose }: Props) {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [category, setCategory] = useState('document');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [uploading, setUploading] = useState(false)
+  const [category, setCategory] = useState('document')
+  const [description, setDescription] = useState('')
+  const [error, setError] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
-    setLoading(true);
+    setLoading(true)
     try {
-      const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`);
-      if (res.ok) setAttachments(await res.json());
+      const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/attachments`)
+      if (res.ok) setAttachments(await res.json())
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [resumeId]);
+  }, [resumeId])
 
   useEffect(() => {
-    let cancelled = false;
-    fetch(`${API_URL}/api/resumes/${resumeId}/attachments`)
+    let cancelled = false
+    httpClient(`${API_URL}/api/resumes/${resumeId}/attachments`)
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (!cancelled) setAttachments(data);
+        if (!cancelled) setAttachments(data)
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+        if (!cancelled) setLoading(false)
+      })
     return () => {
-      cancelled = true;
-    };
-  }, [resumeId]);
+      cancelled = true
+    }
+  }, [resumeId])
 
   const handleUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    setUploading(true);
-    setError('');
+    if (!files || files.length === 0) return
+    setUploading(true)
+    setError('')
 
     for (const file of Array.from(files)) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', category);
-      formData.append('description', description);
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('category', category)
+      formData.append('description', description)
 
       try {
-        const token = localStorage.getItem('token');
-        const headers: Record<string, string> = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        const res = await fetch(`${API_URL}/api/resumes/${resumeId}/attachments`, {
+        const token = localStorage.getItem('token')
+        const headers: Record<string, string> = {}
+        if (token) headers['Authorization'] = `Bearer ${token}`
+        const res = await httpClient(`${API_URL}/api/resumes/${resumeId}/attachments`, {
           method: 'POST',
           headers,
           body: formData,
-        });
+        })
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          setError(err.message || '업로드에 실패했습니다');
+          const err = await res.json().catch(() => ({}))
+          setError(err.message || '업로드에 실패했습니다')
         }
       } catch {
-        setError('업로드에 실패했습니다');
+        setError('업로드에 실패했습니다')
       }
     }
 
-    setDescription('');
-    if (fileRef.current) fileRef.current.value = '';
-    setUploading(false);
-    load();
-  };
+    setDescription('')
+    if (fileRef.current) fileRef.current.value = ''
+    setUploading(false)
+    load()
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const handleDelete = async (id: string, name: string) => {
     if (
@@ -120,21 +122,21 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
         danger: true,
       }))
     )
-      return;
-    await fetch(`${API_URL}/api/attachments/${id}`, { method: 'DELETE' });
-    load();
-  };
+      return
+    await httpClient(`${API_URL}/api/attachments/${id}`, { method: 'DELETE' })
+    load()
+  }
 
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    handleUpload(e.dataTransfer.files);
-  };
+    e.preventDefault()
+    handleUpload(e.dataTransfer.files)
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -312,5 +314,5 @@ export default function AttachmentPanel({ resumeId, onClose }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

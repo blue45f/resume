@@ -1,34 +1,36 @@
-import { useState, useEffect } from 'react';
-import { API_URL } from '@/lib/config';
+import { useState, useEffect } from 'react'
+
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
 
 interface TrendPoint {
-  version: number;
-  sections: number;
-  createdAt: string;
+  version: number
+  sections: number
+  createdAt: string
 }
 
 interface Props {
-  resumeId: string;
+  resumeId: string
 }
 
 export default function ResumeTrend({ resumeId }: Props) {
-  const [trend, setTrend] = useState<TrendPoint[]>([]);
-  const [expanded, setExpanded] = useState(false);
+  const [trend, setTrend] = useState<TrendPoint[]>([])
+  const [expanded, setExpanded] = useState(false)
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    fetch(`${API_URL}/api/resumes/trend/${resumeId}`, {
+    const token = localStorage.getItem('token')
+    if (!token) return
+    httpClient(`${API_URL}/api/resumes/trend/${resumeId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => (r.ok ? r.json() : []))
       .then(setTrend)
-      .catch(() => {});
-  }, [resumeId]);
+      .catch(() => {})
+  }, [resumeId])
 
-  if (trend.length < 2) return null;
+  if (trend.length < 2) return null
 
-  const maxSections = Math.max(...trend.map((t) => t.sections), 1);
+  const maxSections = Math.max(...trend.map((t) => t.sections), 1)
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 no-print">
@@ -76,5 +78,5 @@ export default function ResumeTrend({ resumeId }: Props) {
         </div>
       )}
     </div>
-  );
+  )
 }

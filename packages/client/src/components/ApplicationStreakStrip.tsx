@@ -1,61 +1,63 @@
-import { useCallback, useMemo, useState } from 'react';
-import type { JobApplication } from '@/lib/api';
+import { useCallback, useMemo, useState } from 'react'
+
+import type { JobApplication } from '@/lib/api'
+
 import {
   buildApplicationStreakReport,
   readApplicationTarget,
   writeApplicationTarget,
-} from '@/lib/applicationStreakTracker';
+} from '@/lib/applicationStreakTracker'
 
 interface Props {
-  applications?: JobApplication[];
+  applications?: JobApplication[]
 }
 
-const MIN_TARGET = 1;
-const MAX_TARGET = 20;
+const MIN_TARGET = 1
+const MAX_TARGET = 20
 
 function clampUiTarget(value: number): number {
-  return Math.max(MIN_TARGET, Math.min(MAX_TARGET, Math.round(value)));
+  return Math.max(MIN_TARGET, Math.min(MAX_TARGET, Math.round(value)))
 }
 
 function formatMonthDay(weekStart: string): string {
-  const date = new Date(`${weekStart}T00:00:00Z`);
-  if (Number.isNaN(date.getTime())) return weekStart;
-  const month = date.getUTCMonth() + 1;
-  const day = date.getUTCDate();
-  return `${month}/${day}`;
+  const date = new Date(`${weekStart}T00:00:00Z`)
+  if (Number.isNaN(date.getTime())) return weekStart
+  const month = date.getUTCMonth() + 1
+  const day = date.getUTCDate()
+  return `${month}/${day}`
 }
 
 export default function ApplicationStreakStrip({ applications = [] }: Props) {
-  const [target, setTarget] = useState<number>(() => clampUiTarget(readApplicationTarget()));
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<string>(String(target));
+  const [target, setTarget] = useState<number>(() => clampUiTarget(readApplicationTarget()))
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState<string>(String(target))
 
   const report = useMemo(
     () => buildApplicationStreakReport(applications, { target }),
-    [applications, target],
-  );
+    [applications, target]
+  )
 
   const commitDraft = useCallback(() => {
-    const parsed = Number(draft);
+    const parsed = Number(draft)
     if (!Number.isFinite(parsed)) {
-      setDraft(String(target));
-      setEditing(false);
-      return;
+      setDraft(String(target))
+      setEditing(false)
+      return
     }
-    const saved = writeApplicationTarget(clampUiTarget(parsed));
-    setTarget(saved);
-    setDraft(String(saved));
-    setEditing(false);
-  }, [draft, target]);
+    const saved = writeApplicationTarget(clampUiTarget(parsed))
+    setTarget(saved)
+    setDraft(String(saved))
+    setEditing(false)
+  }, [draft, target])
 
   const startEditing = useCallback(() => {
-    setDraft(String(target));
-    setEditing(true);
-  }, [target]);
+    setDraft(String(target))
+    setEditing(true)
+  }, [target])
 
-  if (applications.length === 0 && report.currentStreak === 0) return null;
+  if (applications.length === 0 && report.currentStreak === 0) return null
 
-  const max = report.weeks.reduce((acc, w) => Math.max(acc, w.count), target);
+  const max = report.weeks.reduce((acc, w) => Math.max(acc, w.count), target)
 
   return (
     <section className={`streak-strip streak-strip--${report.tone}`} aria-label="주간 지원 페이스">
@@ -80,10 +82,10 @@ export default function ApplicationStreakStrip({ applications = [] }: Props) {
               onChange={(e) => setDraft(e.target.value)}
               onBlur={commitDraft}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') commitDraft();
+                if (e.key === 'Enter') commitDraft()
                 if (e.key === 'Escape') {
-                  setDraft(String(target));
-                  setEditing(false);
+                  setDraft(String(target))
+                  setEditing(false)
                 }
               }}
               className="streak-strip__target-input"
@@ -136,7 +138,7 @@ export default function ApplicationStreakStrip({ applications = [] }: Props) {
 
       <div className="streak-strip__chart" aria-hidden="true">
         {report.weeks.map((week) => {
-          const fill = max > 0 ? week.count / max : 0;
+          const fill = max > 0 ? week.count / max : 0
           return (
             <div
               key={week.weekStart}
@@ -149,9 +151,9 @@ export default function ApplicationStreakStrip({ applications = [] }: Props) {
               />
               <span className="streak-strip__bar-label">{formatMonthDay(week.weekStart)}</span>
             </div>
-          );
+          )
         })}
       </div>
     </section>
-  );
+  )
 }

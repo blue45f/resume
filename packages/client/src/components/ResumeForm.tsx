@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense, useMemo } from 'react';
-import { useForm, useFieldArray, Controller, useWatch, type UseFormReturn } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense, useMemo } from 'react'
+import { useForm, useFieldArray, Controller, useWatch, type UseFormReturn } from 'react-hook-form'
+
 import type {
   Experience,
   Education,
@@ -11,33 +12,34 @@ import type {
   Award,
   Activity,
   SectionId,
-} from '@/types/resume';
-import type { Resume } from '@/types/resume';
-import { DEFAULT_SECTION_ORDER } from '@/types/resume';
-import { toast } from '@/components/Toast';
-import { t } from '@/lib/i18n';
-import { sectionTips, powerVerbs } from '@/lib/writingTips';
-import { resumeFormSchema, type ResumeFormInput } from '@/shared/lib/schemas';
+  Resume,
+} from '@/types/resume'
 
-const RichEditor = lazy(() => import('@/components/RichEditor'));
-import VoiceInput from '@/components/VoiceInput';
-import AiWritingAssist from '@/components/AiWritingAssist';
+import AiCoachPanel from '@/components/AiCoachPanel'
+import AiSummaryGenerator from '@/components/AiSummaryGenerator'
+import AiWritingAssist from '@/components/AiWritingAssist'
+import ContentSuggestions from '@/components/ContentSuggestions'
+import SectionOrderPanel from '@/components/SectionOrderPanel'
 import {
   SkillSuggestDropdown,
   CompanyRoleSuggest,
   InlineContentTip,
-} from '@/components/SkillSuggest';
-import AiCoachPanel from '@/components/AiCoachPanel';
-import AiSummaryGenerator from '@/components/AiSummaryGenerator';
-import SectionOrderPanel from '@/components/SectionOrderPanel';
-import ContentSuggestions from '@/components/ContentSuggestions';
+} from '@/components/SkillSuggest'
+import { toast } from '@/components/Toast'
+import VoiceInput from '@/components/VoiceInput'
+import { t } from '@/lib/i18n'
+import { sectionTips, powerVerbs } from '@/lib/writingTips'
+import { resumeFormSchema, type ResumeFormInput } from '@/shared/lib/schemas'
+import { DEFAULT_SECTION_ORDER } from '@/types/resume'
 
-type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle';
+const RichEditor = lazy(() => import('@/components/RichEditor'))
+
+type SaveStatus = 'saved' | 'saving' | 'dirty' | 'error' | 'idle'
 type ExperienceEditableField = Extract<
   keyof Experience,
   'position' | 'description' | 'achievements'
->;
-type SkillEditableField = Extract<keyof Skill, 'items'>;
+>
+type SkillEditableField = Extract<keyof Skill, 'items'>
 
 function SaveStatusPill({ status, lastSaved }: { status: SaveStatus; lastSaved: Date | null }) {
   const config: Record<SaveStatus, { label: string; color: string; icon: string }> = {
@@ -68,9 +70,9 @@ function SaveStatusPill({ status, lastSaved }: { status: SaveStatus; lastSaved: 
         'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
       icon: 'M6 18L18 6M6 6l12 12',
     },
-  };
-  if (status === 'idle') return null;
-  const c = config[status];
+  }
+  if (status === 'idle') return null
+  const c = config[status]
   return (
     <div
       className={`fixed top-16 right-4 z-40 flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border shadow-sm transition-all duration-300 ${c.color}`}
@@ -89,7 +91,7 @@ function SaveStatusPill({ status, lastSaved }: { status: SaveStatus; lastSaved: 
       </svg>
       {c.label}
     </div>
-  );
+  )
 }
 
 function CollapsibleSection({
@@ -98,21 +100,21 @@ function CollapsibleSection({
   defaultExpanded = true,
   children,
 }: {
-  id: string;
-  title: string;
-  defaultExpanded?: boolean;
-  children: React.ReactNode;
+  id: string
+  title: string
+  defaultExpanded?: boolean
+  children: React.ReactNode
 }) {
-  const storageKey = `resume-section-${id}`;
+  const storageKey = `resume-section-${id}`
   const [expanded, setExpanded] = useState(() => {
-    const stored = sessionStorage.getItem(storageKey);
-    return stored !== null ? stored === 'true' : defaultExpanded;
-  });
+    const stored = sessionStorage.getItem(storageKey)
+    return stored !== null ? stored === 'true' : defaultExpanded
+  })
   const toggle = () => {
-    const next = !expanded;
-    setExpanded(next);
-    sessionStorage.setItem(storageKey, String(next));
-  };
+    const next = !expanded
+    setExpanded(next)
+    sessionStorage.setItem(storageKey, String(next))
+  }
   return (
     <div>
       {/* 섹션 제목을 heading 안의 disclosure 버튼으로 — 스크린리더의 본문 아웃라인(페이지 h1
@@ -140,21 +142,21 @@ function CollapsibleSection({
       </h2>
       {expanded && <div id={`collapse-${id}`}>{children}</div>}
     </div>
-  );
+  )
 }
 
-type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>;
+type ResumeData = Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>
 
 function ReorderButtons({
   index,
   total,
   onMove,
 }: {
-  index: number;
-  total: number;
-  onMove: (from: number, to: number) => void;
+  index: number
+  total: number
+  onMove: (from: number, to: number) => void
 }) {
-  if (total <= 1) return null;
+  if (total <= 1) return null
   return (
     <div className="flex gap-0.5">
       <button
@@ -180,21 +182,21 @@ function ReorderButtons({
         </svg>
       </button>
     </div>
-  );
+  )
 }
 
 /** Power Words helper: shows categorized action verbs that can be clicked to copy */
 function PowerWordsHelper() {
-  const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState(Object.keys(powerVerbs)[0]);
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null)
+  const [activeCategory, setActiveCategory] = useState(Object.keys(powerVerbs)[0])
 
   const handleCopy = (verb: string) => {
     navigator.clipboard.writeText(verb).then(() => {
-      setCopied(verb);
-      setTimeout(() => setCopied(null), 1500);
-    });
-  };
+      setCopied(verb)
+      setTimeout(() => setCopied(null), 1500)
+    })
+  }
 
   return (
     <div className="mt-1">
@@ -254,29 +256,29 @@ function PowerWordsHelper() {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface Props {
-  resumeId?: string;
-  initialData: ResumeData;
-  onSave: (data: ResumeData) => void;
-  onAutoSave?: (data: ResumeData) => Promise<void>;
-  onDataChange?: (data: ResumeData) => void;
-  saving?: boolean;
+  resumeId?: string
+  initialData: ResumeData
+  onSave: (data: ResumeData) => void
+  onAutoSave?: (data: ResumeData) => Promise<void>
+  onDataChange?: (data: ResumeData) => void
+  saving?: boolean
 }
 
 const inputClass =
-  'w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors';
-const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1';
+  'w-full px-3 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors'
+const labelClass = 'block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1'
 const deleteBtn =
-  'text-red-600 text-sm hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-2 py-1 transition-colors';
+  'text-red-600 text-sm hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-2 py-1 transition-colors'
 const addBtn =
-  'w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:border-blue-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200';
+  'w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl text-sm text-slate-500 dark:text-slate-400 hover:border-blue-400 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200'
 
 // Normalize form values -> ResumeData payload (callers expect backwards compatible shape)
 function toResumeData(values: ResumeFormInput): ResumeData {
-  return values as unknown as ResumeData;
+  return values as unknown as ResumeData
 }
 
 export default function ResumeForm({
@@ -287,11 +289,11 @@ export default function ResumeForm({
   onDataChange,
   saving,
 }: Props) {
-  const [activeTab, setActiveTab] = useState('personal');
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
-  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initialDataRef = useRef(initialData);
+  const [activeTab, setActiveTab] = useState('personal')
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const initialDataRef = useRef(initialData)
 
   const defaultValues = useMemo<ResumeFormInput>(
     () => ({
@@ -322,69 +324,69 @@ export default function ResumeForm({
         : [...DEFAULT_SECTION_ORDER],
       hiddenSections: initialData.hiddenSections || [],
     }),
-    [initialData],
-  );
+    [initialData]
+  )
 
   const form: UseFormReturn<ResumeFormInput> = useForm<ResumeFormInput>({
     resolver: zodResolver(resumeFormSchema),
     defaultValues,
     mode: 'onSubmit',
-  });
+  })
 
-  const { control, register, handleSubmit, setValue, getValues, reset, formState } = form;
-  const { errors, isDirty } = formState;
+  const { control, register, handleSubmit, setValue, getValues, reset, formState } = form
+  const { errors, isDirty } = formState
 
   // Re-sync when initial data changes (e.g. AI auto-fill)
   useEffect(() => {
     if (initialDataRef.current !== initialData) {
-      initialDataRef.current = initialData;
-      reset(defaultValues);
+      initialDataRef.current = initialData
+      reset(defaultValues)
     }
-  }, [initialData, defaultValues, reset]);
+  }, [initialData, defaultValues, reset])
 
-  const experiencesArr = useFieldArray({ control, name: 'experiences', keyName: '_rhfId' });
-  const educationsArr = useFieldArray({ control, name: 'educations', keyName: '_rhfId' });
-  const skillsArr = useFieldArray({ control, name: 'skills', keyName: '_rhfId' });
-  const projectsArr = useFieldArray({ control, name: 'projects', keyName: '_rhfId' });
-  const certificationsArr = useFieldArray({ control, name: 'certifications', keyName: '_rhfId' });
-  const languagesArr = useFieldArray({ control, name: 'languages', keyName: '_rhfId' });
-  const awardsArr = useFieldArray({ control, name: 'awards', keyName: '_rhfId' });
-  const activitiesArr = useFieldArray({ control, name: 'activities', keyName: '_rhfId' });
+  const experiencesArr = useFieldArray({ control, name: 'experiences', keyName: '_rhfId' })
+  const educationsArr = useFieldArray({ control, name: 'educations', keyName: '_rhfId' })
+  const skillsArr = useFieldArray({ control, name: 'skills', keyName: '_rhfId' })
+  const projectsArr = useFieldArray({ control, name: 'projects', keyName: '_rhfId' })
+  const certificationsArr = useFieldArray({ control, name: 'certifications', keyName: '_rhfId' })
+  const languagesArr = useFieldArray({ control, name: 'languages', keyName: '_rhfId' })
+  const awardsArr = useFieldArray({ control, name: 'awards', keyName: '_rhfId' })
+  const activitiesArr = useFieldArray({ control, name: 'activities', keyName: '_rhfId' })
 
-  const watchedData = useWatch({ control, defaultValue: defaultValues }) as ResumeFormInput;
+  const watchedData = useWatch({ control, defaultValue: defaultValues }) as ResumeFormInput
   const sectionOrder: SectionId[] = watchedData.sectionOrder?.length
     ? (watchedData.sectionOrder as SectionId[])
-    : [...DEFAULT_SECTION_ORDER];
-  const hiddenSections: SectionId[] = (watchedData.hiddenSections || []) as SectionId[];
+    : [...DEFAULT_SECTION_ORDER]
+  const hiddenSections: SectionId[] = (watchedData.hiddenSections || []) as SectionId[]
 
   // Notify parent of data changes for live completeness tracking.
-  const onDataChangeRef = useRef(onDataChange);
+  const onDataChangeRef = useRef(onDataChange)
   useEffect(() => {
-    onDataChangeRef.current = onDataChange;
-  }, [onDataChange]);
+    onDataChangeRef.current = onDataChange
+  }, [onDataChange])
   useEffect(() => {
-    onDataChangeRef.current?.(toResumeData(watchedData));
-  }, [watchedData]);
+    onDataChangeRef.current?.(toResumeData(watchedData))
+  }, [watchedData])
 
   const doAutoSave = useCallback(async () => {
-    const handler = onAutoSave || onSave;
-    if (!handler) return;
-    setSaveStatus('saving');
+    const handler = onAutoSave || onSave
+    if (!handler) return
+    setSaveStatus('saving')
     try {
-      await (handler as (data: ResumeData) => Promise<void>)(toResumeData(getValues()));
-      setLastSaved(new Date());
-      setSaveStatus('saved');
-      setTimeout(() => setSaveStatus((prev) => (prev === 'saved' ? 'idle' : prev)), 3000);
+      await (handler as (data: ResumeData) => Promise<void>)(toResumeData(getValues()))
+      setLastSaved(new Date())
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus((prev) => (prev === 'saved' ? 'idle' : prev)), 3000)
     } catch {
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus((prev) => (prev === 'error' ? 'dirty' : prev)), 3000);
+      setSaveStatus('error')
+      setTimeout(() => setSaveStatus((prev) => (prev === 'error' ? 'dirty' : prev)), 3000)
     }
-  }, [onAutoSave, onSave, getValues]);
+  }, [onAutoSave, onSave, getValues])
 
   const submitForm = useCallback(() => {
     handleSubmit(
       (values) => {
-        onSave(toResumeData(values));
+        onSave(toResumeData(values))
       },
       (formErrors) => {
         // Surface first error message
@@ -393,48 +395,48 @@ export default function ResumeForm({
           formErrors.personalInfo?.name?.message ||
           formErrors.personalInfo?.email?.message ||
           formErrors.personalInfo?.website?.message ||
-          '입력값을 확인해주세요';
-        toast(String(firstMessage), 'warning');
+          '입력값을 확인해주세요'
+        toast(String(firstMessage), 'warning')
         if (formErrors.personalInfo?.name && activeTab !== 'personal') {
-          setActiveTab('personal');
+          setActiveTab('personal')
         }
-      },
-    )();
-  }, [handleSubmit, onSave, activeTab]);
+      }
+    )()
+  }, [handleSubmit, onSave, activeTab])
 
   // Ctrl+S / Cmd+S keyboard save
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        if (!saving) submitForm();
+        e.preventDefault()
+        if (!saving) submitForm()
       }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [saving, submitForm]);
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [saving, submitForm])
 
   // Unsaved changes warning
   useEffect(() => {
-    if (!isDirty) return;
+    if (!isDirty) return
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [isDirty]);
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isDirty])
 
   // Auto-save after 5 seconds of inactivity (watch on dirty subtree)
   useEffect(() => {
-    if (!isDirty) return;
-    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    if (!isDirty) return
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
     autoSaveTimerRef.current = setTimeout(() => {
-      if (!saving) doAutoSave();
-    }, 5000);
+      if (!saving) doAutoSave()
+    }, 5000)
     return () => {
-      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    };
-  }, [watchedData, isDirty, saving, doAutoSave]);
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+    }
+  }, [watchedData, isDirty, saving, doAutoSave])
 
   const sectionTabMap: Record<string, { id: string; label: string }> = {
     experience: { id: 'experience', label: t('resume.experience') },
@@ -445,57 +447,57 @@ export default function ResumeForm({
     languages: { id: 'languages', label: t('resume.languages') },
     awards: { id: 'awards', label: t('resume.awards') },
     activities: { id: 'activities', label: t('resume.activities') },
-  };
+  }
 
-  const visibleSaveStatus: SaveStatus = isDirty && saveStatus === 'idle' ? 'dirty' : saveStatus;
+  const visibleSaveStatus: SaveStatus = isDirty && saveStatus === 'idle' ? 'dirty' : saveStatus
 
   const tabs = [
     { id: 'personal', label: t('resume.personal') },
     ...sectionOrder.filter((s) => !hiddenSections.includes(s)).map((s) => sectionTabMap[s]),
-  ];
+  ]
 
   const handleSectionOrderChange = (newOrder: SectionId[]) => {
-    setValue('sectionOrder', newOrder, { shouldDirty: true });
-  };
+    setValue('sectionOrder', newOrder, { shouldDirty: true })
+  }
 
   const handleHiddenSectionsChange = (newHidden: SectionId[]) => {
     if (newHidden.includes(activeTab as SectionId)) {
-      setActiveTab('personal');
+      setActiveTab('personal')
     }
-    setValue('hiddenSections', newHidden, { shouldDirty: true });
-  };
+    setValue('hiddenSections', newHidden, { shouldDirty: true })
+  }
 
   const requiredMark = (
     <span className="text-red-500 ml-0.5" aria-hidden="true">
       *
     </span>
-  );
+  )
 
-  const titleError = errors.title?.message;
-  const nameError = errors.personalInfo?.name?.message;
+  const titleError = errors.title?.message
+  const nameError = errors.personalInfo?.name?.message
 
   // Helpers to update personal info summary programmatically
   const setSummary = (value: string) =>
-    setValue('personalInfo.summary', value, { shouldDirty: true });
-  const getSummary = () => getValues('personalInfo.summary') || '';
+    setValue('personalInfo.summary', value, { shouldDirty: true })
+  const getSummary = () => getValues('personalInfo.summary') || ''
 
   // Helpers to update experience description/achievements programmatically
   const setExpField = (index: number, field: ExperienceEditableField, value: string) => {
     const path =
-      `experiences.${index}.${field}` as `experiences.${number}.${ExperienceEditableField}`;
-    setValue(path, value, { shouldDirty: true });
-  };
+      `experiences.${index}.${field}` as `experiences.${number}.${ExperienceEditableField}`
+    setValue(path, value, { shouldDirty: true })
+  }
   const setSkillField = (index: number, field: SkillEditableField, value: string) => {
-    const path = `skills.${index}.${field}` as `skills.${number}.${SkillEditableField}`;
-    setValue(path, value, { shouldDirty: true });
-  };
+    const path = `skills.${index}.${field}` as `skills.${number}.${SkillEditableField}`
+    setValue(path, value, { shouldDirty: true })
+  }
 
   return (
     <form
       className="space-y-6 relative"
       onSubmit={(e) => {
-        e.preventDefault();
-        submitForm();
+        e.preventDefault()
+        submitForm()
       }}
       aria-label="이력서 편집 폼"
     >
@@ -549,11 +551,11 @@ export default function ResumeForm({
                     ? (idx + 1) % tabs.length
                     : e.key === 'ArrowLeft'
                       ? (idx - 1 + tabs.length) % tabs.length
-                      : null;
-                if (nextIdx === null) return;
-                e.preventDefault();
-                setActiveTab(tabs[nextIdx].id);
-                (e.currentTarget.parentElement?.children[nextIdx] as HTMLElement)?.focus();
+                      : null
+                if (nextIdx === null) return
+                e.preventDefault()
+                setActiveTab(tabs[nextIdx].id)
+                ;(e.currentTarget.parentElement?.children[nextIdx] as HTMLElement)?.focus()
               }}
               className={`shrink-0 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 px-2 sm:px-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${
                 activeTab === tab.id
@@ -617,17 +619,17 @@ export default function ResumeForm({
                           accept="image/*"
                           className="hidden"
                           onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
+                            const file = e.target.files?.[0]
+                            if (!file) return
                             if (file.size > 2 * 1024 * 1024) {
-                              toast('사진은 2MB 이하만 가능합니다', 'error');
-                              return;
+                              toast('사진은 2MB 이하만 가능합니다', 'error')
+                              return
                             }
-                            const reader = new FileReader();
+                            const reader = new FileReader()
                             reader.onload = () => {
-                              if (typeof reader.result === 'string') field.onChange(reader.result);
-                            };
-                            reader.readAsDataURL(file);
+                              if (typeof reader.result === 'string') field.onChange(reader.result)
+                            }
+                            reader.readAsDataURL(file)
                           }}
                         />
                       </label>
@@ -747,7 +749,7 @@ export default function ResumeForm({
               </div>
               <div className="sm:col-span-2">
                 <div className="flex items-center gap-2">
-                  <label className={labelClass}>자기소개</label>
+                  <span className={labelClass}>자기소개</span>
                   <VoiceInput onResult={(text) => setSummary((getSummary() || '') + ' ' + text)} />
                   <AiWritingAssist
                     resumeId={resumeId}
@@ -903,7 +905,7 @@ export default function ResumeForm({
                     </div>
                     <div className="sm:col-span-2">
                       <div className="flex items-center gap-2">
-                        <label className={labelClass}>업무 내용</label>
+                        <span className={labelClass}>업무 내용</span>
                         <Controller
                           control={control}
                           name={`experiences.${idx}.description`}
@@ -943,7 +945,7 @@ export default function ResumeForm({
                     </div>
                     <div className="sm:col-span-2">
                       <div className="flex items-center gap-2">
-                        <label className={labelClass}>주요 성과</label>
+                        <span className={labelClass}>주요 성과</span>
                         <Controller
                           control={control}
                           name={`experiences.${idx}.achievements`}
@@ -1011,12 +1013,12 @@ export default function ResumeForm({
                 jobTitle={(watchedData.experiences as Experience[])?.[0]?.position || ''}
                 onInsert={(text) => {
                   // Insert into the last experience's description
-                  const list = (getValues('experiences') || []) as Experience[];
-                  const lastIdx = list.length - 1;
+                  const list = (getValues('experiences') || []) as Experience[]
+                  const lastIdx = list.length - 1
                   if (lastIdx >= 0) {
-                    const currentDesc = list[lastIdx].description || '';
-                    const newDesc = currentDesc ? `${currentDesc}\n${text}` : text;
-                    setExpField(lastIdx, 'description', newDesc);
+                    const currentDesc = list[lastIdx].description || ''
+                    const newDesc = currentDesc ? `${currentDesc}\n${text}` : text
+                    setExpField(lastIdx, 'description', newDesc)
                   }
                 }}
               />
@@ -1225,9 +1227,9 @@ export default function ResumeForm({
                           <SkillSuggestDropdown
                             currentItems={field.value || ''}
                             onAdd={(newSkill) => {
-                              const current = (field.value || '').trim();
-                              const updated = current ? `${current}, ${newSkill}` : newSkill;
-                              setSkillField(idx, 'items', updated);
+                              const current = (field.value || '').trim()
+                              const updated = current ? `${current}, ${newSkill}` : newSkill
+                              setSkillField(idx, 'items', updated)
                             }}
                           />
                         )}
@@ -1348,7 +1350,7 @@ export default function ResumeForm({
                     </div>
                     <div className="sm:col-span-2">
                       <div className="flex items-center gap-2">
-                        <label className={labelClass}>설명</label>
+                        <span className={labelClass}>설명</span>
                         <Controller
                           control={control}
                           name={`projects.${idx}.description`}
@@ -1870,5 +1872,5 @@ export default function ResumeForm({
 
       <AiCoachPanel resumeId={resumeId} data={toResumeData(watchedData)} activeTab={activeTab} />
     </form>
-  );
+  )
 }

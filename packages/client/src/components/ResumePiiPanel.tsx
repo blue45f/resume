@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
-import { detectContactInfo, detectPersonalInfo } from '@/lib/pii';
+import { useMemo } from 'react'
+
+import { detectContactInfo, detectPersonalInfo } from '@/lib/pii'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 const PII_TYPE_LABEL: Record<string, string> = {
@@ -11,19 +12,19 @@ const PII_TYPE_LABEL: Record<string, string> = {
   birthYmd: '생년월일',
   address: '상세주소',
   zipcode: '우편번호',
-};
+}
 
 export default function ResumePiiPanel({ text }: Props) {
-  const contact = useMemo(() => detectContactInfo(text), [text]);
-  const pii = useMemo(() => detectPersonalInfo(text), [text]);
+  const contact = useMemo(() => detectContactInfo(text), [text])
+  const pii = useMemo(() => detectPersonalInfo(text), [text])
 
-  const invalidEmails = contact.emails.filter((e) => !e.valid);
-  const invalidPhones = contact.phones.filter((p) => !p.valid);
-  const hasContactIssue = invalidEmails.length > 0 || invalidPhones.length > 0;
-  const hasPii = pii.severity !== 'none';
-  const hasNoContact = contact.emails.length === 0 && contact.phones.length === 0;
+  const invalidEmails = contact.emails.filter((e) => !e.valid)
+  const invalidPhones = contact.phones.filter((p) => !p.valid)
+  const hasContactIssue = invalidEmails.length > 0 || invalidPhones.length > 0
+  const hasPii = pii.severity !== 'none'
+  const hasNoContact = contact.emails.length === 0 && contact.phones.length === 0
 
-  if (!hasContactIssue && !hasPii && !hasNoContact) return null;
+  if (!hasContactIssue && !hasPii && !hasNoContact) return null
 
   return (
     <aside
@@ -82,5 +83,5 @@ export default function ResumePiiPanel({ text }: Props) {
         <p className="pii-card__contact-ok">{contact.summary}</p>
       )}
     </aside>
-  );
+  )
 }

@@ -17,20 +17,20 @@ export type HiringStage =
   | 'personality' // 인적성 검사
   | 'reference' // 평판 조회
   | 'final' // 최종 면접
-  | 'offer'; // 처우 협의/최종 합격
+  | 'offer' // 처우 협의/최종 합격
 
-export type HiringProcessClarity = 'detailed' | 'partial' | 'none';
+export type HiringProcessClarity = 'detailed' | 'partial' | 'none'
 
 export interface JdHiringProcessReport {
-  clarity: HiringProcessClarity;
-  stages: HiringStage[]; // 정규 순서로 정렬된 감지 단계
-  pipeline: string; // "서류 전형 → 코딩 테스트 → ..."
-  roundCount: number; // 면접 라운드 수
-  hasCodingTest: boolean;
-  hasAssignment: boolean;
-  hasReferenceCheck: boolean;
-  summary: string;
-  tips: string[];
+  clarity: HiringProcessClarity
+  stages: HiringStage[] // 정규 순서로 정렬된 감지 단계
+  pipeline: string // "서류 전형 → 코딩 테스트 → ..."
+  roundCount: number // 면접 라운드 수
+  hasCodingTest: boolean
+  hasAssignment: boolean
+  hasReferenceCheck: boolean
+  summary: string
+  tips: string[]
 }
 
 // ---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ const STAGE_DEFS: Array<{ stage: HiringStage; label: string; re: RegExp }> = [
     label: '처우 협의',
     re: /처우\s*협의|연봉\s*협상|입사\s*제안|최종\s*합격|오퍼\s*레터|offer\s*letter/i,
   },
-];
+]
 
 const INTERVIEW_ROUND_STAGES: HiringStage[] = [
   'phone',
@@ -91,67 +91,67 @@ const INTERVIEW_ROUND_STAGES: HiringStage[] = [
   'third',
   'culture',
   'final',
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function extractJdHiringProcess(text: string): JdHiringProcessReport {
-  const t = (text ?? '').trim();
+  const t = (text ?? '').trim()
 
-  const detected: HiringStage[] = [];
-  const labelByStage = new Map<HiringStage, string>();
+  const detected: HiringStage[] = []
+  const labelByStage = new Map<HiringStage, string>()
 
   for (const { stage, label, re } of STAGE_DEFS) {
     if (re.test(t)) {
-      detected.push(stage);
-      labelByStage.set(stage, label);
+      detected.push(stage)
+      labelByStage.set(stage, label)
     }
   }
 
-  const roundCount = detected.filter((s) => INTERVIEW_ROUND_STAGES.includes(s)).length;
-  const hasCodingTest = detected.includes('coding_test');
-  const hasAssignment = detected.includes('assignment');
-  const hasReferenceCheck = detected.includes('reference');
+  const roundCount = detected.filter((s) => INTERVIEW_ROUND_STAGES.includes(s)).length
+  const hasCodingTest = detected.includes('coding_test')
+  const hasAssignment = detected.includes('assignment')
+  const hasReferenceCheck = detected.includes('reference')
 
-  const pipeline = detected.map((s) => labelByStage.get(s)).join(' → ');
+  const pipeline = detected.map((s) => labelByStage.get(s)).join(' → ')
 
-  let clarity: HiringProcessClarity;
+  let clarity: HiringProcessClarity
   if (detected.length >= 3) {
-    clarity = 'detailed';
+    clarity = 'detailed'
   } else if (detected.length >= 1) {
-    clarity = 'partial';
+    clarity = 'partial'
   } else {
-    clarity = 'none';
+    clarity = 'none'
   }
 
   // Summary
-  let summary: string;
+  let summary: string
   if (clarity === 'none') {
-    summary = '전형 절차가 공고에 명시되지 않았습니다.';
+    summary = '전형 절차가 공고에 명시되지 않았습니다.'
   } else {
-    summary = `${pipeline} (${detected.length}단계)`;
+    summary = `${pipeline} (${detected.length}단계)`
   }
 
   // Tips
-  const tips: string[] = [];
+  const tips: string[] = []
   if (hasCodingTest) {
-    tips.push('코딩 테스트가 포함됩니다. 알고리즘·자료구조를 미리 연습하세요.');
+    tips.push('코딩 테스트가 포함됩니다. 알고리즘·자료구조를 미리 연습하세요.')
   }
   if (hasAssignment) {
-    tips.push('과제 전형이 있습니다. 마감까지 충분한 작업 시간을 확보하세요.');
+    tips.push('과제 전형이 있습니다. 마감까지 충분한 작업 시간을 확보하세요.')
   }
   if (hasReferenceCheck) {
-    tips.push('평판 조회가 있습니다. 전 직장 레퍼런스를 사전에 정리해 두세요.');
+    tips.push('평판 조회가 있습니다. 전 직장 레퍼런스를 사전에 정리해 두세요.')
   }
   if (roundCount >= 3) {
-    tips.push(`면접이 ${roundCount}회 진행되어 전체 일정이 길 수 있으니 여유를 두고 준비하세요.`);
+    tips.push(`면접이 ${roundCount}회 진행되어 전체 일정이 길 수 있으니 여유를 두고 준비하세요.`)
   }
   if (clarity === 'none') {
-    tips.push('전형 단계·소요 기간을 채용 담당자에게 문의해 준비 범위를 파악하세요.');
+    tips.push('전형 단계·소요 기간을 채용 담당자에게 문의해 준비 범위를 파악하세요.')
   } else if (clarity === 'partial') {
-    tips.push('명시되지 않은 후속 전형이 있을 수 있으니 전체 절차를 확인하세요.');
+    tips.push('명시되지 않은 후속 전형이 있을 수 있으니 전체 절차를 확인하세요.')
   }
 
   return {
@@ -164,5 +164,5 @@ export function extractJdHiringProcess(text: string): JdHiringProcessReport {
     hasReferenceCheck,
     summary,
     tips,
-  };
+  }
 }

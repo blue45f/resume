@@ -1,24 +1,27 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { useQuery } from '@tanstack/react-query';
-import Header from '@/components/Header';
-import ResumePreview from '@/components/ResumePreview';
-import ShareMenu from '@/components/ShareMenu';
-import { ROUTES } from '@/lib/routes';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+
+import type { Resume } from '@/types/resume'
+
+import FollowButton from '@/components/FollowButton'
+import Header from '@/components/Header'
+import ResumePreview from '@/components/ResumePreview'
+import SendMessageButton from '@/components/SendMessageButton'
+import ShareMenu from '@/components/ShareMenu'
+import { toast } from '@/components/Toast'
+import { getUser } from '@/lib/auth'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
 
 // Lazy-load heavy sub-components
-const CommentSection = lazy(() => import('@/components/CommentSection'));
-const SimilarResumes = lazy(() => import('@/components/SimilarResumes'));
-import { toast } from '@/components/Toast';
-import { getUser } from '@/lib/auth';
-import FollowButton from '@/components/FollowButton';
-import SendMessageButton from '@/components/SendMessageButton';
-import type { Resume } from '@/types/resume';
-import { API_URL } from '@/lib/config';
+const CommentSection = lazy(() => import('@/components/CommentSection'))
+const SimilarResumes = lazy(() => import('@/components/SimilarResumes'))
 
 export default function ProfileResumePage() {
-  const { username, slug } = useParams<{ username: string; slug: string }>();
+  const { username, slug } = useParams<{ username: string; slug: string }>()
   const {
     data,
     isLoading: loading,
@@ -26,56 +29,56 @@ export default function ProfileResumePage() {
   } = useQuery<Resume>({
     queryKey: ['resume', 'profile', username, slug],
     queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/resumes/@${username}/${slug}`);
-      if (!res.ok) throw new Error('Not found');
-      return res.json();
+      const res = await httpClient(`${API_URL}/api/resumes/@${username}/${slug}`)
+      if (!res.ok) throw new Error('Not found')
+      return res.json()
     },
     enabled: !!username && !!slug,
-  });
-  const resume: Resume | null = (data as Resume | undefined) ?? null;
-  const notFound = !!error;
-  const viewCount: number | null = resume?.viewCount != null ? resume.viewCount : null;
-  const [scoutModalOpen, setScoutModalOpen] = useState(false);
-  const [scoutForm, setScoutForm] = useState({ company: '', position: '', message: '' });
-  const [sendingScout, setSendingScout] = useState(false);
-  const user = getUser();
+  })
+  const resume: Resume | null = (data as Resume | undefined) ?? null
+  const notFound = !!error
+  const viewCount: number | null = resume?.viewCount != null ? resume.viewCount : null
+  const [scoutModalOpen, setScoutModalOpen] = useState(false)
+  const [scoutForm, setScoutForm] = useState({ company: '', position: '', message: '' })
+  const [sendingScout, setSendingScout] = useState(false)
+  const user = getUser()
 
   useEffect(() => {
     if (resume) {
-      document.title = `${resume.personalInfo.name || resume.title || '이력서'} — 이력서공방`;
+      document.title = `${resume.personalInfo.name || resume.title || '이력서'} — 이력서공방`
     }
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, [resume]);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [resume])
 
   useEffect(() => {
-    if (!resume) return;
-    const script = document.createElement('script');
-    script.type = 'application/ld+json';
-    script.id = 'resume-jsonld';
+    if (!resume) return
+    const script = document.createElement('script')
+    script.type = 'application/ld+json'
+    script.id = 'resume-jsonld'
     script.textContent = JSON.stringify({
       '@context': 'https://schema.org',
       '@type': 'Person',
       name: resume.personalInfo?.name || '',
       jobTitle: resume.experiences?.[0]?.position || '',
-    });
-    document.head.appendChild(script);
+    })
+    document.head.appendChild(script)
     return () => {
-      const el = document.getElementById('resume-jsonld');
-      if (el) el.remove();
-    };
-  }, [resume]);
+      const el = document.getElementById('resume-jsonld')
+      if (el) el.remove()
+    }
+  }, [resume])
 
   const handleScoutSubmit = async () => {
     if (!scoutForm.message.trim()) {
-      toast('메시지를 입력해주세요', 'error');
-      return;
+      toast('메시지를 입력해주세요', 'error')
+      return
     }
-    setSendingScout(true);
+    setSendingScout(true)
     try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`${API_URL}/api/social/scout`, {
+      const token = localStorage.getItem('token')
+      const res = await httpClient(`${API_URL}/api/social/scout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -85,17 +88,17 @@ export default function ProfileResumePage() {
           position: scoutForm.position,
           message: scoutForm.message,
         }),
-      });
-      if (!res.ok) throw new Error();
-      toast('스카우트 제안이 전송되었습니다', 'success');
-      setScoutModalOpen(false);
-      setScoutForm({ company: '', position: '', message: '' });
+      })
+      if (!res.ok) throw new Error()
+      toast('스카우트 제안이 전송되었습니다', 'success')
+      setScoutModalOpen(false)
+      setScoutForm({ company: '', position: '', message: '' })
     } catch {
-      toast('전송에 실패했습니다', 'error');
+      toast('전송에 실패했습니다', 'error')
     } finally {
-      setSendingScout(false);
+      setSendingScout(false)
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -118,7 +121,7 @@ export default function ProfileResumePage() {
           </div>
         </main>
       </>
-    );
+    )
   }
 
   if (notFound || !resume) {
@@ -140,10 +143,10 @@ export default function ProfileResumePage() {
           </div>
         </main>
       </>
-    );
+    )
   }
 
-  const { personalInfo } = resume;
+  const { personalInfo } = resume
 
   return (
     <>
@@ -352,10 +355,14 @@ export default function ProfileResumePage() {
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="profileresumepage-field-1"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >
                   회사명
                 </label>
                 <input
+                  id="profileresumepage-field-1"
                   type="text"
                   value={scoutForm.company}
                   onChange={(e) => setScoutForm((prev) => ({ ...prev, company: e.target.value }))}
@@ -364,10 +371,14 @@ export default function ProfileResumePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="profileresumepage-field-2"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >
                   포지션
                 </label>
                 <input
+                  id="profileresumepage-field-2"
                   type="text"
                   value={scoutForm.position}
                   onChange={(e) => setScoutForm((prev) => ({ ...prev, position: e.target.value }))}
@@ -376,10 +387,14 @@ export default function ProfileResumePage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label
+                  htmlFor="profileresumepage-field-3"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1"
+                >
                   메시지 <span className="text-red-500">*</span>
                 </label>
                 <textarea
+                  id="profileresumepage-field-3"
                   value={scoutForm.message}
                   onChange={(e) => setScoutForm((prev) => ({ ...prev, message: e.target.value }))}
                   placeholder="이력서를 인상 깊게 봤습니다. 저희 팀에서 함께할 분을 찾고 있는데..."
@@ -391,8 +406,8 @@ export default function ProfileResumePage() {
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => {
-                  setScoutModalOpen(false);
-                  setScoutForm({ company: '', position: '', message: '' });
+                  setScoutModalOpen(false)
+                  setScoutForm({ company: '', position: '', message: '' })
                 }}
                 className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
               >
@@ -410,5 +425,5 @@ export default function ProfileResumePage() {
         </RadixDialog.Portal>
       </RadixDialog.Root>
     </>
-  );
+  )
 }

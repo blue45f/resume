@@ -1,14 +1,15 @@
-import { useRef, useState } from 'react';
-import { uploadAvatar, setPresetAvatar, deleteAvatar } from '@/lib/api';
-import { processImageForUpload } from '@/lib/imageProcess';
-import { toast } from '@/components/Toast';
-import { useConfirm } from '@/shared/ui/ConfirmProvider';
+import { useRef, useState } from 'react'
+
+import { toast } from '@/components/Toast'
+import { uploadAvatar, setPresetAvatar, deleteAvatar } from '@/lib/api'
+import { processImageForUpload } from '@/lib/imageProcess'
+import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
 interface Props {
-  current: string;
-  fallbackInitial: string;
-  onChange: (newAvatar: string) => void;
-  className?: string;
+  current: string
+  fallbackInitial: string
+  onChange: (newAvatar: string) => void
+  className?: string
 }
 
 /**
@@ -44,62 +45,62 @@ const PRESETS: { id: string; url: string; alt: string }[] = [
     url: 'https://api.dicebear.com/9.x/fun-emoji/svg?seed=cool&size=128',
     alt: '이모지2',
   },
-];
+]
 
-type Mode = 'view' | 'edit';
+type Mode = 'view' | 'edit'
 
 export default function AvatarEditor({ current, fallbackInitial, onChange, className }: Props) {
-  const [mode, setMode] = useState<Mode>('view');
-  const [busy, setBusy] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [mode, setMode] = useState<Mode>('view')
+  const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = async (file: File) => {
-    setBusy(true);
+    setBusy(true)
     try {
       // HEIC (iPhone 기본 포맷) → JPEG 변환 + 큰 파일 자동 압축
-      const processed = await processImageForUpload(file);
-      const res = await uploadAvatar(processed);
-      onChange(res.avatar);
-      setMode('view');
-      toast('프로필 사진을 업데이트했습니다', 'success');
+      const processed = await processImageForUpload(file)
+      const res = await uploadAvatar(processed)
+      onChange(res.avatar)
+      setMode('view')
+      toast('프로필 사진을 업데이트했습니다', 'success')
     } catch (err) {
-      toast(err instanceof Error ? err.message : '업로드 실패', 'error');
+      toast(err instanceof Error ? err.message : '업로드 실패', 'error')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
   const handlePreset = async (url: string) => {
-    setBusy(true);
+    setBusy(true)
     try {
-      const res = await setPresetAvatar(url);
-      onChange(res.avatar);
-      setMode('view');
-      toast('프로필 사진을 변경했습니다', 'success');
+      const res = await setPresetAvatar(url)
+      onChange(res.avatar)
+      setMode('view')
+      toast('프로필 사진을 변경했습니다', 'success')
     } catch (err) {
-      toast(err instanceof Error ? err.message : '변경 실패', 'error');
+      toast(err instanceof Error ? err.message : '변경 실패', 'error')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
-  const confirm = useConfirm();
+  const confirm = useConfirm()
 
   const handleDelete = async () => {
     if (!(await confirm({ title: '프로필 사진을 삭제할까요?', confirmText: '삭제', danger: true })))
-      return;
-    setBusy(true);
+      return
+    setBusy(true)
     try {
-      await deleteAvatar();
-      onChange('');
-      setMode('view');
-      toast('프로필 사진을 삭제했습니다', 'success');
+      await deleteAvatar()
+      onChange('')
+      setMode('view')
+      toast('프로필 사진을 삭제했습니다', 'success')
     } catch (err) {
-      toast(err instanceof Error ? err.message : '삭제 실패', 'error');
+      toast(err instanceof Error ? err.message : '삭제 실패', 'error')
     } finally {
-      setBusy(false);
+      setBusy(false)
     }
-  };
+  }
 
   return (
     <div className={className}>
@@ -147,9 +148,9 @@ export default function AvatarEditor({ current, fallbackInitial, onChange, class
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
             onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) handleUpload(f);
-              e.target.value = ''; // 같은 파일 재선택 가능
+              const f = e.target.files?.[0]
+              if (f) handleUpload(f)
+              e.target.value = '' // 같은 파일 재선택 가능
             }}
             className="hidden"
           />
@@ -190,5 +191,5 @@ export default function AvatarEditor({ current, fallbackInitial, onChange, class
         </div>
       )}
     </div>
-  );
+  )
 }

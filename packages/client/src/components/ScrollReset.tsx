@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 
 /**
  * SPA 라우트 전환 시 스크롤 + 포커스를 재설정한다.
@@ -16,27 +16,27 @@ import { useLocation } from 'react-router-dom';
  *   아무것도 조작하지 않았는데 포커스를 강제 이동하면 오히려 방해가 된다.
  */
 export default function ScrollReset() {
-  const { pathname } = useLocation();
-  const isFirstRender = useRef(true);
+  const { pathname } = useLocation()
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo(0, 0)
 
     if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+      isFirstRender.current = false
+      return
     }
 
     // 라우트 전환 후 본문 랜드마크로 포커스 이동(스킵 링크와 동일 시작점).
-    const main = document.getElementById('main-content');
-    if (!main) return;
+    const main = document.getElementById('main-content')
+    if (!main) return
 
     if (!main.hasAttribute('tabindex')) {
-      main.setAttribute('tabindex', '-1');
+      main.setAttribute('tabindex', '-1')
     }
     // preventScroll: 위에서 이미 최상단으로 스크롤했으므로 포커스가 다시 스크롤하지 않게.
-    main.focus({ preventScroll: true });
-  }, [pathname]);
+    main.focus({ preventScroll: true })
+  }, [pathname])
 
-  return null;
+  return null
 }

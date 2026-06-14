@@ -1,4 +1,6 @@
-export type TitleLevel = 'entry' | 'junior' | 'mid' | 'senior' | 'lead' | 'staff' | 'unknown';
+import { estimateExperienceYears } from './experience'
+
+export type TitleLevel = 'entry' | 'junior' | 'mid' | 'senior' | 'lead' | 'staff' | 'unknown'
 
 export type TitleRoleFamily =
   | 'engineering'
@@ -10,29 +12,29 @@ export type TitleRoleFamily =
   | 'operations'
   | 'finance'
   | 'hr'
-  | 'unknown';
+  | 'unknown'
 
 export type CoherenceMismatch =
   | 'none'
   | 'level-overshoot'
   | 'level-undershoot'
   | 'role-shift'
-  | 'level-unknown';
+  | 'level-unknown'
 
-export type CoherenceTone = 'good' | 'neutral' | 'warning';
+export type CoherenceTone = 'good' | 'neutral' | 'warning'
 
 export interface ResumeTitleCoherence {
-  titleLevel: TitleLevel;
-  titleRoleFamily: TitleRoleFamily;
-  experienceYears: number;
-  experienceLevel: TitleLevel;
-  experienceRoleFamily: TitleRoleFamily;
-  coherent: boolean;
-  mismatch: CoherenceMismatch;
-  tone: CoherenceTone;
-  label: string;
-  detail: string;
-  suggestion: string;
+  titleLevel: TitleLevel
+  titleRoleFamily: TitleRoleFamily
+  experienceYears: number
+  experienceLevel: TitleLevel
+  experienceRoleFamily: TitleRoleFamily
+  coherent: boolean
+  mismatch: CoherenceMismatch
+  tone: CoherenceTone
+  label: string
+  detail: string
+  suggestion: string
 }
 
 const LEVEL_PATTERNS: Array<{ level: Exclude<TitleLevel, 'unknown'>; patterns: RegExp[] }> = [
@@ -68,11 +70,11 @@ const LEVEL_PATTERNS: Array<{ level: Exclude<TitleLevel, 'unknown'>; patterns: R
       /\b(?:staff|principal|distinguished|architect|head\s+of|director|vp\b|vice\s+president|cto|cpo|coo|ceo)\b/i,
     ],
   },
-];
+]
 
 const ROLE_FAMILY_PATTERNS: Array<{
-  family: Exclude<TitleRoleFamily, 'unknown'>;
-  patterns: RegExp[];
+  family: Exclude<TitleRoleFamily, 'unknown'>
+  patterns: RegExp[]
 }> = [
   {
     family: 'engineering',
@@ -128,7 +130,7 @@ const ROLE_FAMILY_PATTERNS: Array<{
       /\b(?:hr|human\s*resources|recruiter|recruiting|people\s*ops|talent)\b/i,
     ],
   },
-];
+]
 
 const LEVEL_LABELS: Record<TitleLevel, string> = {
   entry: '신입',
@@ -138,7 +140,7 @@ const LEVEL_LABELS: Record<TitleLevel, string> = {
   lead: '리드',
   staff: '책임·임원급',
   unknown: '미지정',
-};
+}
 
 const ROLE_LABELS: Record<TitleRoleFamily, string> = {
   engineering: '엔지니어링',
@@ -151,125 +153,123 @@ const ROLE_LABELS: Record<TitleRoleFamily, string> = {
   finance: '재무',
   hr: '인사',
   unknown: '직무 미지정',
-};
+}
 
-const LEVEL_ORDER: TitleLevel[] = ['entry', 'junior', 'mid', 'senior', 'lead', 'staff', 'unknown'];
+const LEVEL_ORDER: TitleLevel[] = ['entry', 'junior', 'mid', 'senior', 'lead', 'staff', 'unknown']
 
 export function detectTitleLevel(title: string): TitleLevel {
-  if (!title?.trim()) return 'unknown';
-  const detected: TitleLevel[] = [];
+  if (!title?.trim()) return 'unknown'
+  const detected: TitleLevel[] = []
   for (const block of LEVEL_PATTERNS) {
-    if (block.patterns.some((p) => p.test(title))) detected.push(block.level);
+    if (block.patterns.some((p) => p.test(title))) detected.push(block.level)
   }
-  if (detected.length === 0) return 'unknown';
+  if (detected.length === 0) return 'unknown'
   // Pick the strongest level claim (e.g. "Lead Senior Engineer" -> lead).
   return detected.reduce<TitleLevel>((acc, lvl) => {
-    return LEVEL_ORDER.indexOf(lvl) > LEVEL_ORDER.indexOf(acc) ? lvl : acc;
-  }, detected[0]);
+    return LEVEL_ORDER.indexOf(lvl) > LEVEL_ORDER.indexOf(acc) ? lvl : acc
+  }, detected[0])
 }
 
 export function detectRoleFamily(text: string): TitleRoleFamily {
-  if (!text?.trim()) return 'unknown';
-  const scores = new Map<TitleRoleFamily, number>();
+  if (!text?.trim()) return 'unknown'
+  const scores = new Map<TitleRoleFamily, number>()
   for (const block of ROLE_FAMILY_PATTERNS) {
     for (const pattern of block.patterns) {
       const matches = text.match(
-        new RegExp(pattern.source, pattern.flags + (pattern.flags.includes('g') ? '' : 'g')),
-      );
-      if (matches) scores.set(block.family, (scores.get(block.family) ?? 0) + matches.length);
+        new RegExp(pattern.source, pattern.flags + (pattern.flags.includes('g') ? '' : 'g'))
+      )
+      if (matches) scores.set(block.family, (scores.get(block.family) ?? 0) + matches.length)
     }
   }
-  if (scores.size === 0) return 'unknown';
-  let best: TitleRoleFamily = 'unknown';
-  let bestScore = 0;
+  if (scores.size === 0) return 'unknown'
+  let best: TitleRoleFamily = 'unknown'
+  let bestScore = 0
   for (const [family, score] of scores) {
     if (score > bestScore) {
-      bestScore = score;
-      best = family;
+      bestScore = score
+      best = family
     }
   }
-  return best;
+  return best
 }
 
 function levelFromYears(years: number): Exclude<TitleLevel, 'unknown'> {
-  if (years <= 0) return 'entry';
-  if (years <= 2) return 'junior';
-  if (years <= 5) return 'mid';
-  if (years <= 9) return 'senior';
-  if (years <= 14) return 'lead';
-  return 'staff';
+  if (years <= 0) return 'entry'
+  if (years <= 2) return 'junior'
+  if (years <= 5) return 'mid'
+  if (years <= 9) return 'senior'
+  if (years <= 14) return 'lead'
+  return 'staff'
 }
 
 function levelDistance(a: TitleLevel, b: TitleLevel): number {
-  if (a === 'unknown' || b === 'unknown') return 0;
-  const order = LEVEL_ORDER.filter((l) => l !== 'unknown');
-  return order.indexOf(a) - order.indexOf(b);
+  if (a === 'unknown' || b === 'unknown') return 0
+  const order = LEVEL_ORDER.filter((l) => l !== 'unknown')
+  return order.indexOf(a) - order.indexOf(b)
 }
 
 export interface AnalyzeOptions {
-  title: string;
+  title: string
   /** Free-form text combining all experience sections (descriptions + dates). */
-  experienceText: string;
+  experienceText: string
   /** Optional explicit years override (skip auto-estimation). */
-  experienceYears?: number;
+  experienceYears?: number
 }
 
-import { estimateExperienceYears } from './experience';
-
 export function analyzeResumeTitleCoherence(opts: AnalyzeOptions): ResumeTitleCoherence {
-  const title = (opts.title ?? '').trim();
-  const experienceText = (opts.experienceText ?? '').trim();
+  const title = (opts.title ?? '').trim()
+  const experienceText = (opts.experienceText ?? '').trim()
 
-  const titleLevel = detectTitleLevel(title);
-  const titleRoleFamily = detectRoleFamily(title);
-  const experienceRoleFamily = detectRoleFamily(experienceText);
+  const titleLevel = detectTitleLevel(title)
+  const titleRoleFamily = detectRoleFamily(title)
+  const experienceRoleFamily = detectRoleFamily(experienceText)
 
   const years =
     opts.experienceYears !== undefined
       ? Math.max(0, opts.experienceYears)
-      : Math.round(estimateExperienceYears(experienceText).totalYears * 10) / 10;
-  const experienceLevel = levelFromYears(years);
+      : Math.round(estimateExperienceYears(experienceText).totalYears * 10) / 10
+  const experienceLevel = levelFromYears(years)
 
-  let mismatch: CoherenceMismatch;
-  let tone: CoherenceTone;
-  let detail: string;
-  let suggestion: string;
+  let mismatch: CoherenceMismatch
+  let tone: CoherenceTone
+  let detail: string
+  let suggestion: string
 
   if (titleLevel === 'unknown') {
-    mismatch = 'level-unknown';
-    tone = 'neutral';
-    detail = `타이틀에 직급(주니어/시니어/리드 등) 단서가 없습니다. 경력 ${years}년 기준 ${LEVEL_LABELS[experienceLevel]} 레벨로 추정됩니다.`;
-    suggestion = `타이틀을 "${LEVEL_LABELS[experienceLevel]} ${ROLE_LABELS[experienceRoleFamily]}" 형식으로 다듬으면 ATS 매칭 정확도가 올라갑니다.`;
+    mismatch = 'level-unknown'
+    tone = 'neutral'
+    detail = `타이틀에 직급(주니어/시니어/리드 등) 단서가 없습니다. 경력 ${years}년 기준 ${LEVEL_LABELS[experienceLevel]} 레벨로 추정됩니다.`
+    suggestion = `타이틀을 "${LEVEL_LABELS[experienceLevel]} ${ROLE_LABELS[experienceRoleFamily]}" 형식으로 다듬으면 ATS 매칭 정확도가 올라갑니다.`
   } else if (
     titleRoleFamily !== 'unknown' &&
     experienceRoleFamily !== 'unknown' &&
     titleRoleFamily !== experienceRoleFamily
   ) {
-    mismatch = 'role-shift';
-    tone = 'warning';
-    detail = `타이틀은 ${ROLE_LABELS[titleRoleFamily]}이지만 경력 본문은 ${ROLE_LABELS[experienceRoleFamily]}이 중심입니다.`;
+    mismatch = 'role-shift'
+    tone = 'warning'
+    detail = `타이틀은 ${ROLE_LABELS[titleRoleFamily]}이지만 경력 본문은 ${ROLE_LABELS[experienceRoleFamily]}이 중심입니다.`
     suggestion =
-      '직무 전환 사유와 가져갈 수 있는 트랜스퍼러블 스킬을 자기소개서 상단에 명시하세요. 타이틀과 경력 본문이 정합하지 않으면 채용 담당자가 첫 줄에서 멈춥니다.';
+      '직무 전환 사유와 가져갈 수 있는 트랜스퍼러블 스킬을 자기소개서 상단에 명시하세요. 타이틀과 경력 본문이 정합하지 않으면 채용 담당자가 첫 줄에서 멈춥니다.'
   } else {
-    const distance = levelDistance(titleLevel, experienceLevel);
+    const distance = levelDistance(titleLevel, experienceLevel)
     if (distance >= 2) {
-      mismatch = 'level-overshoot';
-      tone = 'warning';
-      detail = `타이틀은 ${LEVEL_LABELS[titleLevel]}이지만 경력 ${years}년은 보통 ${LEVEL_LABELS[experienceLevel]} 레벨입니다.`;
+      mismatch = 'level-overshoot'
+      tone = 'warning'
+      detail = `타이틀은 ${LEVEL_LABELS[titleLevel]}이지만 경력 ${years}년은 보통 ${LEVEL_LABELS[experienceLevel]} 레벨입니다.`
       suggestion =
-        '타이틀을 한 단계 낮추거나, 리딩·임팩트 사례(${LEVEL_LABELS[titleLevel]} 직급이 맞다는 근거)를 경력 본문 상단에 추가하세요.';
+        '타이틀을 한 단계 낮추거나, 리딩·임팩트 사례(${LEVEL_LABELS[titleLevel]} 직급이 맞다는 근거)를 경력 본문 상단에 추가하세요.'
     } else if (distance <= -2) {
-      mismatch = 'level-undershoot';
-      tone = 'warning';
-      detail = `타이틀은 ${LEVEL_LABELS[titleLevel]}이지만 경력 ${years}년은 보통 ${LEVEL_LABELS[experienceLevel]} 이상입니다.`;
+      mismatch = 'level-undershoot'
+      tone = 'warning'
+      detail = `타이틀은 ${LEVEL_LABELS[titleLevel]}이지만 경력 ${years}년은 보통 ${LEVEL_LABELS[experienceLevel]} 이상입니다.`
       suggestion =
-        '연차에 비해 타이틀이 보수적입니다. 타이틀을 한 단계 올리거나, 실제 책임 범위가 작았다면 본문에 그 맥락을 명시하세요.';
+        '연차에 비해 타이틀이 보수적입니다. 타이틀을 한 단계 올리거나, 실제 책임 범위가 작았다면 본문에 그 맥락을 명시하세요.'
     } else {
-      mismatch = 'none';
-      tone = 'good';
-      detail = `${LEVEL_LABELS[titleLevel]} · ${ROLE_LABELS[titleRoleFamily === 'unknown' ? experienceRoleFamily : titleRoleFamily]} · 경력 ${years}년이 일관됩니다.`;
+      mismatch = 'none'
+      tone = 'good'
+      detail = `${LEVEL_LABELS[titleLevel]} · ${ROLE_LABELS[titleRoleFamily === 'unknown' ? experienceRoleFamily : titleRoleFamily]} · 경력 ${years}년이 일관됩니다.`
       suggestion =
-        '타이틀과 경력의 결이 맞습니다. 다음은 정량 성과·임팩트 키워드 강화에 집중하세요.';
+        '타이틀과 경력의 결이 맞습니다. 다음은 정량 성과·임팩트 키워드 강화에 집중하세요.'
     }
   }
 
@@ -282,7 +282,7 @@ export function analyzeResumeTitleCoherence(opts: AnalyzeOptions): ResumeTitleCo
           ? '타이틀 보수적'
           : mismatch === 'role-shift'
             ? '직무 전환 신호'
-            : '직급 미지정';
+            : '직급 미지정'
 
   return {
     titleLevel,
@@ -296,7 +296,7 @@ export function analyzeResumeTitleCoherence(opts: AnalyzeOptions): ResumeTitleCo
     label,
     detail,
     suggestion,
-  };
+  }
 }
 
-export const __TITLE_COHERENCE_LABELS__ = { LEVEL_LABELS, ROLE_LABELS };
+export const __TITLE_COHERENCE_LABELS__ = { LEVEL_LABELS, ROLE_LABELS }

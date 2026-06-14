@@ -7,7 +7,7 @@
  * 관련 타입: CompanyStage, CompanyStageReport.
  */
 
-export type CompanyStage = 'startup' | 'scaleup' | 'enterprise' | 'foreign' | 'public' | 'unclear';
+export type CompanyStage = 'startup' | 'scaleup' | 'enterprise' | 'foreign' | 'public' | 'unclear'
 
 const STAGE_LABEL_KO: Record<CompanyStage, string> = {
   startup: '스타트업',
@@ -16,15 +16,15 @@ const STAGE_LABEL_KO: Record<CompanyStage, string> = {
   foreign: '외국계',
   public: '공공기관/공기업',
   unclear: '불명확',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Signal patterns
 // ---------------------------------------------------------------------------
 
 interface StageSignal {
-  stage: CompanyStage;
-  patterns: Array<{ re: RegExp; label: string }>;
+  stage: CompanyStage
+  patterns: Array<{ re: RegExp; label: string }>
 }
 
 const STAGE_SIGNALS: StageSignal[] = [
@@ -94,7 +94,7 @@ const STAGE_SIGNALS: StageSignal[] = [
       { re: /행정\s*공무원|공무원\s*시험|국가직\s*\d+급/i, label: '공무원 채용' },
     ],
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Tips per stage
@@ -127,25 +127,25 @@ const STAGE_TIPS: Record<CompanyStage, string[]> = {
     '취업 규칙·공직자 윤리 관련 질문에 대비하세요.',
   ],
   unclear: ['채용공고에서 회사 정보·조직 규모를 추가로 확인하세요.'],
-};
+}
 
 // ---------------------------------------------------------------------------
 // Detection
 // ---------------------------------------------------------------------------
 
 export interface CompanyStageReport {
-  stage: CompanyStage;
-  stageLabel: string;
-  signals: Array<{ stage: CompanyStage; label: string }>;
-  tips: string[];
-  confidence: 'high' | 'medium' | 'low';
+  stage: CompanyStage
+  stageLabel: string
+  signals: Array<{ stage: CompanyStage; label: string }>
+  tips: string[]
+  confidence: 'high' | 'medium' | 'low'
 }
 
 /**
  * JD 텍스트에서 회사 규모·단계를 감지하고 면접 준비 팁 제공.
  */
 export function detectCompanyStage(text: string): CompanyStageReport {
-  const t = text ?? '';
+  const t = text ?? ''
 
   if (!t.trim()) {
     return {
@@ -154,15 +154,15 @@ export function detectCompanyStage(text: string): CompanyStageReport {
       signals: [],
       tips: STAGE_TIPS['unclear'],
       confidence: 'low',
-    };
+    }
   }
 
-  const allSignals: Array<{ stage: CompanyStage; label: string }> = [];
+  const allSignals: Array<{ stage: CompanyStage; label: string }> = []
 
   for (const { stage, patterns } of STAGE_SIGNALS) {
     for (const { re, label } of patterns) {
       if (re.test(t)) {
-        allSignals.push({ stage, label });
+        allSignals.push({ stage, label })
       }
     }
   }
@@ -171,22 +171,22 @@ export function detectCompanyStage(text: string): CompanyStageReport {
   const stageCounts = Object.fromEntries(STAGE_SIGNALS.map((s) => [s.stage, 0])) as Record<
     CompanyStage,
     number
-  >;
+  >
 
   for (const sig of allSignals) {
-    stageCounts[sig.stage]++;
+    stageCounts[sig.stage]++
   }
 
   const sorted = (Object.entries(stageCounts) as [CompanyStage, number][]).sort(
-    (a, b) => b[1] - a[1],
-  );
+    (a, b) => b[1] - a[1]
+  )
 
-  const topStage = sorted[0][0];
-  const topCount = sorted[0][1];
+  const topStage = sorted[0][0]
+  const topCount = sorted[0][1]
 
-  const stage: CompanyStage = topCount === 0 ? 'unclear' : topStage;
+  const stage: CompanyStage = topCount === 0 ? 'unclear' : topStage
   const confidence: CompanyStageReport['confidence'] =
-    topCount >= 2 ? 'high' : topCount === 1 ? 'medium' : 'low';
+    topCount >= 2 ? 'high' : topCount === 1 ? 'medium' : 'low'
 
   return {
     stage,
@@ -194,5 +194,5 @@ export function detectCompanyStage(text: string): CompanyStageReport {
     signals: allSignals.filter((s) => s.stage === stage),
     tips: STAGE_TIPS[stage].slice(0, 3),
     confidence,
-  };
+  }
 }

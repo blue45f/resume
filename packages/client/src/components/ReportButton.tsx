@@ -1,18 +1,20 @@
-import { useState } from 'react';
-import { toast } from '@/components/Toast';
-import { API_URL } from '@/lib/config';
+import { useState } from 'react'
 
-export type ReportReason = 'spam' | 'inappropriate' | 'fake' | 'copyright' | 'other';
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import { httpClient } from '@/lib/ky'
+
+export type ReportReason = 'spam' | 'inappropriate' | 'fake' | 'copyright' | 'other'
 
 interface Props {
   /** POST 엔드포인트 (예: `/api/resumes/:id/report`). 전체 URL 로 변환됨 */
-  endpoint: string;
+  endpoint: string
   /** 신고 대상 라벨 (모달 문구용) — "이력서" / "게시물" 등 */
-  targetLabel: string;
+  targetLabel: string
   /** 버튼 className 커스터마이즈 */
-  buttonClassName?: string;
+  buttonClassName?: string
   /** 버튼 텍스트 (기본: "🚩 신고") */
-  buttonText?: string;
+  buttonText?: string
 }
 
 /**
@@ -26,49 +28,49 @@ export default function ReportButton({
   buttonClassName = '',
   buttonText = '🚩 신고',
 }: Props) {
-  const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState<ReportReason>('inappropriate');
-  const [detail, setDetail] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [open, setOpen] = useState(false)
+  const [reason, setReason] = useState<ReportReason>('inappropriate')
+  const [detail, setDetail] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const submit = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     if (!token) {
-      toast('로그인이 필요합니다', 'error');
-      return;
+      toast('로그인이 필요합니다', 'error')
+      return
     }
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      const res = await fetch(`${API_URL}${endpoint}`, {
+      const res = await httpClient(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ reason, detail }),
-      });
+      })
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ message: '신고 실패' }));
-        throw new Error(err.message || '신고 실패');
+        const err = await res.json().catch(() => ({ message: '신고 실패' }))
+        throw new Error(err.message || '신고 실패')
       }
-      const data = await res.json();
+      const data = await res.json()
       toast(
         data.autoHidden
           ? `신고 접수 — 누적 ${data.reportCount}건으로 자동 비공개 전환됨`
           : `신고 접수 완료 (누적 ${data.reportCount}/${data.threshold})`,
-        'success',
-      );
-      setOpen(false);
-      setDetail('');
+        'success'
+      )
+      setOpen(false)
+      setDetail('')
     } catch (e) {
-      toast(e instanceof Error ? e.message : '신고 실패', 'error');
+      toast(e instanceof Error ? e.message : '신고 실패', 'error')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   const defaultButtonClass =
-    'inline-flex items-center gap-1.5 min-h-[36px] px-3 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 rounded-md hover:border-red-300 dark:hover:border-red-700 transition-colors';
+    'inline-flex items-center gap-1.5 min-h-[36px] px-3 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700 rounded-md hover:border-red-300 dark:hover:border-red-700 transition-colors'
 
   return (
     <>
@@ -82,13 +84,20 @@ export default function ReportButton({
         {buttonText}
       </button>
       {open && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => !submitting && setOpen(false)}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* 백드롭: 클릭-아웃-투-클로즈를 버튼으로 제공해 키보드로도 닫힌다. */}
+          <button
+            type="button"
+            aria-label="닫기"
+            disabled={submitting}
+            className="absolute inset-0 bg-black/50 disabled:cursor-not-allowed"
+            onClick={() => setOpen(false)}
+          />
           <div
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-5 space-y-4"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${targetLabel} 신고`}
+            className="relative bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-md p-5 space-y-4"
           >
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               {targetLabel} 신고
@@ -152,5 +161,5 @@ export default function ReportButton({
         </div>
       )}
     </>
-  );
+  )
 }

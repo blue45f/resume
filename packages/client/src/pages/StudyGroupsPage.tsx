@@ -1,34 +1,36 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router-dom';
 import {
   STUDY_GROUP_COMPANY_TIERS,
   STUDY_GROUP_CAFE_CATEGORIES,
   STUDY_GROUP_EXPERIENCE_LEVELS,
-} from '@resume/shared';
-import { API_URL } from '@/lib/config';
-import { ROUTES } from '@/lib/routes';
-import { tx } from '@/lib/i18n';
-import { ErrorState } from '@/shared/ui/ErrorState';
+} from '@resume/shared'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+
+import { API_URL } from '@/lib/config'
+import { tx } from '@/lib/i18n'
+import { httpClient } from '@/lib/ky'
+import { ROUTES } from '@/lib/routes'
+import { ErrorState } from '@/shared/ui/ErrorState'
 
 // 라벨은 i18n 사전(companyTier/cafeCategory/experienceLevel)을 단일 소스로 사용 —
 // 생성 폼(NewStudyGroupPage)과 동일한 번역을 공유한다.
-const tierLabel = (v: string) => tx(`companyTier.${v}`);
-const cafeLabel = (v: string) => tx(`cafeCategory.${v === 'coding-test' ? 'codingTest' : v}`);
-const levelLabel = (v: string) => tx(`experienceLevel.${v}`);
+const tierLabel = (v: string) => tx(`companyTier.${v}`)
+const cafeLabel = (v: string) => tx(`cafeCategory.${v === 'coding-test' ? 'codingTest' : v}`)
+const levelLabel = (v: string) => tx(`experienceLevel.${v}`)
 
 interface StudyGroup {
-  id: string;
-  name: string;
-  description: string;
-  companyName?: string | null;
-  companyTier: string;
-  cafeCategory: string;
-  experienceLevel: string;
-  memberCount: number;
-  maxMembers: number;
-  isPrivate: boolean;
-  createdAt: string;
+  id: string
+  name: string
+  description: string
+  companyName?: string | null
+  companyTier: string
+  cafeCategory: string
+  experienceLevel: string
+  memberCount: number
+  maxMembers: number
+  isPrivate: boolean
+  createdAt: string
 }
 
 function FilterChip({
@@ -37,10 +39,10 @@ function FilterChip({
   active,
   onClick,
 }: {
-  value: string;
-  label: string;
-  active: boolean;
-  onClick: (value: string) => void;
+  value: string
+  label: string
+  active: boolean
+  onClick: (value: string) => void
 }) {
   return (
     <button
@@ -54,26 +56,26 @@ function FilterChip({
     >
       {label}
     </button>
-  );
+  )
 }
 
 export default function StudyGroupsPage() {
-  const [params, setParams] = useSearchParams();
-  const [search, setSearch] = useState('');
+  const [params, setParams] = useSearchParams()
+  const [search, setSearch] = useState('')
 
-  const companyTier = params.get('companyTier') || '';
-  const cafeCategory = params.get('cafeCategory') || '';
-  const experienceLevel = params.get('experienceLevel') || '';
-  const sort = params.get('sort') || 'recent';
-  const openOnly = params.get('openOnly') === '1';
-  const minMembers = params.get('minMembers') || '';
+  const companyTier = params.get('companyTier') || ''
+  const cafeCategory = params.get('cafeCategory') || ''
+  const experienceLevel = params.get('experienceLevel') || ''
+  const sort = params.get('sort') || 'recent'
+  const openOnly = params.get('openOnly') === '1'
+  const minMembers = params.get('minMembers') || ''
 
   const setFilter = (key: string, value: string) => {
-    const next = new URLSearchParams(params);
-    if (value) next.set(key, value);
-    else next.delete(key);
-    setParams(next);
-  };
+    const next = new URLSearchParams(params)
+    if (value) next.set(key, value)
+    else next.delete(key)
+    setParams(next)
+  }
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: [
@@ -81,21 +83,21 @@ export default function StudyGroupsPage() {
       { companyTier, cafeCategory, experienceLevel, sort, openOnly, minMembers, search },
     ],
     queryFn: async () => {
-      const sp = new URLSearchParams();
-      if (companyTier) sp.set('companyTier', companyTier);
-      if (cafeCategory) sp.set('cafeCategory', cafeCategory);
-      if (experienceLevel) sp.set('experienceLevel', experienceLevel);
-      if (sort && sort !== 'recent') sp.set('sort', sort);
-      if (openOnly) sp.set('openOnly', '1');
-      if (minMembers) sp.set('minMembers', minMembers);
-      if (search) sp.set('q', search);
-      const res = await fetch(`${API_URL}/api/study-groups?${sp}`);
-      if (!res.ok) throw new Error('Failed');
-      return res.json() as Promise<{ items: StudyGroup[]; total: number }>;
+      const sp = new URLSearchParams()
+      if (companyTier) sp.set('companyTier', companyTier)
+      if (cafeCategory) sp.set('cafeCategory', cafeCategory)
+      if (experienceLevel) sp.set('experienceLevel', experienceLevel)
+      if (sort && sort !== 'recent') sp.set('sort', sort)
+      if (openOnly) sp.set('openOnly', '1')
+      if (minMembers) sp.set('minMembers', minMembers)
+      if (search) sp.set('q', search)
+      const res = await httpClient(`${API_URL}/api/study-groups?${sp}`)
+      if (!res.ok) throw new Error('Failed')
+      return res.json() as Promise<{ items: StudyGroup[]; total: number }>
     },
-  });
+  })
 
-  const groups = data?.items || [];
+  const groups = data?.items || []
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
@@ -321,5 +323,5 @@ export default function StudyGroupsPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

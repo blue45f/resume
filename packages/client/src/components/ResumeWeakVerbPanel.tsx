@@ -1,26 +1,27 @@
-import { useMemo } from 'react';
-import { suggestVerbReplacements, suggestSynonymsForOveruse } from '@/lib/wordSuggestions';
+import { useMemo } from 'react'
+
+import { suggestVerbReplacements, suggestSynonymsForOveruse } from '@/lib/wordSuggestions'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeWeakVerbPanel({ text }: Props) {
   const verbs = useMemo(() => {
-    const hits = suggestVerbReplacements(text);
-    const seen = new Set<string>();
+    const hits = suggestVerbReplacements(text)
+    const seen = new Set<string>()
     return hits
       .filter((h) => {
-        if (seen.has(h.weak)) return false;
-        seen.add(h.weak);
-        return true;
+        if (seen.has(h.weak)) return false
+        seen.add(h.weak)
+        return true
       })
-      .slice(0, 8);
-  }, [text]);
+      .slice(0, 8)
+  }, [text])
 
-  const overused = useMemo(() => suggestSynonymsForOveruse(text, 3).slice(0, 6), [text]);
+  const overused = useMemo(() => suggestSynonymsForOveruse(text, 3).slice(0, 6), [text])
 
-  if (verbs.length === 0 && overused.length === 0) return null;
+  if (verbs.length === 0 && overused.length === 0) return null
 
   return (
     <aside className="weak-verb-card" aria-label="단어 개선 제안">
@@ -81,5 +82,5 @@ export default function ResumeWeakVerbPanel({ text }: Props) {
         </section>
       )}
     </aside>
-  );
+  )
 }

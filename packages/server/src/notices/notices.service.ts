@@ -1,25 +1,27 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common'
+
+import { PrismaService } from '../prisma/prisma.service'
+
+import type { Prisma } from '@prisma/client'
 
 export type NoticeCreateBody = {
-  title: string;
-  content: string;
-  type?: string;
-  isPopup?: boolean;
-  isPinned?: boolean;
-  allowComments?: boolean;
-  startAt?: Date | string | null;
-  endAt?: Date | string | null;
-};
+  title: string
+  content: string
+  type?: string
+  isPopup?: boolean
+  isPinned?: boolean
+  allowComments?: boolean
+  startAt?: Date | string | null
+  endAt?: Date | string | null
+}
 
 @Injectable()
 export class NoticesService {
   constructor(private prisma: PrismaService) {}
 
   async getAll(type?: string, page = 1, limit = 10) {
-    const where: Prisma.NoticeWhereInput = {};
-    if (type) where.type = type;
+    const where: Prisma.NoticeWhereInput = {}
+    if (type) where.type = type
     const [items, total] = await Promise.all([
       this.prisma.notice.findMany({
         where,
@@ -32,12 +34,12 @@ export class NoticesService {
         take: limit,
       }),
       this.prisma.notice.count({ where }),
-    ]);
-    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+    ])
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) }
   }
 
   async getPopup() {
-    const now = new Date();
+    const now = new Date()
     return this.prisma.notice.findMany({
       where: {
         isPopup: true,
@@ -46,7 +48,7 @@ export class NoticesService {
       },
       orderBy: { createdAt: 'desc' },
       take: 3,
-    });
+    })
   }
 
   async getOne(id: string) {
@@ -60,23 +62,23 @@ export class NoticesService {
         },
         _count: { select: { comments: true } },
       },
-    });
-    if (!notice) throw new NotFoundException('공지사항을 찾을 수 없습니다');
+    })
+    if (!notice) throw new NotFoundException('공지사항을 찾을 수 없습니다')
     // increment view count
-    await this.prisma.notice.update({ where: { id }, data: { viewCount: { increment: 1 } } });
-    return notice;
+    await this.prisma.notice.update({ where: { id }, data: { viewCount: { increment: 1 } } })
+    return notice
   }
 
   async create(data: NoticeCreateBody, authorId?: string) {
     return this.prisma.notice.create({
       data: { ...data, authorId: authorId || null },
       include: { author: { select: { id: true, name: true } } },
-    });
+    })
   }
 
   async update(id: string, data: Prisma.NoticeUpdateInput, editorId?: string, reason?: string) {
-    const existing = await this.prisma.notice.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException();
+    const existing = await this.prisma.notice.findUnique({ where: { id } })
+    if (!existing) throw new NotFoundException()
 
     // Save history before update
     if (editorId) {
@@ -89,42 +91,42 @@ export class NoticesService {
           prevType: existing.type,
           reason: reason || '',
         },
-      });
+      })
     }
 
     return this.prisma.notice.update({
       where: { id },
       data,
       include: { author: { select: { id: true, name: true } } },
-    });
+    })
   }
 
   async remove(id: string) {
-    return this.prisma.notice.delete({ where: { id } });
+    return this.prisma.notice.delete({ where: { id } })
   }
 
   // ── Comments ──────────────────────────────────────────────────
 
   async addComment(noticeId: string, userId: string, content: string) {
-    const notice = await this.prisma.notice.findUnique({ where: { id: noticeId } });
-    if (!notice) throw new NotFoundException();
-    if (!notice.allowComments) throw new ForbiddenException('댓글이 허용되지 않은 공지사항입니다');
+    const notice = await this.prisma.notice.findUnique({ where: { id: noticeId } })
+    if (!notice) throw new NotFoundException()
+    if (!notice.allowComments) throw new ForbiddenException('댓글이 허용되지 않은 공지사항입니다')
     return this.prisma.noticeComment.create({
       data: { noticeId, userId, content },
       include: { user: { select: { id: true, name: true, avatar: true } } },
-    });
+    })
   }
 
   async deleteComment(commentId: string, userId: string, role?: string) {
-    const comment = await this.prisma.noticeComment.findUnique({ where: { id: commentId } });
-    if (!comment) throw new NotFoundException();
+    const comment = await this.prisma.noticeComment.findUnique({ where: { id: commentId } })
+    if (!comment) throw new NotFoundException()
     if (comment.userId !== userId && role !== 'admin' && role !== 'superadmin')
-      throw new ForbiddenException();
-    return this.prisma.noticeComment.delete({ where: { id: commentId } });
+      throw new ForbiddenException()
+    return this.prisma.noticeComment.delete({ where: { id: commentId } })
   }
 
   async toggleComments(noticeId: string, allow: boolean) {
-    return this.prisma.notice.update({ where: { id: noticeId }, data: { allowComments: allow } });
+    return this.prisma.notice.update({ where: { id: noticeId }, data: { allowComments: allow } })
   }
 
   // ── History ───────────────────────────────────────────────────
@@ -134,6 +136,6 @@ export class NoticesService {
       where: { noticeId },
       include: { editor: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
-    });
+    })
   }
 }

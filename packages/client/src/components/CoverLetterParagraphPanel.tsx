@@ -1,18 +1,19 @@
-import { useMemo } from 'react';
-import { analyzeParagraphs } from '@/lib/toneAnalyzers';
+import { useMemo } from 'react'
+
+import { analyzeParagraphs } from '@/lib/toneAnalyzers'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function CoverLetterParagraphPanel({ text }: Props) {
-  const stats = useMemo(() => analyzeParagraphs(text), [text]);
+  const stats = useMemo(() => analyzeParagraphs(text), [text])
 
-  if (stats.count === 0) return null;
+  if (stats.count === 0) return null
   if (stats.shortParagraphs === 0 && stats.longParagraphs === 0 && stats.idealRatio >= 0.7)
-    return null;
+    return null
 
-  const hasIssue = stats.shortParagraphs > 0 || stats.longParagraphs > 0 || stats.idealRatio < 0.5;
+  const hasIssue = stats.shortParagraphs > 0 || stats.longParagraphs > 0 || stats.idealRatio < 0.5
 
   return (
     <aside
@@ -68,5 +69,5 @@ export default function CoverLetterParagraphPanel({ text }: Props) {
 
       <p className="cl-para-card__suggestion">{stats.suggestion}</p>
     </aside>
-  );
+  )
 }

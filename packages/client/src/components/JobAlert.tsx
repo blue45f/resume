@@ -1,87 +1,87 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react'
 
 export interface JobAlertConfig {
-  id: string;
-  keywords: string;
-  jobType: string;
-  salaryMin: string;
-  salaryMax: string;
-  location: string;
-  enabled: boolean;
-  createdAt: string;
+  id: string
+  keywords: string
+  jobType: string
+  salaryMin: string
+  salaryMax: string
+  location: string
+  enabled: boolean
+  createdAt: string
 }
 
-const STORAGE_KEY = 'job-alerts';
+const STORAGE_KEY = 'job-alerts'
 
 function loadAlerts(): JobAlertConfig[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
   } catch {
-    return [];
+    return []
   }
 }
 
 function saveAlerts(alerts: JobAlertConfig[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(alerts));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(alerts))
 }
 
 interface JobPost {
-  id: string;
-  company: string;
-  position: string;
-  location: string;
-  salary: string;
-  type: string;
-  skills: string;
-  description: string;
+  id: string
+  company: string
+  position: string
+  location: string
+  salary: string
+  type: string
+  skills: string
+  description: string
 }
 
 /** Count how many jobs match the user's alerts */
 function countAlertMatches(jobs: JobPost[], alertConfigs: JobAlertConfig[]): number {
-  const enabledAlerts = alertConfigs.filter((a) => a.enabled);
-  if (enabledAlerts.length === 0) return 0;
-  const matched = new Set<string>();
+  const enabledAlerts = alertConfigs.filter((a) => a.enabled)
+  if (enabledAlerts.length === 0) return 0
+  const matched = new Set<string>()
   for (const alert of enabledAlerts) {
     const keywords = alert.keywords
       .toLowerCase()
       .split(',')
       .map((k) => k.trim())
-      .filter(Boolean);
+      .filter(Boolean)
     for (const job of jobs) {
-      if (matched.has(job.id)) continue;
-      const text = `${job.position} ${job.company} ${job.skills} ${job.description}`.toLowerCase();
-      const keywordMatch = keywords.length === 0 || keywords.some((kw) => text.includes(kw));
-      const typeMatch = !alert.jobType || alert.jobType === 'all' || job.type === alert.jobType;
-      const locationMatch = !alert.location || job.location.includes(alert.location);
+      if (matched.has(job.id)) continue
+      const text = `${job.position} ${job.company} ${job.skills} ${job.description}`.toLowerCase()
+      const keywordMatch = keywords.length === 0 || keywords.some((kw) => text.includes(kw))
+      const typeMatch = !alert.jobType || alert.jobType === 'all' || job.type === alert.jobType
+      const locationMatch = !alert.location || job.location.includes(alert.location)
       if (keywordMatch && typeMatch && locationMatch) {
-        matched.add(job.id);
+        matched.add(job.id)
       }
     }
   }
-  return matched.size;
+  return matched.size
 }
 
 interface Props {
-  jobs: JobPost[];
+  jobs: JobPost[]
 }
 
 export default function JobAlert({ jobs }: Props) {
-  const [open, setOpen] = useState(false);
-  const [alerts, setAlerts] = useState<JobAlertConfig[]>(loadAlerts);
+  const [open, setOpen] = useState(false)
+  const [alerts, setAlerts] = useState<JobAlertConfig[]>(loadAlerts)
   const [form, setForm] = useState({
     keywords: '',
     jobType: 'all',
     salaryMin: '',
     salaryMax: '',
     location: '',
-  });
-  const [editingId, setEditingId] = useState<string | null>(null);
+  })
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
-    saveAlerts(alerts);
-  }, [alerts]);
+    saveAlerts(alerts)
+  }, [alerts])
 
-  const matchCount = useMemo(() => countAlertMatches(jobs, alerts), [jobs, alerts]);
+  const matchCount = useMemo(() => countAlertMatches(jobs, alerts), [jobs, alerts])
 
   const handleSave = () => {
     if (editingId) {
@@ -97,21 +97,21 @@ export default function JobAlert({ jobs }: Props) {
                 salaryMax: form.salaryMax,
                 location: form.location,
               }
-            : a,
-        ),
-      );
-      setEditingId(null);
+            : a
+        )
+      )
+      setEditingId(null)
     } else {
       const newAlert: JobAlertConfig = {
         id: Date.now().toString(),
         ...form,
         enabled: true,
         createdAt: new Date().toISOString(),
-      };
-      setAlerts((prev) => [...prev, newAlert]);
+      }
+      setAlerts((prev) => [...prev, newAlert])
     }
-    setForm({ keywords: '', jobType: 'all', salaryMin: '', salaryMax: '', location: '' });
-  };
+    setForm({ keywords: '', jobType: 'all', salaryMin: '', salaryMax: '', location: '' })
+  }
 
   const handleEdit = (alert: JobAlertConfig) => {
     setForm({
@@ -120,21 +120,21 @@ export default function JobAlert({ jobs }: Props) {
       salaryMin: alert.salaryMin,
       salaryMax: alert.salaryMax,
       location: alert.location,
-    });
-    setEditingId(alert.id);
-  };
+    })
+    setEditingId(alert.id)
+  }
 
   const handleDelete = (id: string) => {
-    setAlerts((prev) => prev.filter((a) => a.id !== id));
+    setAlerts((prev) => prev.filter((a) => a.id !== id))
     if (editingId === id) {
-      setEditingId(null);
-      setForm({ keywords: '', jobType: 'all', salaryMin: '', salaryMax: '', location: '' });
+      setEditingId(null)
+      setForm({ keywords: '', jobType: 'all', salaryMin: '', salaryMax: '', location: '' })
     }
-  };
+  }
 
   const toggleEnabled = (id: string) => {
-    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, enabled: !a.enabled } : a)));
-  };
+    setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, enabled: !a.enabled } : a)))
+  }
 
   return (
     <>
@@ -162,13 +162,19 @@ export default function JobAlert({ jobs }: Props) {
 
       {/* Modal */}
       {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
-          onClick={() => setOpen(false)}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* 백드롭: 클릭-아웃-투-클로즈를 버튼으로 제공해 키보드(Enter/Space)로도 닫힌다. */}
+          <button
+            type="button"
+            aria-label="닫기"
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setOpen(false)}
+          />
           <div
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[85dvh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="채용 알림 설정"
+            className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg max-h-[85dvh] overflow-y-auto"
           >
             <div className="flex items-center justify-between p-5 border-b border-slate-200 dark:border-slate-700">
               <div>
@@ -206,10 +212,14 @@ export default function JobAlert({ jobs }: Props) {
                   {editingId ? '알림 수정' : '새 알림 추가'}
                 </h3>
                 <div>
-                  <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                  <label
+                    htmlFor="jobalert-field-1"
+                    className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                  >
                     키워드 (쉼표로 구분)
                   </label>
                   <input
+                    id="jobalert-field-1"
                     type="text"
                     value={form.keywords}
                     onChange={(e) => setForm((f) => ({ ...f, keywords: e.target.value }))}
@@ -219,10 +229,14 @@ export default function JobAlert({ jobs }: Props) {
                 </div>
                 <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    <label
+                      htmlFor="jobalert-field-2"
+                      className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                    >
                       채용 형태
                     </label>
                     <select
+                      id="jobalert-field-2"
                       value={form.jobType}
                       onChange={(e) => setForm((f) => ({ ...f, jobType: e.target.value }))}
                       className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-600 rounded-lg dark:bg-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500"
@@ -235,10 +249,14 @@ export default function JobAlert({ jobs }: Props) {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    <label
+                      htmlFor="jobalert-field-3"
+                      className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                    >
                       지역
                     </label>
                     <input
+                      id="jobalert-field-3"
                       type="text"
                       value={form.location}
                       onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
@@ -249,10 +267,14 @@ export default function JobAlert({ jobs }: Props) {
                 </div>
                 <div className="stagger-children grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    <label
+                      htmlFor="jobalert-field-4"
+                      className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                    >
                       최소 연봉 (만원)
                     </label>
                     <input
+                      id="jobalert-field-4"
                       type="number"
                       value={form.salaryMin}
                       onChange={(e) => setForm((f) => ({ ...f, salaryMin: e.target.value }))}
@@ -261,10 +283,14 @@ export default function JobAlert({ jobs }: Props) {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    <label
+                      htmlFor="jobalert-field-5"
+                      className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1"
+                    >
                       최대 연봉 (만원)
                     </label>
                     <input
+                      id="jobalert-field-5"
                       type="number"
                       value={form.salaryMax}
                       onChange={(e) => setForm((f) => ({ ...f, salaryMax: e.target.value }))}
@@ -284,14 +310,14 @@ export default function JobAlert({ jobs }: Props) {
                   {editingId && (
                     <button
                       onClick={() => {
-                        setEditingId(null);
+                        setEditingId(null)
                         setForm({
                           keywords: '',
                           jobType: 'all',
                           salaryMin: '',
                           salaryMax: '',
                           location: '',
-                        });
+                        })
                       }}
                       className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                     >
@@ -440,5 +466,5 @@ export default function JobAlert({ jobs }: Props) {
         </div>
       )}
     </>
-  );
+  )
 }

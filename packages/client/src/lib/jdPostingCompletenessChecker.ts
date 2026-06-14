@@ -9,26 +9,26 @@ export type JdSection =
   | 'conditions' // 근무조건 (필수)
   | 'preferred' // 우대사항 (권장)
   | 'benefits' // 복리후생 (권장)
-  | 'process'; // 전형절차 (권장)
+  | 'process' // 전형절차 (권장)
 
-export type CompletenessGrade = 'complete' | 'good' | 'partial' | 'sparse';
+export type CompletenessGrade = 'complete' | 'good' | 'partial' | 'sparse'
 
 export interface JdPostingCompletenessReport {
-  grade: CompletenessGrade;
-  presentSections: JdSection[];
-  missingSections: JdSection[];
-  essentialPresent: number; // 0–3
-  recommendedPresent: number; // 0–3
-  summary: string;
-  tips: string[];
+  grade: CompletenessGrade
+  presentSections: JdSection[]
+  missingSections: JdSection[]
+  essentialPresent: number // 0–3
+  recommendedPresent: number // 0–3
+  summary: string
+  tips: string[]
 }
 
 // ---------------------------------------------------------------------------
 // Section detection
 // ---------------------------------------------------------------------------
 
-const ESSENTIAL_SECTIONS: JdSection[] = ['responsibilities', 'qualifications', 'conditions'];
-const RECOMMENDED_SECTIONS: JdSection[] = ['preferred', 'benefits', 'process'];
+const ESSENTIAL_SECTIONS: JdSection[] = ['responsibilities', 'qualifications', 'conditions']
+const RECOMMENDED_SECTIONS: JdSection[] = ['preferred', 'benefits', 'process']
 
 const SECTION_PATTERNS: Record<JdSection, RegExp> = {
   responsibilities:
@@ -41,7 +41,7 @@ const SECTION_PATTERNS: Record<JdSection, RegExp> = {
   benefits: /(?:복리\s*후생|복지\s*(?:제도|혜택)?|혜택|지원\s*제도|benefits|perks)/i,
   process:
     /(?:전형\s*(?:절차|방법|과정)|채용\s*(?:절차|과정)|지원\s*방법|제출\s*서류|hiring\s*process|how\s*to\s*apply)/i,
-};
+}
 
 const SECTION_LABEL: Record<JdSection, string> = {
   responsibilities: '담당업무',
@@ -50,37 +50,37 @@ const SECTION_LABEL: Record<JdSection, string> = {
   preferred: '우대사항',
   benefits: '복리후생',
   process: '전형절차',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Main analysis
 // ---------------------------------------------------------------------------
 
 export function checkJdPostingCompleteness(text: string): JdPostingCompletenessReport {
-  const t = (text ?? '').trim();
+  const t = (text ?? '').trim()
 
-  const presentSections: JdSection[] = [];
-  const allSections: JdSection[] = [...ESSENTIAL_SECTIONS, ...RECOMMENDED_SECTIONS];
+  const presentSections: JdSection[] = []
+  const allSections: JdSection[] = [...ESSENTIAL_SECTIONS, ...RECOMMENDED_SECTIONS]
 
   for (const section of allSections) {
     if (SECTION_PATTERNS[section].test(t)) {
-      presentSections.push(section);
+      presentSections.push(section)
     }
   }
 
-  const missingSections = allSections.filter((s) => !presentSections.includes(s));
-  const essentialPresent = ESSENTIAL_SECTIONS.filter((s) => presentSections.includes(s)).length;
-  const recommendedPresent = RECOMMENDED_SECTIONS.filter((s) => presentSections.includes(s)).length;
+  const missingSections = allSections.filter((s) => !presentSections.includes(s))
+  const essentialPresent = ESSENTIAL_SECTIONS.filter((s) => presentSections.includes(s)).length
+  const recommendedPresent = RECOMMENDED_SECTIONS.filter((s) => presentSections.includes(s)).length
 
-  let grade: CompletenessGrade;
+  let grade: CompletenessGrade
   if (essentialPresent === 3 && recommendedPresent >= 2) {
-    grade = 'complete';
+    grade = 'complete'
   } else if (essentialPresent >= 2) {
-    grade = 'good';
+    grade = 'good'
   } else if (essentialPresent >= 1) {
-    grade = 'partial';
+    grade = 'partial'
   } else {
-    grade = 'sparse';
+    grade = 'sparse'
   }
 
   // Summary
@@ -89,27 +89,27 @@ export function checkJdPostingCompleteness(text: string): JdPostingCompletenessR
     good: '핵심 정보는 있으나 일부 섹션이 누락되었습니다.',
     partial: '필수 정보가 부족합니다. 추가 확인이 필요합니다.',
     sparse: '공고 정보가 매우 부족합니다. 신중히 접근하세요.',
-  };
-  const summary = GRADE_LABEL[grade];
+  }
+  const summary = GRADE_LABEL[grade]
 
   // Tips
-  const tips: string[] = [];
-  const missingEssential = ESSENTIAL_SECTIONS.filter((s) => !presentSections.includes(s));
+  const tips: string[] = []
+  const missingEssential = ESSENTIAL_SECTIONS.filter((s) => !presentSections.includes(s))
   if (missingEssential.length > 0) {
-    const labels = missingEssential.map((s) => SECTION_LABEL[s]).join(', ');
-    tips.push(`필수 정보 누락: ${labels} — 지원 전 채용 담당자에게 문의하세요.`);
+    const labels = missingEssential.map((s) => SECTION_LABEL[s]).join(', ')
+    tips.push(`필수 정보 누락: ${labels} — 지원 전 채용 담당자에게 문의하세요.`)
   }
   if (!presentSections.includes('conditions')) {
-    tips.push('근무지·고용형태·급여 등 근무조건이 없으면 입사 후 조건 불일치 위험이 있습니다.');
+    tips.push('근무지·고용형태·급여 등 근무조건이 없으면 입사 후 조건 불일치 위험이 있습니다.')
   }
   if (!presentSections.includes('process')) {
-    tips.push('전형 절차가 없으면 준비 범위를 가늠하기 어렵습니다. 절차를 문의하세요.');
+    tips.push('전형 절차가 없으면 준비 범위를 가늠하기 어렵습니다. 절차를 문의하세요.')
   }
   if (grade === 'sparse') {
-    tips.push('정보가 부실한 공고는 채용 의지·조직 체계가 약할 수 있으니 주의하세요.');
+    tips.push('정보가 부실한 공고는 채용 의지·조직 체계가 약할 수 있으니 주의하세요.')
   }
   if (grade === 'complete') {
-    tips.push('정보가 충실합니다. 각 섹션의 구체성까지 함께 확인하세요.');
+    tips.push('정보가 충실합니다. 각 섹션의 구체성까지 함께 확인하세요.')
   }
 
   return {
@@ -120,5 +120,5 @@ export function checkJdPostingCompleteness(text: string): JdPostingCompletenessR
     recommendedPresent,
     summary,
     tips,
-  };
+  }
 }

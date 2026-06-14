@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { followUser, unfollowUser } from '@/lib/api';
-import { toast } from '@/components/Toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+
+import { toast } from '@/components/Toast'
+import { followUser, unfollowUser } from '@/lib/api'
 
 interface Props {
-  userId: string;
-  initialFollowing?: boolean;
-  isMutual?: boolean;
-  onFollowChange?: (following: boolean) => void;
+  userId: string
+  initialFollowing?: boolean
+  isMutual?: boolean
+  onFollowChange?: (following: boolean) => void
 }
 
 export default function FollowButton({
@@ -16,52 +17,52 @@ export default function FollowButton({
   isMutual = false,
   onFollowChange,
 }: Props) {
-  const [following, setFollowing] = useState(initialFollowing);
-  const [mutual, setMutual] = useState(isMutual);
-  const [hovered, setHovered] = useState(false);
-  const queryClient = useQueryClient();
+  const [following, setFollowing] = useState(initialFollowing)
+  const [mutual, setMutual] = useState(isMutual)
+  const [hovered, setHovered] = useState(false)
+  const queryClient = useQueryClient()
 
   const mutation = useMutation({
     mutationFn: (next: boolean) => (next ? followUser(userId) : unfollowUser(userId)),
     // 낙관적 토글 — 클릭 즉시 반영, 실패 시 onError 에서 스냅샷 롤백
     onMutate: (next) => {
-      const snapshot = { following, mutual };
-      setFollowing(next);
-      if (!next) setMutual(false);
-      onFollowChange?.(next);
-      return snapshot;
+      const snapshot = { following, mutual }
+      setFollowing(next)
+      if (!next) setMutual(false)
+      onFollowChange?.(next)
+      return snapshot
     },
     onSuccess: (result, next) => {
       if (next) {
-        if ('mutual' in result && result.mutual) setMutual(true);
-        toast('팔로우했습니다', 'success');
+        if ('mutual' in result && result.mutual) setMutual(true)
+        toast('팔로우했습니다', 'success')
       }
     },
     onError: (_error, _next, snapshot) => {
       if (snapshot) {
-        setFollowing(snapshot.following);
-        setMutual(snapshot.mutual);
-        onFollowChange?.(snapshot.following);
+        setFollowing(snapshot.following)
+        setMutual(snapshot.mutual)
+        onFollowChange?.(snapshot.following)
       }
-      toast('팔로우 처리에 실패했습니다', 'error');
+      toast('팔로우 처리에 실패했습니다', 'error')
     },
     // 팔로워/팔로잉 목록·카운트 서버 정합 회복 (FollowListPage 통계 등)
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['followers'] });
-      queryClient.invalidateQueries({ queryKey: ['following'] });
+      queryClient.invalidateQueries({ queryKey: ['followers'] })
+      queryClient.invalidateQueries({ queryKey: ['following'] })
     },
-  });
-  const loading = mutation.isPending;
+  })
+  const loading = mutation.isPending
 
   const toggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const token = localStorage.getItem('token');
-    if (!token || mutation.isPending) return;
-    mutation.mutate(!following);
-  };
+    e.preventDefault()
+    e.stopPropagation()
+    const token = localStorage.getItem('token')
+    if (!token || mutation.isPending) return
+    mutation.mutate(!following)
+  }
 
-  const showUnfollow = following && hovered;
+  const showUnfollow = following && hovered
 
   return (
     <div className="inline-flex items-center gap-2">
@@ -94,5 +95,5 @@ export default function FollowButton({
         </span>
       )}
     </div>
-  );
+  )
 }

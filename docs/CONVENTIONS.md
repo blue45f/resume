@@ -4,18 +4,18 @@
 
 ## 파일명 규칙
 
-| 대상 | 규칙 | 예시 |
-|------|------|------|
-| React 컴포넌트 | **PascalCase.tsx** | `ResumeEditor.tsx`, `ConfirmDialog.tsx` |
-| 페이지 컴포넌트 | **PascalCase + `Page` 접미사** | `HomePage.tsx`, `EditResumePage.tsx` |
-| 커스텀 훅 | **camelCase + `use` 접두사** | `useDebounce.ts`, `useDraftStore.ts` |
-| Zustand 스토어 | **`useXxxStore.ts`** | `useAuthStore.ts`, `useUIStore.ts` |
-| 유틸 / 순수 함수 | **camelCase.ts** | `time.ts`, `completeness.ts` |
-| 타입 정의 | **camelCase.ts 또는 domain.d.ts** | `types/resume.ts` |
-| NestJS 모듈 파일 | `<name>.module.ts`, `<name>.controller.ts`, `<name>.service.ts` | `auth.module.ts` |
-| NestJS DTO | `<name>.dto.ts` | `create-resume.dto.ts` |
-| 테스트 | `<name>.spec.ts` (백엔드), `<name>.test.tsx` (프론트) | `resumes.service.spec.ts` |
-| 스타일 전역 | `index.css` | 디자인 토큰은 여기 |
+| 대상             | 규칙                                                            | 예시                                    |
+| ---------------- | --------------------------------------------------------------- | --------------------------------------- |
+| React 컴포넌트   | **PascalCase.tsx**                                              | `ResumeEditor.tsx`, `ConfirmDialog.tsx` |
+| 페이지 컴포넌트  | **PascalCase + `Page` 접미사**                                  | `HomePage.tsx`, `EditResumePage.tsx`    |
+| 커스텀 훅        | **camelCase + `use` 접두사**                                    | `useDebounce.ts`, `useDraftStore.ts`    |
+| Zustand 스토어   | **`useXxxStore.ts`**                                            | `useAuthStore.ts`, `useUIStore.ts`      |
+| 유틸 / 순수 함수 | **camelCase.ts**                                                | `time.ts`, `completeness.ts`            |
+| 타입 정의        | **camelCase.ts 또는 domain.d.ts**                               | `types/resume.ts`                       |
+| NestJS 모듈 파일 | `<name>.module.ts`, `<name>.controller.ts`, `<name>.service.ts` | `auth.module.ts`                        |
+| NestJS DTO       | `<name>.dto.ts`                                                 | `create-resume.dto.ts`                  |
+| 테스트           | `<name>.spec.ts` (백엔드), `<name>.test.tsx` (프론트)           | `resumes.service.spec.ts`               |
+| 스타일 전역      | `index.css`                                                     | 디자인 토큰은 여기                      |
 
 - 디렉터리명은 **kebab-case** (`cover-letters/`, `recent-views/`).
 - 기본 export는 지양하고 named export를 사용합니다. 페이지 컴포넌트는 default export 허용.
@@ -67,14 +67,14 @@ server/<domain>/
 
 ```ts
 // src/shared/lib/schemas/resume.schema.ts
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const resumeSchema = z.object({
   title: z.string().min(1).max(80),
   sections: z.array(sectionSchema),
-});
+})
 
-export type ResumeInput = z.infer<typeof resumeSchema>;
+export type ResumeInput = z.infer<typeof resumeSchema>
 ```
 
 ## Hook 명명 규칙
@@ -95,18 +95,18 @@ export type ResumeInput = z.infer<typeof resumeSchema>;
 <footer>
 ```
 
-| type | 의미 |
-|------|------|
-| `feat` | 새로운 기능 |
-| `fix` | 버그 수정 |
-| `test` | 테스트 추가/수정 |
-| `refactor` | 기능 변경 없는 구조 개선 |
-| `perf` | 성능 최적화 |
-| `style` | 포맷·CSS·디자인 시스템 변경 |
-| `docs` | 문서 변경 |
-| `build` | 빌드 시스템·의존성 |
-| `chore` | 그 외 유지보수 |
-| `ci` | CI/CD 설정 |
+| type       | 의미                        |
+| ---------- | --------------------------- |
+| `feat`     | 새로운 기능                 |
+| `fix`      | 버그 수정                   |
+| `test`     | 테스트 추가/수정            |
+| `refactor` | 기능 변경 없는 구조 개선    |
+| `perf`     | 성능 최적화                 |
+| `style`    | 포맷·CSS·디자인 시스템 변경 |
+| `docs`     | 문서 변경                   |
+| `build`    | 빌드 시스템·의존성          |
+| `chore`    | 그 외 유지보수              |
+| `ci`       | CI/CD 설정                  |
 
 규칙:
 

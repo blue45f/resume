@@ -146,9 +146,9 @@ async upsertCoachProfile(userId, data) {
 ## 6. 수수료 정산 (Phase 1 계산만)
 
 ```ts
-totalPrice = Math.round((hourlyRate * duration) / 60);
-commission = Math.round(totalPrice * 0.15); // 15%
-coachEarn = totalPrice - commission;
+totalPrice = Math.round((hourlyRate * duration) / 60)
+commission = Math.round(totalPrice * 0.15) // 15%
+coachEarn = totalPrice - commission
 ```
 
 실제 이체·정산은 **베타** — PG 연동 후 활성화 예정.

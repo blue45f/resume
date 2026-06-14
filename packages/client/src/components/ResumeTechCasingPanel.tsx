@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
-import { detectInconsistentCasing } from '@/lib/techCasing';
+import { useMemo } from 'react'
+
+import { detectInconsistentCasing } from '@/lib/techCasing'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeTechCasingPanel({ text }: Props) {
-  const analysis = useMemo(() => detectInconsistentCasing(text), [text]);
+  const analysis = useMemo(() => detectInconsistentCasing(text), [text])
 
-  if (analysis.hits.length === 0) return null;
+  if (analysis.hits.length === 0) return null
 
   return (
     <aside className="tech-casing-card" aria-label="기술 용어 대소문자 분석">
@@ -43,5 +44,5 @@ export default function ResumeTechCasingPanel({ text }: Props) {
         ))}
       </ul>
     </aside>
-  );
+  )
 }

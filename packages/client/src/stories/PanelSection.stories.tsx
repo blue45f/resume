@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import PanelSection from '@/components/PanelSection';
+import type { Meta, StoryObj } from '@storybook/react-vite'
+
+import PanelSection from '@/components/PanelSection'
 
 const meta: Meta<typeof PanelSection> = {
   title: 'Layout/PanelSection',
@@ -11,9 +12,9 @@ const meta: Meta<typeof PanelSection> = {
     icon: { control: 'text' },
     defaultOpen: { control: 'boolean' },
   },
-};
-export default meta;
-type Story = StoryObj<typeof PanelSection>;
+}
+export default meta
+type Story = StoryObj<typeof PanelSection>
 
 export const Default: Story = {
   args: {
@@ -27,7 +28,7 @@ export const Default: Story = {
       </div>
     ),
   },
-};
+}
 
 export const Collapsed: Story = {
   args: {
@@ -37,7 +38,7 @@ export const Collapsed: Story = {
     defaultOpen: false,
     children: <p>토글 후 표시되는 콘텐츠</p>,
   },
-};
+}
 
 export const NoSubtitle: Story = {
   args: {
@@ -46,4 +47,4 @@ export const NoSubtitle: Story = {
     defaultOpen: true,
     children: <p className="text-sm">서브타이틀 없는 케이스.</p>,
   },
-};
+}

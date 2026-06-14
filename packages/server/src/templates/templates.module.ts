@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
-import { TemplatesController } from './templates.controller';
-import { TemplatesService } from './templates.service';
-import { LocalTransformService } from './local-transform.service';
-import { ResumesModule } from '../resumes/resumes.module';
+import { Module } from '@nestjs/common'
+
+import { ResumesModule } from '../resumes/resumes.module'
+
+import { LocalTransformService } from './local-transform.service'
+import { TemplatesController } from './templates.controller'
+import { TemplatesService } from './templates.service'
 
 @Module({
   imports: [ResumesModule],

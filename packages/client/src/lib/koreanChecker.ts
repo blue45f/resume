@@ -1,40 +1,257 @@
-import type { Resume } from '@/types/resume';
+/* eslint-disable import-x/order -- 이 파일은 25개 서브 모듈을 re-export 하는 허브로,
+   각 분석기가 어느 모듈로 분리됐는지 추적하는 아키텍처-리팩터 주석을 import 사이에
+   의도적으로 유지한다(lib/README.md 참조). import 자체는 알파벳 순으로 정렬돼 있다. */
+/**
+ * 문장 종결 어미 다양성 분석 — 이력서·자소서에서 같은 어미만 반복하면
+ * 단조롭고 AI 생성물처럼 보임. 상위 종결어미와 집중도(Herfindahl)를 계산.
+ *
+ * monotonyScore: 0~100. 100 에 가까울수록 한두 어미에 집중되어 단조로움.
+ * dominantEndings: 빈도 상위 어미 최대 5개.
+ */
+// 문장 구조 분석기는 ./sentenceStructure 로 분리됨 (아키텍처 리팩터).
+
+// 반복·중복 분석기는 ./repetitionAnalyzers 로 분리됨 (아키텍처 리팩터).
+
+// 가독성·길이·종결어미 분석기는 ./readabilityAnalyzers 로 분리됨 (아키텍처 리팩터).
+
+// 성취 신호(정량·액션동사·수상) 분석기는 ./achievementSignals 로 분리됨 (아키텍처 리팩터).
+import {
+  analyzeQuantification as _analyzeQuantification,
+  analyzeActionVerbs as _analyzeActionVerbs,
+  countAchievements as _countAchievements,
+  type QuantificationAnalysis as _QuantificationAnalysis,
+  type ActionVerbAnalysis as _ActionVerbAnalysis,
+} from './achievementSignals'
+
+// 언어 위험 분석기(상투구·자곤·과장) 는 ./languageRisks 로 분리됨 (아키텍처 리팩터).
+
+/**
+ * 문장 시작 반복 — "저는/제가" 등 같은 단어로 시작하는 문장이 연속되면 단조로움.
+ * 이력서·자소서에서 특히 자주 발생. 상위 3개 시작 단어 빈도 반환.
+ */
+// 목록·불릿·문장부호 분석기는 ./bulletStructure 로 분리됨 (아키텍처 리팩터).
+import {
+  analyzeParallelism as _analyzeParallelism,
+  analyzeBulletMarkerConsistency as _analyzeBulletMarkerConsistency,
+  type ParallelismAnalysis as _ParallelismAnalysis,
+  type BulletMarkerAnalysis as _BulletMarkerAnalysis,
+} from './bulletStructure'
+
+// 키워드·JD·스킬 분석기는 ./jdKeywords 로 분리됨 (아키텍처 리팩터).
+
+// 단어·동사 제안은 ./wordSuggestions 로 분리됨 (아키텍처 리팩터).
+
+// 비격식 표현 검출기는 ./informalLanguage 로 분리됨 (아키텍처 리팩터).
+
+// 메타 유틸(reading time/links/hashtags/char dist) 은 ./metaUtils 로 분리됨.
+
+// 날짜 포맷 분석기는 ./dateAnalyzers 로 분리됨 (아키텍처 리팩터).
+
+// 괄호 균형 + 공백 이상 분석기는 ./textFormat 으로 분리됨 (아키텍처 리팩터).
+
+// 숫자 포맷 분석기는 ./numericFormat 으로 분리됨 (아키텍처 리팩터).
+
+// 기술 용어 대소문자 분석기는 ./techCasing 으로 분리됨 (아키텍처 리팩터).
+
+// 문단·톤·인칭·언어 혼합 분석기는 ./toneAnalyzers 로 분리됨 (아키텍처 리팩터).
+
+// detectDuplicateSentences 는 ./repetitionAnalyzers 로 이동됨.
+
+/**
+ * 경력 연도 범위 추출 — "2020.01 ~ 2023.12", "2020년 1월 ~ 2023년 12월", "2020 - 2023"
+ * 같은 기간 표기를 찾아 총 경력 개월 수·년수로 환산.
+ */
+// 경력 기간·범위 분석기는 ./experience 로 분리됨 (아키텍처 리팩터).
+
+// 연락처·PII 분석기는 ./pii 로 분리됨 (아키텍처 리팩터).
+
+// 이력서 점수·구조 분석기는 ./resumeScoring 으로 분리됨 (아키텍처 리팩터).
+
+// generateHashtags, extractLinks 는 ./metaUtils 로 이동됨.
+
+// estimateJobLevel 은 ./resumeScoring 으로 이동됨.
+
+// generateInterviewQuestions 는 ./interviewQuestions 로 분리됨.
+
+// scoreSpecificity, analyzeActivityChronology 는 ./resumeScoring 으로 이동됨.
+
+// 소프트 스킬·축약어는 ./softSkills 로 분리됨 (아키텍처 리팩터).
+
+// detectAbbreviations 는 ./softSkills 로 이동됨.
+
+// 자기소개서 보조는 ./coverLetterHelpers 로 분리됨 (아키텍처 리팩터).
+import {
+  recommendCoverLetterOpeners as _recommendCoverLetterOpeners,
+  detectSelfDeprecation as _detectSelfDeprecation,
+  analyzeCallToAction as _analyzeCallToAction,
+  type OpenerSuggestion as _OpenerSuggestion,
+  type SelfDeprecationAnalysis as _SelfDeprecationAnalysis,
+  type CallToActionAnalysis as _CallToActionAnalysis,
+} from './coverLetterHelpers'
+import {
+  analyzeDateConsistency as _analyzeDateConsistency,
+  type DateConsistencyAnalysis as _DateConsistencyAnalysis,
+} from './dateAnalyzers'
+
+// countCharsByCategory 는 ./metaUtils 로 이동됨.
+
+// 품질 신호 분석기(unquantified/empty/tense/allCaps)는 ./qualitySignals 로 분리됨.
+
+// detectEmptyClaims 는 ./qualitySignals 로 이동됨.
+
+// 파생 점수(scoreInterviewability + detectCareerGaps) 는 ./derivedScores 로 분리됨.
+import { scoreInterviewability as _scoreInterviewability } from './derivedScores'
+import {
+  estimateExperienceYears as _estimateExperienceYears,
+  validateDateRanges as _validateDateRanges,
+  type ExperienceEstimate as _ExperienceEstimate,
+  type InvalidDateRange as _InvalidDateRange,
+} from './experience'
+import {
+  detectInformalLanguage as _detectInformalLanguage,
+  type InformalAnalysis as _InformalAnalysis,
+} from './informalLanguage'
+import {
+  generateInterviewQuestions as _generateInterviewQuestions,
+  type InterviewQuestion as _InterviewQuestion,
+} from './interviewQuestions'
+import {
+  extractKeywords as _extractKeywords,
+  detectSkillMentions as _detectSkillMentions,
+  type ExtractedKeyword as _ExtractedKeyword,
+  type SkillMention as _SkillMention,
+} from './jdKeywords'
+import {
+  detectCliches as _detectCliches,
+  detectJargon as _detectJargon,
+  detectExaggeration as _detectExaggeration,
+  type ClicheAnalysis as _ClicheAnalysis,
+  type JargonAnalysis as _JargonAnalysis,
+  type ExaggerationAnalysis as _ExaggerationAnalysis,
+} from './languageRisks'
+import {
+  estimateReadingTime as _estimateReadingTime,
+  extractLinks as _extractLinks,
+  generateHashtags as _generateHashtags,
+  type ReadingTimeEstimate as _ReadingTimeEstimate,
+  type LinkAnalysis as _LinkAnalysis,
+} from './metaUtils'
+import {
+  analyzeNumericFormat as _analyzeNumericFormat,
+  type NumericFormatAnalysis as _NumericFormatAnalysis,
+} from './numericFormat'
+import {
+  detectContactInfo as _detectContactInfo,
+  detectPersonalInfo as _detectPersonalInfo,
+  type ContactInfo as _ContactInfo,
+  type PiiAnalysis as _PiiAnalysis,
+} from './pii'
+import {
+  detectEmptyClaims as _detectEmptyClaims,
+  type EmptyClaimAnalysis as _EmptyClaimAnalysis,
+} from './qualitySignals'
+import {
+  analyzeReadability as _analyzeReadability,
+  countSentencesByEnding as _countSentencesByEnding,
+  type ReadabilityAnalysis as _ReadabilityAnalysis,
+  type EndingTypeCount as _EndingTypeCount,
+} from './readabilityAnalyzers'
+import {
+  analyzeLexicalDiversity as _analyzeLexicalDiversity,
+  analyzeRedundancy as _analyzeRedundancy,
+  detectDuplicateSentences as _detectDuplicateSentences,
+  type LexicalDiversityAnalysis as _LexicalDiversityAnalysis,
+  type RedundancyAnalysis as _RedundancyAnalysis,
+  type DuplicateSentence as _DuplicateSentence,
+} from './repetitionAnalyzers'
+import {
+  detectMissingResumeSections as _detectMissingResumeSections,
+  scoreResumeCompleteness as _scoreResumeCompleteness,
+  scoreSpecificity as _scoreSpecificity,
+  estimateJobLevel as _estimateJobLevel,
+  analyzeActivityChronology as _analyzeActivityChronology,
+  type ResumeSectionCoverage as _ResumeSectionCoverage,
+  type ResumeCompletenessScore as _ResumeCompletenessScore,
+  type SpecificityScore as _SpecificityScore,
+  type JobLevelEstimate as _JobLevelEstimate,
+  type ChronologyCheck as _ChronologyCheck,
+} from './resumeScoring'
+import {
+  analyzeSentenceEndings as _analyzeSentenceEndings,
+  analyzeSentenceStarts as _analyzeSentenceStarts,
+  analyzePassiveVoice as _analyzePassiveVoice,
+  type SentenceEndingAnalysis as _SentenceEndingAnalysis,
+  type SentenceStartAnalysis as _SentenceStartAnalysis,
+  type PassiveVoiceAnalysis as _PassiveVoiceAnalysis,
+} from './sentenceStructure'
+import {
+  detectSoftSkills as _detectSoftSkills,
+  detectAbbreviations as _detectAbbreviations,
+  type SoftSkillAnalysis as _SoftSkillAnalysis,
+  type AcronymAnalysis as _AcronymAnalysis,
+} from './softSkills'
+import {
+  detectInconsistentCasing as _detectInconsistentCasing,
+  type CasingAnalysis as _CasingAnalysis,
+} from './techCasing'
+import {
+  analyzeBracketBalance as _analyzeBracketBalance,
+  detectWhitespaceAnomalies as _detectWhitespaceAnomalies,
+  type BracketBalanceAnalysis as _BracketBalanceAnalysis,
+  type WhitespaceAnalysis as _WhitespaceAnalysis,
+} from './textFormat'
+import {
+  analyzeParagraphs as _analyzeParagraphs,
+  analyzeFirstPersonUsage as _analyzeFirstPersonUsage,
+  analyzeEnglishMix as _analyzeEnglishMix,
+  analyzeSentiment as _analyzeSentiment,
+  type ParagraphStats as _ParagraphStats,
+  type FirstPersonAnalysis as _FirstPersonAnalysis,
+  type EnglishMixAnalysis as _EnglishMixAnalysis,
+  type SentimentAnalysis as _SentimentAnalysis,
+} from './toneAnalyzers'
+import {
+  suggestSynonymsForOveruse as _suggestSynonymsForOveruse,
+  type OveruseWithSynonyms as _OveruseWithSynonyms,
+} from './wordSuggestions'
+
+import type { Resume } from '@/types/resume'
 
 export interface KoreanIssue {
   /** 원문 일부 (context 포함) */
-  context: string;
+  context: string
   /** 발견된 오류 단어 */
-  wrong: string;
+  wrong: string
   /** 제안 */
-  suggestion: string;
+  suggestion: string
   /** 설명 */
-  reason: string;
-  severity: 'error' | 'warning' | 'info';
+  reason: string
+  severity: 'error' | 'warning' | 'info'
   /** 어느 섹션에서 발견? */
-  section: string;
+  section: string
   /** 섹션 텍스트 내 매치 시작 위치 (UI 하이라이트용) */
-  offset: number;
+  offset: number
   /** 매치 길이 */
-  length: number;
+  length: number
 }
 
 export interface KoreanCheckResult {
-  issues: KoreanIssue[];
+  issues: KoreanIssue[]
   /** 문체 일관성 — 'formal'(합니다체) | 'polite'(해요체) | 'mixed' */
   toneMix: {
-    formal: number;
-    polite: number;
-    dominant: 'formal' | 'polite' | 'mixed' | 'none';
-  };
+    formal: number
+    polite: number
+    dominant: 'formal' | 'polite' | 'mixed' | 'none'
+  }
   /** 전체 문장 수 */
-  totalSentences: number;
+  totalSentences: number
   /** 심각도별 요약 카운트 */
-  summary: { error: number; warning: number; info: number };
+  summary: { error: number; warning: number; info: number }
   /**
    * 0~100 품질 점수 — error=−8, warning=−3, info=−1, 문체혼용 -5, 소수점 반올림.
    * 섹션 분량(전체 문자 수) 을 고려해 밀도 기반 penalty 적용.
    */
-  score: number;
+  score: number
 }
 
 /**
@@ -42,11 +259,11 @@ export interface KoreanCheckResult {
  * '틀린표현' -> [제안, 이유, severity] 로 매핑.
  */
 const RULES: Array<{
-  pattern: RegExp;
-  wrong: string;
-  suggestion: string;
-  reason: string;
-  severity: 'error' | 'warning' | 'info';
+  pattern: RegExp
+  wrong: string
+  suggestion: string
+  reason: string
+  severity: 'error' | 'warning' | 'info'
 }> = [
   // ── 맞춤법 (맞춤법이 완전히 틀림) ────────────────────────
   {
@@ -803,14 +1020,14 @@ const RULES: Array<{
     reason: '부정은 "안", "않-"은 용언 활용. "안 된다"가 맞습니다.',
     severity: 'error',
   },
-];
+]
 
 export function checkKorean(resume: Resume): KoreanCheckResult {
-  const issues: KoreanIssue[] = [];
-  let formalCount = 0;
-  let politeCount = 0;
-  let totalSentences = 0;
-  let totalChars = 0;
+  const issues: KoreanIssue[] = []
+  let formalCount = 0
+  let politeCount = 0
+  let totalSentences = 0
+  let totalChars = 0
 
   const sections: Array<{ name: string; text: string }> = [
     { name: '자기소개', text: resume.personalInfo.summary || '' },
@@ -838,24 +1055,24 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
       name: `활동 ${i + 1} - ${a.name || '무제'}`,
       text: stripHtml(a.description || ''),
     })),
-  ];
+  ]
 
   for (const { name, text } of sections) {
-    if (!text) continue;
-    const stats = analyzeSectionText(text, name, issues);
-    totalChars += text.length;
-    totalSentences += stats.sentenceCount;
-    formalCount += stats.formalCount;
-    politeCount += stats.politeCount;
+    if (!text) continue
+    const stats = analyzeSectionText(text, name, issues)
+    totalChars += text.length
+    totalSentences += stats.sentenceCount
+    formalCount += stats.formalCount
+    politeCount += stats.politeCount
   }
 
-  let dominant: KoreanCheckResult['toneMix']['dominant'] = 'none';
-  const total = formalCount + politeCount;
+  let dominant: KoreanCheckResult['toneMix']['dominant'] = 'none'
+  const total = formalCount + politeCount
   if (total > 0) {
-    const fRatio = formalCount / total;
-    if (fRatio > 0.8) dominant = 'formal';
-    else if (fRatio < 0.2) dominant = 'polite';
-    else dominant = 'mixed';
+    const fRatio = formalCount / total
+    if (fRatio > 0.8) dominant = 'formal'
+    else if (fRatio < 0.2) dominant = 'polite'
+    else dominant = 'mixed'
   }
 
   // 문체 혼용이면 이슈로 추가
@@ -869,13 +1086,13 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
       section: '전체',
       offset: 0,
       length: 0,
-    });
+    })
   }
 
   // 심각도 요약 + 점수 계산
-  const summary = { error: 0, warning: 0, info: 0 };
-  for (const iss of issues) summary[iss.severity]++;
-  const score = computeScore(summary, totalChars, dominant === 'mixed');
+  const summary = { error: 0, warning: 0, info: 0 }
+  for (const iss of issues) summary[iss.severity]++
+  const score = computeScore(summary, totalChars, dominant === 'mixed')
 
   return {
     issues,
@@ -883,7 +1100,7 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
     totalSentences,
     summary,
     score,
-  };
+  }
 }
 
 /**
@@ -893,15 +1110,15 @@ export function checkKorean(resume: Resume): KoreanCheckResult {
 function analyzeSectionText(
   text: string,
   sectionName: string,
-  issues: KoreanIssue[],
+  issues: KoreanIssue[]
 ): { sentenceCount: number; formalCount: number; politeCount: number } {
   // 규칙 기반 단어 치환
   for (const rule of RULES) {
-    const matches = text.matchAll(rule.pattern);
+    const matches = text.matchAll(rule.pattern)
     for (const m of matches) {
-      const idx = m.index ?? 0;
-      const matchLength = m[0].length;
-      const context = text.slice(Math.max(0, idx - 15), Math.min(text.length, idx + 20));
+      const idx = m.index ?? 0
+      const matchLength = m[0].length
+      const context = text.slice(Math.max(0, idx - 15), Math.min(text.length, idx + 20))
       issues.push({
         context: cleanContext(context),
         wrong: rule.wrong,
@@ -911,22 +1128,22 @@ function analyzeSectionText(
         section: sectionName,
         offset: idx,
         length: matchLength,
-      });
+      })
     }
   }
 
   // 문장 단위 분석 (문체·긴문장·수동태)
-  const sentences = text.split(/[.!?]|\n/).filter((s) => s.trim().length > 5);
-  let formalCount = 0;
-  let politeCount = 0;
-  let runningOffset = 0;
+  const sentences = text.split(/[.!?]|\n/).filter((s) => s.trim().length > 5)
+  let formalCount = 0
+  let politeCount = 0
+  let runningOffset = 0
   for (const s of sentences) {
-    const trimmed = s.trim();
-    if (/습니다[.!?]?\s*$|합니다[.!?]?\s*$|입니다[.!?]?\s*$/.test(trimmed)) formalCount++;
-    if (/해요[.!?]?\s*$|에요[.!?]?\s*$|예요[.!?]?\s*$/.test(trimmed)) politeCount++;
+    const trimmed = s.trim()
+    if (/습니다[.!?]?\s*$|합니다[.!?]?\s*$|입니다[.!?]?\s*$/.test(trimmed)) formalCount++
+    if (/해요[.!?]?\s*$|에요[.!?]?\s*$|예요[.!?]?\s*$/.test(trimmed)) politeCount++
 
     if (trimmed.length > 80) {
-      const idx = text.indexOf(trimmed, runningOffset);
+      const idx = text.indexOf(trimmed, runningOffset)
       issues.push({
         context: cleanContext(trimmed.slice(0, 40) + '...'),
         wrong: `긴 문장 (${trimmed.length}자)`,
@@ -936,12 +1153,12 @@ function analyzeSectionText(
         section: sectionName,
         offset: idx >= 0 ? idx : 0,
         length: trimmed.length,
-      });
+      })
     }
 
     if (/되어진|지게\s?되었|지게\s?된/.test(trimmed)) {
-      const m = trimmed.match(/되어진|지게\s?되었|지게\s?된/);
-      const idx = text.indexOf(trimmed, runningOffset);
+      const m = trimmed.match(/되어진|지게\s?되었|지게\s?된/)
+      const idx = text.indexOf(trimmed, runningOffset)
       issues.push({
         context: cleanContext(trimmed.slice(0, 40)),
         wrong: m?.[0] ?? '수동태',
@@ -951,17 +1168,17 @@ function analyzeSectionText(
         section: sectionName,
         offset: idx >= 0 ? idx : 0,
         length: m?.[0].length ?? 0,
-      });
+      })
     }
 
-    runningOffset = Math.max(runningOffset, text.indexOf(trimmed, runningOffset) + trimmed.length);
+    runningOffset = Math.max(runningOffset, text.indexOf(trimmed, runningOffset) + trimmed.length)
   }
 
   // 반복 접속사
   for (const rep of ['그리고', '또한', '그래서', '그런데']) {
-    const count = (text.match(new RegExp(rep, 'g')) ?? []).length;
+    const count = (text.match(new RegExp(rep, 'g')) ?? []).length
     if (count >= 3) {
-      const firstIdx = text.indexOf(rep);
+      const firstIdx = text.indexOf(rep)
       issues.push({
         context: cleanContext(text.slice(Math.max(0, firstIdx - 10), firstIdx + 20)),
         wrong: `"${rep}" 반복 (${count}회)`,
@@ -971,14 +1188,14 @@ function analyzeSectionText(
         section: sectionName,
         offset: firstIdx,
         length: rep.length,
-      });
+      })
     }
   }
 
   // 헷지(hedging) 과다 — "것 같다" 류가 3회 이상이면 자신감 부족 인상
-  const hedgePatterns = [/것\s*같습니다/g, /것\s*같다/g, /수도\s*있습니다/g];
-  let hedgeTotal = 0;
-  for (const p of hedgePatterns) hedgeTotal += (text.match(p) ?? []).length;
+  const hedgePatterns = [/것\s*같습니다/g, /것\s*같다/g, /수도\s*있습니다/g]
+  let hedgeTotal = 0
+  for (const p of hedgePatterns) hedgeTotal += (text.match(p) ?? []).length
   if (hedgeTotal >= 3) {
     issues.push({
       context: `"것 같다·수도 있다" 류 ${hedgeTotal}회`,
@@ -990,10 +1207,10 @@ function analyzeSectionText(
       section: sectionName,
       offset: 0,
       length: 0,
-    });
+    })
   }
 
-  return { sentenceCount: sentences.length, formalCount, politeCount };
+  return { sentenceCount: sentences.length, formalCount, politeCount }
 }
 
 /**
@@ -1001,17 +1218,17 @@ function analyzeSectionText(
  * checkKorean 과 동일한 KoreanCheckResult 형태를 반환.
  */
 export function checkText(text: string, sectionName = '본문'): KoreanCheckResult {
-  const issues: KoreanIssue[] = [];
-  const stats = analyzeSectionText(text ?? '', sectionName, issues);
-  const totalChars = (text ?? '').length;
+  const issues: KoreanIssue[] = []
+  const stats = analyzeSectionText(text ?? '', sectionName, issues)
+  const totalChars = (text ?? '').length
 
-  let dominant: KoreanCheckResult['toneMix']['dominant'] = 'none';
-  const total = stats.formalCount + stats.politeCount;
+  let dominant: KoreanCheckResult['toneMix']['dominant'] = 'none'
+  const total = stats.formalCount + stats.politeCount
   if (total > 0) {
-    const fRatio = stats.formalCount / total;
-    if (fRatio > 0.8) dominant = 'formal';
-    else if (fRatio < 0.2) dominant = 'polite';
-    else dominant = 'mixed';
+    const fRatio = stats.formalCount / total
+    if (fRatio > 0.8) dominant = 'formal'
+    else if (fRatio < 0.2) dominant = 'polite'
+    else dominant = 'mixed'
   }
   if (dominant === 'mixed' && total > 3) {
     issues.push({
@@ -1023,12 +1240,12 @@ export function checkText(text: string, sectionName = '본문'): KoreanCheckResu
       section: sectionName,
       offset: 0,
       length: 0,
-    });
+    })
   }
 
-  const summary = { error: 0, warning: 0, info: 0 };
-  for (const iss of issues) summary[iss.severity]++;
-  const score = computeScore(summary, totalChars, dominant === 'mixed');
+  const summary = { error: 0, warning: 0, info: 0 }
+  for (const iss of issues) summary[iss.severity]++
+  const score = computeScore(summary, totalChars, dominant === 'mixed')
 
   return {
     issues,
@@ -1036,7 +1253,7 @@ export function checkText(text: string, sectionName = '본문'): KoreanCheckResu
     totalSentences: stats.sentenceCount,
     summary,
     score,
-  };
+  }
 }
 
 /**
@@ -1047,27 +1264,27 @@ export function checkText(text: string, sectionName = '본문'): KoreanCheckResu
  */
 export function autoFixText(
   text: string,
-  severity: 'error' | 'all' = 'error',
+  severity: 'error' | 'all' = 'error'
 ): { fixed: string; changes: Array<{ from: string; to: string }> } {
-  let fixed = text;
-  const changes: Array<{ from: string; to: string }> = [];
+  let fixed = text
+  const changes: Array<{ from: string; to: string }> = []
   for (const rule of RULES) {
-    if (severity === 'error' && rule.severity !== 'error') continue;
+    if (severity === 'error' && rule.severity !== 'error') continue
     // 힌트성 제안(치환 문자열이 설명문/선택지 포함) 은 자동 치환 안 함
-    if (isHintSuggestion(rule.suggestion)) continue;
+    if (isHintSuggestion(rule.suggestion)) continue
     if (rule.pattern.test(fixed)) {
-      const before = fixed;
+      const before = fixed
       // g 플래그 유지를 위해 재생성
-      fixed = fixed.replace(new RegExp(rule.pattern.source, rule.pattern.flags), rule.suggestion);
-      if (before !== fixed) changes.push({ from: rule.wrong, to: rule.suggestion });
+      fixed = fixed.replace(new RegExp(rule.pattern.source, rule.pattern.flags), rule.suggestion)
+      if (before !== fixed) changes.push({ from: rule.wrong, to: rule.suggestion })
     }
   }
-  return { fixed, changes };
+  return { fixed, changes }
 }
 
 /** 제안 문자열이 힌트/설명인지 (→·괄호·"권장"·"구체" 등 포함) — 자동치환 금지 */
 function isHintSuggestion(s: string): boolean {
-  return /[→(/]|권장|구체|이내|\s등\s|문맥/.test(s);
+  return /[→(/]|권장|구체|이내|\s등\s|문맥/.test(s)
 }
 
 /**
@@ -1080,35 +1297,35 @@ function isHintSuggestion(s: string): boolean {
 function computeScore(
   summary: { error: number; warning: number; info: number },
   totalChars: number,
-  toneMixed: boolean,
+  toneMixed: boolean
 ): number {
-  const raw = summary.error * 8 + summary.warning * 3 + summary.info + (toneMixed ? 5 : 0);
-  const cap = Math.max(10, Math.min(100, Math.round((totalChars / 1000) * 25 + 25)));
-  const penalty = Math.min(raw, cap);
-  return Math.max(0, Math.min(100, 100 - penalty));
+  const raw = summary.error * 8 + summary.warning * 3 + summary.info + (toneMixed ? 5 : 0)
+  const cap = Math.max(10, Math.min(100, Math.round((totalChars / 1000) * 25 + 25)))
+  const penalty = Math.min(raw, cap)
+  return Math.max(0, Math.min(100, 100 - penalty))
 }
 
 /** 외부 확장 (테스트·진단용) — 현재 등록된 규칙 수 */
-export const KOREAN_RULE_COUNT = RULES.length;
+export const KOREAN_RULE_COUNT = RULES.length
 
 /**
  * 규칙 메타데이터 — admin/dev 도구에서 "몇 개 규칙이 등록되어 있고 어떤 분포인지" 파악.
  */
 export interface RuleMetadata {
-  total: number;
-  bySeverity: { error: number; warning: number; info: number };
+  total: number
+  bySeverity: { error: number; warning: number; info: number }
   /** 중복 wrong 이 있으면 UX 가 혼란스러워지므로 추적 */
-  duplicateWrongs: string[];
+  duplicateWrongs: string[]
 }
 export function getRuleMetadata(): RuleMetadata {
-  const bySeverity = { error: 0, warning: 0, info: 0 };
-  const seen = new Map<string, number>();
+  const bySeverity = { error: 0, warning: 0, info: 0 }
+  const seen = new Map<string, number>()
   for (const r of RULES) {
-    bySeverity[r.severity]++;
-    seen.set(r.wrong, (seen.get(r.wrong) ?? 0) + 1);
+    bySeverity[r.severity]++
+    seen.set(r.wrong, (seen.get(r.wrong) ?? 0) + 1)
   }
-  const duplicateWrongs = [...seen.entries()].filter(([, n]) => n > 1).map(([w]) => w);
-  return { total: RULES.length, bySeverity, duplicateWrongs };
+  const duplicateWrongs = [...seen.entries()].filter(([, n]) => n > 1).map(([w]) => w)
+  return { total: RULES.length, bySeverity, duplicateWrongs }
 }
 
 /**
@@ -1117,23 +1334,23 @@ export function getRuleMetadata(): RuleMetadata {
  * 실패 시 문제 있는 규칙 인덱스 + 이유 목록 반환.
  */
 export interface RuleValidationIssue {
-  index: number;
-  wrong: string;
-  problem: string;
+  index: number
+  wrong: string
+  problem: string
 }
 /**
  * 모듈 스모크 테스트 — 클라이언트에 test runner 가 없어 내장 self-check 로 대체.
  * 알려진 입력/출력 쌍이 실제로 감지되는지 확인. dev 도구/CI smoke 로 호출.
  */
 export interface SelfCheckCase {
-  input: string;
-  expectedWrong: string;
-  description: string;
+  input: string
+  expectedWrong: string
+  description: string
 }
 export interface SelfCheckResult {
-  passed: number;
-  failed: Array<SelfCheckCase & { foundWrongs: string[] }>;
-  total: number;
+  passed: number
+  failed: Array<SelfCheckCase & { foundWrongs: string[] }>
+  total: number
 }
 const SELF_CHECK_CASES: SelfCheckCase[] = [
   { input: '이 부분이 됬다.', expectedWrong: '됬', description: '되었→됐' },
@@ -1149,44 +1366,44 @@ const SELF_CHECK_CASES: SelfCheckCase[] = [
   { input: '일일히 체크', expectedWrong: '일일히', description: '일일이 (문장시작)' },
   { input: '어떻해 해야 하나', expectedWrong: '어떻해', description: '어떻게 해 (문장시작)' },
   { input: '몇번 시도', expectedWrong: '몇번', description: '몇 번 (문장시작)' },
-];
+]
 export function runSelfCheck(): SelfCheckResult {
-  const failed: SelfCheckResult['failed'] = [];
-  let passed = 0;
+  const failed: SelfCheckResult['failed'] = []
+  let passed = 0
   for (const tc of SELF_CHECK_CASES) {
-    const result = checkText(tc.input);
-    const foundWrongs = result.issues.map((i) => i.wrong);
+    const result = checkText(tc.input)
+    const foundWrongs = result.issues.map((i) => i.wrong)
     if (foundWrongs.includes(tc.expectedWrong)) {
-      passed++;
+      passed++
     } else {
-      failed.push({ ...tc, foundWrongs });
+      failed.push({ ...tc, foundWrongs })
     }
   }
-  return { passed, failed, total: SELF_CHECK_CASES.length };
+  return { passed, failed, total: SELF_CHECK_CASES.length }
 }
 
 export function validateRules(): RuleValidationIssue[] {
-  const issues: RuleValidationIssue[] = [];
+  const issues: RuleValidationIssue[] = []
   RULES.forEach((r, i) => {
     if (!r.wrong?.trim()) {
-      issues.push({ index: i, wrong: r.wrong ?? '', problem: 'wrong 이 비어있음' });
+      issues.push({ index: i, wrong: r.wrong ?? '', problem: 'wrong 이 비어있음' })
     }
     // suggestion 이 공백 1칸일 수 있음(전각공백→일반공백 류) → length === 0 만 체크
     if (r.suggestion === undefined || r.suggestion === null || r.suggestion.length === 0) {
-      issues.push({ index: i, wrong: r.wrong, problem: 'suggestion 이 비어있음' });
+      issues.push({ index: i, wrong: r.wrong, problem: 'suggestion 이 비어있음' })
     }
     if (!r.reason?.trim()) {
-      issues.push({ index: i, wrong: r.wrong, problem: 'reason 이 비어있음' });
+      issues.push({ index: i, wrong: r.wrong, problem: 'reason 이 비어있음' })
     }
     if (!r.pattern.global) {
-      issues.push({ index: i, wrong: r.wrong, problem: "pattern 에 'g' 플래그 없음" });
+      issues.push({ index: i, wrong: r.wrong, problem: "pattern 에 'g' 플래그 없음" })
     }
     // 자기 치환 루프 방지: wrong === suggestion (은 사실상 no-op)
     if (r.wrong === r.suggestion) {
-      issues.push({ index: i, wrong: r.wrong, problem: 'wrong === suggestion (no-op 규칙)' });
+      issues.push({ index: i, wrong: r.wrong, problem: 'wrong === suggestion (no-op 규칙)' })
     }
-  });
-  return issues;
+  })
+  return issues
 }
 
 /**
@@ -1196,24 +1413,24 @@ export function validateRules(): RuleValidationIssue[] {
  * - scoreDelta: 점수 변화 (양수 = 개선)
  */
 export interface KoreanCompareResult {
-  fixed: KoreanIssue[];
-  introduced: KoreanIssue[];
-  remaining: number;
-  scoreDelta: number;
-  beforeScore: number;
-  afterScore: number;
+  fixed: KoreanIssue[]
+  introduced: KoreanIssue[]
+  remaining: number
+  scoreDelta: number
+  beforeScore: number
+  afterScore: number
 }
 export function compareKoreanResults(
   before: KoreanCheckResult,
-  after: KoreanCheckResult,
+  after: KoreanCheckResult
 ): KoreanCompareResult {
-  const key = (i: KoreanIssue) => `${i.section}::${i.wrong}::${i.offset}`;
-  const beforeKeys = new Map(before.issues.map((i) => [key(i), i]));
-  const afterKeys = new Map(after.issues.map((i) => [key(i), i]));
-  const fixed: KoreanIssue[] = [];
-  const introduced: KoreanIssue[] = [];
-  for (const [k, i] of beforeKeys) if (!afterKeys.has(k)) fixed.push(i);
-  for (const [k, i] of afterKeys) if (!beforeKeys.has(k)) introduced.push(i);
+  const key = (i: KoreanIssue) => `${i.section}::${i.wrong}::${i.offset}`
+  const beforeKeys = new Map(before.issues.map((i) => [key(i), i]))
+  const afterKeys = new Map(after.issues.map((i) => [key(i), i]))
+  const fixed: KoreanIssue[] = []
+  const introduced: KoreanIssue[] = []
+  for (const [k, i] of beforeKeys) if (!afterKeys.has(k)) fixed.push(i)
+  for (const [k, i] of afterKeys) if (!beforeKeys.has(k)) introduced.push(i)
   return {
     fixed,
     introduced,
@@ -1221,7 +1438,7 @@ export function compareKoreanResults(
     scoreDelta: after.score - before.score,
     beforeScore: before.score,
     afterScore: after.score,
-  };
+  }
 }
 
 /**
@@ -1230,24 +1447,24 @@ export function compareKoreanResults(
  */
 export function exportIssuesAsMarkdown(
   issues: KoreanIssue[],
-  title = '한국어 맞춤법 감수 결과',
+  title = '한국어 맞춤법 감수 결과'
 ): string {
-  if (issues.length === 0) return `# ${title}\n\n✓ 감지된 이슈 없음\n`;
+  if (issues.length === 0) return `# ${title}\n\n✓ 감지된 이슈 없음\n`
   const ICON: Record<KoreanIssue['severity'], string> = {
     error: '❌',
     warning: '⚠️',
     info: '💡',
-  };
-  const header = '| 섹션 | 심각도 | 틀린 표현 | 제안 | 이유 |\n|---|---|---|---|---|';
+  }
+  const header = '| 섹션 | 심각도 | 틀린 표현 | 제안 | 이유 |\n|---|---|---|---|---|'
   const rows = issues
     .map(
       (i) =>
         `| ${escapePipe(i.section)} | ${ICON[i.severity]} | \`${escapePipe(
-          i.wrong,
-        )}\` | **${escapePipe(i.suggestion)}** | ${escapePipe(i.reason)} |`,
+          i.wrong
+        )}\` | **${escapePipe(i.suggestion)}** | ${escapePipe(i.reason)} |`
     )
-    .join('\n');
-  return `# ${title}\n\n총 ${issues.length}건\n\n${header}\n${rows}\n`;
+    .join('\n')
+  return `# ${title}\n\n총 ${issues.length}건\n\n${header}\n${rows}\n`
 }
 
 /**
@@ -1255,22 +1472,22 @@ export function exportIssuesAsMarkdown(
  * RFC 4180 규약에 따라 쌍따옴표·쉼표·개행 이스케이프.
  */
 export function exportIssuesAsCsv(issues: KoreanIssue[]): string {
-  const header = 'section,severity,wrong,suggestion,reason,offset,length';
+  const header = 'section,severity,wrong,suggestion,reason,offset,length'
   const rows = issues.map((i) =>
     [i.section, i.severity, i.wrong, i.suggestion, i.reason, i.offset, i.length]
       .map((v) => csvEscape(String(v)))
-      .join(','),
-  );
-  return [header, ...rows].join('\n');
+      .join(',')
+  )
+  return [header, ...rows].join('\n')
 }
 
 function escapePipe(s: string): string {
-  return s.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+  return s.replace(/\|/g, '\\|').replace(/\n/g, ' ')
 }
 
 function csvEscape(s: string): string {
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-  return s;
+  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`
+  return s
 }
 
 /**
@@ -1278,72 +1495,72 @@ function csvEscape(s: string): string {
  * UI 에서 "먼저 이것부터 고치세요" 식 상단 배너로 렌더링.
  */
 export interface ImprovementTip {
-  title: string;
-  description: string;
-  priority: 'high' | 'medium' | 'low';
+  title: string
+  description: string
+  priority: 'high' | 'medium' | 'low'
 }
 export function computeImprovementTips(result: KoreanCheckResult): ImprovementTip[] {
-  const tips: ImprovementTip[] = [];
-  const { summary, toneMix, score } = result;
+  const tips: ImprovementTip[] = []
+  const { summary, toneMix, score } = result
 
   if (summary.error > 0) {
     tips.push({
       title: `명백한 오타 ${summary.error}건 먼저 수정`,
       description: '맞춤법 오타는 "자동 수정" 버튼으로 한 번에 교정 가능합니다.',
       priority: 'high',
-    });
+    })
   }
   if (toneMix.dominant === 'mixed') {
     tips.push({
       title: `문체 통일 필요 (합니다체 ${toneMix.formal} · 해요체 ${toneMix.polite})`,
       description: '이력서는 보통 "합니다체"로 통일합니다. 해요체와 섞이면 비전문적으로 읽힙니다.',
       priority: 'high',
-    });
+    })
   }
   if (summary.warning > 0 && tips.length < 3) {
     tips.push({
       title: `경고 ${summary.warning}건 검토 권장`,
       description: '띄어쓰기·약한 표현·긴 문장 등 — 취업 경쟁력 강화를 위해 점검이 필요합니다.',
       priority: 'medium',
-    });
+    })
   }
   if (summary.info >= 5 && tips.length < 3) {
     tips.push({
       title: `스타일 제안 ${summary.info}건`,
       description: '구체적 동사·수치화 등 — 여유가 있을 때 반영하면 더 설득력 있는 글이 됩니다.',
       priority: 'low',
-    });
+    })
   }
   if (tips.length === 0 && score >= 90) {
     tips.push({
       title: '훌륭합니다 — 추가 조치 불필요',
       description: `${score}점의 깔끔한 문체. 그대로 제출해도 좋은 상태입니다.`,
       priority: 'low',
-    });
+    })
   }
-  return tips.slice(0, 3);
+  return tips.slice(0, 3)
 }
 
 /** 섹션별로 이슈 묶기 — UI 에서 collapsible 그룹 렌더링용 */
 export function groupIssuesBySection(issues: KoreanIssue[]): Record<string, KoreanIssue[]> {
-  const groups: Record<string, KoreanIssue[]> = {};
+  const groups: Record<string, KoreanIssue[]> = {}
   for (const iss of issues) {
-    (groups[iss.section] ||= []).push(iss);
+    ;(groups[iss.section] ||= []).push(iss)
   }
-  return groups;
+  return groups
 }
 
 /** 심각도별로 이슈 필터 */
 export function issuesBySeverity(
   issues: KoreanIssue[],
-  severity: KoreanIssue['severity'],
+  severity: KoreanIssue['severity']
 ): KoreanIssue[] {
-  return issues.filter((i) => i.severity === severity);
+  return issues.filter((i) => i.severity === severity)
 }
 
 /** 명확한 error 가 하나라도 있는지 빠른 체크 */
 export function hasKoreanErrors(result: KoreanCheckResult): boolean {
-  return result.summary.error > 0;
+  return result.summary.error > 0
 }
 
 /**
@@ -1354,15 +1571,15 @@ const SEVERITY_ORDER: Record<KoreanIssue['severity'], number> = {
   error: 0,
   warning: 1,
   info: 2,
-};
+}
 export function sortKoreanIssues(issues: KoreanIssue[]): KoreanIssue[] {
   return [...issues].sort((a, b) => {
-    const s = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity];
-    if (s !== 0) return s;
-    const sec = a.section.localeCompare(b.section);
-    if (sec !== 0) return sec;
-    return a.offset - b.offset;
-  });
+    const s = SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]
+    if (s !== 0) return s
+    const sec = a.section.localeCompare(b.section)
+    if (sec !== 0) return sec
+    return a.offset - b.offset
+  })
 }
 
 /**
@@ -1371,8 +1588,8 @@ export function sortKoreanIssues(issues: KoreanIssue[]): KoreanIssue[] {
  * 다른 동일 단어 발생은 건드리지 않음.
  */
 export function fixIssueInText(text: string, issue: KoreanIssue): string {
-  if (issue.length <= 0 || isHintSuggestion(issue.suggestion)) return text;
-  return text.slice(0, issue.offset) + issue.suggestion + text.slice(issue.offset + issue.length);
+  if (issue.length <= 0 || isHintSuggestion(issue.suggestion)) return text
+  return text.slice(0, issue.offset) + issue.suggestion + text.slice(issue.offset + issue.length)
 }
 
 /**
@@ -1380,20 +1597,20 @@ export function fixIssueInText(text: string, issue: KoreanIssue): string {
  * UI 가 너무 많은 동일 항목을 보여주지 않도록 — count 필드로 빈도 노출.
  */
 export interface DedupedKoreanIssue extends KoreanIssue {
-  count: number;
+  count: number
 }
 export function dedupIssues(issues: KoreanIssue[]): DedupedKoreanIssue[] {
-  const seen = new Map<string, DedupedKoreanIssue>();
+  const seen = new Map<string, DedupedKoreanIssue>()
   for (const iss of issues) {
-    const key = `${iss.section}::${iss.wrong}`;
-    const prev = seen.get(key);
+    const key = `${iss.section}::${iss.wrong}`
+    const prev = seen.get(key)
     if (prev) {
-      prev.count++;
+      prev.count++
     } else {
-      seen.set(key, { ...iss, count: 1 });
+      seen.set(key, { ...iss, count: 1 })
     }
   }
-  return [...seen.values()];
+  return [...seen.values()]
 }
 
 /**
@@ -1401,42 +1618,42 @@ export function dedupIssues(issues: KoreanIssue[]): DedupedKoreanIssue[] {
  * UI 에서 "자주 틀리는 표현 Top 3" 학습 힌트로 노출하면 반복 오타 교정 효과 ↑.
  */
 export interface TopWrongPattern {
-  wrong: string;
-  suggestion: string;
-  count: number;
-  severity: KoreanIssue['severity'];
+  wrong: string
+  suggestion: string
+  count: number
+  severity: KoreanIssue['severity']
 }
 export function getTopWrongPatterns(issues: KoreanIssue[], topN = 3): TopWrongPattern[] {
-  const map = new Map<string, TopWrongPattern>();
+  const map = new Map<string, TopWrongPattern>()
   for (const iss of issues) {
-    const prev = map.get(iss.wrong);
-    if (prev) prev.count++;
+    const prev = map.get(iss.wrong)
+    if (prev) prev.count++
     else
       map.set(iss.wrong, {
         wrong: iss.wrong,
         suggestion: iss.suggestion,
         count: 1,
         severity: iss.severity,
-      });
+      })
   }
   return [...map.values()]
     .filter((p) => p.count >= 2) // 단발성은 제외 — 반복 오타만 학습 가치 있음
     .sort((a, b) => b.count - a.count)
-    .slice(0, topN);
+    .slice(0, topN)
 }
 
 /** Resume 전체 필드에 대해 자동 수정 적용 */
 export function autoFixResume(
   resume: Resume,
-  severity: 'error' | 'all' = 'error',
+  severity: 'error' | 'all' = 'error'
 ): { resume: Resume; totalChanges: number } {
-  let totalChanges = 0;
+  let totalChanges = 0
   const apply = (s: string): string => {
-    if (!s) return s;
-    const { fixed, changes } = autoFixText(s, severity);
-    totalChanges += changes.length;
-    return fixed;
-  };
+    if (!s) return s
+    const { fixed, changes } = autoFixText(s, severity)
+    totalChanges += changes.length
+    return fixed
+  }
   return {
     resume: {
       ...resume,
@@ -1465,237 +1682,151 @@ export function autoFixResume(
       })),
     },
     totalChanges,
-  };
+  }
 }
-
-/**
- * 문장 종결 어미 다양성 분석 — 이력서·자소서에서 같은 어미만 반복하면
- * 단조롭고 AI 생성물처럼 보임. 상위 종결어미와 집중도(Herfindahl)를 계산.
- *
- * monotonyScore: 0~100. 100 에 가까울수록 한두 어미에 집중되어 단조로움.
- * dominantEndings: 빈도 상위 어미 최대 5개.
- */
-// 문장 구조 분석기는 ./sentenceStructure 로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeSentenceEndings as _analyzeSentenceEndings,
-  analyzeSentenceStarts as _analyzeSentenceStarts,
-  analyzePassiveVoice as _analyzePassiveVoice,
-  type SentenceEndingAnalysis as _SentenceEndingAnalysis,
-  type SentenceStartAnalysis as _SentenceStartAnalysis,
-  type PassiveVoiceAnalysis as _PassiveVoiceAnalysis,
-} from './sentenceStructure';
 export {
   analyzeSentenceEndings,
   analyzeSentenceStarts,
   analyzePassiveVoice,
-} from './sentenceStructure';
+} from './sentenceStructure'
 export type {
   SentenceEndingAnalysis,
   SentenceStartAnalysis,
   PassiveVoiceAnalysis,
-} from './sentenceStructure';
-type SentenceEndingAnalysis = _SentenceEndingAnalysis;
-type SentenceStartAnalysis = _SentenceStartAnalysis;
-type PassiveVoiceAnalysis = _PassiveVoiceAnalysis;
-const analyzeSentenceEndings = _analyzeSentenceEndings;
-const analyzeSentenceStarts = _analyzeSentenceStarts;
-const analyzePassiveVoice = _analyzePassiveVoice;
-
-// 반복·중복 분석기는 ./repetitionAnalyzers 로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeLexicalDiversity as _analyzeLexicalDiversity,
-  analyzeRedundancy as _analyzeRedundancy,
-  detectDuplicateSentences as _detectDuplicateSentences,
-  type LexicalDiversityAnalysis as _LexicalDiversityAnalysis,
-  type RedundancyAnalysis as _RedundancyAnalysis,
-  type DuplicateSentence as _DuplicateSentence,
-} from './repetitionAnalyzers';
+} from './sentenceStructure'
+type SentenceEndingAnalysis = _SentenceEndingAnalysis
+type SentenceStartAnalysis = _SentenceStartAnalysis
+type PassiveVoiceAnalysis = _PassiveVoiceAnalysis
+const analyzeSentenceEndings = _analyzeSentenceEndings
+const analyzeSentenceStarts = _analyzeSentenceStarts
+const analyzePassiveVoice = _analyzePassiveVoice
 export {
   analyzeLexicalDiversity,
   analyzeRedundancy,
   detectRepeatedPhrases,
   detectDuplicateSentences,
-} from './repetitionAnalyzers';
+} from './repetitionAnalyzers'
 export type {
   LexicalDiversityAnalysis,
   RedundancyHit,
   RedundancyAnalysis,
   RepeatedPhrase,
   DuplicateSentence,
-} from './repetitionAnalyzers';
-type LexicalDiversityAnalysis = _LexicalDiversityAnalysis;
-type RedundancyAnalysis = _RedundancyAnalysis;
-type DuplicateSentence = _DuplicateSentence;
-const analyzeLexicalDiversity = _analyzeLexicalDiversity;
-const analyzeRedundancy = _analyzeRedundancy;
-const detectDuplicateSentences = _detectDuplicateSentences;
-
-// 가독성·길이·종결어미 분석기는 ./readabilityAnalyzers 로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeReadability as _analyzeReadability,
-  countSentencesByEnding as _countSentencesByEnding,
-  type ReadabilityAnalysis as _ReadabilityAnalysis,
-  type EndingTypeCount as _EndingTypeCount,
-} from './readabilityAnalyzers';
-export { analyzeReadability, analyzeLength, countSentencesByEnding } from './readabilityAnalyzers';
-export type { ReadabilityAnalysis, LengthAnalysis, EndingTypeCount } from './readabilityAnalyzers';
-type ReadabilityAnalysis = _ReadabilityAnalysis;
-type EndingTypeCount = _EndingTypeCount;
-const analyzeReadability = _analyzeReadability;
-const countSentencesByEnding = _countSentencesByEnding;
-
-// 성취 신호(정량·액션동사·수상) 분석기는 ./achievementSignals 로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeQuantification as _analyzeQuantification,
-  analyzeActionVerbs as _analyzeActionVerbs,
-  countAchievements as _countAchievements,
-  type QuantificationAnalysis as _QuantificationAnalysis,
-  type ActionVerbAnalysis as _ActionVerbAnalysis,
-} from './achievementSignals';
-export { analyzeQuantification, analyzeActionVerbs, countAchievements } from './achievementSignals';
+} from './repetitionAnalyzers'
+type LexicalDiversityAnalysis = _LexicalDiversityAnalysis
+type RedundancyAnalysis = _RedundancyAnalysis
+type DuplicateSentence = _DuplicateSentence
+const analyzeLexicalDiversity = _analyzeLexicalDiversity
+const analyzeRedundancy = _analyzeRedundancy
+const detectDuplicateSentences = _detectDuplicateSentences
+export { analyzeReadability, analyzeLength, countSentencesByEnding } from './readabilityAnalyzers'
+export type { ReadabilityAnalysis, LengthAnalysis, EndingTypeCount } from './readabilityAnalyzers'
+type ReadabilityAnalysis = _ReadabilityAnalysis
+type EndingTypeCount = _EndingTypeCount
+const analyzeReadability = _analyzeReadability
+const countSentencesByEnding = _countSentencesByEnding
+export { analyzeQuantification, analyzeActionVerbs, countAchievements } from './achievementSignals'
 export type {
   QuantificationAnalysis,
   ActionVerbAnalysis,
   AchievementCount,
-} from './achievementSignals';
-type QuantificationAnalysis = _QuantificationAnalysis;
-type ActionVerbAnalysis = _ActionVerbAnalysis;
-const analyzeQuantification = _analyzeQuantification;
-const analyzeActionVerbs = _analyzeActionVerbs;
+} from './achievementSignals'
+type QuantificationAnalysis = _QuantificationAnalysis
+type ActionVerbAnalysis = _ActionVerbAnalysis
+const analyzeQuantification = _analyzeQuantification
+const analyzeActionVerbs = _analyzeActionVerbs
 // countAchievements re-export 는 위 export 문에 포함되어 있음 (내부 참조 없음).
-void _countAchievements;
-
-// 언어 위험 분석기(상투구·자곤·과장) 는 ./languageRisks 로 분리됨 (아키텍처 리팩터).
-import {
-  detectCliches as _detectCliches,
-  detectJargon as _detectJargon,
-  detectExaggeration as _detectExaggeration,
-  type ClicheAnalysis as _ClicheAnalysis,
-  type JargonAnalysis as _JargonAnalysis,
-  type ExaggerationAnalysis as _ExaggerationAnalysis,
-} from './languageRisks';
-export { detectCliches, detectJargon, detectExaggeration } from './languageRisks';
+void _countAchievements
+export { detectCliches, detectJargon, detectExaggeration } from './languageRisks'
 export type {
   ClicheHit,
   ClicheAnalysis,
   JargonAnalysis,
   ExaggerationHit,
   ExaggerationAnalysis,
-} from './languageRisks';
-type ClicheAnalysis = _ClicheAnalysis;
-type JargonAnalysis = _JargonAnalysis;
-type ExaggerationAnalysis = _ExaggerationAnalysis;
-const detectCliches = _detectCliches;
-const detectJargon = _detectJargon;
-const detectExaggeration = _detectExaggeration;
-
-/**
- * 문장 시작 반복 — "저는/제가" 등 같은 단어로 시작하는 문장이 연속되면 단조로움.
- * 이력서·자소서에서 특히 자주 발생. 상위 3개 시작 단어 빈도 반환.
- */
-// 목록·불릿·문장부호 분석기는 ./bulletStructure 로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeParallelism as _analyzeParallelism,
-  analyzeBulletMarkerConsistency as _analyzeBulletMarkerConsistency,
-  type ParallelismAnalysis as _ParallelismAnalysis,
-  type BulletMarkerAnalysis as _BulletMarkerAnalysis,
-} from './bulletStructure';
+} from './languageRisks'
+type ClicheAnalysis = _ClicheAnalysis
+type JargonAnalysis = _JargonAnalysis
+type ExaggerationAnalysis = _ExaggerationAnalysis
+const detectCliches = _detectCliches
+const detectJargon = _detectJargon
+const detectExaggeration = _detectExaggeration
 export {
   analyzeParallelism,
   analyzeBulletMarkerConsistency,
   analyzePunctuationBalance,
-} from './bulletStructure';
+} from './bulletStructure'
 export type {
   ParallelismAnalysis,
   BulletMarkerAnalysis,
   PunctuationBalance,
-} from './bulletStructure';
-type ParallelismAnalysis = _ParallelismAnalysis;
-type BulletMarkerAnalysis = _BulletMarkerAnalysis;
-const analyzeParallelism = _analyzeParallelism;
-const analyzeBulletMarkerConsistency = _analyzeBulletMarkerConsistency;
-
-// 키워드·JD·스킬 분석기는 ./jdKeywords 로 분리됨 (아키텍처 리팩터).
-import {
-  extractKeywords as _extractKeywords,
-  detectSkillMentions as _detectSkillMentions,
-  type ExtractedKeyword as _ExtractedKeyword,
-  type SkillMention as _SkillMention,
-} from './jdKeywords';
-export { extractKeywords, computeJDMatch, detectSkillMentions } from './jdKeywords';
-export type { ExtractedKeyword, JDMatchResult, SkillMention } from './jdKeywords';
-type ExtractedKeyword = _ExtractedKeyword;
-type SkillMention = _SkillMention;
-const extractKeywords = _extractKeywords;
-const detectSkillMentions = _detectSkillMentions;
-
-// 단어·동사 제안은 ./wordSuggestions 로 분리됨 (아키텍처 리팩터).
-import {
-  suggestSynonymsForOveruse as _suggestSynonymsForOveruse,
-  type OveruseWithSynonyms as _OveruseWithSynonyms,
-} from './wordSuggestions';
+} from './bulletStructure'
+type ParallelismAnalysis = _ParallelismAnalysis
+type BulletMarkerAnalysis = _BulletMarkerAnalysis
+const analyzeParallelism = _analyzeParallelism
+const analyzeBulletMarkerConsistency = _analyzeBulletMarkerConsistency
+export { extractKeywords, computeJDMatch, detectSkillMentions } from './jdKeywords'
+export type { ExtractedKeyword, JDMatchResult, SkillMention } from './jdKeywords'
+type ExtractedKeyword = _ExtractedKeyword
+type SkillMention = _SkillMention
+const extractKeywords = _extractKeywords
+const detectSkillMentions = _detectSkillMentions
 export {
   suggestVerbReplacements,
   suggestSynonyms,
   suggestSynonymsForOveruse,
-} from './wordSuggestions';
+} from './wordSuggestions'
 export type {
   VerbReplacementSuggestion,
   SynonymSuggestion,
   OveruseWithSynonyms,
-} from './wordSuggestions';
-type OveruseWithSynonyms = _OveruseWithSynonyms;
-const suggestSynonymsForOveruse = _suggestSynonymsForOveruse;
-
-// 비격식 표현 검출기는 ./informalLanguage 로 분리됨 (아키텍처 리팩터).
-import {
-  detectInformalLanguage as _detectInformalLanguage,
-  type InformalAnalysis as _InformalAnalysis,
-} from './informalLanguage';
-export { detectInformalLanguage } from './informalLanguage';
-export type { InformalHit, InformalAnalysis } from './informalLanguage';
-type InformalAnalysis = _InformalAnalysis;
-const detectInformalLanguage = _detectInformalLanguage;
+} from './wordSuggestions'
+type OveruseWithSynonyms = _OveruseWithSynonyms
+const suggestSynonymsForOveruse = _suggestSynonymsForOveruse
+export { detectInformalLanguage } from './informalLanguage'
+export type { InformalHit, InformalAnalysis } from './informalLanguage'
+type InformalAnalysis = _InformalAnalysis
+const detectInformalLanguage = _detectInformalLanguage
 
 /**
  * 모든 분석기를 합쳐 한 번에 호출하는 통합 리포트.
  * 실사용 컴포넌트에서 여러 함수 호출 대신 한 번의 호출로 품질 스코어·지표 전부 가져올 수 있음.
  */
 export interface KoreanQualityReport {
-  check: KoreanCheckResult;
-  endings: SentenceEndingAnalysis;
-  lexical: LexicalDiversityAnalysis;
-  redundancy: RedundancyAnalysis;
-  readability: ReadabilityAnalysis;
-  quantification: QuantificationAnalysis;
-  actionVerbs: ActionVerbAnalysis;
-  cliches: ClicheAnalysis;
-  sentenceStarts: SentenceStartAnalysis;
-  passive: PassiveVoiceAnalysis;
-  parallelism: ParallelismAnalysis;
-  informal: InformalAnalysis;
+  check: KoreanCheckResult
+  endings: SentenceEndingAnalysis
+  lexical: LexicalDiversityAnalysis
+  redundancy: RedundancyAnalysis
+  readability: ReadabilityAnalysis
+  quantification: QuantificationAnalysis
+  actionVerbs: ActionVerbAnalysis
+  cliches: ClicheAnalysis
+  sentenceStarts: SentenceStartAnalysis
+  passive: PassiveVoiceAnalysis
+  parallelism: ParallelismAnalysis
+  informal: InformalAnalysis
   /** 0~100 가중치 평균 — UI 배지에 바로 사용 가능 */
-  overallScore: number;
+  overallScore: number
 }
 
 export function generateQualityReport(text: string, sectionName = '본문'): KoreanQualityReport {
-  const check = checkText(text, sectionName);
-  const endings = analyzeSentenceEndings(text);
-  const lexical = analyzeLexicalDiversity(text);
-  const redundancy = analyzeRedundancy(text);
-  const readability = analyzeReadability(text);
-  const quantification = analyzeQuantification(text);
-  const actionVerbs = analyzeActionVerbs(text);
-  const cliches = detectCliches(text);
-  const sentenceStarts = analyzeSentenceStarts(text);
-  const passive = analyzePassiveVoice(text);
-  const parallelism = analyzeParallelism(text);
-  const informal = detectInformalLanguage(text);
+  const check = checkText(text, sectionName)
+  const endings = analyzeSentenceEndings(text)
+  const lexical = analyzeLexicalDiversity(text)
+  const redundancy = analyzeRedundancy(text)
+  const readability = analyzeReadability(text)
+  const quantification = analyzeQuantification(text)
+  const actionVerbs = analyzeActionVerbs(text)
+  const cliches = detectCliches(text)
+  const sentenceStarts = analyzeSentenceStarts(text)
+  const passive = analyzePassiveVoice(text)
+  const parallelism = analyzeParallelism(text)
+  const informal = detectInformalLanguage(text)
   // 가중 평균: 맞춤법 22 + 가독성 13 + 어휘 7 + 어미 7 + 반복 7
   //           + 정량 7 + 동사 7 + 상투구 5 + 시작 5 + 수동 7 + 평행 5 + 비격식 8 = 100
-  const ttrScore = Math.round(lexical.ttr * 100);
-  const monotonyScore = 100 - endings.monotonyScore;
-  const redundancyScore = Math.max(0, 100 - redundancy.hits.length * 10);
+  const ttrScore = Math.round(lexical.ttr * 100)
+  const monotonyScore = 100 - endings.monotonyScore
+  const redundancyScore = Math.max(0, 100 - redundancy.hits.length * 10)
   const quantScore =
     quantification.level === 'high'
       ? 100
@@ -1703,13 +1834,13 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
         ? 70
         : quantification.level === 'low'
           ? 40
-          : 10;
-  const verbScore = actionVerbs.strong + actionVerbs.weak < 3 ? 60 : actionVerbs.ratio * 100;
-  const clicheScore = Math.max(0, 100 - cliches.count * 12);
-  const startScore = Math.max(0, 100 - Math.round(sentenceStarts.repeatedStartRatio * 100));
-  const passiveScore = passive.level === 'low' ? 100 : passive.level === 'medium' ? 70 : 35;
-  const parallelismScore = parallelism.consistency;
-  const informalScore = Math.max(0, 100 - informal.count * 15);
+          : 10
+  const verbScore = actionVerbs.strong + actionVerbs.weak < 3 ? 60 : actionVerbs.ratio * 100
+  const clicheScore = Math.max(0, 100 - cliches.count * 12)
+  const startScore = Math.max(0, 100 - Math.round(sentenceStarts.repeatedStartRatio * 100))
+  const passiveScore = passive.level === 'low' ? 100 : passive.level === 'medium' ? 70 : 35
+  const parallelismScore = parallelism.consistency
+  const informalScore = Math.max(0, 100 - informal.count * 15)
   const overallScore = Math.round(
     check.score * 0.22 +
       readability.readabilityScore * 0.13 +
@@ -1722,8 +1853,8 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
       startScore * 0.05 +
       passiveScore * 0.07 +
       parallelismScore * 0.05 +
-      informalScore * 0.08,
-  );
+      informalScore * 0.08
+  )
   return {
     check,
     endings,
@@ -1738,7 +1869,7 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
     parallelism,
     informal,
     overallScore,
-  };
+  }
 }
 
 /**
@@ -1746,70 +1877,70 @@ export function generateQualityReport(text: string, sectionName = '본문'): Kor
  * 팀원·멘토에게 피드백 요청 시 바로 붙여 넣을 수 있는 요약본.
  */
 export function exportQualityReportMarkdown(text: string, sectionName = '본문'): string {
-  const r = generateQualityReport(text, sectionName);
-  const lines: string[] = [];
-  lines.push(`# ${sectionName} 한국어 품질 리포트`);
-  lines.push('');
-  lines.push(`**종합 점수**: ${r.overallScore}점 / 100`);
-  lines.push('');
-  lines.push('## 지표 상세');
-  lines.push('');
+  const r = generateQualityReport(text, sectionName)
+  const lines: string[] = []
+  lines.push(`# ${sectionName} 한국어 품질 리포트`)
+  lines.push('')
+  lines.push(`**종합 점수**: ${r.overallScore}점 / 100`)
+  lines.push('')
+  lines.push('## 지표 상세')
+  lines.push('')
   lines.push(
-    `- **맞춤법 점수**: ${r.check.score}점 (오류 ${r.check.summary.error}, 경고 ${r.check.summary.warning}, 제안 ${r.check.summary.info})`,
-  );
+    `- **맞춤법 점수**: ${r.check.score}점 (오류 ${r.check.summary.error}, 경고 ${r.check.summary.warning}, 제안 ${r.check.summary.info})`
+  )
   lines.push(
-    `- **가독성 점수**: ${r.readability.readabilityScore}점 (${r.readability.level}, 평균 ${r.readability.avgSentenceLength}자/문장)`,
-  );
+    `- **가독성 점수**: ${r.readability.readabilityScore}점 (${r.readability.level}, 평균 ${r.readability.avgSentenceLength}자/문장)`
+  )
   lines.push(
-    `- **어휘 다양성**: ${Math.round(r.lexical.ttr * 100)}% (${r.lexical.uniqueCount}/${r.lexical.tokenCount}, ${r.lexical.level})`,
-  );
+    `- **어휘 다양성**: ${Math.round(r.lexical.ttr * 100)}% (${r.lexical.uniqueCount}/${r.lexical.tokenCount}, ${r.lexical.level})`
+  )
   lines.push(
-    `- **종결어미 변주**: ${100 - r.endings.monotonyScore}점 (상위 ${r.endings.dominantEndings[0]?.ending ?? '-'} ${r.endings.dominantEndings[0]?.percent?.toFixed(0) ?? 0}%)`,
-  );
+    `- **종결어미 변주**: ${100 - r.endings.monotonyScore}점 (상위 ${r.endings.dominantEndings[0]?.ending ?? '-'} ${r.endings.dominantEndings[0]?.percent?.toFixed(0) ?? 0}%)`
+  )
   lines.push(
-    `- **근접 반복어**: ${r.redundancy.hits.length}건${r.redundancy.worst ? ` (worst: "${r.redundancy.worst.word}" ${r.redundancy.worst.distance}자 간격)` : ''}`,
-  );
+    `- **근접 반복어**: ${r.redundancy.hits.length}건${r.redundancy.worst ? ` (worst: "${r.redundancy.worst.word}" ${r.redundancy.worst.distance}자 간격)` : ''}`
+  )
   lines.push(
-    `- **정량 지표**: ${r.quantification.total}건 (${r.quantification.level}) — %${r.quantification.percents}, 기간${r.quantification.periods}, 금액${r.quantification.currencies}`,
-  );
+    `- **정량 지표**: ${r.quantification.total}건 (${r.quantification.level}) — %${r.quantification.percents}, 기간${r.quantification.periods}, 금액${r.quantification.currencies}`
+  )
   lines.push(
-    `- **액션 동사**: 강 ${r.actionVerbs.strong} / 약 ${r.actionVerbs.weak} (비율 ${Math.round(r.actionVerbs.ratio * 100)}%, ${r.actionVerbs.level})`,
-  );
-  lines.push(`- **상투적 표현**: ${r.cliches.count}건 (${r.cliches.level})`);
+    `- **액션 동사**: 강 ${r.actionVerbs.strong} / 약 ${r.actionVerbs.weak} (비율 ${Math.round(r.actionVerbs.ratio * 100)}%, ${r.actionVerbs.level})`
+  )
+  lines.push(`- **상투적 표현**: ${r.cliches.count}건 (${r.cliches.level})`)
   lines.push(
-    `- **문장 시작 반복**: 상위 "${r.sentenceStarts.topStarts[0]?.word ?? '-'}" ${r.sentenceStarts.topStarts[0]?.count ?? 0}회 (${Math.round(r.sentenceStarts.repeatedStartRatio * 100)}%)`,
-  );
+    `- **문장 시작 반복**: 상위 "${r.sentenceStarts.topStarts[0]?.word ?? '-'}" ${r.sentenceStarts.topStarts[0]?.count ?? 0}회 (${Math.round(r.sentenceStarts.repeatedStartRatio * 100)}%)`
+  )
   lines.push(
-    `- **수동태 비율**: ${Math.round(r.passive.ratio * 100)}% (수동 ${r.passive.passiveCount} / 능동 ${r.passive.activeCount}, ${r.passive.level})`,
-  );
+    `- **수동태 비율**: ${Math.round(r.passive.ratio * 100)}% (수동 ${r.passive.passiveCount} / 능동 ${r.passive.activeCount}, ${r.passive.level})`
+  )
   lines.push(
-    `- **bullet 평행구조**: ${r.parallelism.consistency}% 일관 (${r.parallelism.lines}줄 분석, 주류 "${r.parallelism.styles[0]?.style ?? '-'}")`,
-  );
-  lines.push(`- **비격식 표현**: ${r.informal.count}건 (${r.informal.level})`);
-  lines.push('');
+    `- **bullet 평행구조**: ${r.parallelism.consistency}% 일관 (${r.parallelism.lines}줄 분석, 주류 "${r.parallelism.styles[0]?.style ?? '-'}")`
+  )
+  lines.push(`- **비격식 표현**: ${r.informal.count}건 (${r.informal.level})`)
+  lines.push('')
   if (r.actionVerbs.topStrong.length) {
-    lines.push(`**강한 동사 상위**: ${r.actionVerbs.topStrong.join(', ')}`);
+    lines.push(`**강한 동사 상위**: ${r.actionVerbs.topStrong.join(', ')}`)
   }
   if (r.actionVerbs.topWeak.length) {
-    lines.push(`**약한 동사 상위**: ${r.actionVerbs.topWeak.join(', ')}`);
+    lines.push(`**약한 동사 상위**: ${r.actionVerbs.topWeak.join(', ')}`)
   }
-  lines.push('');
-  lines.push('## 개선 제안');
-  lines.push('');
-  const tips: string[] = [];
-  if (r.readability.suggestion) tips.push(`- ${r.readability.suggestion}`);
-  if (r.lexical.suggestion) tips.push(`- ${r.lexical.suggestion}`);
-  if (r.endings.suggestion) tips.push(`- ${r.endings.suggestion}`);
-  if (r.redundancy.suggestion) tips.push(`- ${r.redundancy.suggestion}`);
-  if (r.quantification.suggestion) tips.push(`- ${r.quantification.suggestion}`);
-  if (r.cliches.suggestion) tips.push(`- ${r.cliches.suggestion}`);
-  if (r.sentenceStarts.suggestion) tips.push(`- ${r.sentenceStarts.suggestion}`);
-  if (r.passive.suggestion) tips.push(`- ${r.passive.suggestion}`);
-  if (r.parallelism.suggestion) tips.push(`- ${r.parallelism.suggestion}`);
-  if (r.informal.suggestion) tips.push(`- ${r.informal.suggestion}`);
-  if (r.actionVerbs.suggestion) tips.push(`- ${r.actionVerbs.suggestion}`);
-  lines.push(tips.length ? tips.join('\n') : '- 개선 포인트가 없습니다. 훌륭합니다!');
-  return lines.join('\n');
+  lines.push('')
+  lines.push('## 개선 제안')
+  lines.push('')
+  const tips: string[] = []
+  if (r.readability.suggestion) tips.push(`- ${r.readability.suggestion}`)
+  if (r.lexical.suggestion) tips.push(`- ${r.lexical.suggestion}`)
+  if (r.endings.suggestion) tips.push(`- ${r.endings.suggestion}`)
+  if (r.redundancy.suggestion) tips.push(`- ${r.redundancy.suggestion}`)
+  if (r.quantification.suggestion) tips.push(`- ${r.quantification.suggestion}`)
+  if (r.cliches.suggestion) tips.push(`- ${r.cliches.suggestion}`)
+  if (r.sentenceStarts.suggestion) tips.push(`- ${r.sentenceStarts.suggestion}`)
+  if (r.passive.suggestion) tips.push(`- ${r.passive.suggestion}`)
+  if (r.parallelism.suggestion) tips.push(`- ${r.parallelism.suggestion}`)
+  if (r.informal.suggestion) tips.push(`- ${r.informal.suggestion}`)
+  if (r.actionVerbs.suggestion) tips.push(`- ${r.actionVerbs.suggestion}`)
+  lines.push(tips.length ? tips.join('\n') : '- 개선 포인트가 없습니다. 훌륭합니다!')
+  return lines.join('\n')
 }
 
 /**
@@ -1817,12 +1948,12 @@ export function exportQualityReportMarkdown(text: string, sectionName = '본문'
  * API·LLM 컨텍스트·DB 저장용 — 타입 안정성 유지 + 히트 위치까지 직렬화.
  */
 export function exportQualityReportJson(text: string, sectionName = '본문'): string {
-  const r = generateQualityReport(text, sectionName);
+  const r = generateQualityReport(text, sectionName)
   return JSON.stringify(
     { section: sectionName, generatedAt: new Date().toISOString(), report: r },
     null,
-    2,
-  );
+    2
+  )
 }
 
 /**
@@ -1830,18 +1961,18 @@ export function exportQualityReportJson(text: string, sectionName = '본문'): s
  * 각 analyzer 의 sub-score 손실 × 가중치 = impact. 사용자가 가장 빨리 점수를 올릴 수 있는 액션 안내.
  */
 export interface PrioritizedAction {
-  dimension: string;
-  impact: number; // 전체 overallScore 에서 이 차원이 끌어내린 점수 (0~가중치*100/100)
-  currentScore: number; // 0~100
-  targetSuggestion: string;
+  dimension: string
+  impact: number // 전체 overallScore 에서 이 차원이 끌어내린 점수 (0~가중치*100/100)
+  currentScore: number // 0~100
+  targetSuggestion: string
 }
 
 export function prioritizeImprovements(report: KoreanQualityReport, topK = 3): PrioritizedAction[] {
   const dimensions: Array<{
-    dimension: string;
-    weight: number;
-    score: number;
-    suggestion: string;
+    dimension: string
+    weight: number
+    score: number
+    suggestion: string
   }> = [
     {
       dimension: '맞춤법',
@@ -1925,7 +2056,7 @@ export function prioritizeImprovements(report: KoreanQualityReport, topK = 3): P
       score: Math.max(0, 100 - report.informal.count * 15),
       suggestion: report.informal.suggestion,
     },
-  ];
+  ]
   const ranked = dimensions
     .map((d) => ({
       dimension: d.dimension,
@@ -1934,8 +2065,8 @@ export function prioritizeImprovements(report: KoreanQualityReport, topK = 3): P
       targetSuggestion: d.suggestion || '',
     }))
     .filter((d) => d.impact > 0 && d.targetSuggestion)
-    .sort((a, b) => b.impact - a.impact);
-  return ranked.slice(0, topK);
+    .sort((a, b) => b.impact - a.impact)
+  return ranked.slice(0, topK)
 }
 
 /**
@@ -1943,19 +2074,19 @@ export function prioritizeImprovements(report: KoreanQualityReport, topK = 3): P
  * 같은 before/after 흐름에서 무엇이 개선·퇴행했는지 시각화에 사용.
  */
 export interface ReportDelta {
-  dimension: string;
-  before: number;
-  after: number;
-  diff: number; // after - before
+  dimension: string
+  before: number
+  after: number
+  diff: number // after - before
 }
 export interface ReportComparison {
-  overallBefore: number;
-  overallAfter: number;
-  overallDiff: number;
-  dimensions: ReportDelta[];
-  topImprovements: ReportDelta[]; // diff > 0 내림차순
-  topRegressions: ReportDelta[]; // diff < 0 오름차순 (더 큰 하락 먼저)
-  summary: string;
+  overallBefore: number
+  overallAfter: number
+  overallDiff: number
+  dimensions: ReportDelta[]
+  topImprovements: ReportDelta[] // diff > 0 내림차순
+  topRegressions: ReportDelta[] // diff < 0 오름차순 (더 큰 하락 먼저)
+  summary: string
 }
 
 function scoreOf(r: KoreanQualityReport): Array<{ dimension: string; score: number }> {
@@ -1992,36 +2123,36 @@ function scoreOf(r: KoreanQualityReport): Array<{ dimension: string; score: numb
     },
     { dimension: '평행구조', score: r.parallelism.consistency },
     { dimension: '비격식', score: Math.max(0, 100 - r.informal.count * 15) },
-  ];
+  ]
 }
 
 export function compareReports(
   before: KoreanQualityReport,
-  after: KoreanQualityReport,
+  after: KoreanQualityReport
 ): ReportComparison {
-  const b = scoreOf(before);
-  const a = scoreOf(after);
+  const b = scoreOf(before)
+  const a = scoreOf(after)
   const dimensions: ReportDelta[] = b.map((row, i) => ({
     dimension: row.dimension,
     before: row.score,
     after: a[i].score,
     diff: a[i].score - row.score,
-  }));
+  }))
   const topImprovements = dimensions
     .filter((d) => d.diff > 0)
     .sort((a1, b1) => b1.diff - a1.diff)
-    .slice(0, 3);
+    .slice(0, 3)
   const topRegressions = dimensions
     .filter((d) => d.diff < 0)
     .sort((a1, b1) => a1.diff - b1.diff)
-    .slice(0, 3);
-  const overallDiff = after.overallScore - before.overallScore;
+    .slice(0, 3)
+  const overallDiff = after.overallScore - before.overallScore
   const summary =
     overallDiff > 0
       ? `종합 점수 +${overallDiff}점 향상 (${before.overallScore} → ${after.overallScore})`
       : overallDiff < 0
         ? `종합 점수 ${overallDiff}점 하락 (${before.overallScore} → ${after.overallScore})`
-        : `종합 점수 동일 (${after.overallScore}점)`;
+        : `종합 점수 동일 (${after.overallScore}점)`
   return {
     overallBefore: before.overallScore,
     overallAfter: after.overallScore,
@@ -2030,7 +2161,7 @@ export function compareReports(
     topImprovements,
     topRegressions,
     summary,
-  };
+  }
 }
 
 /**
@@ -2038,18 +2169,18 @@ export function compareReports(
  * "자동수정을 적용하면 내 글이 얼마나 좋아지는지" 를 한 함수 호출로 보여줌.
  */
 export interface SafeAutoFixResult {
-  fixedText: string;
-  changes: Array<{ from: string; to: string }>;
-  before: KoreanQualityReport;
-  after: KoreanQualityReport;
-  comparison: ReportComparison;
+  fixedText: string
+  changes: Array<{ from: string; to: string }>
+  before: KoreanQualityReport
+  after: KoreanQualityReport
+  comparison: ReportComparison
 }
 export function applySafeAutoFix(text: string, sectionName = '본문'): SafeAutoFixResult {
-  const before = generateQualityReport(text, sectionName);
-  const { fixed, changes } = autoFixText(text, 'error');
-  const after = generateQualityReport(fixed, sectionName);
-  const comparison = compareReports(before, after);
-  return { fixedText: fixed, changes, before, after, comparison };
+  const before = generateQualityReport(text, sectionName)
+  const { fixed, changes } = autoFixText(text, 'error')
+  const after = generateQualityReport(fixed, sectionName)
+  const comparison = compareReports(before, after)
+  return { fixedText: fixed, changes, before, after, comparison }
 }
 
 /**
@@ -2057,18 +2188,18 @@ export function applySafeAutoFix(text: string, sectionName = '본문'): SafeAuto
  * 에디터·툴팁에서 특정 단어에 대한 학습용 설명을 표시할 때 사용.
  */
 export interface WordExplanation {
-  matched: boolean;
-  wrong?: string;
-  suggestion?: string;
-  reason?: string;
-  severity?: 'error' | 'warning' | 'info';
+  matched: boolean
+  wrong?: string
+  suggestion?: string
+  reason?: string
+  severity?: 'error' | 'warning' | 'info'
 }
 
 export function explainWrongWord(word: string): WordExplanation {
-  const w = (word ?? '').trim();
-  if (!w) return { matched: false };
+  const w = (word ?? '').trim()
+  if (!w) return { matched: false }
   for (const rule of RULES) {
-    const re = new RegExp(rule.pattern.source);
+    const re = new RegExp(rule.pattern.source)
     if (re.test(w)) {
       return {
         matched: true,
@@ -2076,29 +2207,29 @@ export function explainWrongWord(word: string): WordExplanation {
         suggestion: rule.suggestion,
         reason: rule.reason,
         severity: rule.severity,
-      };
+      }
     }
   }
-  return { matched: false };
+  return { matched: false }
 }
 
 /**
  * 종합 점수 → 등급 변환. A+ ~ F. UI 배지·차트 축에 활용.
  */
-export type Grade = 'A+' | 'A' | 'B+' | 'B' | 'C' | 'D' | 'F';
+export type Grade = 'A+' | 'A' | 'B+' | 'B' | 'C' | 'D' | 'F'
 export interface GradeInfo {
-  grade: Grade;
-  tier: '탁월' | '우수' | '양호' | '보통' | '미흡' | '부족' | '낙제';
-  color: 'green' | 'blue' | 'teal' | 'amber' | 'orange' | 'red' | 'gray';
+  grade: Grade
+  tier: '탁월' | '우수' | '양호' | '보통' | '미흡' | '부족' | '낙제'
+  color: 'green' | 'blue' | 'teal' | 'amber' | 'orange' | 'red' | 'gray'
 }
 export function gradeFromScore(score: number): GradeInfo {
-  if (score >= 95) return { grade: 'A+', tier: '탁월', color: 'green' };
-  if (score >= 85) return { grade: 'A', tier: '우수', color: 'green' };
-  if (score >= 75) return { grade: 'B+', tier: '양호', color: 'blue' };
-  if (score >= 65) return { grade: 'B', tier: '양호', color: 'teal' };
-  if (score >= 50) return { grade: 'C', tier: '보통', color: 'amber' };
-  if (score >= 35) return { grade: 'D', tier: '미흡', color: 'orange' };
-  return { grade: 'F', tier: '낙제', color: 'red' };
+  if (score >= 95) return { grade: 'A+', tier: '탁월', color: 'green' }
+  if (score >= 85) return { grade: 'A', tier: '우수', color: 'green' }
+  if (score >= 75) return { grade: 'B+', tier: '양호', color: 'blue' }
+  if (score >= 65) return { grade: 'B', tier: '양호', color: 'teal' }
+  if (score >= 50) return { grade: 'C', tier: '보통', color: 'amber' }
+  if (score >= 35) return { grade: 'D', tier: '미흡', color: 'orange' }
+  return { grade: 'F', tier: '낙제', color: 'red' }
 }
 
 /**
@@ -2106,230 +2237,127 @@ export function gradeFromScore(score: number): GradeInfo {
  * 내부에서 쓰이던 scoreOf 를 같은 기준으로 외부 사용자도 접근 가능하게 함 (레이더 차트 등).
  */
 export interface DimensionScore {
-  dimension: string;
-  score: number;
+  dimension: string
+  score: number
 }
 export function getDimensionScores(report: KoreanQualityReport): DimensionScore[] {
-  return scoreOf(report);
+  return scoreOf(report)
 }
-
-// 메타 유틸(reading time/links/hashtags/char dist) 은 ./metaUtils 로 분리됨.
-import {
-  estimateReadingTime as _estimateReadingTime,
-  extractLinks as _extractLinks,
-  generateHashtags as _generateHashtags,
-  type ReadingTimeEstimate as _ReadingTimeEstimate,
-  type LinkAnalysis as _LinkAnalysis,
-} from './metaUtils';
 export {
   estimateReadingTime,
   extractLinks,
   generateHashtags,
   countCharsByCategory,
-} from './metaUtils';
+} from './metaUtils'
 export type {
   ReadingTimeEstimate,
   ExtractedLink,
   LinkAnalysis,
   CharDistribution,
-} from './metaUtils';
-type ReadingTimeEstimate = _ReadingTimeEstimate;
-type LinkAnalysis = _LinkAnalysis;
-const estimateReadingTime = _estimateReadingTime;
-const extractLinks = _extractLinks;
-const generateHashtags = _generateHashtags;
-
-// 날짜 포맷 분석기는 ./dateAnalyzers 로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeDateConsistency as _analyzeDateConsistency,
-  type DateConsistencyAnalysis as _DateConsistencyAnalysis,
-} from './dateAnalyzers';
-export { analyzeDateConsistency } from './dateAnalyzers';
-export type { DateFormatHit, DateConsistencyAnalysis } from './dateAnalyzers';
-type DateConsistencyAnalysis = _DateConsistencyAnalysis;
-const analyzeDateConsistency = _analyzeDateConsistency;
-
-// 괄호 균형 + 공백 이상 분석기는 ./textFormat 으로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeBracketBalance as _analyzeBracketBalance,
-  detectWhitespaceAnomalies as _detectWhitespaceAnomalies,
-  type BracketBalanceAnalysis as _BracketBalanceAnalysis,
-  type WhitespaceAnalysis as _WhitespaceAnalysis,
-} from './textFormat';
-export { analyzeBracketBalance, detectWhitespaceAnomalies } from './textFormat';
-export type { BracketBalanceAnalysis, WhitespaceAnomaly, WhitespaceAnalysis } from './textFormat';
-type BracketBalanceAnalysis = _BracketBalanceAnalysis;
-type WhitespaceAnalysis = _WhitespaceAnalysis;
-const analyzeBracketBalance = _analyzeBracketBalance;
-const detectWhitespaceAnomalies = _detectWhitespaceAnomalies;
-
-// 숫자 포맷 분석기는 ./numericFormat 으로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeNumericFormat as _analyzeNumericFormat,
-  type NumericFormatAnalysis as _NumericFormatAnalysis,
-} from './numericFormat';
-export { analyzeNumericFormat } from './numericFormat';
-export type { NumericFormatAnalysis } from './numericFormat';
-type NumericFormatAnalysis = _NumericFormatAnalysis;
-const analyzeNumericFormat = _analyzeNumericFormat;
-
-// 기술 용어 대소문자 분석기는 ./techCasing 으로 분리됨 (아키텍처 리팩터).
-import {
-  detectInconsistentCasing as _detectInconsistentCasing,
-  type CasingAnalysis as _CasingAnalysis,
-} from './techCasing';
-export { detectInconsistentCasing } from './techCasing';
-export type { CasingHit, CasingAnalysis } from './techCasing';
-type CasingAnalysis = _CasingAnalysis;
-const detectInconsistentCasing = _detectInconsistentCasing;
-
-// 문단·톤·인칭·언어 혼합 분석기는 ./toneAnalyzers 로 분리됨 (아키텍처 리팩터).
-import {
-  analyzeParagraphs as _analyzeParagraphs,
-  analyzeFirstPersonUsage as _analyzeFirstPersonUsage,
-  analyzeEnglishMix as _analyzeEnglishMix,
-  analyzeSentiment as _analyzeSentiment,
-  type ParagraphStats as _ParagraphStats,
-  type FirstPersonAnalysis as _FirstPersonAnalysis,
-  type EnglishMixAnalysis as _EnglishMixAnalysis,
-  type SentimentAnalysis as _SentimentAnalysis,
-} from './toneAnalyzers';
+} from './metaUtils'
+type ReadingTimeEstimate = _ReadingTimeEstimate
+type LinkAnalysis = _LinkAnalysis
+const estimateReadingTime = _estimateReadingTime
+const extractLinks = _extractLinks
+const generateHashtags = _generateHashtags
+export { analyzeDateConsistency } from './dateAnalyzers'
+export type { DateFormatHit, DateConsistencyAnalysis } from './dateAnalyzers'
+type DateConsistencyAnalysis = _DateConsistencyAnalysis
+const analyzeDateConsistency = _analyzeDateConsistency
+export { analyzeBracketBalance, detectWhitespaceAnomalies } from './textFormat'
+export type { BracketBalanceAnalysis, WhitespaceAnomaly, WhitespaceAnalysis } from './textFormat'
+type BracketBalanceAnalysis = _BracketBalanceAnalysis
+type WhitespaceAnalysis = _WhitespaceAnalysis
+const analyzeBracketBalance = _analyzeBracketBalance
+const detectWhitespaceAnomalies = _detectWhitespaceAnomalies
+export { analyzeNumericFormat } from './numericFormat'
+export type { NumericFormatAnalysis } from './numericFormat'
+type NumericFormatAnalysis = _NumericFormatAnalysis
+const analyzeNumericFormat = _analyzeNumericFormat
+export { detectInconsistentCasing } from './techCasing'
+export type { CasingHit, CasingAnalysis } from './techCasing'
+type CasingAnalysis = _CasingAnalysis
+const detectInconsistentCasing = _detectInconsistentCasing
 export {
   analyzeParagraphs,
   analyzeFirstPersonUsage,
   analyzeEnglishMix,
   analyzeSentiment,
-} from './toneAnalyzers';
+} from './toneAnalyzers'
 export type {
   ParagraphStats,
   FirstPersonAnalysis,
   EnglishMixAnalysis,
   SentimentAnalysis,
-} from './toneAnalyzers';
-type ParagraphStats = _ParagraphStats;
+} from './toneAnalyzers'
+type ParagraphStats = _ParagraphStats
 
-type FirstPersonAnalysis = _FirstPersonAnalysis;
-type EnglishMixAnalysis = _EnglishMixAnalysis;
-type SentimentAnalysis = _SentimentAnalysis;
-const analyzeParagraphs = _analyzeParagraphs;
-const analyzeFirstPersonUsage = _analyzeFirstPersonUsage;
-const analyzeEnglishMix = _analyzeEnglishMix;
-const analyzeSentiment = _analyzeSentiment;
-
-// detectDuplicateSentences 는 ./repetitionAnalyzers 로 이동됨.
-
-/**
- * 경력 연도 범위 추출 — "2020.01 ~ 2023.12", "2020년 1월 ~ 2023년 12월", "2020 - 2023"
- * 같은 기간 표기를 찾아 총 경력 개월 수·년수로 환산.
- */
-// 경력 기간·범위 분석기는 ./experience 로 분리됨 (아키텍처 리팩터).
-import {
-  estimateExperienceYears as _estimateExperienceYears,
-  validateDateRanges as _validateDateRanges,
-  type ExperienceEstimate as _ExperienceEstimate,
-  type InvalidDateRange as _InvalidDateRange,
-} from './experience';
-export { estimateExperienceYears, validateDateRanges } from './experience';
-export type { ExperienceRange, ExperienceEstimate, InvalidDateRange } from './experience';
-type ExperienceEstimate = _ExperienceEstimate;
-type InvalidDateRange = _InvalidDateRange;
-const estimateExperienceYears = _estimateExperienceYears;
-const validateDateRanges = _validateDateRanges;
-
-// 연락처·PII 분석기는 ./pii 로 분리됨 (아키텍처 리팩터).
-import {
-  detectContactInfo as _detectContactInfo,
-  detectPersonalInfo as _detectPersonalInfo,
-  type ContactInfo as _ContactInfo,
-  type PiiAnalysis as _PiiAnalysis,
-} from './pii';
-export { detectContactInfo, detectPersonalInfo } from './pii';
-export type { ContactInfo, PiiHit, PiiAnalysis } from './pii';
-type ContactInfo = _ContactInfo;
-type PiiAnalysis = _PiiAnalysis;
-const detectContactInfo = _detectContactInfo;
-const detectPersonalInfo = _detectPersonalInfo;
-
-// 이력서 점수·구조 분석기는 ./resumeScoring 으로 분리됨 (아키텍처 리팩터).
-import {
-  detectMissingResumeSections as _detectMissingResumeSections,
-  scoreResumeCompleteness as _scoreResumeCompleteness,
-  scoreSpecificity as _scoreSpecificity,
-  estimateJobLevel as _estimateJobLevel,
-  analyzeActivityChronology as _analyzeActivityChronology,
-  type ResumeSectionCoverage as _ResumeSectionCoverage,
-  type ResumeCompletenessScore as _ResumeCompletenessScore,
-  type SpecificityScore as _SpecificityScore,
-  type JobLevelEstimate as _JobLevelEstimate,
-  type ChronologyCheck as _ChronologyCheck,
-} from './resumeScoring';
+type FirstPersonAnalysis = _FirstPersonAnalysis
+type EnglishMixAnalysis = _EnglishMixAnalysis
+type SentimentAnalysis = _SentimentAnalysis
+const analyzeParagraphs = _analyzeParagraphs
+const analyzeFirstPersonUsage = _analyzeFirstPersonUsage
+const analyzeEnglishMix = _analyzeEnglishMix
+const analyzeSentiment = _analyzeSentiment
+export { estimateExperienceYears, validateDateRanges } from './experience'
+export type { ExperienceRange, ExperienceEstimate, InvalidDateRange } from './experience'
+type ExperienceEstimate = _ExperienceEstimate
+type InvalidDateRange = _InvalidDateRange
+const estimateExperienceYears = _estimateExperienceYears
+const validateDateRanges = _validateDateRanges
+export { detectContactInfo, detectPersonalInfo } from './pii'
+export type { ContactInfo, PiiHit, PiiAnalysis } from './pii'
+type ContactInfo = _ContactInfo
+type PiiAnalysis = _PiiAnalysis
+const detectContactInfo = _detectContactInfo
+const detectPersonalInfo = _detectPersonalInfo
 export {
   detectMissingResumeSections,
   scoreResumeCompleteness,
   scoreSpecificity,
   estimateJobLevel,
   analyzeActivityChronology,
-} from './resumeScoring';
+} from './resumeScoring'
 export type {
   ResumeSectionCoverage,
   ResumeCompletenessScore,
   SpecificityScore,
   JobLevelEstimate,
   ChronologyCheck,
-} from './resumeScoring';
+} from './resumeScoring'
 
-type ResumeSectionCoverage = _ResumeSectionCoverage;
+type ResumeSectionCoverage = _ResumeSectionCoverage
 
-type ResumeCompletenessScore = _ResumeCompletenessScore;
+type ResumeCompletenessScore = _ResumeCompletenessScore
 
-type SpecificityScore = _SpecificityScore;
-type JobLevelEstimate = _JobLevelEstimate;
+type SpecificityScore = _SpecificityScore
+type JobLevelEstimate = _JobLevelEstimate
 
-type ChronologyCheck = _ChronologyCheck;
-const detectMissingResumeSections = _detectMissingResumeSections;
-const scoreResumeCompleteness = _scoreResumeCompleteness;
-const scoreSpecificity = _scoreSpecificity;
-const estimateJobLevel = _estimateJobLevel;
-const analyzeActivityChronology = _analyzeActivityChronology;
-
-// generateHashtags, extractLinks 는 ./metaUtils 로 이동됨.
-
-// estimateJobLevel 은 ./resumeScoring 으로 이동됨.
-
-// generateInterviewQuestions 는 ./interviewQuestions 로 분리됨.
-import {
-  generateInterviewQuestions as _generateInterviewQuestions,
-  type InterviewQuestion as _InterviewQuestion,
-} from './interviewQuestions';
-export { generateInterviewQuestions } from './interviewQuestions';
-export type { InterviewQuestion } from './interviewQuestions';
-type InterviewQuestion = _InterviewQuestion;
-const generateInterviewQuestions = _generateInterviewQuestions;
-
-// scoreSpecificity, analyzeActivityChronology 는 ./resumeScoring 으로 이동됨.
-
-// 소프트 스킬·축약어는 ./softSkills 로 분리됨 (아키텍처 리팩터).
-import {
-  detectSoftSkills as _detectSoftSkills,
-  detectAbbreviations as _detectAbbreviations,
-  type SoftSkillAnalysis as _SoftSkillAnalysis,
-  type AcronymAnalysis as _AcronymAnalysis,
-} from './softSkills';
-export { detectSoftSkills, detectAbbreviations } from './softSkills';
-export type { SoftSkillHit, SoftSkillAnalysis, AcronymHit, AcronymAnalysis } from './softSkills';
-type SoftSkillAnalysis = _SoftSkillAnalysis;
-type AcronymAnalysis = _AcronymAnalysis;
-const detectSoftSkills = _detectSoftSkills;
-const detectAbbreviations = _detectAbbreviations;
+type ChronologyCheck = _ChronologyCheck
+const detectMissingResumeSections = _detectMissingResumeSections
+const scoreResumeCompleteness = _scoreResumeCompleteness
+const scoreSpecificity = _scoreSpecificity
+const estimateJobLevel = _estimateJobLevel
+const analyzeActivityChronology = _analyzeActivityChronology
+export { generateInterviewQuestions } from './interviewQuestions'
+export type { InterviewQuestion } from './interviewQuestions'
+type InterviewQuestion = _InterviewQuestion
+const generateInterviewQuestions = _generateInterviewQuestions
+export { detectSoftSkills, detectAbbreviations } from './softSkills'
+export type { SoftSkillHit, SoftSkillAnalysis, AcronymHit, AcronymAnalysis } from './softSkills'
+type SoftSkillAnalysis = _SoftSkillAnalysis
+type AcronymAnalysis = _AcronymAnalysis
+const detectSoftSkills = _detectSoftSkills
+const detectAbbreviations = _detectAbbreviations
 
 /**
  * 분석기 카탈로그 — 모든 public 분석기의 메타데이터 (이름/카테고리/설명).
  * UI 에서 "사용 가능한 분석기 목록" 도움말 노출, 혹은 LLM 기능 호출 디스커버리에 활용.
  */
 export interface AnalyzerInfo {
-  name: string;
-  category: '문체' | '이력서' | '메타' | '구조' | '보안' | '파생';
-  description: string;
+  name: string
+  category: '문체' | '이력서' | '메타' | '구조' | '보안' | '파생'
+  description: string
 }
 
 export const ANALYZERS: readonly AnalyzerInfo[] = [
@@ -2488,89 +2516,77 @@ export const ANALYZERS: readonly AnalyzerInfo[] = [
     category: '이력서',
     description: 'STAR(Situation·Task·Action·Result) 불릿 구조 커버리지',
   },
-] as const;
+] as const
 
 /** 카테고리별 분석기 필터링 — ANALYZERS 카탈로그 디스커버리 헬퍼. */
 export function getAnalyzersByCategory(category: AnalyzerInfo['category']): AnalyzerInfo[] {
-  return ANALYZERS.filter((a) => a.category === category);
+  return ANALYZERS.filter((a) => a.category === category)
 }
 
 /** 이름으로 분석기 조회. */
 export function findAnalyzerByName(name: string): AnalyzerInfo | undefined {
-  return ANALYZERS.find((a) => a.name === name);
+  return ANALYZERS.find((a) => a.name === name)
 }
-
-// detectAbbreviations 는 ./softSkills 로 이동됨.
-
-// 자기소개서 보조는 ./coverLetterHelpers 로 분리됨 (아키텍처 리팩터).
-import {
-  recommendCoverLetterOpeners as _recommendCoverLetterOpeners,
-  detectSelfDeprecation as _detectSelfDeprecation,
-  analyzeCallToAction as _analyzeCallToAction,
-  type OpenerSuggestion as _OpenerSuggestion,
-  type SelfDeprecationAnalysis as _SelfDeprecationAnalysis,
-  type CallToActionAnalysis as _CallToActionAnalysis,
-} from './coverLetterHelpers';
 export {
   recommendCoverLetterOpeners,
   detectSelfDeprecation,
   analyzeCallToAction,
-} from './coverLetterHelpers';
+} from './coverLetterHelpers'
 export type {
   OpenerSuggestion,
   SelfDeprecationHit,
   SelfDeprecationAnalysis,
   CallToActionAnalysis,
-} from './coverLetterHelpers';
-type OpenerSuggestion = _OpenerSuggestion;
-type SelfDeprecationAnalysis = _SelfDeprecationAnalysis;
-type CallToActionAnalysis = _CallToActionAnalysis;
-const recommendCoverLetterOpeners = _recommendCoverLetterOpeners;
-const detectSelfDeprecation = _detectSelfDeprecation;
-const analyzeCallToAction = _analyzeCallToAction;
+} from './coverLetterHelpers'
+type OpenerSuggestion = _OpenerSuggestion
+type SelfDeprecationAnalysis = _SelfDeprecationAnalysis
+type CallToActionAnalysis = _CallToActionAnalysis
+const recommendCoverLetterOpeners = _recommendCoverLetterOpeners
+const detectSelfDeprecation = _detectSelfDeprecation
+const analyzeCallToAction = _analyzeCallToAction
 
 /**
  * 모든 분석기 일괄 실행 — 외부(LLM/admin/API)에서 "텍스트 하나 던지면 전체 품질 진단"
  * 시나리오를 위한 단일 진입점. generateQualityReport 는 12개 핵심만, 이 함수는 50+ 전부.
  */
 export interface FullAnalysis {
-  quality: KoreanQualityReport;
-  contact: ContactInfo;
-  sections: ResumeSectionCoverage;
-  completeness: ResumeCompletenessScore;
-  experience: ExperienceEstimate;
-  jobLevel: JobLevelEstimate;
-  specificity: SpecificityScore;
-  chronology: ChronologyCheck;
-  softSkills: SoftSkillAnalysis;
-  skills: SkillMention[];
-  casing: CasingAnalysis;
-  exaggeration: ExaggerationAnalysis;
-  pii: PiiAnalysis;
-  englishMix: EnglishMixAnalysis;
-  sentiment: SentimentAnalysis;
-  paragraphs: ParagraphStats;
-  firstPerson: FirstPersonAnalysis;
-  duplicates: DuplicateSentence[];
-  overuse: OveruseWithSynonyms[];
-  dates: DateConsistencyAnalysis;
-  invalidDates: InvalidDateRange[];
-  jargon: JargonAnalysis;
-  brackets: BracketBalanceAnalysis;
-  whitespace: WhitespaceAnalysis;
-  numeric: NumericFormatAnalysis;
-  reading: ReadingTimeEstimate;
-  links: LinkAnalysis;
-  bullets: BulletMarkerAnalysis;
-  acronyms: AcronymAnalysis;
-  hashtags: string[];
-  keywords: ExtractedKeyword[];
-  interview: InterviewQuestion[];
-  openers: OpenerSuggestion[];
-  endings: EndingTypeCount;
-  selfDeprecation: SelfDeprecationAnalysis;
-  emptyClaims: EmptyClaimAnalysis;
-  cta: CallToActionAnalysis;
+  quality: KoreanQualityReport
+  contact: ContactInfo
+  sections: ResumeSectionCoverage
+  completeness: ResumeCompletenessScore
+  experience: ExperienceEstimate
+  jobLevel: JobLevelEstimate
+  specificity: SpecificityScore
+  chronology: ChronologyCheck
+  softSkills: SoftSkillAnalysis
+  skills: SkillMention[]
+  casing: CasingAnalysis
+  exaggeration: ExaggerationAnalysis
+  pii: PiiAnalysis
+  englishMix: EnglishMixAnalysis
+  sentiment: SentimentAnalysis
+  paragraphs: ParagraphStats
+  firstPerson: FirstPersonAnalysis
+  duplicates: DuplicateSentence[]
+  overuse: OveruseWithSynonyms[]
+  dates: DateConsistencyAnalysis
+  invalidDates: InvalidDateRange[]
+  jargon: JargonAnalysis
+  brackets: BracketBalanceAnalysis
+  whitespace: WhitespaceAnalysis
+  numeric: NumericFormatAnalysis
+  reading: ReadingTimeEstimate
+  links: LinkAnalysis
+  bullets: BulletMarkerAnalysis
+  acronyms: AcronymAnalysis
+  hashtags: string[]
+  keywords: ExtractedKeyword[]
+  interview: InterviewQuestion[]
+  openers: OpenerSuggestion[]
+  endings: EndingTypeCount
+  selfDeprecation: SelfDeprecationAnalysis
+  emptyClaims: EmptyClaimAnalysis
+  cta: CallToActionAnalysis
 }
 
 export function analyzeEverything(text: string): FullAnalysis {
@@ -2612,7 +2628,7 @@ export function analyzeEverything(text: string): FullAnalysis {
     selfDeprecation: detectSelfDeprecation(text),
     emptyClaims: detectEmptyClaims(text),
     cta: analyzeCallToAction(text),
-  };
+  }
 }
 
 /**
@@ -2620,18 +2636,18 @@ export function analyzeEverything(text: string): FullAnalysis {
  * 긴 리포트를 대시보드 카드 하나에 요약할 때, 혹은 LLM 에 짧은 컨텍스트로 넘길 때 활용.
  */
 export interface AnalysisFlag {
-  severity: 'red' | 'yellow' | 'green';
-  label: string;
-  note: string;
+  severity: 'red' | 'yellow' | 'green'
+  label: string
+  note: string
 }
 
 export function summarizeAnalysis(full: FullAnalysis): {
-  overallScore: number;
-  completenessScore: number;
-  topFlags: AnalysisFlag[];
-  oneLiner: string;
+  overallScore: number
+  completenessScore: number
+  topFlags: AnalysisFlag[]
+  oneLiner: string
 } {
-  const flags: AnalysisFlag[] = [];
+  const flags: AnalysisFlag[] = []
 
   // PII — 최우선 경고
   if (full.pii.severity === 'critical') {
@@ -2639,13 +2655,13 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'red',
       label: 'PII 고위험',
       note: '주민·카드번호 등 민감정보 포함 — 즉시 제거.',
-    });
+    })
   } else if (full.pii.severity === 'warning') {
     flags.push({
       severity: 'yellow',
       label: '개인정보 노출',
       note: `${full.pii.count}건 — 필요성 재검토.`,
-    });
+    })
   }
 
   // 맞춤법 에러
@@ -2654,7 +2670,7 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'red',
       label: '맞춤법 오류 다수',
       note: `${full.quality.check.summary.error}건 — 자동수정 권장.`,
-    });
+    })
   }
 
   // 정량 지표 부재
@@ -2663,7 +2679,7 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '정량 지표 없음',
       note: '수치 성과가 비어 있음.',
-    });
+    })
   }
 
   // 과장 표현
@@ -2672,7 +2688,7 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '과장 표현 다수',
       note: `${full.exaggeration.count}건 — 증거 기반 표현으로.`,
-    });
+    })
   }
 
   // 완성도 낮음
@@ -2683,13 +2699,13 @@ export function summarizeAnalysis(full: FullAnalysis): {
       note: `${full.completeness.overall}점 — 약한 축: ${
         full.completeness.breakdown.slice().sort((a, b) => a.score - b.score)[0].axis
       }.`,
-    });
+    })
   } else if (full.completeness.overall >= 85) {
     flags.push({
       severity: 'green',
       label: '완성도 우수',
       note: `${full.completeness.overall}점.`,
-    });
+    })
   }
 
   // 날짜 오류
@@ -2698,19 +2714,19 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'red',
       label: '날짜 범위 오류',
       note: `${full.invalidDates.length}건 — 시작 > 종료.`,
-    });
+    })
   }
 
   // 연락처 유효성
   const invalidContacts =
     full.contact.emails.filter((e) => !e.valid).length +
-    full.contact.phones.filter((p) => !p.valid).length;
+    full.contact.phones.filter((p) => !p.valid).length
   if (invalidContacts > 0) {
     flags.push({
       severity: 'yellow',
       label: '연락처 오류',
       note: `잘못된 형식 ${invalidContacts}건.`,
-    });
+    })
   }
 
   // 자기비하 표현
@@ -2719,7 +2735,7 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '자기비하 과다',
       note: `${full.selfDeprecation.count}건 — 자신감 있는 표현으로.`,
-    });
+    })
   }
 
   // 빈 주장(근거 없는 역량)
@@ -2728,7 +2744,7 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '근거 없는 주장 다수',
       note: `${full.emptyClaims.count}건 — 사례·수치로 증명 필요.`,
-    });
+    })
   }
 
   // 마무리 CTA 부재 (본문 500자↑ 인 경우에만 체크)
@@ -2737,7 +2753,7 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'yellow',
       label: '마무리 CTA 없음',
       note: '마지막 문단에 "기여하겠습니다" 같은 행동 유발 마무리 추가.',
-    });
+    })
   }
 
   // 품질 점수 총평
@@ -2746,32 +2762,32 @@ export function summarizeAnalysis(full: FullAnalysis): {
       severity: 'green',
       label: '한국어 품질 우수',
       note: `${full.quality.overallScore}점.`,
-    });
+    })
   } else if (full.quality.overallScore < 55) {
     flags.push({
       severity: 'red',
       label: '한국어 품질 미흡',
       note: `${full.quality.overallScore}점 — 우선 개선 필요.`,
-    });
+    })
   }
 
   // 중복 7개까지만 상위로
   flags.sort((a, b) => {
-    const rank = { red: 0, yellow: 1, green: 2 };
-    return rank[a.severity] - rank[b.severity];
-  });
-  const topFlags = flags.slice(0, 7);
-  const red = topFlags.filter((f) => f.severity === 'red').length;
-  const yellow = topFlags.filter((f) => f.severity === 'yellow').length;
-  const green = topFlags.filter((f) => f.severity === 'green').length;
-  const oneLiner = `종합 ${full.quality.overallScore}점 · 완성도 ${full.completeness.overall}점 · 🔴 ${red} 🟡 ${yellow} 🟢 ${green}`;
+    const rank = { red: 0, yellow: 1, green: 2 }
+    return rank[a.severity] - rank[b.severity]
+  })
+  const topFlags = flags.slice(0, 7)
+  const red = topFlags.filter((f) => f.severity === 'red').length
+  const yellow = topFlags.filter((f) => f.severity === 'yellow').length
+  const green = topFlags.filter((f) => f.severity === 'green').length
+  const oneLiner = `종합 ${full.quality.overallScore}점 · 완성도 ${full.completeness.overall}점 · 🔴 ${red} 🟡 ${yellow} 🟢 ${green}`
 
   return {
     overallScore: full.quality.overallScore,
     completenessScore: full.completeness.overall,
     topFlags,
     oneLiner,
-  };
+  }
 }
 
 // detectSelfDeprecation 은 ./coverLetterHelpers 로 이동됨.
@@ -2782,34 +2798,26 @@ export {
   generateStarBulletTemplate,
   extractQuotableLines,
   computeTextSimilarity,
-} from './resumeGenerators';
-export type { StarBulletTemplate, QuotableLine, TextSimilarityResult } from './resumeGenerators';
+} from './resumeGenerators'
+export type { StarBulletTemplate, QuotableLine, TextSimilarityResult } from './resumeGenerators'
 
 // 이력서 핵심 메시지 추출기(강도·카테고리·배치 추천) — ./resumeCoreMessages
-export { extractResumeCoreMessages, CORE_MESSAGE_CATEGORY_LABELS } from './resumeCoreMessages';
-export type { CoreMessage, CoreMessagesAnalysis, CoreMessageCategory } from './resumeCoreMessages';
+export { extractResumeCoreMessages, CORE_MESSAGE_CATEGORY_LABELS } from './resumeCoreMessages'
+export type { CoreMessage, CoreMessagesAnalysis, CoreMessageCategory } from './resumeCoreMessages'
 
 // 개선 우선순위 플랜(scoreInterviewability breakdown 재가공) — ./resumeImprovementPlan
-export { buildResumeImprovementPlan } from './resumeImprovementPlan';
+export { buildResumeImprovementPlan } from './resumeImprovementPlan'
 export type {
   ResumeImprovementPlan,
   ImprovementItem,
   ImprovementSeverity,
-} from './resumeImprovementPlan';
-
-// countCharsByCategory 는 ./metaUtils 로 이동됨.
-
-// 품질 신호 분석기(unquantified/empty/tense/allCaps)는 ./qualitySignals 로 분리됨.
-import {
-  detectEmptyClaims as _detectEmptyClaims,
-  type EmptyClaimAnalysis as _EmptyClaimAnalysis,
-} from './qualitySignals';
+} from './resumeImprovementPlan'
 export {
   detectUnquantifiedClaims,
   detectEmptyClaims,
   analyzeVerbTense,
   detectAllCapsOveruse,
-} from './qualitySignals';
+} from './qualitySignals'
 export type {
   UnquantifiedClaim,
   EmptyClaimHit,
@@ -2817,9 +2825,9 @@ export type {
   TenseAnalysis,
   AllCapsHit,
   AllCapsAnalysis,
-} from './qualitySignals';
-type EmptyClaimAnalysis = _EmptyClaimAnalysis;
-const detectEmptyClaims = _detectEmptyClaims;
+} from './qualitySignals'
+type EmptyClaimAnalysis = _EmptyClaimAnalysis
+const detectEmptyClaims = _detectEmptyClaims
 
 // generateStarBulletTemplate, extractQuotableLines, computeTextSimilarity 는 ./resumeGenerators 로 이동됨.
 
@@ -2828,16 +2836,11 @@ const detectEmptyClaims = _detectEmptyClaims;
  * 필요한 경우(대량 배치, 목록 정렬 등)에 사용. checkText 의 score 를 직접 리턴.
  */
 export function quickScore(text: string): number {
-  return checkText(text, '본문').score;
+  return checkText(text, '본문').score
 }
-
-// detectEmptyClaims 는 ./qualitySignals 로 이동됨.
-
-// 파생 점수(scoreInterviewability + detectCareerGaps) 는 ./derivedScores 로 분리됨.
-import { scoreInterviewability as _scoreInterviewability } from './derivedScores';
-export { scoreInterviewability, detectCareerGaps } from './derivedScores';
-export type { InterviewabilityScore, CareerGap, CareerGapAnalysis } from './derivedScores';
-const scoreInterviewability = _scoreInterviewability;
+export { scoreInterviewability, detectCareerGaps } from './derivedScores'
+export type { InterviewabilityScore, CareerGap, CareerGapAnalysis } from './derivedScores'
+const scoreInterviewability = _scoreInterviewability
 
 // analyzeVerbTense, detectAllCapsOveruse 는 ./qualitySignals 로 이동됨.
 
@@ -2848,22 +2851,22 @@ const scoreInterviewability = _scoreInterviewability;
  * "이 이력서·자소서의 전반적 준비도" 0~100 단일 숫자 제시. 리스트 정렬·대시보드 요약용.
  */
 export interface OverallHealth {
-  health: number;
-  quality: number;
-  completeness: number;
-  interviewability: number;
-  tier: 'excellent' | 'good' | 'fair' | 'poor';
+  health: number
+  quality: number
+  completeness: number
+  interviewability: number
+  tier: 'excellent' | 'good' | 'fair' | 'poor'
 }
 
 export function calculateOverallHealth(text: string): OverallHealth {
-  const quality = generateQualityReport(text).overallScore;
-  const completeness = scoreResumeCompleteness(text).overall;
-  const interviewability = scoreInterviewability(text).overall;
+  const quality = generateQualityReport(text).overallScore
+  const completeness = scoreResumeCompleteness(text).overall
+  const interviewability = scoreInterviewability(text).overall
   // 가중: 문체 30%, 완성도 30%, 면접 40%
-  const health = Math.round(quality * 0.3 + completeness * 0.3 + interviewability * 0.4);
+  const health = Math.round(quality * 0.3 + completeness * 0.3 + interviewability * 0.4)
   const tier: OverallHealth['tier'] =
-    health >= 85 ? 'excellent' : health >= 70 ? 'good' : health >= 50 ? 'fair' : 'poor';
-  return { health, quality, completeness, interviewability, tier };
+    health >= 85 ? 'excellent' : health >= 70 ? 'good' : health >= 50 ? 'fair' : 'poor'
+  return { health, quality, completeness, interviewability, tier }
 }
 
 // 섹션 분석기는 ./sectionAnalyzers 로 분리됨 — splitByExperienceSection,
@@ -2874,7 +2877,7 @@ export {
   analyzeSectionOrder,
   analyzeSectionDensity,
   computeSectionHealth,
-} from './sectionAnalyzers';
+} from './sectionAnalyzers'
 export type {
   SplitSection,
   SectionBalanceIssue,
@@ -2882,11 +2885,11 @@ export type {
   SectionOrderReport,
   SectionDensity,
   SectionHealth,
-} from './sectionAnalyzers';
+} from './sectionAnalyzers'
 
 // STAR 분석기는 ./starPattern 으로 분리됨 (아키텍처 리팩터).
-export { analyzeStarPattern } from './starPattern';
-export type { StarBulletResult, StarPatternReport } from './starPattern';
+export { analyzeStarPattern } from './starPattern'
+export type { StarBulletResult, StarPatternReport } from './starPattern'
 
 function stripHtml(html: string): string {
   return html
@@ -2896,9 +2899,9 @@ function stripHtml(html: string): string {
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/\s+/g, ' ')
-    .trim();
+    .trim()
 }
 
 function cleanContext(c: string): string {
-  return c.replace(/\s+/g, ' ').trim();
+  return c.replace(/\s+/g, ' ').trim()
 }

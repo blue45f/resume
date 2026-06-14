@@ -1,14 +1,16 @@
-import { useState, useCallback, useEffect } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState, useCallback, useEffect } from 'react'
+
+import type { Template, LlmProvider } from '@/types/resume'
+
 import {
   transformResumeStream,
   localTransform,
   fetchPresets,
   fetchTemplates,
   fetchLlmProviders,
-} from '@/lib/api';
-import type { Template, LlmProvider } from '@/types/resume';
-import { getErrorMessage } from '@/lib/errorMessage';
+} from '@/lib/api'
+import { getErrorMessage } from '@/lib/errorMessage'
 
 const LLM_TEMPLATES = [
   { value: 'standard', label: '표준 이력서', icon: '📄' },
@@ -18,107 +20,107 @@ const LLM_TEMPLATES = [
   { value: 'designer', label: '디자이너 이력서', icon: '🎨' },
   { value: 'english', label: '영문 이력서', icon: '🌐' },
   { value: 'linkedin', label: 'LinkedIn 프로필', icon: '🔗' },
-] as const;
+] as const
 
 interface Props {
-  resumeId: string;
-  onClose: () => void;
+  resumeId: string
+  onClose: () => void
 }
 
 export default function LlmTransformPanel({ resumeId, onClose }: Props) {
-  const [mode, setMode] = useState<'local' | 'llm'>('local');
+  const [mode, setMode] = useState<'local' | 'llm'>('local')
 
   // Local transform state
-  const [presets, setPresets] = useState<{ id: string; name: string; description: string }[]>([]);
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [selectedPreset, setSelectedPreset] = useState('standard');
-  const [selectedTemplate, setSelectedTemplate] = useState('');
-  const [localSource, setLocalSource] = useState<'preset' | 'template'>('preset');
+  const [presets, setPresets] = useState<{ id: string; name: string; description: string }[]>([])
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [selectedPreset, setSelectedPreset] = useState('standard')
+  const [selectedTemplate, setSelectedTemplate] = useState('')
+  const [localSource, setLocalSource] = useState<'preset' | 'template'>('preset')
 
   // LLM state
-  const [templateType, setTemplateType] = useState('standard');
-  const [targetLanguage, setTargetLanguage] = useState('ko');
-  const [jobDescription, setJobDescription] = useState('');
-  const [llmProviders, setLlmProviders] = useState<LlmProvider[]>([]);
-  const [, setSelectedProvider] = useState('');
+  const [templateType, setTemplateType] = useState('standard')
+  const [targetLanguage, setTargetLanguage] = useState('ko')
+  const [jobDescription, setJobDescription] = useState('')
+  const [llmProviders, setLlmProviders] = useState<LlmProvider[]>([])
+  const [, setSelectedProvider] = useState('')
 
   // Common state
-  const [result, setResult] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [tokensUsed, setTokensUsed] = useState(0);
+  const [result, setResult] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [tokensUsed, setTokensUsed] = useState(0)
 
   useEffect(() => {
     fetchPresets()
       .then(setPresets)
-      .catch(() => {});
+      .catch(() => {})
     fetchTemplates()
       .then(setTemplates)
-      .catch(() => {});
+      .catch(() => {})
     fetchLlmProviders(resumeId)
       .then((providers) => {
-        setLlmProviders(providers);
-        const def = providers.find((p) => p.isDefault);
-        if (def) setSelectedProvider(def.name);
+        setLlmProviders(providers)
+        const def = providers.find((p) => p.isDefault)
+        if (def) setSelectedProvider(def.name)
       })
-      .catch(() => {});
-  }, [resumeId]);
+      .catch(() => {})
+  }, [resumeId])
 
   const handleLocalTransform = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    setResult('');
+    setLoading(true)
+    setError('')
+    setResult('')
     try {
       const data =
         localSource === 'template' && selectedTemplate
           ? { templateId: selectedTemplate }
-          : { preset: selectedPreset };
-      const res = await localTransform(resumeId, data);
-      setResult(res.text);
+          : { preset: selectedPreset }
+      const res = await localTransform(resumeId, data)
+      setResult(res.text)
     } catch (err) {
-      setError(getErrorMessage(err, '변환에 실패했습니다'));
+      setError(getErrorMessage(err, '변환에 실패했습니다'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [resumeId, localSource, selectedPreset, selectedTemplate]);
+  }, [resumeId, localSource, selectedPreset, selectedTemplate])
 
   const handleLlmTransform = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    setResult('');
-    setTokensUsed(0);
+    setLoading(true)
+    setError('')
+    setResult('')
+    setTokensUsed(0)
     try {
-      let accumulated = '';
+      let accumulated = ''
       for await (const chunk of transformResumeStream(resumeId, {
         templateType,
         targetLanguage,
         jobDescription: jobDescription || undefined,
       })) {
         if (chunk.type === 'delta' && chunk.text) {
-          accumulated += chunk.text;
-          setResult(accumulated);
+          accumulated += chunk.text
+          setResult(accumulated)
         } else if (chunk.type === 'done') {
-          setTokensUsed(chunk.tokensUsed || 0);
+          setTokensUsed(chunk.tokensUsed || 0)
         } else if (chunk.type === 'error') {
-          setError(chunk.message || '변환 중 오류가 발생했습니다');
+          setError(chunk.message || '변환 중 오류가 발생했습니다')
         }
       }
     } catch (err) {
-      setError(getErrorMessage(err, '변환 요청에 실패했습니다'));
+      setError(getErrorMessage(err, '변환 요청에 실패했습니다'))
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [resumeId, templateType, targetLanguage, jobDescription]);
+  }, [resumeId, templateType, targetLanguage, jobDescription])
 
-  const handleTransform = mode === 'local' ? handleLocalTransform : handleLlmTransform;
+  const handleTransform = mode === 'local' ? handleLocalTransform : handleLlmTransform
 
-  const handleCopy = () => navigator.clipboard.writeText(result);
+  const handleCopy = () => navigator.clipboard.writeText(result)
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -162,9 +164,9 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               role="tab"
               aria-selected={mode === 'local'}
               onClick={() => {
-                setMode('local');
-                setResult('');
-                setError('');
+                setMode('local')
+                setResult('')
+                setError('')
               }}
               className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors focus:outline-none ${
                 mode === 'local'
@@ -178,9 +180,9 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
               role="tab"
               aria-selected={mode === 'llm'}
               onClick={() => {
-                setMode('llm');
-                setResult('');
-                setError('');
+                setMode('llm')
+                setResult('')
+                setError('')
               }}
               className={`flex-1 py-2.5 text-sm font-medium text-center transition-colors focus:outline-none ${
                 mode === 'llm'
@@ -417,5 +419,5 @@ export default function LlmTransformPanel({ resumeId, onClose }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

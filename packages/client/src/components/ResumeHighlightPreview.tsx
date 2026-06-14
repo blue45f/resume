@@ -1,14 +1,15 @@
-import { useMemo } from 'react';
-import { highlightResume } from '@/lib/resumeHighlighter';
+import { useMemo } from 'react'
+
+import { highlightResume } from '@/lib/resumeHighlighter'
 
 interface Props {
-  text: string;
+  text: string
 }
 
 export default function ResumeHighlightPreview({ text }: Props) {
-  const result = useMemo(() => highlightResume(text), [text]);
+  const result = useMemo(() => highlightResume(text), [text])
 
-  if (text.trim().length < 80) return null;
+  if (text.trim().length < 80) return null
 
   return (
     <section className="hl-preview" aria-label="이력서 하이라이트 미리보기">
@@ -35,7 +36,7 @@ export default function ResumeHighlightPreview({ text }: Props) {
             </mark>
           ) : (
             <span key={i}>{tok.text}</span>
-          ),
+          )
         )}
       </div>
 
@@ -48,5 +49,5 @@ export default function ResumeHighlightPreview({ text }: Props) {
         </p>
       )}
     </section>
-  );
+  )
 }

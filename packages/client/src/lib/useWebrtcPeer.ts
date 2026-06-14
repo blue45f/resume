@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react'
+
 import {
   sendWebrtcSignal,
   drainWebrtcSignals,
   recordWebrtcTelemetry,
   type WebrtcSignal,
-} from '@/lib/api';
+} from '@/lib/api'
 
 /**
  * 1:1 WebRTC P2P 통화 hook (서버는 signaling 만, 미디어는 brower-to-browser).
@@ -31,13 +32,13 @@ function buildIceConfig(): RTCConfiguration {
   const servers: RTCIceServer[] = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-  ];
-  const turnUrl = import.meta.env.VITE_TURN_URL as string | undefined;
-  const turnUser = import.meta.env.VITE_TURN_USERNAME as string | undefined;
-  const turnCred = import.meta.env.VITE_TURN_CREDENTIAL as string | undefined;
+  ]
+  const turnUrl = import.meta.env.VITE_TURN_URL as string | undefined
+  const turnUser = import.meta.env.VITE_TURN_USERNAME as string | undefined
+  const turnCred = import.meta.env.VITE_TURN_CREDENTIAL as string | undefined
   if (turnUrl && turnUser && turnCred) {
     // 사용자 정의 TURN (production-grade)
-    servers.push({ urls: turnUrl, username: turnUser, credential: turnCred });
+    servers.push({ urls: turnUrl, username: turnUser, credential: turnCred })
   } else {
     // OpenRelay Project — anonymous public TURN (무료, demo/baseline)
     // UDP 80 / TCP 80 / TLS 443 — 모든 방화벽 통과 시도
@@ -56,63 +57,63 @@ function buildIceConfig(): RTCConfiguration {
         urls: 'turns:openrelay.metered.ca:443',
         username: 'openrelayproject',
         credential: 'openrelayproject',
-      },
-    );
+      }
+    )
   }
-  return { iceServers: servers };
+  return { iceServers: servers }
 }
 
-const ICE_CONFIG: RTCConfiguration = buildIceConfig();
+const ICE_CONFIG: RTCConfiguration = buildIceConfig()
 
-const POLL_INTERVAL_MS = 1000;
+const POLL_INTERVAL_MS = 1000
 
-export type PeerState = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'failed';
+export type PeerState = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'failed'
 
 interface Options {
-  roomId: string;
-  peerId: string;
+  roomId: string
+  peerId: string
   /** 먼저 offer 를 만들 쪽 (양쪽이 동시에 활성화되면 둘 다 false 로 두고 정렬 결정) */
-  isInitiator: boolean;
-  modality: 'voice' | 'video' | 'chat';
+  isInitiator: boolean
+  modality: 'voice' | 'video' | 'chat'
 }
 
 export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options) {
-  const [state, setState] = useState<PeerState>('idle');
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const [error, setError] = useState<string>('');
+  const [state, setState] = useState<PeerState>('idle')
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
+  const [error, setError] = useState<string>('')
 
-  const pcRef = useRef<RTCPeerConnection | null>(null);
-  const pollRef = useRef<number | null>(null);
-  const lastSignalIdRef = useRef<Set<string>>(new Set());
+  const pcRef = useRef<RTCPeerConnection | null>(null)
+  const pollRef = useRef<number | null>(null)
+  const lastSignalIdRef = useRef<Set<string>>(new Set())
   // handleSignal 은 useCallback 으로 아래 정의되지만 polling interval 에서 먼저 참조해야 함 → ref 로 우회
-  const handleSignalRef = useRef<((s: WebrtcSignal) => Promise<void>) | null>(null);
+  const handleSignalRef = useRef<((s: WebrtcSignal) => Promise<void>) | null>(null)
 
   const cleanup = useCallback(() => {
-    if (pollRef.current) clearInterval(pollRef.current);
-    pollRef.current = null;
+    if (pollRef.current) clearInterval(pollRef.current)
+    pollRef.current = null
     if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
+      pcRef.current.close()
+      pcRef.current = null
     }
     if (localStream) {
-      localStream.getTracks().forEach((t) => t.stop());
+      localStream.getTracks().forEach((t) => t.stop())
     }
-    setLocalStream(null);
-    setRemoteStream(null);
-    setState('idle');
-  }, [localStream]);
+    setLocalStream(null)
+    setRemoteStream(null)
+    setState('idle')
+  }, [localStream])
 
   /** 사용자 인터랙션 후 호출 — 카메라/마이크 권한 요청 + peer connection 시작. */
   const start = useCallback(async () => {
     // idle 또는 failed (재시도) 일 때만 진행
-    if (state !== 'idle' && state !== 'failed') return;
-    setError('');
-    setState('connecting');
+    if (state !== 'idle' && state !== 'failed') return
+    setError('')
+    setState('connecting')
 
     try {
       // 1. 미디어 권한 (chat 모드는 stream 없음)
-      let stream: MediaStream | null = null;
+      let stream: MediaStream | null = null
       if (modality !== 'chat') {
         // mobile 호환: ideal 만 명시 → 단말이 해상도 결정. 가로/세로 회전 모두 OK.
         const constraints: MediaStreamConstraints =
@@ -121,48 +122,48 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
             : {
                 audio: true,
                 video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
-              };
+              }
         try {
-          stream = await navigator.mediaDevices.getUserMedia(constraints);
-          setLocalStream(stream);
+          stream = await navigator.mediaDevices.getUserMedia(constraints)
+          setLocalStream(stream)
         } catch (mediaErr) {
           // 권한 거부 / 디바이스 없음 / 다른 앱 점유 — 명확한 한국어 메시지
-          const name = (mediaErr as { name?: string })?.name || '';
+          const name = (mediaErr as { name?: string })?.name || ''
           if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
             throw new Error(
               modality === 'voice'
                 ? '마이크 권한이 차단됐어요. 브라우저 주소창의 자물쇠 → 사이트 설정 → 마이크 허용 후 다시 시도해주세요.'
                 : '카메라/마이크 권한이 차단됐어요. 브라우저 주소창의 자물쇠 → 사이트 설정 → 카메라·마이크 허용 후 다시 시도해주세요.',
-              { cause: mediaErr },
-            );
+              { cause: mediaErr }
+            )
           }
           if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
             throw new Error(
               modality === 'voice'
                 ? '마이크 장치를 찾을 수 없어요. 마이크 연결을 확인해주세요.'
                 : '카메라/마이크 장치를 찾을 수 없어요. 장치 연결을 확인해주세요.',
-              { cause: mediaErr },
-            );
+              { cause: mediaErr }
+            )
           }
           if (name === 'NotReadableError' || name === 'TrackStartError') {
             throw new Error(
               '다른 앱이 카메라/마이크를 사용 중이에요. 해당 앱을 종료 후 재시도해주세요.',
-              { cause: mediaErr },
-            );
+              { cause: mediaErr }
+            )
           }
-          throw mediaErr;
+          throw mediaErr
         }
       }
 
       // 2. Peer connection
-      const pc = new RTCPeerConnection(ICE_CONFIG);
-      pcRef.current = pc;
+      const pc = new RTCPeerConnection(ICE_CONFIG)
+      pcRef.current = pc
 
-      if (stream) stream.getTracks().forEach((track) => pc.addTrack(track, stream!));
+      if (stream) stream.getTracks().forEach((track) => pc.addTrack(track, stream!))
 
       pc.ontrack = (e) => {
-        setRemoteStream(e.streams[0] || null);
-      };
+        setRemoteStream(e.streams[0] || null)
+      }
 
       pc.onicecandidate = (e) => {
         if (e.candidate) {
@@ -171,121 +172,121 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
             toUserId: peerId,
             type: 'ice',
             payload: e.candidate.toJSON(),
-          }).catch(() => {});
+          }).catch(() => {})
         }
-      };
+      }
 
-      const startedAt = Date.now();
+      const startedAt = Date.now()
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'connected') {
-          setState('connected');
+          setState('connected')
           void recordWebrtcTelemetry({
             roomId,
             state: 'connected',
             modality,
             durationMs: Date.now() - startedAt,
-          });
+          })
         } else if (pc.connectionState === 'failed') {
-          setState('failed');
+          setState('failed')
           void recordWebrtcTelemetry({
             roomId,
             state: 'failed',
             modality,
             durationMs: Date.now() - startedAt,
-          });
+          })
         } else if (pc.connectionState === 'disconnected') {
-          setState('disconnected');
+          setState('disconnected')
           void recordWebrtcTelemetry({
             roomId,
             state: 'disconnected',
             modality,
             durationMs: Date.now() - startedAt,
-          });
+          })
         }
-      };
+      }
 
       // 3. Initiator: offer 생성
       if (isInitiator) {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+        const offer = await pc.createOffer()
+        await pc.setLocalDescription(offer)
         await sendWebrtcSignal({
           roomId,
           toUserId: peerId,
           type: 'offer',
           payload: offer,
-        });
+        })
       }
 
       // 4. Polling 시작 — 서버 큐에서 신호 drain
       pollRef.current = window.setInterval(async () => {
         try {
-          const signals = await drainWebrtcSignals(roomId);
+          const signals = await drainWebrtcSignals(roomId)
           for (const s of signals) {
-            if (lastSignalIdRef.current.has(s.id)) continue;
-            lastSignalIdRef.current.add(s.id);
-            if (handleSignalRef.current) await handleSignalRef.current(s);
+            if (lastSignalIdRef.current.has(s.id)) continue
+            lastSignalIdRef.current.add(s.id)
+            if (handleSignalRef.current) await handleSignalRef.current(s)
           }
         } catch {
           // network blip — 계속 polling
         }
-      }, POLL_INTERVAL_MS);
+      }, POLL_INTERVAL_MS)
     } catch (err) {
-      const errorName = (err as { name?: string })?.name || 'UnknownError';
-      setError(err instanceof Error ? err.message : '통화 시작 실패');
-      setState('failed');
-      void recordWebrtcTelemetry({ roomId, state: 'failed', modality, errorName });
-      cleanup();
+      const errorName = (err as { name?: string })?.name || 'UnknownError'
+      setError(err instanceof Error ? err.message : '통화 시작 실패')
+      setState('failed')
+      void recordWebrtcTelemetry({ roomId, state: 'failed', modality, errorName })
+      cleanup()
     }
-  }, [state, modality, isInitiator, roomId, peerId, cleanup]);
+  }, [state, modality, isInitiator, roomId, peerId, cleanup])
 
   const handleSignal = useCallback(
     async (s: WebrtcSignal) => {
-      const pc = pcRef.current;
-      if (!pc) return;
+      const pc = pcRef.current
+      if (!pc) return
 
       try {
         if (s.type === 'offer') {
           await pc.setRemoteDescription(
-            new RTCSessionDescription(s.payload as RTCSessionDescriptionInit),
-          );
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          await sendWebrtcSignal({ roomId, toUserId: peerId, type: 'answer', payload: answer });
+            new RTCSessionDescription(s.payload as RTCSessionDescriptionInit)
+          )
+          const answer = await pc.createAnswer()
+          await pc.setLocalDescription(answer)
+          await sendWebrtcSignal({ roomId, toUserId: peerId, type: 'answer', payload: answer })
         } else if (s.type === 'answer') {
           await pc.setRemoteDescription(
-            new RTCSessionDescription(s.payload as RTCSessionDescriptionInit),
-          );
+            new RTCSessionDescription(s.payload as RTCSessionDescriptionInit)
+          )
         } else if (s.type === 'ice') {
-          await pc.addIceCandidate(new RTCIceCandidate(s.payload as RTCIceCandidateInit));
+          await pc.addIceCandidate(new RTCIceCandidate(s.payload as RTCIceCandidateInit))
         } else if (s.type === 'bye') {
-          cleanup();
+          cleanup()
         }
       } catch (err) {
         // 단일 signal 실패 — 로깅만 (통화 전체 끊지 않음)
 
-        if (import.meta.env.DEV) console.warn('[webrtc] signal handle 실패', s.type, err);
+        if (import.meta.env.DEV) console.warn('[webrtc] signal handle 실패', s.type, err)
       }
     },
-    [roomId, peerId, cleanup],
-  );
+    [roomId, peerId, cleanup]
+  )
 
   // handleSignal 을 ref 에 노출 — start() 의 polling interval 이 closure-stable 하게 호출 가능
   useEffect(() => {
-    handleSignalRef.current = handleSignal;
-  }, [handleSignal]);
+    handleSignalRef.current = handleSignal
+  }, [handleSignal])
 
   const hangup = useCallback(async () => {
     try {
-      await sendWebrtcSignal({ roomId, toUserId: peerId, type: 'bye', payload: {} });
+      await sendWebrtcSignal({ roomId, toUserId: peerId, type: 'bye', payload: {} })
     } catch {
       // 통화 종료는 silent
     }
-    cleanup();
-  }, [roomId, peerId, cleanup]);
+    cleanup()
+  }, [roomId, peerId, cleanup])
 
   useEffect(() => {
-    return () => cleanup();
-  }, [cleanup]);
+    return () => cleanup()
+  }, [cleanup])
 
-  return { state, localStream, remoteStream, error, start, hangup };
+  return { state, localStream, remoteStream, error, start, hangup }
 }

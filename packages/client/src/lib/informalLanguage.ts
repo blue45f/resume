@@ -5,17 +5,17 @@
  */
 
 export interface InformalHit {
-  category: 'emoticon' | 'chosung' | 'slang' | 'casual' | 'exclaim';
-  phrase: string;
-  index: number;
-  reason: string;
+  category: 'emoticon' | 'chosung' | 'slang' | 'casual' | 'exclaim'
+  phrase: string
+  index: number
+  reason: string
 }
 
 export interface InformalAnalysis {
-  hits: InformalHit[];
-  count: number;
-  level: 'none' | 'few' | 'many';
-  suggestion: string;
+  hits: InformalHit[]
+  count: number
+  level: 'none' | 'few' | 'many'
+  suggestion: string
 }
 
 const INFORMAL_PATTERNS: Array<{ re: RegExp; category: InformalHit['category']; reason: string }> =
@@ -66,33 +66,33 @@ const INFORMAL_PATTERNS: Array<{ re: RegExp; category: InformalHit['category']; 
       category: 'casual',
       reason: '구어체 강조어. 객관적 표현으로.',
     },
-  ];
+  ]
 
 export function detectInformalLanguage(text: string): InformalAnalysis {
-  const t = text ?? '';
-  const hits: InformalHit[] = [];
+  const t = text ?? ''
+  const hits: InformalHit[] = []
   for (const p of INFORMAL_PATTERNS) {
-    const re = new RegExp(p.re.source, p.re.flags.includes('g') ? p.re.flags : p.re.flags + 'g');
-    let m: RegExpExecArray | null;
+    const re = new RegExp(p.re.source, p.re.flags.includes('g') ? p.re.flags : p.re.flags + 'g')
+    let m: RegExpExecArray | null
     while ((m = re.exec(t))) {
-      hits.push({ category: p.category, phrase: m[0], index: m.index, reason: p.reason });
-      if (hits.length > 50) break;
+      hits.push({ category: p.category, phrase: m[0], index: m.index, reason: p.reason })
+      if (hits.length > 50) break
     }
-    if (hits.length > 50) break;
+    if (hits.length > 50) break
   }
-  hits.sort((a, b) => a.index - b.index);
-  const count = hits.length;
-  let level: InformalAnalysis['level'];
-  let suggestion: string;
+  hits.sort((a, b) => a.index - b.index)
+  const count = hits.length
+  let level: InformalAnalysis['level']
+  let suggestion: string
   if (count === 0) {
-    level = 'none';
-    suggestion = '비격식 표현이 없습니다.';
+    level = 'none'
+    suggestion = '비격식 표현이 없습니다.'
   } else if (count <= 2) {
-    level = 'few';
-    suggestion = `비격식 표현 ${count}건 — "${hits[0].phrase}" 등을 공식 표현으로 교체하세요.`;
+    level = 'few'
+    suggestion = `비격식 표현 ${count}건 — "${hits[0].phrase}" 등을 공식 표현으로 교체하세요.`
   } else {
-    level = 'many';
-    suggestion = `비격식 표현이 ${count}건으로 많습니다. 공식 문서 톤으로 전면 재작성을 권장합니다.`;
+    level = 'many'
+    suggestion = `비격식 표현이 ${count}건으로 많습니다. 공식 문서 톤으로 전면 재작성을 권장합니다.`
   }
-  return { hits: hits.slice(0, 30), count, level, suggestion };
+  return { hits: hits.slice(0, 30), count, level, suggestion }
 }

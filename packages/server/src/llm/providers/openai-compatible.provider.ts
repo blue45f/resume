@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interface';
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+
+import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interface'
 
 /**
  * OpenAI Compatible Provider
@@ -20,32 +21,32 @@ import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interf
  */
 @Injectable()
 export class OpenAiCompatibleProvider implements LlmProvider {
-  readonly name = 'openai-compatible';
-  private readonly baseUrl: string | undefined;
-  private readonly apiKey: string | undefined;
-  private readonly model: string;
-  private readonly logger = new Logger(OpenAiCompatibleProvider.name);
+  readonly name = 'openai-compatible'
+  private readonly baseUrl: string | undefined
+  private readonly apiKey: string | undefined
+  private readonly model: string
+  private readonly logger = new Logger(OpenAiCompatibleProvider.name)
 
   constructor(private config: ConfigService) {
-    this.baseUrl = this.config.get<string>('OPENAI_COMPATIBLE_URL');
-    this.apiKey = this.config.get<string>('OPENAI_COMPATIBLE_KEY');
-    this.model = this.config.get<string>('OPENAI_COMPATIBLE_MODEL') || 'llama3';
+    this.baseUrl = this.config.get<string>('OPENAI_COMPATIBLE_URL')
+    this.apiKey = this.config.get<string>('OPENAI_COMPATIBLE_KEY')
+    this.model = this.config.get<string>('OPENAI_COMPATIBLE_MODEL') || 'llama3'
     if (this.baseUrl) {
       this.logger.log(
-        `OpenAI-compatible provider initialized: ${this.baseUrl} (model: ${this.model})`,
-      );
+        `OpenAI-compatible provider initialized: ${this.baseUrl} (model: ${this.model})`
+      )
     }
   }
 
   get isAvailable(): boolean {
-    return !!this.baseUrl;
+    return !!this.baseUrl
   }
 
   async generate(systemPrompt: string, userMessage: string): Promise<LlmResponse> {
-    if (!this.baseUrl) throw new Error('OPENAI_COMPATIBLE_URL not configured');
+    if (!this.baseUrl) throw new Error('OPENAI_COMPATIBLE_URL not configured')
 
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`
 
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -60,24 +61,24 @@ export class OpenAiCompatibleProvider implements LlmProvider {
         stream: false,
       }),
       signal: AbortSignal.timeout(120000),
-    });
+    })
 
     if (!response.ok) {
-      throw new Error(`OpenAI-compatible API failed: ${response.status}`);
+      throw new Error(`OpenAI-compatible API failed: ${response.status}`)
     }
 
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    const tokensUsed = (data.usage?.prompt_tokens || 0) + (data.usage?.completion_tokens || 0);
+    const data = await response.json()
+    const text = data.choices?.[0]?.message?.content || ''
+    const tokensUsed = (data.usage?.prompt_tokens || 0) + (data.usage?.completion_tokens || 0)
 
-    return { text, tokensUsed, model: this.model, provider: this.name };
+    return { text, tokensUsed, model: this.model, provider: this.name }
   }
 
   async *generateStream(systemPrompt: string, userMessage: string): AsyncGenerator<LlmStreamChunk> {
-    if (!this.baseUrl) throw new Error('OPENAI_COMPATIBLE_URL not configured');
+    if (!this.baseUrl) throw new Error('OPENAI_COMPATIBLE_URL not configured')
 
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (this.apiKey) headers['Authorization'] = `Bearer ${this.apiKey}`
 
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
@@ -92,35 +93,35 @@ export class OpenAiCompatibleProvider implements LlmProvider {
         stream: true,
       }),
       signal: AbortSignal.timeout(120000),
-    });
+    })
 
     if (!response.ok || !response.body) {
-      throw new Error(`OpenAI-compatible streaming failed: ${response.status}`);
+      throw new Error(`OpenAI-compatible streaming failed: ${response.status}`)
     }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let totalTokens = 0;
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let totalTokens = 0
 
     while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      const { done, value } = await reader.read()
+      if (done) break
 
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n').filter((line) => line.startsWith('data: '));
+      const chunk = decoder.decode(value, { stream: true })
+      const lines = chunk.split('\n').filter((line) => line.startsWith('data: '))
 
       for (const line of lines) {
-        const data = line.slice(6);
-        if (data === '[DONE]') continue;
+        const data = line.slice(6)
+        if (data === '[DONE]') continue
 
         try {
-          const parsed = JSON.parse(data);
-          const content = parsed.choices?.[0]?.delta?.content;
+          const parsed = JSON.parse(data)
+          const content = parsed.choices?.[0]?.delta?.content
           if (content) {
-            yield { type: 'delta', text: content };
+            yield { type: 'delta', text: content }
           }
           if (parsed.usage) {
-            totalTokens = (parsed.usage.prompt_tokens || 0) + (parsed.usage.completion_tokens || 0);
+            totalTokens = (parsed.usage.prompt_tokens || 0) + (parsed.usage.completion_tokens || 0)
           }
         } catch {
           // Skip unparseable chunks
@@ -133,6 +134,6 @@ export class OpenAiCompatibleProvider implements LlmProvider {
       tokensUsed: totalTokens,
       model: this.model,
       provider: this.name,
-    };
+    }
   }
 }

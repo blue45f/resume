@@ -1,19 +1,21 @@
-import { useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { useResume } from '@/hooks/useResources';
-import { tx } from '@/lib/i18n';
-import { ROUTES } from '@/lib/routes';
-import type { Resume } from '@/types/resume';
+import { useEffect, useMemo } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+
+import type { Resume } from '@/types/resume'
+
+import Footer from '@/components/Footer'
+import Header from '@/components/Header'
+import { useResume } from '@/hooks/useResources'
+import { tx } from '@/lib/i18n'
+import { ROUTES } from '@/lib/routes'
 
 /** Category weights for score calculation */
 interface ScoreCategory {
-  id: string;
-  label: string;
-  weight: number;
-  icon: string;
-  description: string;
+  id: string
+  label: string
+  weight: number
+  icon: string
+  description: string
 }
 
 const CATEGORIES: ScoreCategory[] = [
@@ -52,13 +54,13 @@ const CATEGORIES: ScoreCategory[] = [
     icon: 'M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z',
     description: 'ATS(지원자추적시스템)가 정보를 잘 읽을 수 있는지 평가합니다',
   },
-];
+]
 
 interface Recommendation {
-  category: string;
-  severity: 'critical' | 'warning' | 'info';
-  message: string;
-  section?: string;
+  category: string
+  severity: 'critical' | 'warning' | 'info'
+  message: string
+  section?: string
 }
 
 function getLetterGrade(score: number): { grade: string; color: string; bg: string } {
@@ -67,62 +69,62 @@ function getLetterGrade(score: number): { grade: string; color: string; bg: stri
       grade: 'A+',
       color: 'text-emerald-700 dark:text-emerald-400',
       bg: 'bg-emerald-100 dark:bg-emerald-900/30',
-    };
+    }
   if (score >= 80)
     return {
       grade: 'A',
       color: 'text-emerald-600 dark:text-emerald-400',
       bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-    };
+    }
   if (score >= 70)
     return {
       grade: 'B+',
       color: 'text-blue-700 dark:text-blue-400',
       bg: 'bg-blue-100 dark:bg-blue-900/30',
-    };
+    }
   if (score >= 60)
     return {
       grade: 'B',
       color: 'text-blue-600 dark:text-blue-400',
       bg: 'bg-blue-50 dark:bg-blue-900/20',
-    };
+    }
   if (score >= 50)
     return {
       grade: 'C+',
       color: 'text-amber-700 dark:text-amber-400',
       bg: 'bg-amber-100 dark:bg-amber-900/30',
-    };
+    }
   if (score >= 40)
     return {
       grade: 'C',
       color: 'text-amber-600 dark:text-amber-400',
       bg: 'bg-amber-50 dark:bg-amber-900/20',
-    };
+    }
   if (score >= 30)
     return {
       grade: 'D',
       color: 'text-orange-600 dark:text-orange-400',
       bg: 'bg-orange-50 dark:bg-orange-900/20',
-    };
+    }
   return {
     grade: 'F',
     color: 'text-red-600 dark:text-red-400',
     bg: 'bg-red-50 dark:bg-red-900/20',
-  };
+  }
 }
 
 function scoreColor(score: number): string {
-  if (score >= 80) return 'text-emerald-600 dark:text-emerald-400';
-  if (score >= 60) return 'text-blue-600 dark:text-blue-400';
-  if (score >= 40) return 'text-amber-600 dark:text-amber-400';
-  return 'text-red-600 dark:text-red-400';
+  if (score >= 80) return 'text-emerald-600 dark:text-emerald-400'
+  if (score >= 60) return 'text-blue-600 dark:text-blue-400'
+  if (score >= 40) return 'text-amber-600 dark:text-amber-400'
+  return 'text-red-600 dark:text-red-400'
 }
 
 function barColor(score: number): string {
-  if (score >= 80) return 'bg-emerald-500';
-  if (score >= 60) return 'bg-blue-500';
-  if (score >= 40) return 'bg-amber-500';
-  return 'bg-red-500';
+  if (score >= 80) return 'bg-emerald-500'
+  if (score >= 60) return 'bg-blue-500'
+  if (score >= 40) return 'bg-amber-500'
+  return 'bg-red-500'
 }
 
 /** Average resume scores (simulated benchmark) */
@@ -132,52 +134,52 @@ const AVERAGE_SCORES: Record<string, number> = {
   format: 55,
   readability: 58,
   ats: 45,
-};
+}
 
 function analyzeResume(resume: Resume): {
-  categoryScores: Record<string, number>;
-  recommendations: Recommendation[];
+  categoryScores: Record<string, number>
+  recommendations: Recommendation[]
 } {
-  const scores: Record<string, number> = {};
-  const recs: Recommendation[] = [];
+  const scores: Record<string, number> = {}
+  const recs: Recommendation[] = []
 
   // 1. Completeness (30%)
-  let completeness = 0;
-  const pi = resume.personalInfo;
-  if (pi.name?.trim()) completeness += 15;
+  let completeness = 0
+  const pi = resume.personalInfo
+  if (pi.name?.trim()) completeness += 15
   else
     recs.push({
       category: 'completeness',
       severity: 'critical',
       message: '이름이 비어 있습니다. 반드시 입력해주세요.',
       section: 'personal',
-    });
-  if (pi.email?.trim()) completeness += 10;
+    })
+  if (pi.email?.trim()) completeness += 10
   else
     recs.push({
       category: 'completeness',
       severity: 'critical',
       message: '이메일 주소를 입력해주세요.',
       section: 'personal',
-    });
-  if (pi.phone?.trim()) completeness += 10;
+    })
+  if (pi.phone?.trim()) completeness += 10
   else
     recs.push({
       category: 'completeness',
       severity: 'warning',
       message: '연락처(전화번호)를 추가하면 채용담당자가 연락하기 쉽습니다.',
       section: 'personal',
-    });
+    })
   if (pi.summary?.trim()) {
-    completeness += 15;
+    completeness += 15
     if (pi.summary.length < 50) {
-      completeness -= 5;
+      completeness -= 5
       recs.push({
         category: 'completeness',
         severity: 'warning',
         message: '자기소개가 너무 짧습니다. 최소 2-3문장으로 작성하세요.',
         section: 'personal',
-      });
+      })
     }
   } else {
     recs.push({
@@ -185,38 +187,38 @@ function analyzeResume(resume: Resume): {
       severity: 'critical',
       message: '자기소개(Professional Summary)를 작성하면 첫인상을 크게 높일 수 있습니다.',
       section: 'personal',
-    });
+    })
   }
-  if (resume.experiences.length > 0) completeness += 20;
+  if (resume.experiences.length > 0) completeness += 20
   else
     recs.push({
       category: 'completeness',
       severity: 'critical',
       message: '경력사항을 최소 1개 이상 추가해주세요.',
       section: 'experience',
-    });
-  if (resume.educations.length > 0) completeness += 10;
+    })
+  if (resume.educations.length > 0) completeness += 10
   else
     recs.push({
       category: 'completeness',
       severity: 'warning',
       message: '학력사항을 추가하면 완성도가 높아집니다.',
       section: 'education',
-    });
-  if (resume.skills.length > 0) completeness += 10;
+    })
+  if (resume.skills.length > 0) completeness += 10
   else
     recs.push({
       category: 'completeness',
       severity: 'warning',
       message: '보유 기술을 추가하면 키워드 매칭률이 높아집니다.',
       section: 'skills',
-    });
-  if (resume.projects.length > 0) completeness += 5;
-  if (resume.certifications.length > 0) completeness += 5;
-  scores.completeness = Math.min(100, completeness);
+    })
+  if (resume.projects.length > 0) completeness += 5
+  if (resume.certifications.length > 0) completeness += 5
+  scores.completeness = Math.min(100, completeness)
 
   // 2. Keywords (20%)
-  let keywords = 0;
+  let keywords = 0
   const allText = [
     pi.summary,
     pi.name,
@@ -233,8 +235,8 @@ function analyzeResume(resume: Resume): {
   ]
     .filter(Boolean)
     .join(' ')
-    .toLowerCase();
-  const textLength = allText.length;
+    .toLowerCase()
+  const textLength = allText.length
   // Check for action words (Korean & English)
   const actionWords = [
     '개발',
@@ -256,19 +258,19 @@ function analyzeResume(resume: Resume): {
     'led',
     'managed',
     'analyzed',
-  ];
-  const actionCount = actionWords.filter((w) => allText.includes(w)).length;
-  keywords += Math.min(40, actionCount * 8);
+  ]
+  const actionCount = actionWords.filter((w) => allText.includes(w)).length
+  keywords += Math.min(40, actionCount * 8)
   // Check for quantifiable results
-  const hasNumbers = /\d+%|\d+억|\d+만|\d+배|\d+건/.test(allText);
-  if (hasNumbers) keywords += 30;
+  const hasNumbers = /\d+%|\d+억|\d+만|\d+배|\d+건/.test(allText)
+  if (hasNumbers) keywords += 30
   else
     recs.push({
       category: 'keywords',
       severity: 'warning',
       message: '성과를 수치로 표현하면 설득력이 높아집니다. (예: "매출 30% 증가", "비용 20% 절감")',
       section: 'experience',
-    });
+    })
   // Check for tech stack keywords
   const techKeywords = [
     'react',
@@ -281,167 +283,167 @@ function analyzeResume(resume: Resume): {
     'typescript',
     'javascript',
     'kubernetes',
-  ];
-  const techCount = techKeywords.filter((k) => allText.includes(k)).length;
-  keywords += Math.min(30, techCount * 6);
+  ]
+  const techCount = techKeywords.filter((k) => allText.includes(k)).length
+  keywords += Math.min(30, techCount * 6)
   if (techCount === 0 && resume.skills.length === 0) {
     recs.push({
       category: 'keywords',
       severity: 'info',
       message: '기술 스택 키워드를 경력 설명이나 기술 섹션에 포함하세요.',
       section: 'skills',
-    });
+    })
   }
-  scores.keywords = Math.min(100, keywords);
+  scores.keywords = Math.min(100, keywords)
 
   // 3. Format (15%)
-  let format = 50; // base
+  let format = 50 // base
   // Check description lengths
-  const expDescriptions = resume.experiences.map((e) => (e.description || '').length);
-  const hasLongDesc = expDescriptions.some((l) => l > 300);
-  const hasShortDesc = expDescriptions.some((l) => l > 0 && l < 30);
+  const expDescriptions = resume.experiences.map((e) => (e.description || '').length)
+  const hasLongDesc = expDescriptions.some((l) => l > 300)
+  const hasShortDesc = expDescriptions.some((l) => l > 0 && l < 30)
   if (hasLongDesc) {
-    format -= 10;
+    format -= 10
     recs.push({
       category: 'format',
       severity: 'info',
       message:
         '경력 설명이 너무 길면 핵심을 놓칠 수 있습니다. 3-5개 핵심 불릿 포인트로 정리하세요.',
-    });
+    })
   }
   if (hasShortDesc) {
-    format -= 10;
+    format -= 10
     recs.push({
       category: 'format',
       severity: 'warning',
       message: '경력 설명이 너무 짧습니다. 구체적인 업무와 성과를 추가해주세요.',
       section: 'experience',
-    });
+    })
   }
   // Check date consistency
-  const hasDates = resume.experiences.every((e) => e.startDate);
-  if (hasDates) format += 15;
+  const hasDates = resume.experiences.every((e) => e.startDate)
+  if (hasDates) format += 15
   else
     recs.push({
       category: 'format',
       severity: 'warning',
       message: '경력 기간(시작일)을 모두 입력해주세요.',
       section: 'experience',
-    });
+    })
   // Title present
-  if (resume.title?.trim()) format += 10;
+  if (resume.title?.trim()) format += 10
   // Consistent skill categories
-  if (resume.skills.length > 0 && resume.skills.every((s) => s.category?.trim())) format += 15;
+  if (resume.skills.length > 0 && resume.skills.every((s) => s.category?.trim())) format += 15
   else if (resume.skills.length > 0)
     recs.push({
       category: 'format',
       severity: 'info',
       message: '기술 항목에 카테고리(예: Frontend, Backend)를 지정하면 가독성이 좋아집니다.',
       section: 'skills',
-    });
+    })
   // Overall text volume
-  if (textLength > 500) format += 10;
-  scores.format = Math.min(100, Math.max(0, format));
+  if (textLength > 500) format += 10
+  scores.format = Math.min(100, Math.max(0, format))
 
   // 4. Readability (15%)
-  let readability = 50;
+  let readability = 50
   // Summary length check
-  const summaryLen = (pi.summary || '').length;
-  if (summaryLen >= 80 && summaryLen <= 300) readability += 20;
+  const summaryLen = (pi.summary || '').length
+  if (summaryLen >= 80 && summaryLen <= 300) readability += 20
   else if (summaryLen > 300) {
-    readability += 5;
+    readability += 5
     recs.push({
       category: 'readability',
       severity: 'info',
       message: '자기소개를 150-250자 내외로 간결하게 작성하면 읽기 편합니다.',
       section: 'personal',
-    });
+    })
   }
   // Number of experiences (sweet spot: 2-5)
-  const expCount = resume.experiences.length;
-  if (expCount >= 2 && expCount <= 5) readability += 15;
+  const expCount = resume.experiences.length
+  if (expCount >= 2 && expCount <= 5) readability += 15
   else if (expCount > 5) {
-    readability += 5;
+    readability += 5
     recs.push({
       category: 'readability',
       severity: 'info',
       message: '경력이 많다면 최근 5개 위주로 상세히 작성하고 나머지는 간략하게 정리하세요.',
-    });
+    })
   }
   // Skills categorized
-  if (resume.skills.length >= 2) readability += 15;
+  if (resume.skills.length >= 2) readability += 15
   // Address present (location matters)
-  if (pi.address?.trim()) readability += 5;
+  if (pi.address?.trim()) readability += 5
   // Website/GitHub links
-  if (pi.website?.trim() || pi.github?.trim()) readability += 5;
+  if (pi.website?.trim() || pi.github?.trim()) readability += 5
   // Projects add depth
-  if (resume.projects.length > 0) readability += 10;
-  scores.readability = Math.min(100, readability);
+  if (resume.projects.length > 0) readability += 10
+  scores.readability = Math.min(100, readability)
 
   // 5. ATS Compatibility (20%)
-  let ats = 40;
+  let ats = 40
   // Standard sections present
-  if (pi.name?.trim() && pi.email?.trim()) ats += 15;
-  if (resume.experiences.length > 0) ats += 10;
-  if (resume.educations.length > 0) ats += 5;
-  if (resume.skills.length > 0) ats += 10;
+  if (pi.name?.trim() && pi.email?.trim()) ats += 15
+  if (resume.experiences.length > 0) ats += 10
+  if (resume.educations.length > 0) ats += 5
+  if (resume.skills.length > 0) ats += 10
   // No special characters in key fields
-  const hasSpecialChars = /[^\w\s가-힣ㄱ-ㅎㅏ-ㅣ@.+\-,()/:;#&]/.test(pi.name + pi.email);
-  if (!hasSpecialChars) ats += 5;
+  const hasSpecialChars = /[^\w\s가-힣ㄱ-ㅎㅏ-ㅣ@.+\-,()/:;#&]/.test(pi.name + pi.email)
+  if (!hasSpecialChars) ats += 5
   else
     recs.push({
       category: 'ats',
       severity: 'warning',
       message: '이름이나 이메일에 특수문자가 있으면 ATS가 인식하지 못할 수 있습니다.',
       section: 'personal',
-    });
+    })
   // Plain text descriptions (no excessive formatting)
-  const hasHtmlTags = /<[^>]+>/.test(allText);
-  if (!hasHtmlTags) ats += 10;
+  const hasHtmlTags = /<[^>]+>/.test(allText)
+  if (!hasHtmlTags) ats += 10
   // Clear job titles
-  const hasPositions = resume.experiences.every((e) => e.position?.trim());
-  if (hasPositions) ats += 5;
+  const hasPositions = resume.experiences.every((e) => e.position?.trim())
+  if (hasPositions) ats += 5
   else
     recs.push({
       category: 'ats',
       severity: 'warning',
       message: '모든 경력 항목에 직책/직위를 명시해주세요. ATS가 경력을 정확히 파악합니다.',
       section: 'experience',
-    });
-  scores.ats = Math.min(100, ats);
+    })
+  scores.ats = Math.min(100, ats)
 
-  return { categoryScores: scores, recommendations: recs };
+  return { categoryScores: scores, recommendations: recs }
 }
 
 export default function ResumeReviewPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { data, isLoading: loading, error: queryError } = useResume(id);
-  const resume: Resume | null = (data as Resume | undefined) ?? null;
-  const error = !!queryError;
+  const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const { data, isLoading: loading, error: queryError } = useResume(id)
+  const resume: Resume | null = (data as Resume | undefined) ?? null
+  const error = !!queryError
 
   useEffect(() => {
-    document.title = '이력서 리뷰 -- 이력서공방';
+    document.title = '이력서 리뷰 -- 이력서공방'
     return () => {
-      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼';
-    };
-  }, []);
+      document.title = '이력서공방 - AI 기반 이력서 관리 플랫폼'
+    }
+  }, [])
 
-  const analysis = useMemo(() => (resume ? analyzeResume(resume) : null), [resume]);
+  const analysis = useMemo(() => (resume ? analyzeResume(resume) : null), [resume])
 
   const overallScore = useMemo(() => {
-    if (!analysis) return 0;
+    if (!analysis) return 0
     return Math.round(
-      CATEGORIES.reduce((sum, cat) => sum + (analysis.categoryScores[cat.id] || 0) * cat.weight, 0),
-    );
-  }, [analysis]);
+      CATEGORIES.reduce((sum, cat) => sum + (analysis.categoryScores[cat.id] || 0) * cat.weight, 0)
+    )
+  }, [analysis])
 
-  const grade = useMemo(() => getLetterGrade(overallScore), [overallScore]);
+  const grade = useMemo(() => getLetterGrade(overallScore), [overallScore])
 
   const averageOverall = useMemo(
     () => Math.round(CATEGORIES.reduce((sum, cat) => sum + AVERAGE_SCORES[cat.id] * cat.weight, 0)),
-    [],
-  );
+    []
+  )
 
   if (loading) {
     return (
@@ -464,7 +466,7 @@ export default function ResumeReviewPage() {
         </main>
         <Footer />
       </>
-    );
+    )
   }
 
   if (error || !resume || !analysis) {
@@ -485,13 +487,13 @@ export default function ResumeReviewPage() {
           </div>
         </main>
       </>
-    );
+    )
   }
 
   const sortedRecs = [...analysis.recommendations].sort((a, b) => {
-    const order = { critical: 0, warning: 1, info: 2 };
-    return order[a.severity] - order[b.severity];
-  });
+    const order = { critical: 0, warning: 1, info: 2 }
+    return order[a.severity] - order[b.severity]
+  })
 
   const sectionMap: Record<string, string> = {
     personal: '인적사항',
@@ -499,7 +501,7 @@ export default function ResumeReviewPage() {
     education: '학력',
     skills: '기술',
     projects: '프로젝트',
-  };
+  }
 
   return (
     <>
@@ -623,9 +625,9 @@ export default function ResumeReviewPage() {
         </h2>
         <div className="stagger-children grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {CATEGORIES.map((cat) => {
-            const score = analysis.categoryScores[cat.id] || 0;
-            const avg = AVERAGE_SCORES[cat.id];
-            const diff = score - avg;
+            const score = analysis.categoryScores[cat.id] || 0
+            const avg = AVERAGE_SCORES[cat.id]
+            const diff = score - avg
             return (
               <div
                 key={cat.id}
@@ -682,7 +684,7 @@ export default function ResumeReviewPage() {
                   {cat.description}
                 </p>
               </div>
-            );
+            )
           })}
         </div>
 
@@ -731,8 +733,8 @@ export default function ResumeReviewPage() {
                   icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
                   iconColor: 'text-blue-500',
                 },
-              };
-              const config = severityConfig[rec.severity];
+              }
+              const config = severityConfig[rec.severity]
               return (
                 <div
                   key={idx}
@@ -769,7 +771,7 @@ export default function ResumeReviewPage() {
                     </Link>
                   )}
                 </div>
-              );
+              )
             })}
           </div>
         )}
@@ -792,5 +794,5 @@ export default function ResumeReviewPage() {
       </main>
       <Footer />
     </>
-  );
+  )
 }

@@ -7,22 +7,22 @@
  * 관련 타입: RedFlag, RedFlagReport.
  */
 
-export type RedFlagSeverity = 'high' | 'medium' | 'low';
+export type RedFlagSeverity = 'high' | 'medium' | 'low'
 
 export interface RedFlag {
-  matched: string;
-  category: string;
-  severity: RedFlagSeverity;
-  reason: string;
+  matched: string
+  category: string
+  severity: RedFlagSeverity
+  reason: string
 }
 
 export interface RedFlagReport {
-  flags: RedFlag[];
-  highCount: number;
-  mediumCount: number;
-  lowCount: number;
-  riskLevel: 'high' | 'moderate' | 'low' | 'clean';
-  summary: string;
+  flags: RedFlag[]
+  highCount: number
+  mediumCount: number
+  lowCount: number
+  riskLevel: 'high' | 'moderate' | 'low' | 'clean'
+  summary: string
 }
 
 // ---------------------------------------------------------------------------
@@ -30,10 +30,10 @@ export interface RedFlagReport {
 // ---------------------------------------------------------------------------
 
 interface RedFlagPattern {
-  re: RegExp;
-  category: string;
-  severity: RedFlagSeverity;
-  reason: string;
+  re: RegExp
+  category: string
+  severity: RedFlagSeverity
+  reason: string
 }
 
 const RED_FLAG_PATTERNS: RedFlagPattern[] = [
@@ -140,7 +140,7 @@ const RED_FLAG_PATTERNS: RedFlagPattern[] = [
     severity: 'medium',
     reason: '근무지 변경 조건이 포함되어 있음 — 구체적 범위와 사전 통보 기간 확인 필요',
   },
-];
+]
 
 // ---------------------------------------------------------------------------
 // Main analysis
@@ -150,7 +150,7 @@ const RED_FLAG_PATTERNS: RedFlagPattern[] = [
  * JD 텍스트에서 레드플래그 신호를 감지하고 위험도를 평가.
  */
 export function detectJdRedFlags(text: string): RedFlagReport {
-  const t = text ?? '';
+  const t = text ?? ''
 
   if (!t.trim()) {
     return {
@@ -160,7 +160,7 @@ export function detectJdRedFlags(text: string): RedFlagReport {
       lowCount: 0,
       riskLevel: 'clean',
       summary: '채용공고 내용을 입력하면 주의 신호를 분석합니다.',
-    };
+    }
   }
 
   const flags: RedFlag[] = RED_FLAG_PATTERNS.filter(({ re }) => re.test(t)).map(
@@ -169,22 +169,22 @@ export function detectJdRedFlags(text: string): RedFlagReport {
       category,
       severity,
       reason,
-    }),
-  );
+    })
+  )
 
-  const highCount = flags.filter((f) => f.severity === 'high').length;
-  const mediumCount = flags.filter((f) => f.severity === 'medium').length;
-  const lowCount = flags.filter((f) => f.severity === 'low').length;
+  const highCount = flags.filter((f) => f.severity === 'high').length
+  const mediumCount = flags.filter((f) => f.severity === 'medium').length
+  const lowCount = flags.filter((f) => f.severity === 'low').length
 
-  let riskLevel: RedFlagReport['riskLevel'];
+  let riskLevel: RedFlagReport['riskLevel']
   if (highCount >= 2 || (highCount >= 1 && mediumCount >= 2)) {
-    riskLevel = 'high';
+    riskLevel = 'high'
   } else if (highCount >= 1 || mediumCount >= 2) {
-    riskLevel = 'moderate';
+    riskLevel = 'moderate'
   } else if (flags.length > 0) {
-    riskLevel = 'low';
+    riskLevel = 'low'
   } else {
-    riskLevel = 'clean';
+    riskLevel = 'clean'
   }
 
   const summary =
@@ -194,7 +194,7 @@ export function detectJdRedFlags(text: string): RedFlagReport {
         ? `주의할 표현이 발견되었습니다. 면접 시 구체적인 조건을 확인하세요.`
         : riskLevel === 'low'
           ? `경미한 주의 신호가 있습니다. 궁금한 점은 면접 시 질문하세요.`
-          : '명시적인 레드플래그 신호가 감지되지 않았습니다.';
+          : '명시적인 레드플래그 신호가 감지되지 않았습니다.'
 
-  return { flags, highCount, mediumCount, lowCount, riskLevel, summary };
+  return { flags, highCount, mediumCount, lowCount, riskLevel, summary }
 }

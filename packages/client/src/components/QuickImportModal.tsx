@@ -1,67 +1,69 @@
-import { useState } from 'react';
-import * as RadixDialog from '@radix-ui/react-dialog';
-import { toast } from '@/components/Toast';
-import { API_URL } from '@/lib/config';
-import { getErrorMessage } from '@/lib/errorMessage';
+import * as RadixDialog from '@radix-ui/react-dialog'
+import { useState } from 'react'
+
+import { toast } from '@/components/Toast'
+import { API_URL } from '@/lib/config'
+import { getErrorMessage } from '@/lib/errorMessage'
+import { httpClient } from '@/lib/ky'
 
 interface CreatedResumeResponse {
-  id?: string;
-  data?: { id?: string };
+  id?: string
+  data?: { id?: string }
 }
 
 interface Props {
-  onClose: () => void;
-  onSuccess: (resumeId: string) => void;
+  onClose: () => void
+  onSuccess: (resumeId: string) => void
 }
 
 export default function QuickImportModal({ onClose, onSuccess }: Props) {
-  const [text, setText] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [text, setText] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleImport = async () => {
     if (text.trim().length < 50) {
-      toast('최소 50자 이상의 텍스트를 입력해주세요', 'error');
-      return;
+      toast('최소 50자 이상의 텍스트를 입력해주세요', 'error')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const token = localStorage.getItem('token')
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
 
-      const previewRes = await fetch(`${API_URL}/api/auto-generate/preview`, {
+      const previewRes = await httpClient(`${API_URL}/api/auto-generate/preview`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ text }),
-      });
-      if (!previewRes.ok) throw new Error('텍스트 분석에 실패했습니다');
-      await previewRes.json();
+      })
+      if (!previewRes.ok) throw new Error('텍스트 분석에 실패했습니다')
+      await previewRes.json()
 
-      const createRes = await fetch(`${API_URL}/api/auto-generate/create`, {
+      const createRes = await httpClient(`${API_URL}/api/auto-generate/create`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ text }),
-      });
-      if (!createRes.ok) throw new Error('이력서 생성에 실패했습니다');
-      const created = (await createRes.json()) as CreatedResumeResponse;
-      const resumeId = created.id || created.data?.id;
-      if (!resumeId) throw new Error('생성된 이력서 ID를 확인할 수 없습니다');
+      })
+      if (!createRes.ok) throw new Error('이력서 생성에 실패했습니다')
+      const created = (await createRes.json()) as CreatedResumeResponse
+      const resumeId = created.id || created.data?.id
+      if (!resumeId) throw new Error('생성된 이력서 ID를 확인할 수 없습니다')
 
-      toast('이력서가 생성되었습니다!', 'success');
-      onSuccess(resumeId);
+      toast('이력서가 생성되었습니다!', 'success')
+      onSuccess(resumeId)
     } catch (e) {
-      toast(getErrorMessage(e, '가져오기에 실패했습니다'), 'error');
+      toast(getErrorMessage(e, '가져오기에 실패했습니다'), 'error')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <RadixDialog.Root
       open
       onOpenChange={(o) => {
-        if (!o) onClose();
+        if (!o) onClose()
       }}
     >
       <RadixDialog.Portal>
@@ -132,5 +134,5 @@ export default function QuickImportModal({ onClose, onSuccess }: Props) {
         </RadixDialog.Content>
       </RadixDialog.Portal>
     </RadixDialog.Root>
-  );
+  )
 }

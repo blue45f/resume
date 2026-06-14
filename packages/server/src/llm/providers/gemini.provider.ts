@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interface';
+import { Injectable, Logger } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
+
+import { LlmProvider, LlmResponse, LlmStreamChunk } from '../llm-provider.interface'
 
 /**
  * Google Gemini Provider (무료)
@@ -23,54 +24,54 @@ const SAFETY_SETTINGS = [
   { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
   { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
   { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-];
+]
 
 @Injectable()
 export class GeminiProvider implements LlmProvider {
-  readonly name = 'gemini';
-  private readonly apiKey: string | undefined;
-  private readonly model: string;
+  readonly name = 'gemini'
+  private readonly apiKey: string | undefined
+  private readonly model: string
   /** Optional secondary model to retry once with on persistent server errors. */
-  private readonly fallbackModel: string | undefined;
-  private readonly timeoutMs: number;
-  private readonly maxOutputTokens: number;
-  private readonly logger = new Logger(GeminiProvider.name);
+  private readonly fallbackModel: string | undefined
+  private readonly timeoutMs: number
+  private readonly maxOutputTokens: number
+  private readonly logger = new Logger(GeminiProvider.name)
 
   constructor(private config: ConfigService) {
-    this.apiKey = this.config.get<string>('GEMINI_API_KEY');
-    this.model = this.config.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash';
+    this.apiKey = this.config.get<string>('GEMINI_API_KEY')
+    this.model = this.config.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash'
     // Optional fallback model (e.g. gemini-1.5-flash) tried once if the primary
     // model keeps failing — keeps AI available during a model-specific outage.
-    this.fallbackModel = this.config.get<string>('GEMINI_FALLBACK_MODEL') || undefined;
-    this.timeoutMs = Number(this.config.get('GEMINI_TIMEOUT_MS')) || 60000;
-    this.maxOutputTokens = Number(this.config.get('GEMINI_MAX_OUTPUT_TOKENS')) || 4096;
+    this.fallbackModel = this.config.get<string>('GEMINI_FALLBACK_MODEL') || undefined
+    this.timeoutMs = Number(this.config.get('GEMINI_TIMEOUT_MS')) || 60000
+    this.maxOutputTokens = Number(this.config.get('GEMINI_MAX_OUTPUT_TOKENS')) || 4096
     if (this.apiKey) {
       this.logger.log(
         `Gemini provider initialized (model: ${this.model}${
           this.fallbackModel ? `, fallback: ${this.fallbackModel}` : ''
-        })`,
-      );
+        })`
+      )
     }
   }
 
   get isAvailable(): boolean {
-    return !!this.apiKey;
+    return !!this.apiKey
   }
 
   async generate(systemPrompt: string, userMessage: string): Promise<LlmResponse> {
-    if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured');
+    if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured')
 
     try {
-      return await this.generateOnce(this.model, systemPrompt, userMessage);
+      return await this.generateOnce(this.model, systemPrompt, userMessage)
     } catch (primaryError) {
       // Model-level fallback: if a secondary model is configured, try it once.
       if (this.fallbackModel && this.fallbackModel !== this.model) {
         this.logger.warn(
-          `Gemini primary model '${this.model}' failed, trying fallback '${this.fallbackModel}'`,
-        );
-        return await this.generateOnce(this.fallbackModel, systemPrompt, userMessage);
+          `Gemini primary model '${this.model}' failed, trying fallback '${this.fallbackModel}'`
+        )
+        return await this.generateOnce(this.fallbackModel, systemPrompt, userMessage)
       }
-      throw primaryError;
+      throw primaryError
     }
   }
 
@@ -78,17 +79,17 @@ export class GeminiProvider implements LlmProvider {
   private async generateOnce(
     model: string,
     systemPrompt: string,
-    userMessage: string,
+    userMessage: string
   ): Promise<LlmResponse> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`
     const body = JSON.stringify({
       system_instruction: { parts: [{ text: systemPrompt }] },
       contents: [{ parts: [{ text: userMessage }] }],
       safetySettings: SAFETY_SETTINGS,
       generationConfig: { maxOutputTokens: this.maxOutputTokens },
-    });
+    })
 
-    let lastError: Error | null = null;
+    let lastError: Error | null = null
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const res = await fetch(url, {
@@ -96,41 +97,41 @@ export class GeminiProvider implements LlmProvider {
           headers: { 'Content-Type': 'application/json' },
           body,
           signal: AbortSignal.timeout(this.timeoutMs),
-        });
+        })
 
         if (!res.ok) {
-          const err = await res.text().catch(() => '');
+          const err = await res.text().catch(() => '')
           if ((res.status === 429 || res.status >= 500) && attempt < 2) {
-            this.logger.warn(`Gemini ${res.status}, retry ${attempt + 1}/2`);
-            await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-            continue;
+            this.logger.warn(`Gemini ${res.status}, retry ${attempt + 1}/2`)
+            await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+            continue
           }
-          throw new Error(`Gemini API error: ${res.status} ${err.slice(0, 200)}`);
+          throw new Error(`Gemini API error: ${res.status} ${err.slice(0, 200)}`)
         }
 
-        const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const data = await res.json()
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
         // Surface safety/recitation blocks as retryable errors instead of
         // returning empty text (which would silently produce a broken result).
         if (!text) {
           const reason =
-            data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason || 'EMPTY';
-          throw new Error(`Gemini returned no text (finishReason: ${reason})`);
+            data.candidates?.[0]?.finishReason || data.promptFeedback?.blockReason || 'EMPTY'
+          throw new Error(`Gemini returned no text (finishReason: ${reason})`)
         }
-        const usage = data.usageMetadata || {};
-        const tokensUsed = (usage.promptTokenCount || 0) + (usage.candidatesTokenCount || 0);
+        const usage = data.usageMetadata || {}
+        const tokensUsed = (usage.promptTokenCount || 0) + (usage.candidatesTokenCount || 0)
 
-        return { text, tokensUsed, model, provider: this.name };
+        return { text, tokensUsed, model, provider: this.name }
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
+        lastError = error instanceof Error ? error : new Error(String(error))
         if (attempt < 2 && lastError.name !== 'AbortError') {
-          this.logger.warn(`Gemini error, retry ${attempt + 1}/2: ${lastError.message}`);
-          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-          continue;
+          this.logger.warn(`Gemini error, retry ${attempt + 1}/2: ${lastError.message}`)
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
+          continue
         }
       }
     }
-    throw lastError || new Error('Gemini: max retries exceeded');
+    throw lastError || new Error('Gemini: max retries exceeded')
   }
 
   /**
@@ -138,9 +139,9 @@ export class GeminiProvider implements LlmProvider {
    * imageBuffer 는 base64 로 변환되어 inline_data 로 전송. 5MB 이내 권장.
    */
   async extractImageText(imageBuffer: Buffer, mimeType: string): Promise<string> {
-    if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured');
+    if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured')
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`
     const body = JSON.stringify({
       contents: [
         {
@@ -159,28 +160,28 @@ export class GeminiProvider implements LlmProvider {
       ],
       safetySettings: SAFETY_SETTINGS,
       generationConfig: { maxOutputTokens: this.maxOutputTokens },
-    });
+    })
 
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body,
       signal: AbortSignal.timeout(this.timeoutMs),
-    });
+    })
 
     if (!res.ok) {
-      const err = await res.text().catch(() => '');
-      throw new Error(`Gemini Vision error: ${res.status} ${err.slice(0, 200)}`);
+      const err = await res.text().catch(() => '')
+      throw new Error(`Gemini Vision error: ${res.status} ${err.slice(0, 200)}`)
     }
 
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const data = await res.json()
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
   }
 
   async *generateStream(systemPrompt: string, userMessage: string): AsyncGenerator<LlmStreamChunk> {
-    if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured');
+    if (!this.apiKey) throw new Error('GEMINI_API_KEY not configured')
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:streamGenerateContent?alt=sse&key=${this.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:streamGenerateContent?alt=sse&key=${this.apiKey}`
 
     const res = await fetch(url, {
       method: 'POST',
@@ -192,37 +193,37 @@ export class GeminiProvider implements LlmProvider {
         generationConfig: { maxOutputTokens: this.maxOutputTokens },
       }),
       signal: AbortSignal.timeout(this.timeoutMs),
-    });
+    })
 
     if (!res.ok || !res.body) {
-      throw new Error(`Gemini stream error: ${res.status}`);
+      throw new Error(`Gemini stream error: ${res.status}`)
     }
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let totalTokens = 0;
-    let buffer = '';
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let totalTokens = 0
+    let buffer = ''
 
     while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+      const { done, value } = await reader.read()
+      if (done) break
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || ''
 
       for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
+        if (!line.startsWith('data: ')) continue
         try {
-          const data = JSON.parse(line.slice(6));
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const data = JSON.parse(line.slice(6))
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text
           if (text) {
-            yield { type: 'delta', text };
+            yield { type: 'delta', text }
           }
           if (data.usageMetadata) {
             totalTokens =
               (data.usageMetadata.promptTokenCount || 0) +
-              (data.usageMetadata.candidatesTokenCount || 0);
+              (data.usageMetadata.candidatesTokenCount || 0)
           }
         } catch {
           /* skip */
@@ -230,6 +231,6 @@ export class GeminiProvider implements LlmProvider {
       }
     }
 
-    yield { type: 'done', tokensUsed: totalTokens, model: this.model, provider: this.name };
+    yield { type: 'done', tokensUsed: totalTokens, model: this.model, provider: this.name }
   }
 }

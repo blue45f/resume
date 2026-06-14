@@ -1,33 +1,34 @@
-import type { JobApplication } from './api';
-import { buildCompanyResearchBrief } from './applicationCompanyResearch';
-import { buildStageCommunicationTemplates } from './applicationCommunication';
-import { scoreApplicationReadiness } from './applicationReadinessScore';
-import { buildApplicationStageGuidance } from './applicationStageGuidance';
+import { buildStageCommunicationTemplates } from './applicationCommunication'
+import { buildCompanyResearchBrief } from './applicationCompanyResearch'
+import { scoreApplicationReadiness } from './applicationReadinessScore'
+import { buildApplicationStageGuidance } from './applicationStageGuidance'
 
-const normalizeText = (value?: string | null, fallback = '') => value?.trim() || fallback;
+import type { JobApplication } from './api'
+
+const normalizeText = (value?: string | null, fallback = '') => value?.trim() || fallback
 
 const compact = (value?: string | null, maxLength = 420) => {
-  const text = normalizeText(value).replace(/\s+/g, ' ');
-  if (text.length <= maxLength) return text;
-  return `${text.slice(0, maxLength - 3).trim()}...`;
-};
+  const text = normalizeText(value).replace(/\s+/g, ' ')
+  if (text.length <= maxLength) return text
+  return `${text.slice(0, maxLength - 3).trim()}...`
+}
 
-const checkbox = (complete: boolean) => (complete ? '[x]' : '[ ]');
+const checkbox = (complete: boolean) => (complete ? '[x]' : '[ ]')
 
 const bullet = (label: string, value?: string | null) =>
-  value ? `- **${label}:** ${value}` : `- **${label}:** -`;
+  value ? `- **${label}:** ${value}` : `- **${label}:** -`
 
 export const buildApplicationPacketSnapshot = (application: JobApplication, now = new Date()) => {
-  const readiness = scoreApplicationReadiness(application, now);
-  const research = buildCompanyResearchBrief(application);
-  const guidance = buildApplicationStageGuidance(application, now);
-  const communications = buildStageCommunicationTemplates(application, now);
-  const notes = compact(application.notes);
+  const readiness = scoreApplicationReadiness(application, now)
+  const research = buildCompanyResearchBrief(application)
+  const guidance = buildApplicationStageGuidance(application, now)
+  const communications = buildStageCommunicationTemplates(application, now)
+  const notes = compact(application.notes)
 
   return [
     `# ${normalizeText(application.company, '지원 기업')} · ${normalizeText(
       application.position,
-      '지원 포지션',
+      '지원 포지션'
     )}`,
     '',
     bullet('상태', application.status),
@@ -42,7 +43,7 @@ export const buildApplicationPacketSnapshot = (application: JobApplication, now 
     `- **점수:** ${readiness.score}/100 (${readiness.label})`,
     `- **다음 액션:** ${readiness.nextAction}`,
     ...readiness.checks.map(
-      (check) => `- ${checkbox(check.complete)} ${check.label}: ${check.detail}`,
+      (check) => `- ${checkbox(check.complete)} ${check.label}: ${check.detail}`
     ),
     '',
     '## 회사 리서치',
@@ -50,7 +51,7 @@ export const buildApplicationPacketSnapshot = (application: JobApplication, now 
     `- **점수:** ${research.score}/100 (${research.label})`,
     `- **다음 액션:** ${research.nextAction}`,
     ...research.checks.map(
-      (check) => `- ${checkbox(check.complete)} ${check.label}: ${check.detail}`,
+      (check) => `- ${checkbox(check.complete)} ${check.label}: ${check.detail}`
     ),
     '',
     '## 단계 가이드',
@@ -66,22 +67,22 @@ export const buildApplicationPacketSnapshot = (application: JobApplication, now 
     '## 메모',
     '',
     notes || '-',
-  ].join('\n');
-};
+  ].join('\n')
+}
 
 export const getApplicationPacketSnapshotFileName = (application: JobApplication) => {
   const base =
     [application.company, application.position]
       .map((value) => normalizeText(value))
       .filter(Boolean)
-      .join('-') || 'application';
+      .join('-') || 'application'
   const safeBase = base
     .normalize('NFKC')
     .replace(/[\\/:*?"<>|]+/g, '-')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
-    .slice(0, 80);
+    .slice(0, 80)
 
-  return `${safeBase || 'application'}-packet.md`;
-};
+  return `${safeBase || 'application'}-packet.md`
+}

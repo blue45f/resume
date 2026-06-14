@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const bookingSchema = z.object({
   scheduledAt: z
@@ -13,10 +13,10 @@ export const bookingSchema = z.object({
     .max(240, '최대 240분까지 가능합니다'),
   note: z.string().max(1000, '요청사항은 최대 1000자까지 입력 가능합니다').optional(),
   resumeId: z.string().optional().or(z.literal('')),
-});
+})
 
-export type BookingFormInput = z.input<typeof bookingSchema>;
-export type BookingFormOutput = z.output<typeof bookingSchema>;
+export type BookingFormInput = z.input<typeof bookingSchema>
+export type BookingFormOutput = z.output<typeof bookingSchema>
 
 export const coachProfileSchema = z.object({
   specialty: z
@@ -41,7 +41,7 @@ export const coachProfileSchema = z.object({
     .optional()
     .or(z.literal('')),
   isActive: z.boolean().optional(),
-});
+})
 
-export type CoachProfileFormInput = z.input<typeof coachProfileSchema>;
-export type CoachProfileFormOutput = z.output<typeof coachProfileSchema>;
+export type CoachProfileFormInput = z.input<typeof coachProfileSchema>
+export type CoachProfileFormOutput = z.output<typeof coachProfileSchema>

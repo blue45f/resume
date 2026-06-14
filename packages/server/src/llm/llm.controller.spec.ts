@@ -1,15 +1,18 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { LlmController } from './llm.controller';
-import { LlmService } from './llm.service';
-import { UsageService } from '../health/usage.service';
-import { SystemConfigService } from '../system-config/system-config.service';
-import type { TransformResumeDto } from './dto/transform-resume.dto';
-import type { FeedbackDto, JobMatchDto, InterviewDto, InlineAssistDto } from './dto/analysis.dto';
-import type { AuthenticatedRequest } from '../common/request.types';
+import { Test, TestingModule } from '@nestjs/testing'
+
+import { UsageService } from '../health/usage.service'
+import { SystemConfigService } from '../system-config/system-config.service'
+
+import { LlmController } from './llm.controller'
+import { LlmService } from './llm.service'
+
+import type { FeedbackDto, JobMatchDto, InterviewDto, InlineAssistDto } from './dto/analysis.dto'
+import type { TransformResumeDto } from './dto/transform-resume.dto'
+import type { AuthenticatedRequest } from '../common/request.types'
 
 const mockConfig = {
   isFeatureEnabled: jest.fn().mockResolvedValue(true),
-};
+}
 
 const mockLlm = {
   transform: jest.fn(),
@@ -21,18 +24,18 @@ const mockLlm = {
   analyzeJobMatch: jest.fn(),
   generateInterviewQuestions: jest.fn(),
   inlineAssist: jest.fn(),
-};
+}
 
-const mockUsage = { checkAndLog: jest.fn() };
+const mockUsage = { checkAndLog: jest.fn() }
 
 const reqWith = (userId?: string): AuthenticatedRequest => ({
   user: userId ? { id: userId } : undefined,
-});
+})
 
-const transformDto = { format: 'standard' } as unknown as TransformResumeDto;
+const transformDto = { format: 'standard' } as unknown as TransformResumeDto
 
 describe('LlmController', () => {
-  let controller: LlmController;
+  let controller: LlmController
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,65 +45,65 @@ describe('LlmController', () => {
         { provide: UsageService, useValue: mockUsage },
         { provide: SystemConfigService, useValue: mockConfig },
       ],
-    }).compile();
-    controller = module.get(LlmController);
-    jest.clearAllMocks();
-  });
+    }).compile()
+    controller = module.get(LlmController)
+    jest.clearAllMocks()
+  })
 
   describe('transform', () => {
     it('로그인 시 usage checkAndLog 후 transform 호출', async () => {
-      mockUsage.checkAndLog.mockResolvedValueOnce(undefined);
-      mockLlm.transform.mockResolvedValueOnce({ ok: true });
-      const res = await controller.transform('r1', transformDto, reqWith('u1'));
-      expect(mockUsage.checkAndLog).toHaveBeenCalledWith('u1', 'ai_transform');
-      expect(mockLlm.transform).toHaveBeenCalledWith('r1', { format: 'standard' }, 'u1');
-      expect(res).toEqual({ ok: true });
-    });
+      mockUsage.checkAndLog.mockResolvedValueOnce(undefined)
+      mockLlm.transform.mockResolvedValueOnce({ ok: true })
+      const res = await controller.transform('r1', transformDto, reqWith('u1'))
+      expect(mockUsage.checkAndLog).toHaveBeenCalledWith('u1', 'ai_transform')
+      expect(mockLlm.transform).toHaveBeenCalledWith('r1', { format: 'standard' }, 'u1')
+      expect(res).toEqual({ ok: true })
+    })
 
     it('비로그인 시 usage check 건너뜀', async () => {
-      mockLlm.transform.mockResolvedValueOnce({ ok: true });
-      await controller.transform('r1', transformDto, reqWith());
-      expect(mockUsage.checkAndLog).not.toHaveBeenCalled();
-      expect(mockLlm.transform).toHaveBeenCalledWith('r1', { format: 'standard' }, undefined);
-    });
+      mockLlm.transform.mockResolvedValueOnce({ ok: true })
+      await controller.transform('r1', transformDto, reqWith())
+      expect(mockUsage.checkAndLog).not.toHaveBeenCalled()
+      expect(mockLlm.transform).toHaveBeenCalledWith('r1', { format: 'standard' }, undefined)
+    })
 
     it('usage check 실패 시 transform 호출 안 함 (쿼터 초과 방어)', async () => {
-      mockUsage.checkAndLog.mockRejectedValueOnce(new Error('quota exceeded'));
+      mockUsage.checkAndLog.mockRejectedValueOnce(new Error('quota exceeded'))
       await expect(controller.transform('r1', transformDto, reqWith('u1'))).rejects.toThrow(
-        'quota exceeded',
-      );
-      expect(mockLlm.transform).not.toHaveBeenCalled();
-    });
-  });
+        'quota exceeded'
+      )
+      expect(mockLlm.transform).not.toHaveBeenCalled()
+    })
+  })
 
   it('getHistory: resumeId + userId 전달 (가시성 게이트)', () => {
-    controller.getHistory('r1', { user: { id: 'u1' } });
-    expect(mockLlm.getTransformationHistory).toHaveBeenCalledWith('r1', 'u1');
-  });
+    controller.getHistory('r1', { user: { id: 'u1' } })
+    expect(mockLlm.getTransformationHistory).toHaveBeenCalledWith('r1', 'u1')
+  })
 
   it('getProviders / getUsage: 서비스 위임', () => {
-    controller.getProviders();
-    controller.getUsage();
-    expect(mockLlm.getAvailableProviders).toHaveBeenCalled();
-    expect(mockLlm.getUsageStats).toHaveBeenCalled();
-  });
+    controller.getProviders()
+    controller.getUsage()
+    expect(mockLlm.getAvailableProviders).toHaveBeenCalled()
+    expect(mockLlm.getUsageStats).toHaveBeenCalled()
+  })
 
   describe('AI 분석', () => {
-    const reqStub: AuthenticatedRequest = { user: undefined };
+    const reqStub: AuthenticatedRequest = { user: undefined }
 
     it('analyzeFeedback: provider 전달', async () => {
-      await controller.analyzeFeedback('r1', { provider: 'openai' } as FeedbackDto, reqStub);
-      expect(mockLlm.analyzeFeedback).toHaveBeenCalledWith('r1', 'openai', undefined);
-    });
+      await controller.analyzeFeedback('r1', { provider: 'openai' } as FeedbackDto, reqStub)
+      expect(mockLlm.analyzeFeedback).toHaveBeenCalledWith('r1', 'openai', undefined)
+    })
 
     it('analyzeJobMatch: JD + provider 전달', async () => {
       await controller.analyzeJobMatch(
         'r1',
         { jobDescription: 'Senior React', provider: 'groq' } as JobMatchDto,
-        reqStub,
-      );
-      expect(mockLlm.analyzeJobMatch).toHaveBeenCalledWith('r1', 'Senior React', 'groq', undefined);
-    });
+        reqStub
+      )
+      expect(mockLlm.analyzeJobMatch).toHaveBeenCalledWith('r1', 'Senior React', 'groq', undefined)
+    })
 
     it('generateInterview: 5개 인자 분해 전달', async () => {
       await controller.generateInterview(
@@ -111,24 +114,24 @@ describe('LlmController', () => {
           jobDescription: 'JD',
           difficulty: 'advanced',
         } as InterviewDto,
-        reqStub,
-      );
+        reqStub
+      )
       expect(mockLlm.generateInterviewQuestions).toHaveBeenCalledWith(
         'r1',
         'FE',
         'openai',
         'JD',
         'advanced',
-        undefined,
-      );
-    });
+        undefined
+      )
+    })
 
     it('inlineAssist: text + type + provider 전달', async () => {
       await controller.inlineAssist(
         { text: '원문', type: 'improve', provider: 'openai' } as InlineAssistDto,
-        reqStub,
-      );
-      expect(mockLlm.inlineAssist).toHaveBeenCalledWith('원문', 'improve', 'openai');
-    });
-  });
-});
+        reqStub
+      )
+      expect(mockLlm.inlineAssist).toHaveBeenCalledWith('원문', 'improve', 'openai')
+    })
+  })
+})
