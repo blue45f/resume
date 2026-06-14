@@ -1,67 +1,51 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsEmail,
-  IsString,
-  MinLength,
-  MaxLength,
-  IsOptional,
-  IsIn,
-  IsBoolean,
-  IsArray,
-} from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class RegisterDto {
-  @ApiProperty() @IsEmail() email!: string;
-  @ApiProperty() @IsString() @MinLength(8) @MaxLength(100) password!: string;
-  @ApiProperty() @IsString() @MinLength(1) @MaxLength(50) name!: string;
+const USER_TYPES = ['personal', 'recruiter', 'company'] as const;
+const PREFERRED_LOCALES = ['', 'ko', 'en', 'ja'] as const;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsIn(['personal', 'recruiter', 'company'])
-  userType?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) companyName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) companyTitle?: string;
+export const registerSchema = z
+  .object({
+    email: z.email(),
+    password: z.string().min(8).max(100),
+    name: z.string().min(1).max(50),
+    userType: z.enum(USER_TYPES).optional(),
+    companyName: z.string().max(100).optional(),
+    companyTitle: z.string().max(100).optional(),
+    marketingOptIn: z.boolean().optional(),
+    llmOptIn: z.boolean().optional(),
+  })
+  .strict();
+export class RegisterDto extends createZodDto(registerSchema) {}
 
-  // PIPA 동의 필드
-  @ApiPropertyOptional({ description: '마케팅 수신 동의 (선택)' })
-  @IsOptional()
-  @IsBoolean()
-  marketingOptIn?: boolean;
-  @ApiPropertyOptional({ description: '국외 이전 동의 (LLM 사용 허용, 선택)' })
-  @IsOptional()
-  @IsBoolean()
-  llmOptIn?: boolean;
-}
+export const loginSchema = z
+  .object({
+    email: z.email(),
+    password: z.string().min(1),
+  })
+  .strict();
+export class LoginDto extends createZodDto(loginSchema) {}
 
-export class LoginDto {
-  @ApiProperty() @IsEmail() email!: string;
-  @ApiProperty() @IsString() @MinLength(1) password!: string;
-}
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(200),
+    newPassword: z.string().min(8).max(100),
+  })
+  .strict();
+export class ChangePasswordDto extends createZodDto(changePasswordSchema) {}
 
-export class ChangePasswordDto {
-  @ApiProperty() @IsString() @MinLength(1) @MaxLength(200) currentPassword!: string;
-  @ApiProperty() @IsString() @MinLength(8) @MaxLength(100) newPassword!: string;
-}
-
-export class UpdateProfileDto {
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsIn(['personal', 'recruiter', 'company'])
-  userType?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(1) @MaxLength(50) name?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) companyName?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MaxLength(100) companyTitle?: string;
-  @ApiPropertyOptional() @IsOptional() @IsString() @MinLength(3) @MaxLength(30) username?: string;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() isOpenToWork?: boolean;
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  openToWorkRoles?: string[];
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() marketingOptIn?: boolean;
-  @ApiPropertyOptional() @IsOptional() @IsBoolean() llmOptIn?: boolean;
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsIn(['', 'ko', 'en', 'ja'])
-  preferredLocale?: string;
-}
+export const updateProfileSchema = z
+  .object({
+    userType: z.enum(USER_TYPES).optional(),
+    name: z.string().min(1).max(50).optional(),
+    companyName: z.string().max(100).optional(),
+    companyTitle: z.string().max(100).optional(),
+    username: z.string().min(3).max(30).optional(),
+    isOpenToWork: z.boolean().optional(),
+    openToWorkRoles: z.array(z.string()).optional(),
+    marketingOptIn: z.boolean().optional(),
+    llmOptIn: z.boolean().optional(),
+    preferredLocale: z.enum(PREFERRED_LOCALES).optional(),
+  })
+  .strict();
+export class UpdateProfileDto extends createZodDto(updateProfileSchema) {}

@@ -1,13 +1,10 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class CreateTagDto {
-  @ApiProperty({ description: '태그 이름' })
-  @IsString()
-  @IsNotEmpty({ message: '태그 이름은 필수입니다' })
-  name!: string;
-  @ApiPropertyOptional({ description: '태그 색상 (hex)' })
-  @IsOptional()
-  @IsString()
-  color?: string;
-}
+export const createTagSchema = z
+  .object({
+    name: z.string().min(1, '태그 이름은 필수입니다'),
+    color: z.string().optional(),
+  })
+  .strict();
+export class CreateTagDto extends createZodDto(createTagSchema) {}

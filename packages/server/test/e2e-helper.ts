@@ -10,11 +10,12 @@
  * - request 헬퍼 (auth{Get,Post,Put,Patch,Delete})
  */
 import { Test } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { ZodValidationPipe } from '../src/common/zod-validation.pipe';
 
 export type TestRole = 'admin' | 'recruiter' | 'normal' | 'coach';
 
@@ -99,9 +100,7 @@ export async function setupE2EApp(options: SetupOptions): Promise<E2EContext> {
   const mod = await Test.createTestingModule({ imports: [AppModule] }).compile();
   const app = mod.createNestApplication();
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true, forbidNonWhitelisted: false }),
-  );
+  app.useGlobalPipes(new ZodValidationPipe());
   await app.init();
   const prisma = app.get(PrismaService);
 

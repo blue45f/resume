@@ -154,7 +154,7 @@ describe('LlmService', () => {
     });
 
     it('영어 변환 옵션 적용', async () => {
-      const dto = { templateType: 'standard' as const, targetLanguage: 'en' };
+      const dto = { templateType: 'standard' as const, targetLanguage: 'en' as const };
       await service.transform('resume-1', dto);
 
       const createCall = mockPrisma.llmTransformation.create.mock.calls[0][0];
@@ -197,7 +197,7 @@ describe('LlmService', () => {
     });
 
     it('영어 타겟 → IMPORTANT: Write in English 포함', async () => {
-      const dto = { templateType: 'standard' as const, targetLanguage: 'en' };
+      const dto = { templateType: 'standard' as const, targetLanguage: 'en' as const };
       await service.transform('resume-1', dto);
 
       const systemPrompt = geminiProvider.generate.mock.calls[0][0] as string;
