@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 // 중첩 섹션 스키마. 미지정 키는 기본 동작(strip)으로 제거한다(과거 forbidNonWhitelisted 보다
 // 관대 — 알 수 없는 중첩 키로 인한 저장 실패를 막기 위함. service 는 선언된 필드만 읽는다).
@@ -15,7 +15,7 @@ const personalInfoSchema = z.object({
   birthYear: z.string().optional(),
   links: z.array(z.object({ label: z.string(), url: z.string() })).optional(),
   military: z.string().optional(),
-});
+})
 
 const experienceSchema = z.object({
   id: z.string().optional(),
@@ -29,7 +29,7 @@ const experienceSchema = z.object({
   achievements: z.string().optional(),
   techStack: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
 const educationSchema = z.object({
   id: z.string().optional(),
@@ -41,14 +41,14 @@ const educationSchema = z.object({
   endDate: z.string().optional(),
   description: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
 const skillSchema = z.object({
   id: z.string().optional(),
   category: z.string().optional(),
   items: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
 const projectSchema = z.object({
   id: z.string().optional(),
@@ -61,7 +61,7 @@ const projectSchema = z.object({
   techStack: z.string().optional(),
   link: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
 const certificationSchema = z.object({
   id: z.string().optional(),
@@ -72,7 +72,7 @@ const certificationSchema = z.object({
   credentialId: z.string().optional(),
   description: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
 const languageSchema = z.object({
   id: z.string().optional(),
@@ -81,7 +81,7 @@ const languageSchema = z.object({
   score: z.string().optional(),
   testDate: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
 const awardSchema = z.object({
   id: z.string().optional(),
@@ -90,7 +90,7 @@ const awardSchema = z.object({
   awardDate: z.string().optional(),
   description: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
 const activitySchema = z.object({
   id: z.string().optional(),
@@ -101,9 +101,9 @@ const activitySchema = z.object({
   endDate: z.string().optional(),
   description: z.string().optional(),
   sortOrder: z.number().int().min(0).optional(),
-});
+})
 
-const RESUME_VISIBILITY = ['public', 'private', 'link-only'] as const;
+const RESUME_VISIBILITY = ['public', 'private', 'link-only'] as const
 
 // 최상위는 strict — 과거 ValidationPipe forbidNonWhitelisted=true 와 동일하게,
 // 클라이언트가 보내는 Resume 객체 전체를 받기 위해 메타 필드까지 모두 화이트리스트로 선언한다.
@@ -135,5 +135,5 @@ export const createResumeSchema = z
     reportCount: z.unknown().optional(),
     autoHidden: z.unknown().optional(),
   })
-  .strict();
+  .strict()
 export class CreateResumeDto extends createZodDto(createResumeSchema) {}

@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const TEMPLATE_TYPES = [
   'standard',
@@ -10,9 +10,9 @@ export const TEMPLATE_TYPES = [
   'developer',
   'designer',
   'custom',
-] as const;
+] as const
 
-export type TemplateType = (typeof TEMPLATE_TYPES)[number];
+export type TemplateType = (typeof TEMPLATE_TYPES)[number]
 
 export const transformResumeSchema = z
   .object({
@@ -22,5 +22,5 @@ export const transformResumeSchema = z
     customPrompt: z.string().max(2000, '커스텀 프롬프트는 2000자 이내여야 합니다').optional(),
     provider: z.string().optional(),
   })
-  .strict();
+  .strict()
 export class TransformResumeDto extends createZodDto(transformResumeSchema) {}

@@ -1,5 +1,6 @@
-import { createZodDto } from 'nestjs-zod';
-import { createResumeSchema } from './create-resume.dto';
+import { createZodDto } from 'nestjs-zod'
 
-export const updateResumeSchema = createResumeSchema.partial();
+import { createResumeSchema } from './create-resume.dto'
+
+export const updateResumeSchema = createResumeSchema.partial()
 export class UpdateResumeDto extends createZodDto(updateResumeSchema) {}

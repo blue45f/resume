@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 export const createCommentSchema = z
   .object({
@@ -7,5 +7,5 @@ export const createCommentSchema = z
     authorName: z.string().max(50).optional(),
     parentId: z.string().optional(),
   })
-  .strict();
+  .strict()
 export class CreateCommentDto extends createZodDto(createCommentSchema) {}

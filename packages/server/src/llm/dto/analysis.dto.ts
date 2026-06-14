@@ -1,13 +1,13 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
-const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const;
+const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
 
 export const feedbackSchema = z
   .object({
     provider: z.string().max(50).optional(),
   })
-  .strict();
+  .strict()
 export class FeedbackDto extends createZodDto(feedbackSchema) {}
 
 export const jobMatchSchema = z
@@ -15,7 +15,7 @@ export const jobMatchSchema = z
     jobDescription: z.string().max(3000, 'JD는 3000자 이내여야 합니다'),
     provider: z.string().max(50).optional(),
   })
-  .strict();
+  .strict()
 export class JobMatchDto extends createZodDto(jobMatchSchema) {}
 
 export const interviewSchema = z
@@ -27,7 +27,7 @@ export const interviewSchema = z
       .optional(),
     provider: z.string().max(50).optional(),
   })
-  .strict();
+  .strict()
 export class InterviewDto extends createZodDto(interviewSchema) {}
 
 export const inlineAssistSchema = z
@@ -36,5 +36,5 @@ export const inlineAssistSchema = z
     type: z.string().max(50),
     provider: z.string().max(50).optional(),
   })
-  .strict();
+  .strict()
 export class InlineAssistDto extends createZodDto(inlineAssistSchema) {}

@@ -1,5 +1,5 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
 const APPLICATION_STATUSES = [
   'applied',
@@ -8,8 +8,8 @@ const APPLICATION_STATUSES = [
   'offer',
   'rejected',
   'withdrawn',
-] as const;
-const VISIBILITY = ['private', 'public'] as const;
+] as const
+const VISIBILITY = ['private', 'public'] as const
 
 export const createApplicationSchema = z
   .object({
@@ -24,7 +24,7 @@ export const createApplicationSchema = z
     resumeId: z.string().optional(),
     visibility: z.enum(VISIBILITY).optional(),
   })
-  .strict();
+  .strict()
 export class CreateApplicationDto extends createZodDto(createApplicationSchema) {}
 
 export const updateApplicationSchema = z
@@ -38,5 +38,5 @@ export const updateApplicationSchema = z
     location: z.string().optional(),
     visibility: z.enum(VISIBILITY).optional(),
   })
-  .strict();
+  .strict()
 export class UpdateApplicationDto extends createZodDto(updateApplicationSchema) {}

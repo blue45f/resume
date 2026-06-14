@@ -1,7 +1,7 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
-const PRESETS = ['standard', 'developer', 'career-focused', 'academic', 'minimal'] as const;
+const PRESETS = ['standard', 'developer', 'career-focused', 'academic', 'minimal'] as const
 
 export const createTemplateSchema = z
   .object({
@@ -12,7 +12,7 @@ export const createTemplateSchema = z
     layout: z.string().optional(),
     isDefault: z.boolean().optional(),
   })
-  .strict();
+  .strict()
 export class CreateTemplateDto extends createZodDto(createTemplateSchema) {}
 
 export const updateTemplateSchema = z
@@ -25,7 +25,7 @@ export const updateTemplateSchema = z
     visibility: z.string().optional(),
     isDefault: z.boolean().optional(),
   })
-  .strict();
+  .strict()
 export class UpdateTemplateDto extends createZodDto(updateTemplateSchema) {}
 
 export const localTransformSchema = z
@@ -33,5 +33,5 @@ export const localTransformSchema = z
     preset: z.enum(PRESETS).optional(),
     templateId: z.string().optional(),
   })
-  .strict();
+  .strict()
 export class LocalTransformDto extends createZodDto(localTransformSchema) {}

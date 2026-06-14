@@ -1,6 +1,7 @@
-import { BadRequestException } from '@nestjs/common';
-import { createZodValidationPipe } from 'nestjs-zod';
-import type { ZodError } from 'zod';
+import { BadRequestException } from '@nestjs/common'
+import { createZodValidationPipe } from 'nestjs-zod'
+
+import type { ZodError } from 'zod'
 
 /**
  * 전역 Zod 검증 파이프(표준).
@@ -12,4 +13,4 @@ import type { ZodError } from 'zod';
 export const ZodValidationPipe = createZodValidationPipe({
   createValidationException: (error) =>
     new BadRequestException((error as ZodError).issues.map((issue) => issue.message)),
-});
+})

@@ -1,8 +1,8 @@
-import { createZodDto } from 'nestjs-zod';
-import { z } from 'zod';
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 
-const USER_TYPES = ['personal', 'recruiter', 'company'] as const;
-const PREFERRED_LOCALES = ['', 'ko', 'en', 'ja'] as const;
+const USER_TYPES = ['personal', 'recruiter', 'company'] as const
+const PREFERRED_LOCALES = ['', 'ko', 'en', 'ja'] as const
 
 export const registerSchema = z
   .object({
@@ -15,7 +15,7 @@ export const registerSchema = z
     marketingOptIn: z.boolean().optional(),
     llmOptIn: z.boolean().optional(),
   })
-  .strict();
+  .strict()
 export class RegisterDto extends createZodDto(registerSchema) {}
 
 export const loginSchema = z
@@ -23,7 +23,7 @@ export const loginSchema = z
     email: z.email(),
     password: z.string().min(1),
   })
-  .strict();
+  .strict()
 export class LoginDto extends createZodDto(loginSchema) {}
 
 export const changePasswordSchema = z
@@ -31,7 +31,7 @@ export const changePasswordSchema = z
     currentPassword: z.string().min(1).max(200),
     newPassword: z.string().min(8).max(100),
   })
-  .strict();
+  .strict()
 export class ChangePasswordDto extends createZodDto(changePasswordSchema) {}
 
 export const updateProfileSchema = z
@@ -47,5 +47,5 @@ export const updateProfileSchema = z
     llmOptIn: z.boolean().optional(),
     preferredLocale: z.enum(PREFERRED_LOCALES).optional(),
   })
-  .strict();
+  .strict()
 export class UpdateProfileDto extends createZodDto(updateProfileSchema) {}
