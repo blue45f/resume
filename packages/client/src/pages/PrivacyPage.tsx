@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
-import { PolicyArticle } from '@/features/policies'
+import { PolicyArticle } from '@/domains/policies/policies'
 import { ROUTES } from '@/lib/routes'
 
 export default function PrivacyPage() {

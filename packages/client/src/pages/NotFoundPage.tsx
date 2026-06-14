@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
-import { useRecentViews } from '@/features/recent-views'
+import { useRecentViews } from '@/domains/resumes/recent-views'
 import { tx } from '@/lib/i18n'
 import { ROUTES } from '@/lib/routes'
 

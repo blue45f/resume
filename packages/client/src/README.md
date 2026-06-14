@@ -1,54 +1,52 @@
-# src/ — Feature-Sliced Design (부분 도입)
+# src/ — 계층형 도메인 아키텍처 (app / domains / shared)
 
-이 프로젝트는 [Feature-Sliced Design (FSD)](https://feature-sliced.design/) 아키텍처를
-**점진적으로** 도입하고 있습니다. 기존 flat 구조(`components/`, `hooks/`, `pages/`, `lib/`)는
-유지하면서, **신규 코드는 FSD 레이어**에 배치합니다.
+이 프로젝트는 개발가이드의 계층형 아키텍처를 따른다. 이전에 부분 도입했던 FSD
+레이어(`features/` `entities/` `widgets/`)는 백엔드 모듈 기준 **도메인**(`domains/`)으로
+재편했고, 계층 경계는 `eslint-plugin-boundaries`(루트 `eslint.config.mjs`)로 강제한다.
 
 ## 레이어 구조
 
 ```
 src/
-├── app/         # 앱 전역 설정 (providers, router, layout shells)
-├── pages/       # (기존) 페이지 컴포넌트 — 점진적 마이그레이션
-├── features/    # 사용자 시나리오 단위 (auth, resume-crud, bookmark, ...)
-├── entities/    # 비즈니스 엔티티 (resume, user, job, post, company)
-├── shared/      # 공용 코드 (ui kit, lib, hooks, api, i18n, config)
+├── app/         # 앱 전역 설정 (providers, layout shells)
+├── pages/       # 라우트 셸 — app 계층으로 매핑
+├── domains/     # 도메인 단위 기능 (resumes, auth, community, interview, ...)
+│   ├── resumes/        # 이력서 엔티티·편집·건강도 위젯·최근 본·커리어 레벨
+│   ├── auth/           # 인증 모델, 사용자 엔티티/프로필 배지
+│   ├── community/      # 커뮤니티 글, 스터디그룹
+│   ├── interview/      # 면접 준비·룰렛, 코치/채용 엔티티
+│   ├── notifications/  # 알림
+│   ├── admin/          # 관리자 탭/테이블
+│   ├── home/           # 홈 대시보드 위젯, 히어로
+│   └── policies/       # 약관/개인정보 정책
+├── shared/      # 공용 ui kit + lib (schemas, cn, time)
 │
-├── components/  # (기존) flat 컴포넌트 — 점진적으로 features/entities/shared로 이동
-├── hooks/       # (기존) flat 훅 — 점진적으로 features/shared/hooks로 이동
-├── lib/         # (기존) 유틸 — 점진적으로 shared/lib로 이동
-├── types/       # (기존) 공용 타입 — 점진적으로 entities/*/model로 이동
-├── i18n/        # (기존) 번역 파일 — shared/i18n로 이동 예정
-└── mocks/       # (기존) MSW 모킹
+├── components/  # shared 계층으로 매핑 (물리 이동 안 함)
+├── hooks/       # shared 계층으로 매핑
+├── lib/         # shared 계층으로 매핑 (api, routes, 한국어 분석 모듈)
+├── stores/      # shared 계층으로 매핑 (zustand)
+├── types/       # shared 계층으로 매핑
+├── i18n/        # shared 계층으로 매핑
+└── mocks/       # MSW 모킹
 ```
 
-## 의존성 방향 (단방향)
+## 의존성 방향 (eslint-plugin-boundaries 강제)
 
 ```
-app ─▶ pages ─▶ features ─▶ entities ─▶ shared
+app ─▶ domains ─▶ shared
+        └────────▶ infrastructure ─▶ shared
 ```
 
-- 상위 레이어는 하위 레이어를 import 할 수 있습니다.
-- **반대 방향 import는 금지**. 예: `shared`는 `features`를 참조할 수 없음.
-- 같은 레이어 내부 cross-import 지양. 필요하면 한 단계 위 레이어에서 조합.
+- `app` → 모든 계층
+- `domains` → `domains` · `shared` · `infrastructure`
+- `infrastructure` → `shared` · `infrastructure`
+- `shared` → `shared` 만 (상위 계층 역참조 금지)
 
-## 현재 이동된 파일 (PoC)
-
-| Before                             | After                                               |
-| ---------------------------------- | --------------------------------------------------- |
-| `src/hooks/useRecentViews.ts`      | `src/features/recent-views/model/useRecentViews.ts` |
-| `src/components/ConfirmDialog.tsx` | `src/shared/ui/ConfirmDialog.tsx`                   |
-
-import 경로는 `@/` alias 경유로 업데이트되었습니다.
-
-## 마이그레이션 가이드
-
-1. **새 기능**은 반드시 `features/` 또는 `entities/` 하위에 배치.
-2. **기존 파일 수정 시**, 적절한 FSD 위치로 이동 검토 (단, 대량 수정 유발 시 보류).
-3. 각 레이어 `README.md`의 "마이그레이션 계획" 섹션 참고.
-4. 이동 후 `npx tsc --noEmit` 과 테스트 전체 통과 확인.
+`components/ hooks/ lib/ stores/ types/ i18n/` 는 물리적으로 옮기지 않고 elements 패턴으로
+`shared` 에 매핑한다. 경계 위반은 `pnpm lint` 에서 실패한다.
 
 ## 참고
 
-- alias: `@/*` → `./src/*` (`tsconfig.app.json`에 정의됨)
-- 각 레이어별 세부 규칙: `src/<layer>/README.md`
+- alias: `@/*` → `./src/*` (`tsconfig.json`)
+- 도메인별 세부 규칙: `src/domains/README.md`
+- 한국어 분석 모듈 맵: `src/lib/README.md`

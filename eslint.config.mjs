@@ -1,4 +1,4 @@
-import { base, react, defineConfig } from '@heejun/eslint-config'
+import { base, react, boundaries, defineConfig } from '@heejun/eslint-config'
 import { globalIgnores } from 'eslint/config'
 import globals from 'globals'
 
@@ -64,6 +64,44 @@ export default defineConfig(
       'react-hooks/static-components': 'off',
       'react-hooks/preserve-manual-memoization': 'off',
     },
+  },
+
+  // packages/client 계층 경계 — 개발가이드의 app/domains/shared/infrastructure 4계층.
+  // FSD(features/entities/widgets)에서 백엔드 모듈 기준 domains/ 로 재편한 뒤
+  // steiger 대신 eslint-plugin-boundaries 로 계층 경계를 강제한다(횡적 이동, 강제 보존).
+  // components/hooks/lib/stores/types/i18n 는 물리적으로 옮기지 않고 shared 로 매핑한다.
+  ...boundaries({
+    files: ['packages/client/src/**/*.{ts,tsx}'],
+    elements: [
+      { type: 'app', pattern: 'packages/client/src/{app,pages}/**/*', mode: 'full' },
+      { type: 'domains', pattern: 'packages/client/src/domains/*/**/*', mode: 'full' },
+      {
+        type: 'shared',
+        pattern:
+          'packages/client/src/{shared,components,hooks,lib,stores,types,i18n}/**/*',
+        mode: 'full',
+      },
+      { type: 'infrastructure', pattern: 'packages/client/src/infrastructure/**/*', mode: 'full' },
+    ],
+    rules: [
+      { from: ['app'], allow: ['app', 'domains', 'shared', 'infrastructure'] },
+      { from: ['domains'], allow: ['domains', 'shared', 'infrastructure'] },
+      { from: ['infrastructure'], allow: ['shared', 'infrastructure'] },
+      { from: ['shared'], allow: ['shared'] },
+    ],
+  }),
+  // boundaries 는 TS 임포트를 분류하려면 리졸버가 필요하다(없으면 조용히 no-op).
+  {
+    files: ['packages/client/src/**/*.{ts,tsx}'],
+    settings: {
+      'import/resolver': { typescript: { project: 'packages/client/tsconfig.json' }, node: true },
+    },
+  },
+  // App.tsx 는 라우트 셸/프로바이더 조립체라 앱 진입점(app 계층)이지만 src 루트에 있다.
+  // domains/shared 를 자유롭게 조합하는 것이 자연스러우므로 app 계층으로 매핑한다.
+  {
+    files: ['packages/client/src/App.tsx', 'packages/client/src/main.tsx'],
+    rules: { 'boundaries/element-types': 'off' },
   },
 
   // packages/server — NestJS (Node). 데코레이터 + 빈 생성자/클래스 관용.

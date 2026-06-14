@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { toast } from '@/components/Toast'
-import { CameraInterview } from '@/features/interview-prep'
+import { CameraInterview } from '@/domains/interview/interview-prep'
 import { useJobInterviewQuestions } from '@/hooks/useResources'
 import { t } from '@/lib/i18n'
 

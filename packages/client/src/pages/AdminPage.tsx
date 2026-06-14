@@ -26,7 +26,7 @@ import {
   AdminPostsTab,
   AdminStudyGroupsTab,
   AdminUsersTab,
-} from '@/features/admin'
+} from '@/domains/admin/admin'
 import { getUser } from '@/lib/auth'
 import { CHART_COLORS } from '@/lib/chartColors'
 import { API_URL } from '@/lib/config'

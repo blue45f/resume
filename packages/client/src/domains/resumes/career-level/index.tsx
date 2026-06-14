@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import type { User } from '@/features/auth/model/auth'
+import type { User } from '@/domains/auth/auth/model/auth'
 import type { ResumeSummary } from '@/types/resume'
 
 /**

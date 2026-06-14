@@ -86,10 +86,10 @@ export function useApiMutation<T, V = unknown, TCache = unknown>(
 }
 
 // Backward-compat re-exports. Canonical sources:
-//   useNotifications    → @/features/notifications
-//   useCommunityPosts   → @/features/community
-export { useNotifications } from '@/features/notifications/api/useNotifications'
-export { useCommunityPosts } from '@/features/community/api/useCommunityPosts'
+//   useNotifications    → @/domains/notifications/notifications
+//   useCommunityPosts   → @/domains/community/community
+export { useNotifications } from '@/domains/notifications/notifications/api/useNotifications'
+export { useCommunityPosts } from '@/domains/community/community/api/useCommunityPosts'
 
 interface SiteStats {
   users: { total: number; today?: number; thisWeek?: number }

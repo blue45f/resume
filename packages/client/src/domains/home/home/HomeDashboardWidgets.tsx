@@ -20,12 +20,12 @@ import ProfileWizard from '@/components/ProfileWizard'
 import RecentActivity from '@/components/RecentActivity'
 import SharedWithMeSection from '@/components/SharedWithMeSection'
 import WeeklyRecapCard from '@/components/WeeklyRecapCard'
+import InterviewRoulette from '@/domains/interview/interview-roulette'
+import CareerLevel from '@/domains/resumes/career-level'
+import { ResumeHealthBoost } from '@/domains/resumes/resume-health-boost'
+import ResumeHealthRing from '@/domains/resumes/resume-health-ring'
 import { t } from '@/lib/i18n'
 import { ROUTES } from '@/lib/routes'
-import CareerLevel from '@/widgets/career-level'
-import InterviewRoulette from '@/widgets/interview-roulette'
-import { ResumeHealthBoost } from '@/widgets/resume-health-boost'
-import ResumeHealthRing from '@/widgets/resume-health-ring'
 
 // 차트 의존(recharts ~437KB)이 무거워 lazy load — 홈 진입 후 점진 로딩.
 const DashboardStats = lazy(() => import('@/components/DashboardStats'))

@@ -12,16 +12,16 @@ import ShareResumeWithUserDialog from '@/components/ShareResumeWithUserDialog'
 import { CardGridSkeleton } from '@/components/Skeleton'
 import { toast } from '@/components/Toast'
 import WhatsNewModal from '@/components/WhatsNewModal'
-import HomeDashboardWidgets from '@/features/home/HomeDashboardWidgets'
-import HomeLanding from '@/features/home/HomeLanding'
-import MyResumesSection from '@/features/home/MyResumesSection'
+import HomeDashboardWidgets from '@/domains/home/home/HomeDashboardWidgets'
+import HomeLanding from '@/domains/home/home/HomeLanding'
+import MyResumesSection from '@/domains/home/home/MyResumesSection'
 import {
   DEFAULT_FEATURES,
   DEFAULT_HIGHLIGHTS,
   DEFAULT_TESTIMONIALS,
   type HomeContent,
   type ResumeSortBy,
-} from '@/features/home/types'
+} from '@/domains/home/home/types'
 import {
   useResumes,
   useTags,
