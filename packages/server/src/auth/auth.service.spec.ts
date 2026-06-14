@@ -5,6 +5,15 @@ import * as bcrypt from 'bcryptjs'
 
 import { AuthService } from './auth.service'
 
+// google-auth-library 의 OAuth2Client 를 모킹 — 실제 네트워크/인증서 fetch 없이
+// verifyIdToken 동작을 제어한다. (jest.mock 은 import 위로 hoist 되므로 위치 무관)
+const mockVerifyIdToken = jest.fn()
+jest.mock('google-auth-library', () => ({
+  OAuth2Client: jest.fn().mockImplementation(() => ({
+    verifyIdToken: mockVerifyIdToken,
+  })),
+}))
+
 type MockDelegate = Record<string, jest.Mock>
 type MockPrisma = Record<string, MockDelegate>
 type MockJwt = {
@@ -13,12 +22,17 @@ type MockJwt = {
 type MockLogger = {
   warn: jest.Mock
 }
+type MockConfig = {
+  get: jest.Mock
+}
 type AuthServiceHarness = {
   stateSecret: string
   STATE_TTL_MS: number
   logger: MockLogger
   prisma: MockPrisma
   jwt: MockJwt
+  config: MockConfig
+  googleClient: unknown
 }
 
 const assignAuthServiceMocks = (service: AuthService, mocks: Partial<AuthServiceHarness>) => {
@@ -911,5 +925,148 @@ describe('AuthService - getPublicPortfolio', () => {
     const result = await service.getPublicPortfolio('honggildong')
     expect(result?.resumes[0].tags[0].name).toBe('React')
     expect(result?.resumes[0].tags[1].name).toBe('NestJS')
+  })
+})
+
+// ──────────────────────────────────────────────────
+// GIS (Google Identity Services) ID-token 로그인
+// ──────────────────────────────────────────────────
+describe('AuthService - loginWithGoogleIdToken (GIS)', () => {
+  let service: AuthService
+  let mockPrisma: MockPrisma
+  let mockJwt: MockJwt
+  let mockConfig: MockConfig
+
+  const CLIENT_ID = 'test-client-id.apps.googleusercontent.com'
+
+  beforeEach(() => {
+    mockVerifyIdToken.mockReset()
+    mockPrisma = {
+      user: {
+        findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+      },
+    }
+    mockJwt = { sign: jest.fn().mockReturnValue('mock-jwt-token') }
+    mockConfig = {
+      get: jest.fn((key: string) => (key === 'GOOGLE_CLIENT_ID' ? CLIENT_ID : undefined)),
+    }
+
+    service = Object.create(AuthService.prototype)
+    assignAuthServiceMocks(service, {
+      prisma: mockPrisma,
+      jwt: mockJwt,
+      config: mockConfig,
+      logger: mockLogger(),
+      googleClient: null,
+    })
+  })
+
+  const mockTicket = (payload: Record<string, unknown> | undefined) => {
+    mockVerifyIdToken.mockResolvedValue({ getPayload: () => payload })
+  }
+
+  it('유효한 ID 토큰 → 신규 사용자 생성 + JWT 발급, audience=GOOGLE_CLIENT_ID 로 검증', async () => {
+    mockTicket({
+      sub: 'google-uid-1',
+      email: 'newuser@gmail.com',
+      email_verified: true,
+      name: '신규구글',
+      picture: 'https://lh3.googleusercontent.com/a/x',
+    })
+    mockPrisma.user.findFirst.mockResolvedValue(null) // provider+providerId 없음
+    mockPrisma.user.findUnique.mockResolvedValue(null) // 같은 이메일 없음
+    mockPrisma.user.create.mockResolvedValue({ id: 'user-new', role: 'user' })
+
+    const token = await service.loginWithGoogleIdToken('valid-id-token')
+
+    expect(token).toBe('mock-jwt-token')
+    expect(mockVerifyIdToken).toHaveBeenCalledWith({
+      idToken: 'valid-id-token',
+      audience: CLIENT_ID,
+    })
+    expect(mockPrisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          email: 'newuser@gmail.com',
+          provider: 'google',
+          providerId: 'google-uid-1',
+        }),
+      })
+    )
+    expect(mockJwt.sign).toHaveBeenCalledWith({ sub: 'user-new', role: 'user' })
+  })
+
+  it('기존 이메일 계정에 Google 연동 (락아웃 없음) → 기존 계정 JWT', async () => {
+    mockTicket({
+      sub: 'google-uid-2',
+      email: 'existing@gmail.com',
+      email_verified: true,
+      name: '기존유저',
+      picture: '',
+    })
+    mockPrisma.user.findFirst.mockResolvedValue(null) // provider 매칭 없음
+    // 같은 이메일로 가입된 로컬 계정이 이미 존재
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'existing-user',
+      email: 'existing@gmail.com',
+      role: 'user',
+      avatar: '',
+    })
+    mockPrisma.user.update.mockResolvedValue({ id: 'existing-user', role: 'user' })
+
+    const token = await service.loginWithGoogleIdToken('valid-id-token')
+
+    expect(token).toBe('mock-jwt-token')
+    // 신규 생성이 아니라 기존 계정에 provider 연동(update)
+    expect(mockPrisma.user.create).not.toHaveBeenCalled()
+    expect(mockPrisma.user.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'existing-user' },
+        data: expect.objectContaining({ provider: 'google', providerId: 'google-uid-2' }),
+      })
+    )
+    expect(mockJwt.sign).toHaveBeenCalledWith({ sub: 'existing-user', role: 'user' })
+  })
+
+  it('검증 실패(잘못된 서명/audience) → UnauthorizedException, 사용자 미생성', async () => {
+    mockVerifyIdToken.mockRejectedValue(new Error('Wrong recipient'))
+
+    await expect(service.loginWithGoogleIdToken('bad-token')).rejects.toThrow('Google 인증 실패')
+    expect(mockPrisma.user.create).not.toHaveBeenCalled()
+    expect(mockJwt.sign).not.toHaveBeenCalled()
+  })
+
+  it('payload 없음(만료/형식 오류) → UnauthorizedException', async () => {
+    mockTicket(undefined)
+    await expect(service.loginWithGoogleIdToken('weird-token')).rejects.toThrow('Google 인증 실패')
+  })
+
+  it('email_verified=false → 거부 (미인증 이메일로 계정 탈취 방지)', async () => {
+    mockTicket({
+      sub: 'google-uid-3',
+      email: 'unverified@gmail.com',
+      email_verified: false,
+      name: 'x',
+    })
+    await expect(service.loginWithGoogleIdToken('unverified-token')).rejects.toThrow(
+      '이메일이 인증되지 않은'
+    )
+    expect(mockPrisma.user.create).not.toHaveBeenCalled()
+  })
+
+  it('빈 토큰 → UnauthorizedException (검증 호출 없음)', async () => {
+    await expect(service.loginWithGoogleIdToken('')).rejects.toThrow('Google ID 토큰이 없습니다')
+    expect(mockVerifyIdToken).not.toHaveBeenCalled()
+  })
+
+  it('GOOGLE_CLIENT_ID 미설정 → UnauthorizedException', async () => {
+    mockConfig.get.mockReturnValue(undefined)
+    await expect(service.loginWithGoogleIdToken('any-token')).rejects.toThrow(
+      'Google 로그인이 설정되지 않았습니다'
+    )
+    expect(mockVerifyIdToken).not.toHaveBeenCalled()
   })
 })

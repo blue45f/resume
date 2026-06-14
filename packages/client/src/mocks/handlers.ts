@@ -590,6 +590,12 @@ export const handlers = [
     return HttpResponse.json(['google', 'github', 'kakao'])
   }),
 
+  // GIS Google ID-token 로그인 — 목 모드에서는 항상 성공 토큰 반환.
+  http.post('/api/auth/google/token', async () => {
+    await delay(50)
+    return HttpResponse.json({ token: 'mock-google-jwt' })
+  }),
+
   http.get('/api/auth/me', async () => {
     await delay(50)
     return HttpResponse.json({

@@ -8,6 +8,11 @@
  *   운영:   https://resume-api-464016453534.asia-northeast3.run.app  (.env.production)
  */
 export const API_URL = import.meta.env.VITE_API_URL || ''
+/**
+ * Google Identity Services (GIS) 클라이언트 ID — 백엔드의 GOOGLE_CLIENT_ID 와 동일 값.
+ * 설정 시 로그인 화면에서 GIS ID-token 버튼을 활성화한다(미설정이면 Google 버튼 숨김).
+ */
+export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 export const APP_ENV = (import.meta.env.VITE_ENV || 'local') as
   | 'local'
   | 'development'
