@@ -37,6 +37,7 @@ export const ROUTES = {
   help: '/help',
   feedback: '/feedback',
   stats: '/stats',
+  design: '/design',
 
   // ─── 인증 ────────────────────────────────────
   login: '/login',
