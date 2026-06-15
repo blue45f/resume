@@ -68,7 +68,7 @@
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-select": "^2.3.0",
-    "@radix-ui/react-tooltip": "^1.2.8",
+    "@radix-ui/react-tooltip": "^1.2.9",
     "@resume/shared": "workspace:*",
     "@sentry/nestjs": "^10.55.0",
     "@sentry/react": "^10.55.0",
