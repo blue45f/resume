@@ -6,6 +6,11 @@
     "ignoreDeprecations": "6.0",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    // NestJS DI relies on runtime value imports (e.g. injected providers and
+    // classes used only as type annotations). Keep verbatimModuleSyntax OFF so
+    // TypeScript preserves those imports for the DI container; the shared base
+    // standard enables it elsewhere.
+    "verbatimModuleSyntax": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,

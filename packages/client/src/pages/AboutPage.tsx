@@ -211,9 +211,11 @@ export default function AboutPage() {
       <Header />
       <main id="main-content" className="flex-1" role="main">
         {/* Hero */}
-        <div className="bg-sky-700 dark:from-blue-900 dark:to-sky-900 text-white py-16 sm:py-20">
+        <div className="bg-gradient-to-br from-sky-700 to-blue-800 dark:from-blue-900 dark:to-sky-900 text-white py-16 sm:py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold mb-4">이력서공방</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 text-balance tracking-[-0.02em]">
+              이력서공방
+            </h1>
             <p className="text-lg sm:text-xl text-blue-100 mb-2">AI 기반 이력서 관리 플랫폼</p>
             <p className="text-blue-200 max-w-2xl mx-auto">
               이력서를 체계적으로 관리하고, AI로 다양한 양식으로 변환하세요. 무료 LLM을 활용하여

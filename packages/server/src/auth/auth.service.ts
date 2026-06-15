@@ -3,12 +3,14 @@ import { randomBytes, createHmac, timingSafeEqual } from 'crypto'
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
+import { OAuth2Client } from 'google-auth-library'
 
 import { PrismaService } from '../prisma/prisma.service'
 
 import { hashPassword, verifyPassword } from './password'
 
 import type { Prisma } from '@prisma/client'
+import type { TokenPayload } from 'google-auth-library'
 
 interface OAuthProfile {
   provider: string
@@ -44,6 +46,8 @@ export class AuthService {
   private readonly stateSecret: string
   private readonly logger = new Logger(AuthService.name)
   private readonly STATE_TTL_MS = 10 * 60 * 1000 // 10분 (cold start 고려)
+  /** GIS ID-token 검증용 클라이언트 (lazy). audience = GOOGLE_CLIENT_ID 으로 검증. */
+  private googleClient: OAuth2Client | null = null
 
   constructor(
     private prisma: PrismaService,
@@ -183,6 +187,68 @@ export class AuthService {
       name: profile.name || '',
       avatar: profile.picture || '',
     })
+  }
+
+  /**
+   * GIS (Google Identity Services) ID-token 로그인.
+   *
+   * 프론트엔드가 GIS 로 받은 ID 토큰(JWT)을 보내면, google-auth-library 의
+   * `verifyIdToken` 으로 서명·만료·audience(GOOGLE_CLIENT_ID)·issuer 를 검증한 뒤
+   * 기존 `findOrCreateUser` 경로로 우리 서비스 JWT 를 발급한다.
+   *
+   * 코드 교환 flow 와 달리 client secret / 콜백 리다이렉트가 필요 없으며,
+   * 기존 GOOGLE_CLIENT_ID 를 audience 로 그대로 재사용한다(신규 자격증명 불필요).
+   */
+  async loginWithGoogleIdToken(idToken: string): Promise<string> {
+    const profile = await this.verifyGoogleIdToken(idToken)
+    return this.findOrCreateUser(profile)
+  }
+
+  /**
+   * Google ID 토큰을 검증하고 정규화된 OAuthProfile 을 반환한다.
+   * audience 는 반드시 GOOGLE_CLIENT_ID 로 고정한다(토큰 오디언스 위장 차단).
+   * email_verified=false 토큰은 거부한다(미인증 이메일로 계정 탈취 방지).
+   */
+  private async verifyGoogleIdToken(idToken: string): Promise<OAuthProfile> {
+    if (!idToken || typeof idToken !== 'string') {
+      throw new UnauthorizedException('Google ID 토큰이 없습니다')
+    }
+    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID')
+    if (!clientId) {
+      // 자격증명 미설정 — Google 로그인 비활성 환경에서 호출되면 안 됨.
+      throw new UnauthorizedException('Google 로그인이 설정되지 않았습니다')
+    }
+
+    // OAuth2Client 는 audience 만 사용 — secret 불필요. lazy 싱글톤으로 인증서 캐시 재사용.
+    if (!this.googleClient) {
+      this.googleClient = new OAuth2Client(clientId)
+    }
+
+    let payload: TokenPayload | undefined
+    try {
+      const ticket = await this.googleClient.verifyIdToken({ idToken, audience: clientId })
+      payload = ticket.getPayload()
+    } catch (e) {
+      this.logger.warn(`Google ID 토큰 검증 실패: ${e instanceof Error ? e.message : 'unknown'}`)
+      throw new UnauthorizedException('Google 인증 실패')
+    }
+
+    if (!payload?.sub) {
+      throw new UnauthorizedException('Google 인증 실패')
+    }
+    // email 이 검증되지 않은 토큰은 거부 — findOrCreateUser 가 이메일로 기존 계정에
+    // 연동하므로, 미검증 이메일을 허용하면 타 계정 탈취가 가능하다.
+    if (payload.email && payload.email_verified === false) {
+      throw new UnauthorizedException('이메일이 인증되지 않은 Google 계정입니다')
+    }
+
+    return {
+      provider: 'google',
+      providerId: payload.sub,
+      email: payload.email || '',
+      name: payload.name || '',
+      avatar: payload.picture || '',
+    }
   }
 
   async handleGithubCallback(code: string): Promise<string> {

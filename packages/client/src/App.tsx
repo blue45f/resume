@@ -111,18 +111,26 @@ const CoachProfileEditPage = lazyRetry(() => import('@/pages/CoachProfileEditPag
 const CoachDashboardPage = lazyRetry(() => import('@/pages/CoachDashboardPage'))
 const CoffeeChatsPage = lazyRetry(() => import('@/pages/CoffeeChatsPage'))
 const CoffeeChatRoomPage = lazyRetry(() => import('@/pages/CoffeeChatRoomPage'))
+const DesignPage = lazyRetry(() => import('@/pages/DesignPage'))
 
 function PageLoader() {
   // flex-1 (not min-h-screen) so the loader participates in the app shell's
   // flex-col sticky-footer layout instead of forcing an extra viewport height.
   return (
-    <div className="flex-1 flex items-center justify-center animate-fade-in">
+    <div
+      className="flex-1 flex items-center justify-center animate-fade-in"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <div className="flex flex-col items-center gap-3">
-        <div className="relative">
+        <div className="relative" aria-hidden="true">
           <div className="w-10 h-10 border-4 border-sky-200 dark:border-sky-800 rounded-full" />
-          <div className="absolute inset-0 w-10 h-10 border-4 border-sky-700 border-t-transparent rounded-full animate-spin" />
+          <div className="absolute inset-0 w-10 h-10 border-4 border-sky-700 border-t-transparent rounded-full animate-spin motion-reduce:animate-none" />
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 animate-pulse">로딩 중...</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 animate-pulse motion-reduce:animate-none">
+          로딩 중...
+        </p>
       </div>
     </div>
   )
@@ -470,6 +478,14 @@ export default function App() {
                       element={
                         <Suspense fallback={<PageLoader />}>
                           <SitemapPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/design"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <DesignPage />
                         </Suspense>
                       }
                     />
