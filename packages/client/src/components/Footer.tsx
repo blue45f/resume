@@ -84,6 +84,13 @@ export default function Footer() {
               {tx('footer.github')}
             </a>
             <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
+            <Link
+              to={ROUTES.design}
+              className="link-underline-reveal text-slate-400 dark:text-slate-500 transition-colors"
+            >
+              디자인 시스템
+            </Link>
+            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">·</span>
             <span className="text-slate-400 dark:text-slate-500">
               {tx('footer.pipaCompliance')}
             </span>
