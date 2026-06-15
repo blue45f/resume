@@ -12,6 +12,7 @@ type EmptyType =
   | 'cover-letter'
   | 'message'
   | 'notification'
+  | 'bookmark'
 
 interface Props {
   type: EmptyType
@@ -181,7 +182,7 @@ const configs = {
     ),
     title: '스카우트 제안이 없습니다',
     description: '이력서를 공개하면 기업 관계자가 제안을 보낼 수 있습니다.',
-    actions: [],
+    actions: [{ label: '이력서 공개하기', to: '/resumes/new', variant: 'primary' as const }],
   },
   'cover-letter': {
     icon: (
@@ -243,6 +244,26 @@ const configs = {
     description: '새로운 소식이 있으면 여기에 표시됩니다.',
     actions: [],
   },
+  bookmark: {
+    icon: (
+      <svg
+        className="w-20 h-20 text-slate-300 dark:text-slate-600"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1}
+          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+        />
+      </svg>
+    ),
+    title: '북마크한 이력서가 없습니다',
+    description: '탐색 페이지에서 관심 있는 이력서를 북마크하면 여기에 모입니다.',
+    actions: [{ label: '이력서 탐색하기', to: '/explore', variant: 'primary' as const }],
+  },
 }
 
 /** Eyebrow text per type — teaches what state this is */
@@ -258,15 +279,23 @@ const EYEBROW: Record<EmptyType, string> = {
   'cover-letter': '자소서',
   message: '메시지',
   notification: '알림',
+  bookmark: '북마크',
 }
 
 export default function EmptyState({ type, query }: Props) {
   const config = configs[type]
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 sm:py-24 animate-fade-in max-w-md mx-auto px-4">
+    <div
+      role="status"
+      className="flex flex-col items-center justify-center py-16 sm:py-24 animate-fade-in max-w-md mx-auto px-4"
+    >
       {/* Refined icon container — no glow, no float, no scaling. Solid surface + subtle border. */}
-      <div className="mb-7 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+      {/* Decorative: hidden from the accessibility tree so SR users hear the title, not the SVG. */}
+      <div
+        aria-hidden="true"
+        className="mb-7 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+      >
         <span className="[&>svg]:w-6 [&>svg]:h-6">{config.icon}</span>
       </div>
 
