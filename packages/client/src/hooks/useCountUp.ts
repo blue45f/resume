@@ -8,8 +8,8 @@ function easeOutQuint(t: number): number {
 function prefersReducedMotion(): boolean {
   return (
     typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    typeof globalThis.matchMedia === 'function' &&
+    globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches
   )
 }
 

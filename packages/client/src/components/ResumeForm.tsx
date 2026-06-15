@@ -422,8 +422,8 @@ export default function ResumeForm({
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault()
     }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+    globalThis.addEventListener('beforeunload', handleBeforeUnload)
+    return () => globalThis.removeEventListener('beforeunload', handleBeforeUnload)
   }, [isDirty])
 
   // Auto-save after 5 seconds of inactivity (watch on dirty subtree)

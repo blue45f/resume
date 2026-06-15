@@ -160,7 +160,7 @@ export default function PortfolioPage() {
   const { user, stats, topSkills, resumes } = data
   const isOwn = currentUser?.id === user.id
   const totalYears = resumes.reduce((max, r) => Math.max(max, calcYearsExp(r.experiences)), 0)
-  const portfolioUrl = `${window.location.origin}/u/${user.username}`
+  const portfolioUrl = `${globalThis.location.origin}/u/${user.username}`
 
   return (
     <>

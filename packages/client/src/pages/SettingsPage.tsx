@@ -405,7 +405,7 @@ export default function SettingsPage() {
       clearAuth()
       toast('계정이 삭제되었습니다', 'info')
       navigate(ROUTES.home)
-      window.location.reload()
+      globalThis.location.reload()
     } catch (err: unknown) {
       toast(getErrorMessage(err, '계정 삭제에 실패했습니다'), 'error')
     }
@@ -462,7 +462,7 @@ export default function SettingsPage() {
     'w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl text-sm dark:bg-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
   const isDark =
     currentTheme === 'dark' ||
-    (currentTheme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    (currentTheme === 'system' && globalThis.matchMedia('(prefers-color-scheme: dark)').matches)
 
   return (
     <>
@@ -576,7 +576,7 @@ export default function SettingsPage() {
                 // user state 업데이트 (auth.ts saveUser 통해 localStorage 동기화)
                 const updated = { ...user, avatar: newAvatar }
                 localStorage.setItem('user', JSON.stringify(updated))
-                window.location.reload()
+                globalThis.location.reload()
               }}
             />
           </div>
@@ -838,7 +838,7 @@ export default function SettingsPage() {
                   onClick={async () => {
                     if (isActive || switchingType) return
                     if (opt.value === 'coach') {
-                      window.location.href = '/coach/profile'
+                      globalThis.location.href = '/coach/profile'
                       return
                     }
                     if (opt.value === 'company' && !user?.companyName) {

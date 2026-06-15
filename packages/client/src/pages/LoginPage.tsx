@@ -159,7 +159,7 @@ export default function LoginPage() {
       me = (await meRes.json()) as { userType?: string }
       localStorage.setItem('user', JSON.stringify(me))
     }
-    const params = new URLSearchParams(window.location.search)
+    const params = new URLSearchParams(globalThis.location.search)
     const next = params.get('next')
     let dest: string = ROUTES.home
     // open-redirect 방지: 같은 오리진의 절대 경로만 허용.
@@ -173,7 +173,8 @@ export default function LoginPage() {
       !next.includes('@')
     ) {
       try {
-        if (new URL(next, window.location.origin).origin === window.location.origin) safeNext = next
+        if (new URL(next, globalThis.location.origin).origin === globalThis.location.origin)
+          safeNext = next
       } catch {
         safeNext = null
       }
@@ -186,7 +187,7 @@ export default function LoginPage() {
       dest = ROUTES.recruiter.dashboard
     }
     navigate(dest)
-    window.location.reload()
+    globalThis.location.reload()
   }
 
   const onLogin = async (data: LoginFormValues) => {

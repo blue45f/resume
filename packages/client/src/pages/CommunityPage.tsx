@@ -245,7 +245,7 @@ export default function CommunityPage() {
       next.set('page', String(p))
       return next
     })
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    globalThis.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleSortChange = (s: string) => {

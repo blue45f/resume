@@ -245,7 +245,7 @@ export default function ApplicationsPage() {
             confirmText: '작성하기',
           })
           if (share) {
-            window.location.href = `/community/write?category=interview&title=${successTitle}`
+            globalThis.location.href = `/community/write?category=interview&title=${successTitle}`
           }
         }, 800)
       }

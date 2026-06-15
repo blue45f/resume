@@ -161,10 +161,10 @@ export default function Header() {
 
   // 스크롤 시 header glassmorphism 전환
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 10)
+    const onScroll = () => setScrolled(globalThis.scrollY > 10)
     onScroll() // check initial state
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    globalThis.addEventListener('scroll', onScroll, { passive: true })
+    return () => globalThis.removeEventListener('scroll', onScroll)
   }, [])
 
   return (
@@ -784,7 +784,7 @@ export default function Header() {
                         onClick={() => {
                           clearAuth()
                           navigate(ROUTES.home)
-                          window.location.reload()
+                          globalThis.location.reload()
                         }}
                         role="menuitem"
                         className="w-full text-left px-3 py-2 text-sm text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none"

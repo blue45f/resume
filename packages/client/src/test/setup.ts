@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 
 // jsdom lacks a real localStorage implementation — polyfill minimal Storage so i18n getLocale works.
-if (typeof window !== 'undefined' && !window.localStorage) {
+if (typeof window !== 'undefined' && !globalThis.localStorage) {
   const store = new Map<string, string>()
   Object.defineProperty(window, 'localStorage', {
     value: {

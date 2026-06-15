@@ -43,7 +43,7 @@ async function enableMocking() {
 }
 
 // Global unhandled error logging
-window.addEventListener('unhandledrejection', (e) => {
+globalThis.addEventListener('unhandledrejection', (e) => {
   console.error('[Unhandled Promise]', e.reason?.message || e.reason)
 })
 

@@ -48,10 +48,10 @@ export async function requestPayment(params: PaymentRequest): Promise<void> {
     await new Promise((resolve) => (s.onload = resolve))
   }
 
-  if (!window.TossPayments) {
+  if (!globalThis.TossPayments) {
     throw new Error('Toss Payments SDK를 불러오지 못했습니다')
   }
-  const tossPayments = window.TossPayments(TOSS_CLIENT_KEY)
+  const tossPayments = globalThis.TossPayments(TOSS_CLIENT_KEY)
   const orderId = generateOrderId()
 
   await tossPayments.requestPayment('카드', {
@@ -60,8 +60,8 @@ export async function requestPayment(params: PaymentRequest): Promise<void> {
     orderName: `이력서공방 ${params.planName} (${params.period === 'yearly' ? '연간' : '월간'})`,
     customerEmail: params.customerEmail,
     customerName: params.customerName,
-    successUrl: `${window.location.origin}/payment/success?planId=${params.planId}&period=${params.period}`,
-    failUrl: `${window.location.origin}/payment/fail`,
+    successUrl: `${globalThis.location.origin}/payment/success?planId=${params.planId}&period=${params.period}`,
+    failUrl: `${globalThis.location.origin}/payment/fail`,
   })
 }
 

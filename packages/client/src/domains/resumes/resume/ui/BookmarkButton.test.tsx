@@ -35,10 +35,10 @@ const bookmarkRows = [
 describe('<BookmarkButton />', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    window.localStorage.setItem('token', 'tok123')
+    globalThis.localStorage.setItem('token', 'tok123')
   })
   afterEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
 
   it('클릭 즉시 낙관적으로 북마크 상태 반영 (서버 응답 전)', async () => {
@@ -94,7 +94,7 @@ describe('<BookmarkButton />', () => {
   })
 
   it('토큰 없으면 아무것도 하지 않음', () => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
     renderWithProviders(<BookmarkButton resumeId="r1" />)
     fireEvent.click(screen.getByRole('button', { name: '북마크 추가' }))
     expect(addMock).not.toHaveBeenCalled()

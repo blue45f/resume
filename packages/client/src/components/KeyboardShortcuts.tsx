@@ -27,7 +27,7 @@ export default function KeyboardShortcuts() {
         setOpen((prev) => !prev)
       }
       if (e.key === 'e' && !e.ctrlKey && !e.metaKey) {
-        window.location.href = '/explore'
+        globalThis.location.href = '/explore'
       }
       if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault()

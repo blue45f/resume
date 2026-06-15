@@ -14,13 +14,13 @@ export function setTheme(theme: Theme) {
 export function applyTheme(theme: Theme) {
   const isDark =
     theme === 'dark' ||
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+    (theme === 'system' && globalThis.matchMedia('(prefers-color-scheme: dark)').matches)
   document.documentElement.classList.toggle('dark', isDark)
 }
 
 export function initTheme() {
   applyTheme(getTheme())
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  globalThis.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (getTheme() === 'system') applyTheme('system')
   })
 }

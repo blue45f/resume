@@ -45,7 +45,7 @@ export function setLocale(locale: Locale) {
       }
     ).catch(() => {})
   }
-  window.location.reload()
+  globalThis.location.reload()
 }
 
 type TranslationKeys = {

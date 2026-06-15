@@ -361,14 +361,14 @@ export default function CommunityWritePage() {
       setValue('content', editData.content || '')
       const cat = editData.category || 'free'
       setValue('category', cat)
-      const timer = window.setTimeout(() => {
+      const timer = globalThis.setTimeout(() => {
         if (!CATEGORY_DEFS.some((c) => c.id === cat)) {
           setCustomCatMode(true)
           setCustomCat(cat)
         }
         setAttachments(Array.isArray(editData.attachments) ? editData.attachments : [])
       }, 0)
-      return () => window.clearTimeout(timer)
+      return () => globalThis.clearTimeout(timer)
     }
     return undefined
   }, [editData, setValue])

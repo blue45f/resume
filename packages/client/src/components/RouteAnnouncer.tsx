@@ -55,11 +55,11 @@ export default function RouteAnnouncer() {
     observer?.observe(titleEl as Node, { childList: true, characterData: true, subtree: true })
 
     // 제목을 갱신하지 않는 페이지를 위한 폴백 — stale 제목 대신 일반 문구로 안내한다.
-    const timer = window.setTimeout(() => announce('새 페이지로 이동했습니다'), 800)
+    const timer = globalThis.setTimeout(() => announce('새 페이지로 이동했습니다'), 800)
 
     return () => {
       observer?.disconnect()
-      window.clearTimeout(timer)
+      globalThis.clearTimeout(timer)
     }
   }, [pathname, search])
 

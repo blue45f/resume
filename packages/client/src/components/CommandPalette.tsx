@@ -38,8 +38,8 @@ export default function CommandPalette() {
       }
       if (e.key === 'Escape' && open) setOpen(false)
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    globalThis.addEventListener('keydown', onKey)
+    return () => globalThis.removeEventListener('keydown', onKey)
   }, [open])
 
   const close = useCallback(() => {

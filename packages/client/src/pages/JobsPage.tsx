@@ -596,7 +596,7 @@ function ExternalJobLinks({
     httpClient(`${API_URL}/api/jobs/external-links/${link.id}/click`, { method: 'POST' }).catch(
       () => {}
     )
-    window.open(link.url, '_blank', 'noopener,noreferrer')
+    globalThis.open(link.url, '_blank', 'noopener,noreferrer')
   }
 
   const handleCardClick = (link: ExternalLink) => {
@@ -1745,7 +1745,7 @@ function CuratedJobsTab() {
           console.warn('[auto-register application failed]', err)
         })
     }
-    window.open(job.sourceUrl, '_blank', 'noopener,noreferrer')
+    globalThis.open(job.sourceUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleDelete = async (job: CuratedJob) => {

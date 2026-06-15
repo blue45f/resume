@@ -7,12 +7,12 @@ export default function OfflineBanner() {
     const handleOffline = () => setIsOffline(true)
     const handleOnline = () => setIsOffline(false)
 
-    window.addEventListener('offline', handleOffline)
-    window.addEventListener('online', handleOnline)
+    globalThis.addEventListener('offline', handleOffline)
+    globalThis.addEventListener('online', handleOnline)
 
     return () => {
-      window.removeEventListener('offline', handleOffline)
-      window.removeEventListener('online', handleOnline)
+      globalThis.removeEventListener('offline', handleOffline)
+      globalThis.removeEventListener('online', handleOnline)
     }
   }, [])
 

@@ -14,24 +14,24 @@ const CACHE_FONTS = `resume-fonts-${CACHE_VERSION}`
 const APP_SHELL = ['/', '/index.html', '/manifest.json', '/favicon.svg']
 
 // Install: precache shell, activate immediately
-self.addEventListener('install', (event) => {
+globalThis.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_SHELL).then((cache) => cache.addAll(APP_SHELL)))
-  self.skipWaiting()
+  globalThis.skipWaiting()
 })
 
 // Activate: clean up old caches, claim clients
-self.addEventListener('activate', (event) => {
+globalThis.addEventListener('activate', (event) => {
   const valid = new Set([CACHE_SHELL, CACHE_ASSETS, CACHE_FONTS])
   event.waitUntil(
     caches
       .keys()
       .then((keys) => Promise.all(keys.filter((k) => !valid.has(k)).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
+      .then(() => globalThis.clients.claim())
   )
 })
 
 // Fetch handler
-self.addEventListener('fetch', (event) => {
+globalThis.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
@@ -95,8 +95,8 @@ self.addEventListener('fetch', (event) => {
 })
 
 // Message handler: allow clients to request immediate update
-self.addEventListener('message', (event) => {
+globalThis.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting()
+    globalThis.skipWaiting()
   }
 })

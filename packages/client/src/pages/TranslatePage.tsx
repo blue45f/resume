@@ -505,7 +505,7 @@ export default function TranslatePage() {
                           if (res.ok) {
                             const data = (await res.json()) as SavedResumeResponse
                             toast('번역된 이력서가 저장되었습니다', 'success')
-                            window.location.href = `/resumes/${data.resume?.id || data.id}/edit`
+                            globalThis.location.href = `/resumes/${data.resume?.id || data.id}/edit`
                           } else {
                             const err = (await res.json().catch(() => ({}))) as SavedResumeResponse
                             toast(err.message || '저장에 실패했습니다', 'error')

@@ -86,19 +86,19 @@ export default function CameraInterview({
   const [ttsRate, setTtsRate] = useState<number>(1.0)
   const [speaking, setSpeaking] = useState(false)
   const ttsSupported =
-    typeof window !== 'undefined' && typeof window.speechSynthesis !== 'undefined'
+    typeof window !== 'undefined' && typeof globalThis.speechSynthesis !== 'undefined'
 
   const mimeType = useMemo(() => pickMimeType(), [])
 
   // 브라우저 보이스 로드
   useEffect(() => {
     if (!ttsSupported) return
-    const load = () => setVoices(window.speechSynthesis.getVoices())
+    const load = () => setVoices(globalThis.speechSynthesis.getVoices())
     load()
-    window.speechSynthesis.addEventListener('voiceschanged', load)
+    globalThis.speechSynthesis.addEventListener('voiceschanged', load)
     return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', load)
-      window.speechSynthesis.cancel()
+      globalThis.speechSynthesis.removeEventListener('voiceschanged', load)
+      globalThis.speechSynthesis.cancel()
     }
   }, [ttsSupported])
 
@@ -121,15 +121,15 @@ export default function CameraInterview({
     u.pitch = activePersona.pitch
     u.onend = () => setSpeaking(false)
     u.onerror = () => setSpeaking(false)
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(u)
+    globalThis.speechSynthesis.cancel()
+    globalThis.speechSynthesis.speak(u)
     setSpeaking(true)
     setAnnounce(`${activePersona.label} 음성으로 질문을 읽습니다.`)
   }, [activePersona, question, ttsRate, ttsSupported, voices])
 
   const stopSpeaking = useCallback(() => {
     if (!ttsSupported) return
-    window.speechSynthesis.cancel()
+    globalThis.speechSynthesis.cancel()
     setSpeaking(false)
   }, [ttsSupported])
 
@@ -190,7 +190,7 @@ export default function CameraInterview({
       mr.stop()
     }
     if (timerRef.current !== null) {
-      window.clearInterval(timerRef.current)
+      globalThis.clearInterval(timerRef.current)
       timerRef.current = null
     }
   }, [])
@@ -230,7 +230,7 @@ export default function CameraInterview({
       setPhase('recording')
       setAnnounce('녹화가 시작되었습니다.')
 
-      timerRef.current = window.setInterval(() => {
+      timerRef.current = globalThis.setInterval(() => {
         const sec = Math.floor((Date.now() - startedAtRef.current) / 1000)
         setElapsed(sec)
         if (maxDurationSec && sec >= maxDurationSec) {
@@ -283,14 +283,14 @@ export default function CameraInterview({
       if (phase === 'preview') startRecording()
       else if (phase === 'recording') stopRecording()
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    globalThis.addEventListener('keydown', onKey)
+    return () => globalThis.removeEventListener('keydown', onKey)
   }, [phase, permission, startRecording, stopRecording])
 
   /* ── 언마운트 정리 ────────────────────────────────────────── */
   useEffect(() => {
     return () => {
-      if (timerRef.current !== null) window.clearInterval(timerRef.current)
+      if (timerRef.current !== null) globalThis.clearInterval(timerRef.current)
       const mr = mediaRecorderRef.current
       if (mr && mr.state !== 'inactive') {
         try {
@@ -354,7 +354,7 @@ export default function CameraInterview({
                 type="button"
                 onClick={() => {
                   setPersonaId(p.id)
-                  if (speaking) window.speechSynthesis.cancel()
+                  if (speaking) globalThis.speechSynthesis.cancel()
                 }}
                 className={`inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded-full border transition-colors ${
                   personaId === p.id

@@ -16,7 +16,7 @@ const ConfirmContext = createContext<ConfirmFn | null>(null)
 
 /**
  * Imperative `confirm()` resolving to a boolean, backed by the branded
- * {@link ConfirmDialog} — a themed, accessible replacement for `window.confirm`.
+ * {@link ConfirmDialog} — a themed, accessible replacement for `globalThis.confirm`.
  * One instance lives at the app root; call sites do
  * `if (!(await confirm({ title, danger: true }))) return;`.
  */

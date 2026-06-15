@@ -46,7 +46,7 @@ function lazyRetry<T extends ComponentType<never>>(factory: () => Promise<{ defa
       if (!sessionStorage.getItem(KEY)) {
         sessionStorage.setItem(KEY, '1')
         // 배포로 해시가 바뀐 경우 새 index.html 을 받도록 1회 새로고침
-        window.location.reload()
+        globalThis.location.reload()
         // reload 가 완료될 때까지 Suspense fallback 유지 (settle 되지 않는 Promise)
         return new Promise<never>(() => {})
       }

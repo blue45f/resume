@@ -517,7 +517,7 @@ export default function MyResumesSection({
                       </svg>
                     </button>
                     <ShareMenu
-                      url={`${window.location.origin}/resumes/${resume.id}/preview`}
+                      url={`${globalThis.location.origin}/resumes/${resume.id}/preview`}
                       title={resume.title || '이력서'}
                       description={`${resume.personalInfo.name || ''}의 이력서`}
                     />

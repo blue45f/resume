@@ -21,10 +21,10 @@ const unfollowMock = unfollowUser as unknown as ReturnType<typeof vi.fn>
 describe('<FollowButton />', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    window.localStorage.setItem('token', 'tok123')
+    globalThis.localStorage.setItem('token', 'tok123')
   })
   afterEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
 
   it('클릭 즉시 낙관적으로 팔로잉 상태 반영 (서버 응답 전)', async () => {
@@ -71,7 +71,7 @@ describe('<FollowButton />', () => {
   })
 
   it('토큰 없으면 아무것도 하지 않음', () => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
     renderWithProviders(<FollowButton userId="u1" />)
     fireEvent.click(screen.getByRole('button', { name: '팔로우' }))
     expect(followMock).not.toHaveBeenCalled()

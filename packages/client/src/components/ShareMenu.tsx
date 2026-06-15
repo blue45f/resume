@@ -15,11 +15,11 @@ export default function ShareMenu({ url, title, description }: ShareMenuProps) {
 
   const shareKakaoTalk = () => {
     const kakaoUrl = `https://story.kakao.com/share?url=${encodeURIComponent(url)}`
-    window.open(kakaoUrl, '_blank', 'width=600,height=500')
+    globalThis.open(kakaoUrl, '_blank', 'width=600,height=500')
   }
 
   const shareFacebook = () => {
-    window.open(
+    globalThis.open(
       `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       '_blank',
       'width=600,height=500'
@@ -32,7 +32,7 @@ export default function ShareMenu({ url, title, description }: ShareMenuProps) {
   }
 
   const shareLine = () => {
-    window.open(
+    globalThis.open(
       `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`,
       '_blank',
       'width=600,height=500'
@@ -40,7 +40,7 @@ export default function ShareMenu({ url, title, description }: ShareMenuProps) {
   }
 
   const shareTwitter = () => {
-    window.open(
+    globalThis.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
       '_blank',
       'width=600,height=500'
@@ -48,7 +48,7 @@ export default function ShareMenu({ url, title, description }: ShareMenuProps) {
   }
 
   const shareLinkedIn = () => {
-    window.open(
+    globalThis.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
       '_blank',
       'width=600,height=500'
@@ -58,7 +58,7 @@ export default function ShareMenu({ url, title, description }: ShareMenuProps) {
   const shareEmail = () => {
     const subject = encodeURIComponent(title)
     const body = encodeURIComponent(`${description || title}\n\n${url}`)
-    window.open(`mailto:?subject=${subject}&body=${body}`)
+    globalThis.open(`mailto:?subject=${subject}&body=${body}`)
   }
 
   const nativeShare = async () => {

@@ -357,9 +357,9 @@ export default function CommunityPostPage() {
   }, [refetch])
 
   useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    const handleScroll = () => setShowScrollTop(globalThis.scrollY > 400)
+    globalThis.addEventListener('scroll', handleScroll, { passive: true })
+    return () => globalThis.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
@@ -469,7 +469,7 @@ export default function CommunityPostPage() {
   }
 
   const handleShare = async () => {
-    const url = window.location.href
+    const url = globalThis.location.href
     if (navigator.share) {
       try {
         await navigator.share({ title: post?.title, url })
@@ -1196,7 +1196,7 @@ export default function CommunityPostPage() {
       {/* Scroll to top FAB */}
       {showScrollTop && (
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => globalThis.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-sky-700 text-white shadow-lg hover:bg-sky-700 transition-all duration-200 flex items-center justify-center hover:shadow-xl hover:-translate-y-0.5 animate-fade-in-up"
           aria-label="맨 위로"
         >

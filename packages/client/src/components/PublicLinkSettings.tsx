@@ -43,10 +43,10 @@ export default function PublicLinkSettings({
   const user = getUser()
   const username = ownerName || user?.name || 'user'
   const shortCode = resumeId.slice(0, 8)
-  const shortUrl = `${window.location.origin}/r/${shortCode}`
+  const shortUrl = `${globalThis.location.origin}/r/${shortCode}`
   const previewUrl = slug
-    ? `${window.location.origin}/@${encodeURIComponent(username)}/${encodeURIComponent(slug)}`
-    : window.location.href
+    ? `${globalThis.location.origin}/@${encodeURIComponent(username)}/${encodeURIComponent(slug)}`
+    : globalThis.location.href
 
   const generateSlug = useCallback(() => {
     const base = (ownerName || 'resume')

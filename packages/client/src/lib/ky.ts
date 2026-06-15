@@ -24,7 +24,8 @@ import { API_URL } from './config'
  */
 function resolveBaseUrl(): string | undefined {
   if (API_URL) return API_URL
-  if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin
+  if (typeof window !== 'undefined' && globalThis.location?.origin)
+    return globalThis.location.origin
   return undefined
 }
 

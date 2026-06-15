@@ -27,7 +27,7 @@ function makeWrapper(client: QueryClient = makeClient()) {
 
 describe('useApiQuery', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
   afterEach(() => {
     restoreFetch()
@@ -53,7 +53,7 @@ describe('useApiQuery', () => {
   })
 
   it('adds Authorization header when token in localStorage', async () => {
-    window.localStorage.setItem('token', 'tok123')
+    globalThis.localStorage.setItem('token', 'tok123')
     const spy = mockFetchJson({ ok: true })
     const { result } = renderHook(() => useApiQuery<unknown>(['k3'], '/api/me'), {
       wrapper: makeWrapper(),
@@ -77,7 +77,7 @@ describe('useApiQuery', () => {
 
 describe('useApiMutation', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
   afterEach(() => {
     restoreFetch()
@@ -112,7 +112,7 @@ describe('useApiMutation', () => {
 
 describe('useApiMutation — optimistic update', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
   })
   afterEach(() => {
     restoreFetch()

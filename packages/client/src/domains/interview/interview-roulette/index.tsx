@@ -53,7 +53,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
 
   useEffect(() => {
     return () => {
-      if (intervalRef.current !== null) window.clearInterval(intervalRef.current)
+      if (intervalRef.current !== null) globalThis.clearInterval(intervalRef.current)
     }
   }, [])
 
@@ -62,7 +62,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
 
     const prefersReduce =
       typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
     if (prefersReduce) {
       setCurrent(pickRandom(questions, question ?? undefined))
@@ -72,16 +72,16 @@ export default function InterviewRoulette({ compact = false }: Props) {
     setSpinning(true)
     const SPIN_MS = 900 // well over 200ms, feels punchy
     // Rapid flicker of question previews during spin
-    intervalRef.current = window.setInterval(() => {
+    intervalRef.current = globalThis.setInterval(() => {
       const sneak = pickRandom(questions)
       if (sneak) setTickText(sneak.question)
     }, 70)
 
     const final = pickRandom(questions, question ?? undefined)
 
-    window.setTimeout(() => {
+    globalThis.setTimeout(() => {
       if (intervalRef.current !== null) {
-        window.clearInterval(intervalRef.current)
+        globalThis.clearInterval(intervalRef.current)
         intervalRef.current = null
       }
       setCurrent(final)

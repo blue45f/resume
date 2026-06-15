@@ -15,8 +15,8 @@ export function installFetchMock(map: MockMap) {
   if (typeof window === 'undefined') return
   activeMap = map
   if (original) return // already installed
-  original = window.fetch
-  window.fetch = (async (input: RequestInfo | URL) => {
+  original = globalThis.fetch
+  globalThis.fetch = (async (input: RequestInfo | URL) => {
     const url =
       typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
     for (const key of Object.keys(activeMap)) {
@@ -38,7 +38,7 @@ export function installFetchMock(map: MockMap) {
 
 export function uninstallFetchMock() {
   if (typeof window === 'undefined' || !original) return
-  window.fetch = original
+  globalThis.fetch = original
   original = null
   activeMap = {}
 }

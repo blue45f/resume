@@ -4,8 +4,8 @@ import { useSiteStatsPublic } from '@/hooks/useResources'
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
-  typeof window.matchMedia === 'function' &&
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  typeof globalThis.matchMedia === 'function' &&
+  globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 function useCountUp(target: number, duration = 1200) {
   const [value, setValue] = useState(0)

@@ -443,7 +443,7 @@ export default function CoverLetterPage() {
   }
 
   const handleDownloadPdf = (text: string) => {
-    const printWindow = window.open('', '_blank')
+    const printWindow = globalThis.open('', '_blank')
     if (!printWindow) {
       toast('팝업이 차단되었습니다', 'error')
       return

@@ -271,7 +271,7 @@ function getDefaultPacketProgress(application: JobApplication): PacketProgress {
 function loadPacketProgress(application: JobApplication): PacketProgress {
   const defaults = getDefaultPacketProgress(application)
   try {
-    const raw = window.localStorage.getItem(getPacketStorageKey(application.id))
+    const raw = globalThis.localStorage.getItem(getPacketStorageKey(application.id))
     if (!raw) return defaults
     return { ...defaults, ...(JSON.parse(raw) as Partial<PacketProgress>) }
   } catch {
@@ -281,7 +281,7 @@ function loadPacketProgress(application: JobApplication): PacketProgress {
 
 function savePacketProgress(applicationId: string, progress: PacketProgress) {
   try {
-    window.localStorage.setItem(getPacketStorageKey(applicationId), JSON.stringify(progress))
+    globalThis.localStorage.setItem(getPacketStorageKey(applicationId), JSON.stringify(progress))
   } catch {
     // Ignore storage failures; the packet remains usable for the current session.
   }

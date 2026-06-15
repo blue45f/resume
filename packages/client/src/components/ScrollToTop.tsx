@@ -5,19 +5,19 @@ export default function ScrollToTop() {
   const [progress, setProgress] = useState(0)
 
   const handleScroll = useCallback(() => {
-    setShow(window.scrollY > 400)
+    setShow(globalThis.scrollY > 400)
 
-    const scrollHeight = document.documentElement.scrollHeight - window.innerHeight
+    const scrollHeight = document.documentElement.scrollHeight - globalThis.innerHeight
     if (scrollHeight > 0) {
-      setProgress(Math.min((window.scrollY / scrollHeight) * 100, 100))
+      setProgress(Math.min((globalThis.scrollY / scrollHeight) * 100, 100))
     } else {
       setProgress(0)
     }
   }, [])
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    globalThis.addEventListener('scroll', handleScroll, { passive: true })
+    return () => globalThis.removeEventListener('scroll', handleScroll)
   }, [handleScroll])
 
   return (
@@ -38,7 +38,7 @@ export default function ScrollToTop() {
       {/* Scroll to top button - bottom offset avoids MobileBottomNav (72px) + QuickActions FAB */}
       {show && (
         <button
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => globalThis.scrollTo({ top: 0, behavior: 'smooth' })}
           className="fixed bottom-[152px] right-4 md:bottom-6 md:right-6 z-40 w-10 h-10 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center no-print animate-fade-in"
           aria-label="맨 위로 스크롤"
         >

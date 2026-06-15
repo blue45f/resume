@@ -213,7 +213,7 @@ export default function ProfileResumePage() {
                 </span>
               )}
               <ShareMenu
-                url={window.location.href}
+                url={globalThis.location.href}
                 title={`${personalInfo.name || username} 이력서`}
                 description={`${personalInfo.name || username}님의 이력서 — 이력서공방`}
               />
@@ -226,7 +226,7 @@ export default function ProfileResumePage() {
                 PDF
               </a>
               <button
-                onClick={() => window.print()}
+                onClick={() => globalThis.print()}
                 className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 title="인쇄"
               >

@@ -265,8 +265,8 @@ export default function StudyGroupDetailPage() {
       (localMembership === 'joined' && serverIsMember) ||
       (localMembership === 'left' && !serverIsMember)
     ) {
-      const timer = window.setTimeout(() => setLocalMembership(null), 0)
-      return () => window.clearTimeout(timer)
+      const timer = globalThis.setTimeout(() => setLocalMembership(null), 0)
+      return () => globalThis.clearTimeout(timer)
     }
     return undefined
   }, [serverIsMember, localMembership])

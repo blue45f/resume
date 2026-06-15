@@ -53,7 +53,7 @@ export default function BannerSlider() {
   const handleClick = (banner: Banner) => {
     if (!banner.linkUrl) return
     if (banner.linkUrl.startsWith('http')) {
-      window.open(banner.linkUrl, '_blank')
+      globalThis.open(banner.linkUrl, '_blank')
     } else {
       navigate(banner.linkUrl)
     }

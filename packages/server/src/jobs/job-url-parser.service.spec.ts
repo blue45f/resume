@@ -11,7 +11,7 @@ describe('JobUrlParserService', () => {
   let mockLlm: { generateWithFallback: jest.Mock }
   let mockPrisma: { jobUrlCache: { findUnique: jest.Mock; upsert: jest.Mock } }
   let mockFetch: jest.Mock
-  const originalFetch = global.fetch
+  const originalFetch = globalThis.fetch
 
   beforeEach(async () => {
     mockLlm = { generateWithFallback: jest.fn() }
@@ -22,7 +22,7 @@ describe('JobUrlParserService', () => {
       },
     }
     mockFetch = jest.fn()
-    global.fetch = mockFetch as unknown as typeof fetch
+    globalThis.fetch = mockFetch as unknown as typeof fetch
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -35,7 +35,7 @@ describe('JobUrlParserService', () => {
   })
 
   afterAll(() => {
-    global.fetch = originalFetch
+    globalThis.fetch = originalFetch
   })
 
   // 응답 mock 헬퍼 — body.getReader 흉내내기 (parser 가 stream 으로 읽음)

@@ -221,7 +221,7 @@ export default function PreviewPage() {
   const [zoomLevel, setZoomLevel] = useState(100)
   // 모바일에서는 기본값이 fit-to-width — 210mm 이력서가 375px 뷰포트 넘어 가로 스크롤 유발하던 문제 해결
   const [fitToWidth, setFitToWidth] = useState(() =>
-    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+    typeof window !== 'undefined' ? globalThis.innerWidth < 768 : false
   )
   const [isFullscreen, setIsFullscreen] = useState(false)
   const previewWrapperRef = useRef<HTMLDivElement>(null)
@@ -244,10 +244,10 @@ export default function PreviewPage() {
   }, [reactToPrint])
 
   const shareUrl = useMemo(() => {
-    if (!resume) return window.location.href
+    if (!resume) return globalThis.location.href
     return resume.slug
-      ? `${window.location.origin}/@${encodeURIComponent(resume.personalInfo.name || 'user')}/${resume.slug}`
-      : window.location.href
+      ? `${globalThis.location.origin}/@${encodeURIComponent(resume.personalInfo.name || 'user')}/${resume.slug}`
+      : globalThis.location.href
   }, [resume])
 
   const handleCopyLink = useCallback(() => {
@@ -260,12 +260,12 @@ export default function PreviewPage() {
   const handleShareEmail = useCallback(() => {
     const subject = encodeURIComponent(`${resume?.personalInfo.name || ''}의 이력서`)
     const body = encodeURIComponent(`이력서를 확인해 보세요:\n${shareUrl}`)
-    window.open(`mailto:?subject=${subject}&body=${body}`, '_self')
+    globalThis.open(`mailto:?subject=${subject}&body=${body}`, '_self')
     setShowShareMenu(false)
   }, [resume, shareUrl])
 
   const handleShareLinkedIn = useCallback(() => {
-    window.open(
+    globalThis.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
       '_blank',
       'noopener'
@@ -368,7 +368,7 @@ export default function PreviewPage() {
       }
       setMeta('og:title', `${name} — 이력서공방`)
       setMeta('og:description', desc || 'AI 기반 이력서 관리 플랫폼')
-      setMeta('og:url', window.location.href)
+      setMeta('og:url', globalThis.location.href)
       setMeta('og:type', 'profile')
     }
     return () => {
@@ -741,7 +741,7 @@ export default function PreviewPage() {
                       onClick={async () => {
                         try {
                           await copySignatureToClipboard(resume, {
-                            shareUrl: window.location.href,
+                            shareUrl: globalThis.location.href,
                             accent: themeAccent,
                           })
                           toast('이메일 서명 복사됨 — Gmail/Outlook 에 붙여넣기', 'success')
@@ -803,14 +803,14 @@ export default function PreviewPage() {
                       onClick={async () => {
                         try {
                           await downloadSocialCard(resume, {
-                            shareUrl: window.location.href,
+                            shareUrl: globalThis.location.href,
                             accent: themeAccent,
                           })
                           toast('공유 카드(PNG) 다운로드 완료', 'success')
                         } catch {
                           toast('카드 생성 실패 — SVG 다운로드로 대체', 'error')
                           downloadSocialCardSvg(resume, {
-                            shareUrl: window.location.href,
+                            shareUrl: globalThis.location.href,
                             accent: themeAccent,
                           })
                         }
@@ -836,7 +836,7 @@ export default function PreviewPage() {
                     </button>
                     <button
                       onClick={() => {
-                        downloadJsonResume(resume, { canonical: window.location.href })
+                        downloadJsonResume(resume, { canonical: globalThis.location.href })
                         toast('JSON Resume (.json) 다운로드 완료', 'success')
                         setShowMoreMenu(false)
                       }}
@@ -1596,7 +1596,7 @@ export default function PreviewPage() {
       {/* QR Code Modal */}
       {showQr && resume && (
         <QrCodeModal
-          url={window.location.href}
+          url={globalThis.location.href}
           title={`${resume.personalInfo.name || resume.title} — 이력서`}
           onClose={() => setShowQr(false)}
         />

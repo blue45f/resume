@@ -86,7 +86,7 @@ export default function CareerLevel({ user, resumes }: Props) {
   useEffect(() => {
     const prefersReduce =
       typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches
     const t = setTimeout(() => setAnimatedPct(info.progressPct), prefersReduce ? 0 : 100)
     return () => clearTimeout(t)
   }, [info.progressPct])

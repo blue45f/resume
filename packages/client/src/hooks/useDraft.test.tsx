@@ -7,7 +7,7 @@ const KEY = 'unit-test-draft'
 
 describe('useDraft', () => {
   beforeEach(() => {
-    window.localStorage.clear()
+    globalThis.localStorage.clear()
     vi.useFakeTimers()
   })
   afterEach(() => {
@@ -21,7 +21,7 @@ describe('useDraft', () => {
   })
 
   it('restores prior draft from localStorage on mount', () => {
-    window.localStorage.setItem('draft_' + KEY, JSON.stringify({ title: 'saved' }))
+    globalThis.localStorage.setItem('draft_' + KEY, JSON.stringify({ title: 'saved' }))
     const { result } = renderHook(() => useDraft(KEY, { title: '', body: '' }))
     expect(result.current.data.title).toBe('saved')
     expect(result.current.data.body).toBe('')
@@ -36,7 +36,7 @@ describe('useDraft', () => {
     act(() => {
       vi.advanceTimersByTime(1100)
     })
-    expect(window.localStorage.getItem('draft_' + KEY)).toContain('hello')
+    expect(globalThis.localStorage.getItem('draft_' + KEY)).toContain('hello')
     expect(result.current.lastSaved).toBeInstanceOf(Date)
   })
 
@@ -48,17 +48,17 @@ describe('useDraft', () => {
     act(() => {
       vi.advanceTimersByTime(1100)
     })
-    expect(window.localStorage.getItem('draft_' + KEY)).toBeNull()
+    expect(globalThis.localStorage.getItem('draft_' + KEY)).toBeNull()
   })
 
   it('clearDraft() removes from localStorage and resets data', () => {
-    window.localStorage.setItem('draft_' + KEY, JSON.stringify({ title: 'old' }))
+    globalThis.localStorage.setItem('draft_' + KEY, JSON.stringify({ title: 'old' }))
     const { result } = renderHook(() => useDraft(KEY, { title: '', body: '' }))
     expect(result.current.data.title).toBe('old')
     act(() => {
       result.current.clearDraft()
     })
     expect(result.current.data.title).toBe('')
-    expect(window.localStorage.getItem('draft_' + KEY)).toBeNull()
+    expect(globalThis.localStorage.getItem('draft_' + KEY)).toBeNull()
   })
 })

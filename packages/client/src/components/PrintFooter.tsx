@@ -17,7 +17,7 @@ interface Props {
  * 화면에선 `.print-only` 로 숨김, `@media print` 에서만 표시.
  */
 export default function PrintFooter({ resume }: Props) {
-  const shareUrl = typeof window !== 'undefined' ? window.location.href : ''
+  const shareUrl = typeof window !== 'undefined' ? globalThis.location.href : ''
   const [printedTimestamp] = useState(() => Date.now())
 
   const qrImageUrl = shareUrl

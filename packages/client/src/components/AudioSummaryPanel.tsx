@@ -35,7 +35,7 @@ export default function AudioSummaryPanel({ resume }: Props) {
     if (!supported) return
 
     const loadVoices = () => {
-      const list = window.speechSynthesis.getVoices()
+      const list = globalThis.speechSynthesis.getVoices()
       // lib/voicePersona 의 단일 휴리스틱 사용 — 사이트 전반 TTS 일관.
       const natural = filterNaturalKoreanVoices(list)
       setVoices(natural)
@@ -45,10 +45,10 @@ export default function AudioSummaryPanel({ resume }: Props) {
     }
 
     loadVoices()
-    window.speechSynthesis.addEventListener('voiceschanged', loadVoices)
+    globalThis.speechSynthesis.addEventListener('voiceschanged', loadVoices)
     return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
-      window.speechSynthesis.cancel()
+      globalThis.speechSynthesis.removeEventListener('voiceschanged', loadVoices)
+      globalThis.speechSynthesis.cancel()
     }
   }, [supported, voiceURI])
 
@@ -61,14 +61,14 @@ export default function AudioSummaryPanel({ resume }: Props) {
     utter.rate = rate
     utter.onend = () => setPlaying(false)
     utter.onerror = () => setPlaying(false)
-    window.speechSynthesis.cancel()
-    window.speechSynthesis.speak(utter)
+    globalThis.speechSynthesis.cancel()
+    globalThis.speechSynthesis.speak(utter)
     setPlaying(true)
   }
 
   const stop = () => {
     if (!supported) return
-    window.speechSynthesis.cancel()
+    globalThis.speechSynthesis.cancel()
     setPlaying(false)
   }
 

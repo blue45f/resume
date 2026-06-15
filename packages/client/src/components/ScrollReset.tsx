@@ -20,7 +20,7 @@ export default function ScrollReset() {
   const isFirstRender = useRef(true)
 
   useEffect(() => {
-    window.scrollTo(0, 0)
+    globalThis.scrollTo(0, 0)
 
     if (isFirstRender.current) {
       isFirstRender.current = false

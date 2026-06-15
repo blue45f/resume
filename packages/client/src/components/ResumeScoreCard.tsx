@@ -81,7 +81,7 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
     const text = encodeURIComponent(
       `이력서공방에서 이력서 진단 ${pct}% (${grade}등급)을 받았습니다! 무료로 이력서 진단받기 → 이력서공방.com #이력서 #취업 #이직`
     )
-    window.open(
+    globalThis.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://이력서공방.com')}&summary=${text}`,
       '_blank'
     )
@@ -91,7 +91,7 @@ export default function ResumeScoreCard({ resume, onClose }: Props) {
     const text = encodeURIComponent(
       `이력서공방 이력서 진단 결과 🎯\n\n완성도 ${pct}% / ${grade}등급 달성!\n\n${getGradeMessage(grade, pct)}\n\n무료로 내 이력서도 진단받기 👇`
     )
-    window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
+    globalThis.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank')
   }
 
   return (

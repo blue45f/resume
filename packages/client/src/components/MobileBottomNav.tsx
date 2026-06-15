@@ -212,7 +212,7 @@ export default function MobileBottomNav() {
     if (typeof visualViewport === 'undefined') return
     const vv = visualViewport
     const handleResize = () => {
-      const threshold = window.innerHeight * 0.75
+      const threshold = globalThis.innerHeight * 0.75
       setKeyboardOpen(vv!.height < threshold)
     }
     vv!.addEventListener('resize', handleResize)

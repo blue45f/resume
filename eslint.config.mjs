@@ -31,12 +31,12 @@ export default defineConfig(
         'error',
         {
           name: 'confirm',
-          message: 'useConfirm()/ConfirmDialog를 사용하세요 (window.confirm 금지).',
+          message: 'useConfirm()/ConfirmDialog를 사용하세요 (globalThis.confirm 금지).',
         },
-        { name: 'alert', message: 'toast()를 사용하세요 (window.alert 금지).' },
+        { name: 'alert', message: 'toast()를 사용하세요 (globalThis.alert 금지).' },
         {
           name: 'prompt',
-          message: 'usePrompt()/PromptProvider를 사용하세요 (window.prompt 금지).',
+          message: 'usePrompt()/PromptProvider를 사용하세요 (globalThis.prompt 금지).',
         },
       ],
       // autoFocus 사용처는 전부 사용자 동작으로 막 노출되는 오버레이/인라인 편집 컨트롤

@@ -42,7 +42,7 @@ export default function QrCodeModal({ url, title, onClose }: Props) {
       document.body.removeChild(a)
       URL.revokeObjectURL(blobUrl)
     } catch {
-      window.open(qrImageUrl, '_blank')
+      globalThis.open(qrImageUrl, '_blank')
     } finally {
       setDownloading(false)
     }

@@ -96,7 +96,7 @@ export default function HomePage() {
       const target = e.target as HTMLElement
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
       if (e.key === 'n' && !e.ctrlKey && !e.metaKey) {
-        window.location.href = '/resumes/new'
+        globalThis.location.href = '/resumes/new'
       }
     }
     document.addEventListener('keydown', handler)

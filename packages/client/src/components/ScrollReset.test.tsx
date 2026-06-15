@@ -35,7 +35,7 @@ function Layout() {
 describe('ScrollReset (route-change focus management)', () => {
   beforeEach(() => {
     // jsdom 은 scrollTo 가 없으므로 폴리필.
-    window.scrollTo = vi.fn()
+    globalThis.scrollTo = vi.fn()
     document.body.innerHTML = ''
   })
 
@@ -121,7 +121,7 @@ describe('ScrollReset (route-change focus management)', () => {
     )
 
     await vi.waitFor(() => {
-      expect(window.scrollTo).toHaveBeenCalledWith(0, 0)
+      expect(globalThis.scrollTo).toHaveBeenCalledWith(0, 0)
     })
   })
 })

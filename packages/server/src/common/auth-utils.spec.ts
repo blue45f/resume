@@ -30,12 +30,12 @@ const localStorageMock = (() => {
   }
 })()
 
-// global.localStorage 설정
+// globalThis.localStorage 설정
 Object.defineProperty(global, 'localStorage', { value: localStorageMock })
 
 // import.meta.env 모킹 - require로 로드 전에 설정
 // fetch 모킹
-global.fetch = jest.fn(() =>
+globalThis.fetch = jest.fn(() =>
   Promise.resolve({ ok: true } as Response)
 ) as unknown as jest.MockedFunction<typeof fetch>
 

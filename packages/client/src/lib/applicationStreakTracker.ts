@@ -16,9 +16,9 @@ export interface ApplicationStreakReport {
   weeks: WeeklyCount[]
   /** Consecutive met-target weeks ending at the current week. */
   currentStreak: number
-  /** Longest met-target streak seen in the window. */
+  /** Longest met-target streak seen in the globalThis. */
   bestStreak: number
-  /** All-time best single-week count within the window. */
+  /** All-time best single-week count within the globalThis. */
   bestWeek: WeeklyCount | null
   /** Number of applications already in the current week. */
   thisWeekCount: number
@@ -43,7 +43,7 @@ const MAX_TARGET = 50
 
 export function readApplicationTarget(storage?: Pick<Storage, 'getItem'>): number {
   try {
-    const store = storage ?? (typeof window !== 'undefined' ? window.localStorage : undefined)
+    const store = storage ?? (typeof window !== 'undefined' ? globalThis.localStorage : undefined)
     if (!store) return DEFAULT_TARGET
     const raw = store.getItem(APPLICATION_TARGET_STORAGE_KEY)
     if (!raw) return DEFAULT_TARGET
@@ -60,7 +60,7 @@ export function readApplicationTarget(storage?: Pick<Storage, 'getItem'>): numbe
 export function writeApplicationTarget(value: number, storage?: Pick<Storage, 'setItem'>): number {
   const safe = Math.max(MIN_TARGET, Math.min(MAX_TARGET, Math.round(value)))
   try {
-    const store = storage ?? (typeof window !== 'undefined' ? window.localStorage : undefined)
+    const store = storage ?? (typeof window !== 'undefined' ? globalThis.localStorage : undefined)
     store?.setItem(APPLICATION_TARGET_STORAGE_KEY, String(safe))
   } catch {
     // ignore storage errors; the in-memory value is what we return
