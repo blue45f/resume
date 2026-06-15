@@ -27,4 +27,16 @@ describe('<EmptyState />', () => {
     renderWithProviders(<EmptyState type="message" />)
     expect(screen.queryAllByRole('link')).toHaveLength(0)
   })
+
+  it('renders bookmark type with explore action', () => {
+    renderWithProviders(<EmptyState type="bookmark" />)
+    expect(screen.getByText('북마크한 이력서가 없습니다')).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: /이력서 탐색하기/ })
+    expect(link).toHaveAttribute('href', '/explore')
+  })
+
+  it('exposes a status role so screen readers announce the empty state', () => {
+    renderWithProviders(<EmptyState type="notification" />)
+    expect(screen.getByRole('status')).toBeInTheDocument()
+  })
 })

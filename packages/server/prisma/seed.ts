@@ -273,6 +273,46 @@ async function main() {
     }
   }
 
+  // Seed role-diverse QA accounts — 로컬/QA 에서 admin·recruiter·coach 권한 흐름을
+  // 직접 로그인해 검증할 수 있도록 비밀번호를 부여한다. 멱등(upsert)하며,
+  // 이미 password 가 있으면 건드리지 않는다(운영 데이터 보호). 데모와 동일 해시 방식.
+  const qaAccounts = [
+    { email: 'admin@example.com', name: '관리자', role: 'admin', userType: 'personal' },
+    {
+      email: 'recruiter@example.com',
+      name: '김채용',
+      role: 'user',
+      userType: 'recruiter',
+      companyName: '테크스타트업',
+      companyTitle: 'HR 매니저',
+    },
+    {
+      email: 'coach@example.com',
+      name: '이코치',
+      role: 'user',
+      userType: 'coach',
+      companyTitle: '커리어 코치',
+    },
+  ] as const
+  const bcryptQa = await import('bcryptjs')
+  for (const acct of qaAccounts) {
+    const existing = await prisma.user.findUnique({
+      where: { email: acct.email },
+      select: { id: true, passwordHash: true },
+    })
+    if (existing?.passwordHash) continue
+    const passwordHash = await bcryptQa.hash('Demo1234!', 12)
+    if (existing) {
+      await prisma.user.update({ where: { id: existing.id }, data: { passwordHash } })
+      console.log(`  ✓ QA 계정 비밀번호 설정 (${acct.email})`)
+    } else {
+      await prisma.user.create({
+        data: { ...acct, provider: 'local', providerId: acct.email, passwordHash },
+      })
+      console.log(`  ✓ QA 계정 생성 (${acct.email}, ${acct.role}/${acct.userType})`)
+    }
+  }
+
   // Seed sample resumes
   const resumeCount = await prisma.resume.count()
   if (resumeCount === 0) {

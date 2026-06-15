@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
+import EmptyState from '@/components/EmptyState'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { CardGridSkeleton } from '@/components/Skeleton'
@@ -65,31 +66,7 @@ export default function BookmarksPage() {
         ) : isError ? (
           <ErrorState message="북마크를 불러오지 못했습니다" onRetry={() => refetch()} />
         ) : bookmarks.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <svg
-              className="w-16 h-16 mx-auto mb-4 text-slate-300 dark:text-slate-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-              />
-            </svg>
-            <p className="text-slate-500 dark:text-slate-400 mb-2">{tx('empty.bookmarks')}</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              탐색 페이지에서 관심 있는 이력서를 북마크하세요
-            </p>
-            <Link
-              to={ROUTES.resume.explore}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              이력서 탐색하기 →
-            </Link>
-          </div>
+          <EmptyState type="bookmark" />
         ) : (
           <div className="space-y-3">
             {bookmarks.map((b) => (
