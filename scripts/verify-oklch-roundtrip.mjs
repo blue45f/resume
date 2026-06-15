@@ -74,25 +74,25 @@ function parseRgb(inner) {
 
 // Extract ordered color tokens from a source string.
 function extractOriginal(src) {
-  const re = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|\brgba?\(\s*[^)]*?\s*\)/g;
+  // `[^)]*` is linear (negated class, single quantifier) — no backtracking.
+  const re = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b|\brgba?\(([^)]*)\)/g;
   const out = [];
   let m;
   while ((m = re.exec(src))) {
     const tok = m[0];
     if (tok[0] === '#') out.push({ tok, rgba: parseHex(tok) });
     else {
-      const inner = tok.replace(/^\s*rgba?\(\s*/, '').replace(/\s*\)\s*$/, '');
-      out.push({ tok, rgba: parseRgb(inner) });
+      out.push({ tok, rgba: parseRgb(m[1].trim()) });
     }
   }
   return out;
 }
 function extractOklch(src) {
-  const re = /\boklch\(\s*([^)]*?)\s*\)/g;
+  const re = /\boklch\(([^)]*)\)/g;
   const out = [];
   let m;
   while ((m = re.exec(src))) {
-    const inner = m[1];
+    const inner = m[1].trim();
     let alpha = 1;
     let body = inner;
     const si = inner.indexOf('/');

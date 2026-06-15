@@ -155,7 +155,9 @@ function parseHex(hex) {
 // ---------- replacement ----------
 const HEX_RE = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b/g;
 // rgb()/rgba() with comma OR space syntax; capture inner args raw.
-const RGB_RE = /\brgba?\(\s*([^)]*?)\s*\)/g;
+// `[^)]*` is linear (negated class, single quantifier) — no catastrophic
+// backtracking. Surrounding whitespace is trimmed by the consumer.
+const RGB_RE = /\brgba?\(([^)]*)\)/g;
 
 function alphaRoundTrips(originalAlphaStr) {
   // We keep the alpha component textually identical, so it round-trips exactly.
