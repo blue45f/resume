@@ -145,7 +145,7 @@
     "@types/supertest": "^7.2.0",
     "@vitejs/plugin-react": "^6.0.2",
     "@vitest/ui": "^4.1.8",
-    "concurrently": "^10.0.1",
+    "concurrently": "^10.0.3",
     "eslint": "^10.4.0",
     "eslint-import-resolver-typescript": "^4.4.5",
     "eslint-plugin-react-compiler": "19.1.0-rc.2",
