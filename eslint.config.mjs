@@ -13,6 +13,7 @@ export default defineConfig(
     'packages/client/public/**',
     'packages/client/storybook-static/**',
     'packages/server/prisma/migrations/**',
+    'apps/toss/**',
   ]),
 
   // 공유 베이스(TS + import 위생 + prettier 충돌 비활성). 커스텀 규칙은 5.0.0 에서
