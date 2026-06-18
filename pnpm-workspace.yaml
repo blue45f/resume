@@ -29,6 +29,9 @@ onlyBuiltDependencies:
 
 overrides:
   brace-expansion: '^5.0.5'
+  # @apps-in-toss/web-framework 가 jest@29 트리(jest-mock@29.7.0)를 끌어와 jest@30 서버 테스트의
+  # moduleMocker.clearMocksOnScope 호출이 깨짐 → jest-mock 을 30 으로 정렬(테스트 전용, 런타임 무관).
+  jest-mock: 30.4.1
 
 # minimatch@10 이 vendored brace-expansion@1 잘못 깔려서 expand named export 못 찾음 (concat-map 누락).
 # packageExtensions 로 minimatch 의 brace-expansion 의존성을 ^5 로 명시 → vendored v1 차단.
