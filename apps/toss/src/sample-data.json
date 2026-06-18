@@ -1,0 +1,168 @@
+{
+  "items": [
+    {
+      "id": "resume-1",
+      "title": "풀스택 개발자 이력서 (React/Node.js 5년)",
+      "role": "풀스택 개발자",
+      "name": "김개발",
+      "summary": "React와 Node.js를 중심으로 풀스택 개발 경험 5년. 스타트업부터 대기업까지 다양한 규모의 프로젝트에서 리드 개발자로 활동하였습니다.",
+      "viewCount": 342,
+      "skills": ["React", "TypeScript", "Node.js", "PostgreSQL", "AWS", "Docker"],
+      "experiences": [
+        {
+          "company": "테크스타트업",
+          "position": "시니어 풀스택 개발자",
+          "period": "2022-03 ~ 현재",
+          "description": "React 기반 SPA 설계 및 개발, Node.js REST API 구축, AWS 인프라 관리"
+        },
+        {
+          "company": "이커머스컴퍼니",
+          "position": "프론트엔드 개발자",
+          "period": "2020-01 ~ 2022-02",
+          "description": "React + TypeScript 도입 주도, 성능 최적화로 LCP 40% 개선"
+        }
+      ]
+    },
+    {
+      "id": "resume-2",
+      "title": "프론트엔드 개발자 이력서 (Vue/React 4년)",
+      "role": "프론트엔드 개발자",
+      "name": "이프론트",
+      "summary": "사용자 중심의 UI/UX를 구현하는 프론트엔드 개발자입니다. Vue.js와 React를 활용한 대규모 프로젝트 경험이 있습니다.",
+      "viewCount": 218,
+      "skills": ["Vue.js", "React", "Webpack", "Sass", "TypeScript", "Figma"],
+      "experiences": [
+        {
+          "company": "핀테크기업",
+          "position": "프론트엔드 개발자",
+          "period": "2021-06 ~ 현재",
+          "description": "Vue.js 기반 금융 대시보드 개발, 실시간 차트 구현"
+        }
+      ]
+    },
+    {
+      "id": "resume-3",
+      "title": "UX/UI 디자이너 포트폴리오 이력서",
+      "role": "UX/UI 디자이너 포트폴리오",
+      "name": "박디자이너",
+      "summary": "사용자 경험을 최우선으로 생각하는 UX 디자이너. Figma와 Framer로 인터랙티브 프로토타입 제작에 강점.",
+      "viewCount": 156,
+      "skills": ["Figma", "Framer", "Sketch", "Adobe XD", "Prototyping", "User Research"],
+      "experiences": [
+        {
+          "company": "디자인스튜디오",
+          "position": "UX 디자이너",
+          "period": "2022-01 ~ 현재",
+          "description": "B2B SaaS 제품 UX 리디자인, 사용성 테스트 및 A/B 테스트 주도"
+        }
+      ]
+    },
+    {
+      "id": "resume-4",
+      "title": "디지털 마케터 이력서 — 그로스 해킹 전문",
+      "role": "디지털 마케터",
+      "name": "최마케터",
+      "summary": "데이터 기반 그로스 해킹과 퍼포먼스 마케팅으로 스타트업 MAU를 3배 성장시킨 마케터.",
+      "viewCount": 89,
+      "skills": ["Google Analytics", "Facebook Ads", "SQL", "Amplitude", "A/B Testing", "SEO"],
+      "experiences": [
+        {
+          "company": "스타트업A",
+          "position": "그로스 마케터",
+          "period": "2021-03 ~ 현재",
+          "description": "Facebook/Google 광고 운영, ROAS 250% 달성, 유저 퍼널 최적화"
+        }
+      ]
+    },
+    {
+      "id": "resume-5",
+      "title": "프로덕트 매니저 이력서 — IT 서비스 기획 7년",
+      "role": "프로덕트 매니저",
+      "name": "정기획",
+      "summary": "7년간 모바일/웹 서비스를 기획하고 0→1 런치를 이끈 PM. 개발자 출신으로 기술 이해도 높음.",
+      "viewCount": 203,
+      "skills": ["Jira", "Notion", "Figma", "SQL", "OKR", "Agile"],
+      "experiences": [
+        {
+          "company": "빅테크코리아",
+          "position": "시니어 PM",
+          "period": "2020-07 ~ 현재",
+          "description": "신규 구독 서비스 런치, MAU 50만 달성"
+        },
+        {
+          "company": "모바일스타트업",
+          "position": "PM",
+          "period": "2017-01 ~ 2020-06",
+          "description": "앱 0→1 런치, iOS/Android 동시 출시"
+        }
+      ]
+    },
+    {
+      "id": "resume-6",
+      "title": "신입 개발자 이력서 — 컴공 졸업예정",
+      "role": "신입 개발자",
+      "name": "신입준",
+      "summary": "올해 2월 컴퓨터공학 졸업예정. Java Spring Boot와 React로 토이 프로젝트 다수 진행. 열정적인 성장을 추구합니다.",
+      "viewCount": 45,
+      "skills": ["Java", "Spring Boot", "React", "MySQL", "Git"],
+      "experiences": []
+    },
+    {
+      "id": "resume-7",
+      "title": "백엔드 아키텍트 이력서 — 10년 경력",
+      "role": "백엔드 아키텍트",
+      "name": "오시니어",
+      "summary": "10년간 대용량 트래픽 서비스의 백엔드 아키텍처를 설계하고 운영. MSA 전환 및 Kubernetes 도입 경험.",
+      "viewCount": 412,
+      "skills": ["Java", "Kotlin", "Spring", "Kubernetes", "Kafka", "Redis", "AWS"],
+      "experiences": [
+        {
+          "company": "유니콘스타트업",
+          "position": "백엔드 아키텍트",
+          "period": "2019-01 ~ 현재",
+          "description": "MSA 전환 리드, 일 100만 트랜잭션 처리 시스템 설계"
+        },
+        {
+          "company": "대기업SI",
+          "position": "백엔드 개발자",
+          "period": "2014-03 ~ 2018-12",
+          "description": "Java EE 기반 레거시 마이그레이션, Spring Boot 전환"
+        }
+      ]
+    },
+    {
+      "id": "resume-8",
+      "title": "데이터 분석가 이력서 — SQL/Python 전문",
+      "role": "데이터 분석가",
+      "name": "조데이터",
+      "summary": "데이터로 비즈니스 의사결정을 지원하는 데이터 분석가. Python과 SQL로 대규모 데이터 파이프라인 구축 경험.",
+      "viewCount": 167,
+      "skills": ["Python", "SQL", "Tableau", "Spark", "Airflow", "dbt"],
+      "experiences": [
+        {
+          "company": "이커머스플랫폼",
+          "position": "데이터 분석가",
+          "period": "2021-08 ~ 현재",
+          "description": "Tableau 대시보드 구축, 주문 이탈율 분석으로 전환율 15% 개선"
+        }
+      ]
+    },
+    {
+      "id": "resume-9",
+      "title": "Backend Engineer Resume (English)",
+      "role": "이력서",
+      "name": "강백엔드",
+      "summary": "Experienced backend engineer with 6 years of expertise in Python/Django and microservices architecture. Passionate about scalable system design.",
+      "viewCount": 98,
+      "skills": ["Python", "FastAPI", "Django", "PostgreSQL", "Redis", "Docker", "GCP"],
+      "experiences": [
+        {
+          "company": "GlobalTech Inc.",
+          "position": "Senior Backend Engineer",
+          "period": "2021-01 ~ 현재",
+          "description": "Built scalable APIs handling 10M+ daily requests using Python/FastAPI"
+        }
+      ]
+    }
+  ]
+}
