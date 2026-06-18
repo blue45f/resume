@@ -6,6 +6,7 @@ import AnnouncementBanner from '@/components/AnnouncementBanner'
 import AuthGuard from '@/components/AuthGuard'
 import CommandPalette from '@/components/CommandPalette'
 import CookieConsent from '@/components/CookieConsent'
+import DeskCloudMounts from '@/components/deskcloud/DeskCloudMounts'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import FeedbackWidget from '@/components/feedback/FeedbackWidget'
 import KeyboardShortcuts from '@/components/KeyboardShortcuts'
@@ -696,6 +697,7 @@ export default function App() {
                 {import.meta.env.VITE_SURVEYDESK_URL && (
                   <FeedbackWidget appId="resume" endpoint={import.meta.env.VITE_SURVEYDESK_URL} />
                 )}
+                <DeskCloudMounts />
               </BrowserRouter>
             </PromptProvider>
           </ConfirmProvider>

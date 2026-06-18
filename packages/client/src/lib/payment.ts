@@ -48,10 +48,10 @@ export async function requestPayment(params: PaymentRequest): Promise<void> {
     await new Promise((resolve) => (s.onload = resolve))
   }
 
-  if (!globalThis.TossPayments) {
+  if (!window.TossPayments) {
     throw new Error('Toss Payments SDK를 불러오지 못했습니다')
   }
-  const tossPayments = globalThis.TossPayments(TOSS_CLIENT_KEY)
+  const tossPayments = window.TossPayments(TOSS_CLIENT_KEY)
   const orderId = generateOrderId()
 
   await tossPayments.requestPayment('카드', {

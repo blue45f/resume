@@ -218,7 +218,7 @@ export function useWebrtcPeer({ roomId, peerId, isInitiator, modality }: Options
       }
 
       // 4. Polling 시작 — 서버 큐에서 신호 drain
-      pollRef.current = globalThis.setInterval(async () => {
+      pollRef.current = window.setInterval(async () => {
         try {
           const signals = await drainWebrtcSignals(roomId)
           for (const s of signals) {

@@ -45,7 +45,7 @@ export default function VoiceInput({ onResult, lang = 'ko-KR', className = '' }:
     }
 
     const Ctor: SpeechRecognitionCtor | undefined =
-      globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition
+      window.SpeechRecognition || window.webkitSpeechRecognition
     if (!Ctor) return
     const recognition = new Ctor()
     recognition.lang = lang

@@ -230,7 +230,7 @@ export default function CameraInterview({
       setPhase('recording')
       setAnnounce('녹화가 시작되었습니다.')
 
-      timerRef.current = globalThis.setInterval(() => {
+      timerRef.current = window.setInterval(() => {
         const sec = Math.floor((Date.now() - startedAtRef.current) / 1000)
         setElapsed(sec)
         if (maxDurationSec && sec >= maxDurationSec) {

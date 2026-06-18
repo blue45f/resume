@@ -72,7 +72,7 @@ export default function InterviewRoulette({ compact = false }: Props) {
     setSpinning(true)
     const SPIN_MS = 900 // well over 200ms, feels punchy
     // Rapid flicker of question previews during spin
-    intervalRef.current = globalThis.setInterval(() => {
+    intervalRef.current = window.setInterval(() => {
       const sneak = pickRandom(questions)
       if (sneak) setTickText(sneak.question)
     }, 70)
