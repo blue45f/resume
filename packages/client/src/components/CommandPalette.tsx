@@ -17,6 +17,13 @@ interface Command {
 }
 
 /**
+ * SearchDesk(DeskCloud)가 설정돼 있으면 ⌘K 는 SearchDesk 검색 팔레트가 소유한다.
+ * 그 경우 이 액션 팔레트는 전역 ⌘K 핸들러를 등록하지 않아 두 다이얼로그가
+ * 동시에 열리는 충돌을 막는다(env 미설정 시 기존처럼 이 팔레트가 ⌘K 를 가짐 — 가역적).
+ */
+const SEARCHDESK_OWNS_CMDK = Boolean(import.meta.env.VITE_SEARCHDESK_URL)
+
+/**
  * CommandPalette — ⌘K (Mac) / Ctrl+K (Win) 로 열리는 글로벌 액션 팔레트.
  * Notion/Linear/Raycast 스타일. 검색어로 필터링, 화살표 키로 탐색, Enter 실행.
  * 국내 경쟁 이력서 서비스에 없는 파워유저 기능.
@@ -28,13 +35,15 @@ export default function CommandPalette() {
   const navigate = useNavigate()
   const listRef = useRef<HTMLDivElement>(null)
 
-  // 전역 단축키 등록
+  // 전역 단축키 등록 — SearchDesk 가 ⌘K 를 소유하면 토글 키는 등록하지 않는다.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
-      if (isCmdK) {
-        e.preventDefault()
-        setOpen((v) => !v)
+      if (!SEARCHDESK_OWNS_CMDK) {
+        const isCmdK = (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'
+        if (isCmdK) {
+          e.preventDefault()
+          setOpen((v) => !v)
+        }
       }
       if (e.key === 'Escape' && open) setOpen(false)
     }
@@ -348,9 +357,11 @@ export default function CommandPalette() {
                 <kbd className="px-1 py-px bg-slate-100 dark:bg-slate-800 rounded">↵</kbd> 실행
               </span>
             </div>
-            <span>
-              <kbd className="px-1 py-px bg-slate-100 dark:bg-slate-800 rounded">⌘K</kbd> 토글
-            </span>
+            {!SEARCHDESK_OWNS_CMDK && (
+              <span>
+                <kbd className="px-1 py-px bg-slate-100 dark:bg-slate-800 rounded">⌘K</kbd> 토글
+              </span>
+            )}
           </div>
         </RadixDialog.Content>
       </RadixDialog.Portal>

@@ -11,6 +11,12 @@ import { httpClient } from '@/lib/ky'
 import { ROUTES } from '@/lib/routes'
 import { getTheme, setTheme } from '@/lib/theme'
 
+/**
+ * NotifyDesk(DeskCloud)가 설정되면 우상단 플로팅 알림 벨이 마운트되므로(DeskCloudMounts),
+ * 헤더의 자체 NotificationBell 은 숨겨 벨 중복을 막는다. env 미설정 시 기존처럼 자체 벨 사용(가역적).
+ */
+const NOTIFYDESK_ACTIVE = Boolean(import.meta.env.VITE_NOTIFYDESK_URL)
+
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [theme, setThemeState] = useState(getTheme())
@@ -584,8 +590,8 @@ export default function Header() {
               )}
               <button
                 onClick={() => setShowSearch(true)}
-                className="flex items-center gap-2 px-2 lg:px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
-                aria-label="검색"
+                className="flex items-center gap-2 px-2 lg:px-3 py-1.5 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-slate-100 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900"
+                aria-label="검색 (단축키 ⌘K)"
               >
                 <svg
                   className="w-3.5 h-3.5 flex-shrink-0"
@@ -618,7 +624,7 @@ export default function Header() {
                   {t('nav.newResume')}
                 </Link>
               )}
-              {user && <NotificationBell />}
+              {user && !NOTIFYDESK_ACTIVE && <NotificationBell />}
               <button
                 onClick={cycleTheme}
                 className="icon-btn-sm"

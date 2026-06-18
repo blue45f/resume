@@ -41,3 +41,4 @@ minimumReleaseAgeExclude:
   - react-hook-form
   - '@heejun/eslint-config@5.0.0'
   - '@heejun/prettier-config@3.0.0'
+  - '@heejun/deskcloud@0.1.0'

@@ -14,6 +14,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@heejun/deskcloud": "^0.1.0",
     "@resume/shared": "workspace:*",
     "date-fns": "^4.4.0"
   },
