@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 import EmptyState from '@/components/EmptyState'
@@ -11,6 +11,7 @@ import { useCoverLetters } from '@/hooks/useResources'
 import { deleteCoverLetter } from '@/lib/api'
 import { t } from '@/lib/i18n'
 import { ROUTES } from '@/lib/routes'
+import { shareOrCopy, shareResultMessage } from '@/lib/share'
 import { formatDate, timeAgo } from '@/lib/time'
 import { useConfirm } from '@/shared/ui/ConfirmProvider'
 
@@ -36,6 +37,7 @@ export default function MyCoverLettersPage() {
   const [sortMode, setSortMode] = useState<SortMode>('recent')
   const [batchMode, setBatchMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
   const confirm = useConfirm()
 
   const deleteMutation = useMutation({
@@ -74,6 +76,21 @@ export default function MyCoverLettersPage() {
 
     return result
   }, [letters, searchQuery, sortMode])
+
+  // 목록에서 위/아래 화살표로 선택을 이동한다(배치 모드에서는 비활성). 포커스도 함께 옮겨
+  // 키보드 사용자가 선택 위치를 시각·청각적으로 추적할 수 있게 한다.
+  const handleListKeyDown = (e: React.KeyboardEvent, index: number) => {
+    if (batchMode) return
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    e.preventDefault()
+    const delta = e.key === 'ArrowDown' ? 1 : -1
+    const nextIndex = Math.min(Math.max(index + delta, 0), filteredLetters.length - 1)
+    const next = filteredLetters[nextIndex]
+    if (next) {
+      setSelectedId(next.id)
+      itemRefs.current[nextIndex]?.focus()
+    }
+  }
 
   const handleDelete = async (id: string) => {
     if (
@@ -119,9 +136,22 @@ export default function MyCoverLettersPage() {
     })
   }
 
-  const handleCopy = (content: string) => {
-    navigator.clipboard.writeText(content)
-    toast('클립보드에 복사되었습니다', 'success')
+  const handleCopy = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      toast('클립보드에 복사되었습니다', 'success')
+    } catch {
+      toast('복사에 실패했습니다', 'error')
+    }
+  }
+
+  const handleShare = async (letter: CoverLetter) => {
+    const result = await shareOrCopy({
+      title: `${letter.company || '회사 미지정'} — ${letter.position || '포지션 미지정'} 자기소개서`,
+      text: letter.content,
+    })
+    const { text, tone } = shareResultMessage(result)
+    if (text) toast(text, tone)
   }
 
   const getSnippet = (content: string) => {
@@ -232,8 +262,8 @@ export default function MyCoverLettersPage() {
             ) : (
               <div className="stagger-children grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* List */}
-                <div className="lg:col-span-1 space-y-2">
-                  {filteredLetters.map((l) => (
+                <div className="lg:col-span-1 space-y-2" role="listbox" aria-label="자소서 목록">
+                  {filteredLetters.map((l, i) => (
                     <div key={l.id} className="flex items-start gap-2">
                       {batchMode && (
                         <input
@@ -244,6 +274,12 @@ export default function MyCoverLettersPage() {
                         />
                       )}
                       <button
+                        ref={(el) => {
+                          itemRefs.current[i] = el
+                        }}
+                        role="option"
+                        aria-selected={selectedId === l.id && !batchMode}
+                        onKeyDown={(e) => handleListKeyDown(e, i)}
                         onClick={() => !batchMode && setSelectedId(l.id)}
                         className={`flex-1 text-left p-3 rounded-xl border transition-all duration-200 ${
                           selectedId === l.id && !batchMode
@@ -294,6 +330,12 @@ export default function MyCoverLettersPage() {
                             className="text-xs px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
                           >
                             복사
+                          </button>
+                          <button
+                            onClick={() => handleShare(selected)}
+                            className="text-xs px-3 py-1 bg-slate-50 dark:bg-slate-700/40 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                          >
+                            공유
                           </button>
                           <button
                             onClick={() => handleDelete(selected.id)}
