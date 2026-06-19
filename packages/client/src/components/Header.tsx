@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import GlobalSearch from '@/components/GlobalSearch'
+import { MemberAuthControl } from '@/components/MemberAuthControl'
 import NotificationBell from '@/components/NotificationBell'
 import { fetchFollowers, fetchFollowing } from '@/lib/api'
 import { getUser, setAuth, getToken, clearAuth } from '@/lib/auth'
@@ -647,6 +648,9 @@ export default function Header() {
                   </option>
                 ))}
               </select>
+              {/* 통합 회원 로그인(Firebase) — 기존 백엔드 JWT 로그인과 별개의 추가 진입점.
+                  env(VITE_FIREBASE_*) 설정 시 동작하고, 미설정이면 액션이 친절히 안내한다. */}
+              <MemberAuthControl className="hidden xl:flex" />
               {user ? (
                 <div className="relative">
                   <button
@@ -1179,6 +1183,11 @@ export default function Header() {
                 >
                   {themeIcon} {themeLabel}
                 </button>
+              </div>
+              {/* 통합 회원 로그인(Firebase) — 모바일 진입점. */}
+              <div className="border-t border-slate-100 dark:border-slate-700 my-1.5" />
+              <div className="px-3 py-2">
+                <MemberAuthControl />
               </div>
             </nav>
           )}

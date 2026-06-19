@@ -16,7 +16,8 @@
   "dependencies": {
     "@heejun/deskcloud": "^0.1.0",
     "@resume/shared": "workspace:*",
-    "date-fns": "^4.4.0"
+    "date-fns": "^4.4.0",
+    "firebase": "^12.15.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",

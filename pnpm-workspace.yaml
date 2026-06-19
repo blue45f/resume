@@ -15,6 +15,7 @@ allowBuilds:
   prisma: true
   protobufjs: true
   unrs-resolver: true
+  '@firebase/util': false
 onlyBuiltDependencies:
   - argon2
   - '@nestjs/core'
