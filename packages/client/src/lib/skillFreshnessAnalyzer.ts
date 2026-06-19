@@ -104,7 +104,7 @@ const LEGACY_SKILLS: LegacyDef[] = [
 
   // Aging — still used but declining
   {
-    re: /\bjQuery\b(?!\s*(?:UI|Mobile))?/i,
+    re: /\bjQuery\b(?!\s*(?:UI|Mobile))/i,
     skill: 'jQuery',
     age: 'aging',
     note: 'jQuery는 여전히 존재하나 SPA 프레임워크로 대체 추세',

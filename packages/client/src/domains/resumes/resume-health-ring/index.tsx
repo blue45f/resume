@@ -65,8 +65,10 @@ export default function ResumeHealthRing({ resumes }: Props) {
     if (!resumes.length) return null
     const scores = resumes.map(scoreResume)
     const avg = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-    const latest = resumes.reduce((prev, cur) =>
-      new Date(cur.updatedAt).getTime() > new Date(prev.updatedAt).getTime() ? cur : prev
+    const latest = resumes.reduce(
+      (prev, cur) =>
+        new Date(cur.updatedAt).getTime() > new Date(prev.updatedAt).getTime() ? cur : prev,
+      resumes[0]
     )
     const topResume = resumes[scores.indexOf(Math.max(...scores))] ?? resumes[0]
     return { avg, latest, topResume, count: resumes.length }

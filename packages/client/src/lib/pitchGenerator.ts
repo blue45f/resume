@@ -59,7 +59,7 @@ export function generatePitch(resume: Resume, options: PitchOptions = {}): strin
     sent2Parts.push(`${companyCount}개 조직에서 다양한 도메인 경험`)
   }
 
-  const sent2 = sent2Parts.length > 0 ? sent2Parts.join(', ') + (tone === 'casual' ? '.' : '.') : ''
+  const sent2 = sent2Parts.length > 0 ? `${sent2Parts.join(', ')}.` : ''
 
   // ── 3. 차별화 — 프로젝트·수상·자격증 중 가장 강한 한 건 ─────
   const sent3Parts: string[] = []

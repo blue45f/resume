@@ -34,7 +34,7 @@ export default function HomeLanding({
         <HomeHeroVisual />
         {/* main column — 헤드라인 + 카피 + CTA */}
         <div className="lg:col-span-8">
-          <div className="inline-flex items-center gap-2 mb-6 sm:mb-8 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700 dark:text-slate-300">
+          <div className="home-hero-enter home-hero-enter--eyebrow inline-flex items-center gap-2 mb-6 sm:mb-8 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-700 dark:text-slate-300">
             <span className="relative flex w-2 h-2" aria-hidden="true">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
@@ -43,19 +43,25 @@ export default function HomeLanding({
           </div>
 
           <h1 className="home-hero-title font-black text-slate-900 dark:text-slate-50 mb-6 tracking-[-0.035em] leading-[0.95] text-balance">
-            서류 합격률,
-            <br />
-            <span className="text-sky-700 dark:text-sky-400">데이터로</span> 올립니다.
+            <span className="home-hero-headline-line home-hero-headline-line--1">
+              <span>서류 합격률,</span>
+            </span>
+            <span className="home-hero-headline-line home-hero-headline-line--2">
+              <span>
+                <span className="home-hero-emphasis text-sky-700 dark:text-sky-400">데이터로</span>{' '}
+                올립니다.
+              </span>
+            </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed mb-9">
+          <p className="home-hero-enter home-hero-enter--copy text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-xl leading-relaxed mb-9">
             5종 AI 분석, 26개 직종 템플릿, 실시간 미리보기.{' '}
             <span className="text-slate-800 dark:text-slate-200 font-medium">
               합격으로 가는 거리를 가장 짧게.
             </span>
           </p>
 
-          <div className="home-hero-actions flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+          <div className="home-hero-actions home-hero-enter home-hero-enter--actions flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
             <Link
               to={ROUTES.resume.new}
               className="home-hero-cta home-hero-cta--primary btn-shine imp-btn inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold rounded-xl text-base shadow-sm focus-ring-accent"
@@ -99,7 +105,7 @@ export default function HomeLanding({
           </div>
 
           {/* 빠른 시작 옵션 — 신규 사용자가 처음부터 이력서 작성 부담을 느끼지 않도록 */}
-          <div className="home-hero-meta mb-10 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 dark:text-slate-400">
+          <div className="home-hero-meta home-hero-enter home-hero-enter--meta mb-10 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-600 dark:text-slate-400">
             <span className="home-hero-meta__title font-semibold text-slate-700 dark:text-slate-300">
               빠른 시작:
             </span>

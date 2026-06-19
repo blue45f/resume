@@ -73,7 +73,7 @@ export function extractKeywords(text: string, topN = 15): ExtractedKeyword[] {
   const tokens = t.match(/[가-힣]{2,}|[A-Za-z][A-Za-z0-9+#.-]{2,}/g)?.map((s) => s.trim()) ?? []
   const freq = new Map<string, number>()
   for (const tk of tokens) {
-    const lower = /[A-Za-z]/.test(tk) ? tk : tk
+    const lower = /[A-Za-z]/.test(tk) ? tk.toLowerCase() : tk
     if (KEYWORD_STOPWORDS.has(lower)) continue
     let normalized = lower
     if (/[가-힣]{3,}/.test(normalized)) {

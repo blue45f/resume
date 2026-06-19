@@ -535,7 +535,7 @@ export default function CommunityWritePage() {
     if (r.ok) {
       const data = await r.json()
       appendCommunityDemoLog(
-        isEdit ? 'post-submit' : 'post-submit',
+        'post-submit',
         isEdit ? '커뮤니티 글 수정 완료' : '커뮤니티 글 등록 완료',
         values.category
       )

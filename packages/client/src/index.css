@@ -3269,6 +3269,102 @@ button:active:not(:disabled) {
 .home-hero-title {
   font-size: clamp(2.5rem, 7vw, 5.25rem);
 }
+
+/* Hero entrance choreography — 첫 페인트 시 헤드라인이 줄별로 떠오르고
+   서브카피·CTA·메타가 순차 등장한다. 요소는 기본적으로 보이는 상태이며
+   (CLS 0, no-JS 안전), motion 은 prefers-reduced-motion: no-preference 에서만
+   더해진다. 곡선·강도는 DESIGN.md §6 (ease-out, bounce 금지) 를 따른다. */
+.home-hero-emphasis {
+  position: relative;
+  display: inline-block;
+}
+.home-hero-emphasis::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.04em;
+  height: 0.09em;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--color-accent) 70%, transparent),
+    var(--color-accent) 55%,
+    color-mix(in oklab, oklch(0.6847 0.14787 237.323) 80%, transparent)
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero-headline-line {
+    display: block;
+    clip-path: inset(0 0 -0.18em 0);
+  }
+  .home-hero-headline-line > span {
+    display: inline-block;
+    animation: homeHeroLineRise 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .home-hero-headline-line--1 > span {
+    animation-delay: 80ms;
+  }
+  .home-hero-headline-line--2 > span {
+    animation-delay: 220ms;
+  }
+  .home-hero-emphasis::after {
+    animation: homeHeroUnderlineDraw 640ms cubic-bezier(0.25, 1, 0.5, 1) 760ms both;
+  }
+  .home-hero-enter {
+    opacity: 0;
+    transform: translateY(0.55rem);
+    animation: homeHeroEnterRise 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .home-hero-enter--eyebrow {
+    animation-delay: 40ms;
+  }
+  .home-hero-enter--copy {
+    animation-delay: 380ms;
+  }
+  .home-hero-enter--actions {
+    animation-delay: 480ms;
+  }
+  .home-hero-enter--meta {
+    animation-delay: 580ms;
+  }
+}
+
+@keyframes homeHeroLineRise {
+  from {
+    opacity: 0;
+    transform: translateY(0.9em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes homeHeroEnterRise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes homeHeroUnderlineDraw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-hero-emphasis::after {
+    transform: scaleX(1);
+    opacity: 0.85;
+  }
+}
+
 .home-hero-stage::before {
   content: '';
   position: absolute;
@@ -10630,8 +10726,8 @@ button:active:not(:disabled) {
     min-height: 2.1rem;
   }
   .home-bottom-links {
-    gap-x: 1rem;
-    gap-y: 0.45rem;
+    column-gap: 1rem;
+    row-gap: 0.45rem;
   }
   .home-bottom-link {
     min-height: 2.25rem;

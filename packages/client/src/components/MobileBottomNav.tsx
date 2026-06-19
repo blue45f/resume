@@ -233,9 +233,8 @@ export default function MobileBottomNav() {
   const activeColor = isRecruiter
     ? 'text-sky-600 dark:text-sky-400'
     : 'text-blue-600 dark:text-blue-400'
-  const highlightGradient = isRecruiter
-    ? 'bg-sky-700 shadow-blue-600/30'
-    : 'bg-sky-700 shadow-blue-600/30'
+  // Signal Blue 단일 강조 (The One Signal Rule) — 역할과 무관하게 동일 톤.
+  const highlightGradient = 'bg-sky-700 shadow-sky-600/30'
 
   return (
     <nav className="mobile-bottom-nav no-print" aria-label="모바일 탐색">

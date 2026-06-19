@@ -91,7 +91,6 @@ export default function ReadabilityPanel({ resume }: Props) {
               unit={`/${m.sentenceCount} 문장`}
               ok={m.sentenceCount === 0 || m.passiveCount / m.sentenceCount < 0.15}
               hint="주도성 강조"
-              inverse
             />
           </div>
 
@@ -146,17 +145,15 @@ function MetricCard({
   unit,
   ok,
   hint,
-  inverse,
 }: {
   label: string
   value: string
   unit: string
   ok: boolean
   hint: string
-  inverse?: boolean
 }) {
-  // inverse=true 일 땐 ok=true 도 같은 색상 — passive 는 낮을수록 좋음.
-  const good = inverse ? ok : ok
+  // ok 는 호출부에서 지표 방향(예: 수동 표현은 낮을수록 좋음)에 맞춰 이미 계산되어 들어온다.
+  const good = ok
   return (
     <div
       className={`rounded-lg border px-3 py-2 ${

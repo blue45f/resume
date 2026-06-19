@@ -102,7 +102,7 @@ function ThemeSeparator({ themeId }: { themeId: string }) {
     case 'tech':
       return (
         <div className="my-5 font-mono text-[10px] text-slate-500 dark:text-slate-400 tracking-widest text-center select-none">
-          /* ─────────────────────────────── */
+          {'/* ─────────────────────────────── */'}
         </div>
       )
     case 'elegant':

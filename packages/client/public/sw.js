@@ -94,8 +94,11 @@ globalThis.addEventListener('fetch', (event) => {
   }
 })
 
-// Message handler: allow clients to request immediate update
+// Message handler: allow clients to request immediate update.
+// Only honor messages that originate from this exact origin (SW clients are
+// same-origin per spec; some clients post with an empty origin string).
 globalThis.addEventListener('message', (event) => {
+  if (event.origin && event.origin !== globalThis.location.origin) return
   if (event.data?.type === 'SKIP_WAITING') {
     globalThis.skipWaiting()
   }

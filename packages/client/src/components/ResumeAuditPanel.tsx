@@ -410,7 +410,7 @@ export default function ResumeAuditPanel({ resume, compact = false }: Props) {
         className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 mb-2 transition-colors"
       >
         <svg
-          className={`w-3.5 h-3.5 transition-transform ${showPassed ? 'rotate-0' : 'rotate-0'}`}
+          className="w-3.5 h-3.5 transition-transform"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

@@ -285,9 +285,7 @@ export default function ApplicationsPage() {
   // 연도 목록 추출
   const years = [
     ...new Set(apps.map((a) => (a.appliedDate || a.createdAt)?.slice(0, 4)).filter(Boolean)),
-  ]
-    .sort()
-    .reverse()
+  ].sort((a, b) => String(b).localeCompare(String(a)))
 
   const filtered = apps
     .filter((a) => !filter || a.status === filter)
@@ -1548,7 +1546,9 @@ export default function ApplicationsPage() {
                     const m = (a.appliedDate || a.createdAt || '').slice(0, 7)
                     if (m) monthlyMap[m] = (monthlyMap[m] || 0) + 1
                   })
-                  const months = Object.keys(monthlyMap).sort().slice(-6)
+                  const months = Object.keys(monthlyMap)
+                    .sort((a, b) => a.localeCompare(b))
+                    .slice(-6)
                   if (months.length < 2) return null
                   const max = Math.max(...months.map((m) => monthlyMap[m]))
                   const total = months.reduce((sum, m) => sum + monthlyMap[m], 0)
