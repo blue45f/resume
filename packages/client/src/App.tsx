@@ -93,6 +93,7 @@ const NotificationsPage = lazyRetry(() => import('@/pages/NotificationsPage'))
 const ShortLinkPage = lazyRetry(() => import('@/pages/ShortLinkPage'))
 const FollowListPage = lazyRetry(() => import('@/pages/FollowListPage'))
 const FeedbackPage = lazyRetry(() => import('@/pages/FeedbackPage'))
+const SupportPage = lazyRetry(() => import('@/pages/SupportPage'))
 const SitemapPage = lazyRetry(() => import('@/pages/SitemapPage'))
 const CompanyPage = lazyRetry(() => import('@/pages/CompanyPage'))
 const CommunityPage = lazyRetry(() => import('@/pages/CommunityPage'))
@@ -472,6 +473,14 @@ export default function App() {
                       element={
                         <Suspense fallback={<PageLoader />}>
                           <FeedbackPage />
+                        </Suspense>
+                      }
+                    />
+                    <Route
+                      path="/support"
+                      element={
+                        <Suspense fallback={<PageLoader />}>
+                          <SupportPage />
                         </Suspense>
                       }
                     />

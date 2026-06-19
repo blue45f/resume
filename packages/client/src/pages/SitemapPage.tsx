@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import { tx } from '@/lib/i18n'
-import { TERMSDESK_URLS } from '@/lib/routes'
+import { ROUTES } from '@/lib/routes'
 
 const SITEMAP = [
   {
@@ -178,9 +178,9 @@ const SITEMAP = [
       { to: '/terms', label: '이용약관', desc: '서비스 이용 약관' },
       { to: '/privacy', label: '개인정보처리방침', desc: 'PIPA 준수 데이터 처리 정책' },
       {
-        to: `${TERMSDESK_URLS.support}?category=bug`,
-        label: '버그 제보',
-        desc: 'TermsDesk 공식 지원 보드',
+        to: ROUTES.support,
+        label: '문의',
+        desc: '제휴·버그·의견·이용 문의 게시판',
       },
     ],
   },

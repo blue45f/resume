@@ -36,6 +36,7 @@ export const ROUTES = {
   pricing: '/pricing',
   help: '/help',
   feedback: '/feedback',
+  support: '/support',
   stats: '/stats',
   design: '/design',
 

@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import { tx } from '@/lib/i18n'
-import { ROUTES, TERMSDESK_URLS } from '@/lib/routes'
+import { ROUTES } from '@/lib/routes'
 
 /**
  * 심플 Footer — 메뉴는 GNB로 집중, Footer는 법률·회사 정보만.
@@ -48,30 +48,9 @@ export default function Footer() {
             <Link to={ROUTES.privacy} className="link-underline-reveal transition-colors">
               {tx('footer.privacy')}
             </Link>
-            <a
-              href={`${TERMSDESK_URLS.support}?category=site-inquiry`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-underline-reveal transition-colors"
-            >
-              문의하기
-            </a>
-            <a
-              href={`${TERMSDESK_URLS.support}?category=partnership`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-underline-reveal transition-colors"
-            >
-              제휴 문의
-            </a>
-            <a
-              href={`${TERMSDESK_URLS.support}?category=bug`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="link-underline-reveal transition-colors"
-            >
-              버그 제보
-            </a>
+            <Link to={ROUTES.support} className="link-underline-reveal transition-colors">
+              문의
+            </Link>
             <Link to={ROUTES.feedback} className="link-underline-reveal transition-colors">
               {tx('footer.feedback')}
             </Link>
