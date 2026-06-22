@@ -20,7 +20,7 @@
     "firebase": "^12.15.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.7",
+    "@babel/core": "^8.0.1",
     "@capacitor/android": "^8.4.1",
     "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.4.0",
