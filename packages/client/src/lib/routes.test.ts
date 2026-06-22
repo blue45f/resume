@@ -13,10 +13,10 @@ describe('ROUTES', () => {
     expect(ROUTES.terms).toBe('/terms')
     expect(ROUTES.privacy).toBe('/privacy')
     expect(TERMSDESK_URLS).toEqual({
-      terms: 'https://termsdesk.vercel.app/p/resume/terms-of-service',
-      privacy: 'https://termsdesk.vercel.app/p/resume/privacy-policy',
-      refund: 'https://termsdesk.vercel.app/p/resume/refund-policy',
-      support: 'https://termsdesk.vercel.app/support/resume',
+      terms: 'https://desk-platform.vercel.app/termsdesk/p/resume/terms-of-service',
+      privacy: 'https://desk-platform.vercel.app/termsdesk/p/resume/privacy-policy',
+      refund: 'https://desk-platform.vercel.app/termsdesk/p/resume/refund-policy',
+      support: 'https://desk-platform.vercel.app/termsdesk/support/resume',
     })
   })
 

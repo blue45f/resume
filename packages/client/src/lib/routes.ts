@@ -12,7 +12,7 @@
  */
 
 // ─── 공통 ────────────────────────────────────────
-export const TERMSDESK_BASE = 'https://termsdesk.vercel.app'
+export const TERMSDESK_BASE = 'https://desk-platform.vercel.app/termsdesk'
 
 /**
  * TermsDesk 외부 URL — 약관/방침 원문(정본) 페이지와 지원 보드.

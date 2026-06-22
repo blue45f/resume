@@ -7,10 +7,10 @@ import { TERMSDESK_URLS } from '@/lib/routes'
 describe('policy URLs', () => {
   it('builds the TermsDesk public API URL per slug', () => {
     expect(policyApiUrl('terms-of-service')).toBe(
-      'https://termsdesk.vercel.app/api/public/resume/policies/terms-of-service'
+      'https://desk-platform.vercel.app/termsdesk/api/public/resume/policies/terms-of-service'
     )
     expect(policyApiUrl('privacy-policy')).toBe(
-      'https://termsdesk.vercel.app/api/public/resume/policies/privacy-policy'
+      'https://desk-platform.vercel.app/termsdesk/api/public/resume/policies/privacy-policy'
     )
   })
 
