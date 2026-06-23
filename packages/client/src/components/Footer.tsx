@@ -97,7 +97,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100/50 dark:border-slate-800/50 pt-3">
-            <span>© {new Date().getFullYear()} 이력서공방. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} 이력서공방 (Beta). All rights reserved.</span>
             <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
               PIPA 준수 · SSL 보안 적용
             </span>
