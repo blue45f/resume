@@ -76,9 +76,32 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Copyright line (mobile visible) */}
-        <div className="mt-3 pt-3 sm:hidden text-center text-[10px] text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800">
-          {tx('footer.copyright')}
+        {/* Business Registration Details Grid */}
+        <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 dark:text-slate-500 leading-relaxed">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="font-semibold text-slate-500 dark:text-slate-400">상호: 에이치준랩스</p>
+              <p>대표자: 김희준 | 개인정보보호책임자: 김희준</p>
+            </div>
+            <div>
+              <p>사업자등록번호: 355-07-03473</p>
+              <p>주소: 서울특별시 송파구 가락로34길 13, 101호(방이동)</p>
+            </div>
+            <div>
+              <p>이메일: blue45f@gmail.com</p>
+              <p>전화번호: 010-3873-4197</p>
+            </div>
+            <div>
+              <p>호스팅 서비스: GCP Cloud Run (API) + Vercel (Frontend)</p>
+              <p>플랫폼 형태: AI 기반 이력서 공방 및 첨삭 서비스</p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100/50 dark:border-slate-800/50 pt-3">
+            <span>© {new Date().getFullYear()} 이력서공방. All rights reserved.</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              PIPA 준수 · SSL 보안 적용
+            </span>
+          </div>
         </div>
       </div>
     </footer>
