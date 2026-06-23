@@ -2,7 +2,6 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, type ComponentType } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
-
 import AnnouncementBanner from '@/components/AnnouncementBanner'
 import AuthGuard from '@/components/AuthGuard'
 import CommandPalette from '@/components/CommandPalette'
