@@ -2,6 +2,8 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { lazy, Suspense, useEffect, type ComponentType } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
+import { IntroSplash } from '@/components/IntroSplash'
+
 import AnnouncementBanner from '@/components/AnnouncementBanner'
 import AuthGuard from '@/components/AuthGuard'
 import CommandPalette from '@/components/CommandPalette'
@@ -160,6 +162,7 @@ export default function App() {
               <PromptProvider>
                 <OfflineBanner />
                 <BrowserRouter>
+                  <IntroSplash />
                   <ScrollReset />
                   <RouteAnnouncer />
                   <a

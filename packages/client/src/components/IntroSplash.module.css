@@ -1,0 +1,268 @@
+.splashOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #0b0f19; /* deep slate blue */
+  overflow: hidden;
+  user-select: none;
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.splashOverlay.hidden {
+  opacity: 0;
+  filter: blur(15px);
+  pointer-events: none;
+}
+
+.splashBg {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 40% 40%, rgba(37, 99, 235, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 60% 60%, rgba(124, 58, 237, 0.2) 0%, transparent 50%);
+  filter: blur(80px);
+  animation: bgPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes bgPulse {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(5%, 5%) scale(1.1);
+  }
+}
+
+.splashContent {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+}
+
+/* 3D Tilting Document Card */
+.document3D {
+  perspective: 1000px;
+  width: 140px;
+  height: 180px;
+  margin-bottom: 32px;
+}
+
+.documentCard {
+  width: 100%;
+  height: 100%;
+  background: rgba(17, 24, 39, 0.8);
+  border: 1.5px solid rgba(37, 99, 235, 0.5);
+  border-radius: 12px;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(37, 99, 235, 0.2),
+    inset 0 0 15px rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  position: relative;
+  transform-style: preserve-3d;
+  transform: rotateX(20deg) rotateY(-20deg) rotateZ(5deg);
+  animation: floatCard 4s ease-in-out infinite alternate;
+}
+
+@keyframes floatCard {
+  0% {
+    transform: rotateX(15deg) rotateY(-15deg) rotateZ(3deg) translateY(0);
+    border-color: rgba(37, 99, 235, 0.4);
+    box-shadow:
+      0 15px 30px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(37, 99, 235, 0.1);
+  }
+  100% {
+    transform: rotateX(25deg) rotateY(-25deg) rotateZ(8deg) translateY(-10px);
+    border-color: rgba(124, 58, 237, 0.6);
+    box-shadow:
+      0 25px 50px rgba(0, 0, 0, 0.6),
+      0 0 40px rgba(124, 58, 237, 0.3);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.avatarPlaceholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.2);
+  border: 1px solid rgba(37, 99, 235, 0.4);
+}
+
+.headerLines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lineLong {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 3px;
+  width: 0;
+  animation: growWidth 1.2s 0.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lineShort {
+  height: 6px;
+  background: rgba(37, 99, 235, 0.6);
+  border-radius: 3px;
+  width: 0;
+  animation: growWidth 1.2s 0.4s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bodyLine {
+  height: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  width: 0;
+}
+
+.bodyLine70 {
+  animation: growWidth70 1.2s 0.5s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bodyLine85 {
+  animation: growWidth85 1.2s 0.6s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bodyLine50 {
+  animation: growWidth50 1.2s 0.7s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badge {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  width: 32px;
+  height: 32px;
+  background: #10b981; /* emerald green */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  transform: translateZ(15px); /* pushes it forward in 3D */
+  opacity: 0;
+  animation: popBadge 0.6s 1.2s forwards cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes growWidth {
+  to {
+    width: 100%;
+  }
+}
+@keyframes growWidth70 {
+  to {
+    width: 70%;
+  }
+}
+@keyframes growWidth85 {
+  to {
+    width: 85%;
+  }
+}
+@keyframes growWidth50 {
+  to {
+    width: 50%;
+  }
+}
+
+@keyframes popBadge {
+  to {
+    opacity: 1;
+    transform: translateZ(15px) scale(1);
+  }
+}
+
+.splashTitle {
+  font-family: 'Pretendard Variable', system-ui, sans-serif;
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  color: #ffffff;
+  margin: 0;
+  text-indent: 0.15em;
+  animation: textSlideUp 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.accentText {
+  color: #2563eb;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.splashLine {
+  width: 0;
+  height: 2px;
+  background: #2563eb;
+  margin: 16px 0;
+  animation: growLine 1.4s 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.splashSubtitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.25em;
+  opacity: 0;
+  animation: fadeIn 1s 0.6s forwards ease-out;
+}
+
+@keyframes textSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+    filter: blur(5px);
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes growLine {
+  to {
+    width: 80px;
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
