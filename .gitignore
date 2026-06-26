@@ -52,3 +52,6 @@ storybook-static/
 
 # Claude worktrees (격리된 에이전트 작업 공간)
 .claude/worktrees/
+
+# 앱인토스(app-in-toss) 빌드 번들 — ait build 산출물(생성물이라 추적 제외)
+apps/toss/*.ait
