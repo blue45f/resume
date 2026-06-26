@@ -30,7 +30,7 @@ export const getResumeTagStyle = (tag: Tag): HomeCssVarStyle => ({
 export const DEFAULT_HIGHLIGHTS = [
   {
     title: 'AI 분석 5종 세트',
-    desc: 'ATS 통과율 검사, JD 매칭도 분석, 예상 면접 질문까지 - 서류 합격률을 높이는 데이터 기반 인사이트',
+    desc: 'ATS 통과율 검사, JD 매칭도 분석, 예상 면접 질문까지. 서류 합격률을 높이는 데이터 기반 인사이트',
     bg: 'bg-blue-50 dark:bg-blue-900/20',
   },
   {
