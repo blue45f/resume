@@ -28,7 +28,7 @@ jobs:
     env:
       GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Skip deployment when GCP credentials are not configured
         if: env.GCP_SA_KEY == ''
